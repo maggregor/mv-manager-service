@@ -9,11 +9,11 @@
 		<version>2.1.1.RELEASE</version>
 		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.spring.microservices</groupId>
-	<artifactId>spring-microservices</artifactId>
+	<groupId>com.alwaysmart</groupId>
+	<artifactId>alwaysmart-optimizer</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>spring-microservices</name>
-	<description>Demo project for Spring Boot with microservices</description>
+	<name>alwaysmart-optimizer</name>
+	<description>Determines the most relevant materialized views in a given BigQuery context.</description>
 
 	<properties>
 		<java.version>1.8</java.version>
