@@ -3,6 +3,9 @@ package com.alwaysmart.optimizer;
 import java.io.IOException;
 import java.util.Locale;
 
+import com.alwaysmart.optimizer.controllers.UserController;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
@@ -26,6 +29,9 @@ import org.springframework.web.servlet.i18n.AcceptHeaderLocaleResolver;
 @EnableConfigurationProperties
 public class OptimizerApplication implements CommandLineRunner {
 
+
+	private static Logger LOGGER = LoggerFactory.getLogger(OptimizerApplication.class);
+
 	@Autowired
 	private Environment env;
 
@@ -41,9 +47,9 @@ public class OptimizerApplication implements CommandLineRunner {
 
 	@Override
 	public void run(String... args) throws Exception {
-		System.out.println("FirstName using environment :" + env.getProperty("fullname.firstname"));
-		System.out.println("FirstName using @Value tag: " + firstName);
-		System.out.println("Server Port:" + serverPort);
+		LOGGER.info("FirstName using environment :" + env.getProperty("fullname.firstname"));
+		LOGGER.info("FirstName using @Value tag: " + firstName);
+		LOGGER.info("Server Port:" + serverPort);
 	}
 
 	/**
