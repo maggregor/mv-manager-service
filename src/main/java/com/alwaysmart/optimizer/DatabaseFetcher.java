@@ -4,9 +4,9 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * DataWarehouse fetcher interface
+ * Database fetcher interface
  */
-public interface DataWarehouseFetcher {
+public interface DatabaseFetcher {
 
 	/**
 	 * Returns history queries for a given dataset.

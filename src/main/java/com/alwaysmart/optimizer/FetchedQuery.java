@@ -2,7 +2,7 @@ package com.alwaysmart.optimizer;
 
 /**
  * Represent a fetched query from data warehouse fetching process.
- * @see DataWarehouseFetcher
+ * @see DatabaseFetcher
  */
 public class FetchedQuery {
 

@@ -10,5 +10,4 @@ public class AggregateField extends Field {
 		// Cardinality of an aggregate is always 1.
 		this.setCardinality(1);
 	}
-
 }

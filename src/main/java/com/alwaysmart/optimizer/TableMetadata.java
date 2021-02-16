@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Structure of DataWarehouse table.
+ * Structure of table.
  * Hold schema name, table name and column with their types and names.
  */
 public class TableMetadata {
