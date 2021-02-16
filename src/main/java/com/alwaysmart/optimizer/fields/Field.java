@@ -1,5 +1,9 @@
-package com.alwaysmart.optimizer;
+package com.alwaysmart.optimizer.fields;
 
+/**
+ * Represents a field in sql query.
+ * Can be a function, an aggregate or reference to a column.
+ */
 public abstract class Field {
 
 	private String name;

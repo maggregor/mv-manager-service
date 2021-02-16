@@ -7,14 +7,14 @@ import java.util.Map;
  * Structure of DataWarehouse table.
  * Hold schema name, table name and column with their types and names.
  */
-public class TableMetadataVO {
+public class TableMetadata {
 
 	private String schema;
 	private String table;
 	/* The columns of the table. Key = name, Value = Type */
 	private Map<String, String> columns = new HashMap<>();
 
-	public TableMetadataVO(String schema, String table) {
+	public TableMetadata(String schema, String table) {
 		this.schema = schema;
 		this.table = table;
 	}
