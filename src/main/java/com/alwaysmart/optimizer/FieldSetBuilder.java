@@ -1,6 +1,4 @@
 package com.alwaysmart.optimizer;
 
-public class OptimizeContext {
-
-
+public interface FieldSetBuilder {
 }
