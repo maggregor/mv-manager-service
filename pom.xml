@@ -108,8 +108,24 @@
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-rest-hal-browser</artifactId>
 		</dependency>
-
-
+		<!-- https://mvnrepository.com/artifact/com.google.zetasql/zetasql-client -->
+		<dependency>
+			<groupId>com.google.zetasql</groupId>
+			<artifactId>zetasql-client</artifactId>
+			<version>2020.10.1</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.google.zetasql/zetasql-types -->
+		<dependency>
+			<groupId>com.google.zetasql</groupId>
+			<artifactId>zetasql-types</artifactId>
+			<version>2020.10.1</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.google.zetasql/zetasql-jni-channel -->
+		<dependency>
+			<groupId>com.google.zetasql</groupId>
+			<artifactId>zetasql-jni-channel</artifactId>
+			<version>2020.10.1</version>
+		</dependency>
 	</dependencies>
 
 	<!-- This plugin will result in creating executable jar. -->

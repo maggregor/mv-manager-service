@@ -2,6 +2,7 @@ package com.alwaysmart.optimizer;
 
 import java.io.IOException;
 import java.util.Locale;
+import java.util.logging.Level;
 
 import com.alwaysmart.optimizer.controllers.UserController;
 import org.slf4j.Logger;
@@ -41,7 +42,7 @@ public class OptimizerApplication implements CommandLineRunner {
 	@Value("${fullname.firstname}")
 	private String firstName;
 
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) {
 		SpringApplication.run(OptimizerApplication.class, args);
 	}
 

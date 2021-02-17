@@ -7,12 +7,12 @@ package com.alwaysmart.optimizer;
 public class FetchedQuery {
 
 	// SQL Statement
-	private String sql;
+	private String statement;
 	// Statistics
 	private long scannedBytes;
 
-	public FetchedQuery(String sql) {
-		this.sql = sql;
+	public FetchedQuery(String statement) {
+		this.statement = statement;
 	}
 
 	public long getScannedBytes() {
@@ -23,11 +23,11 @@ public class FetchedQuery {
 		this.scannedBytes = scannedBytes;
 	}
 
-	public String getSql() {
-		return sql;
+	public String getStatement() {
+		return statement;
 	}
 
-	public void setSql(String sql) {
-		this.sql = sql;
+	public void setStatement(String statement) {
+		this.statement = statement;
 	}
 }
