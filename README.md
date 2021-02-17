@@ -1,4 +1,4 @@
-![Cloud Build](https://storage.googleapis.com/goptimal-badges/builds/optimizer/branches/badge.svg)
+![Cloud Build](https://storage.googleapis.com/goptimal-badges/builds/optimizer/branches/master.svg)
 
 # Optimizer
 Determines the most relevant materialized views in a given BigQuery context.
