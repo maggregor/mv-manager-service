@@ -2,7 +2,7 @@ package com.alwaysmart.optimizer;
 
 import com.alwaysmart.optimizer.fields.FieldSet;
 
-import java.util.Collection;
+import java.util.List;
 
 /**
  * FieldSetBuilder create field set ready to be optimized.
@@ -12,10 +12,20 @@ import java.util.Collection;
 public interface FieldSetExtract {
 
 	/**
-	 * Extract all fields from sql statement and returns FieldSet.
+	 * Extract all fields from each sql statements and returns each FieldSet.
 	 *
-	 * @param fetchedQueries - all queries
+	 * @param fetchedQueries - the queries
 	 * @return
 	 */
-	Collection<FieldSet> extract(Collection<FetchedQuery> fetchedQueries);
+	List<FieldSet> extract(List<FetchedQuery> fetchedQueries);
+
+
+
+	/**
+	 * Extract all fields from the sql statement and returns FieldSet.
+	 *
+	 * @param fetchedQueries - the query
+	 * @return
+	 */
+	FieldSet extract(FetchedQuery fetchedQueries);
 }
