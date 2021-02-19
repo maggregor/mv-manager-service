@@ -6,8 +6,8 @@ package com.alwaysmart.optimizer.fields;
 public class AggregateField extends Field {
 
 	public AggregateField(String name) {
-		super(name);
 		// Cardinality of an aggregate is always 1.
-		this.setCardinality(1);
+		// Because of no-effect on table cardinality with an aggregate field.
+		super(name, 1);
 	}
 }

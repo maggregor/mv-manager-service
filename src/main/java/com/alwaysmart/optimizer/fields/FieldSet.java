@@ -1,79 +1,47 @@
 package com.alwaysmart.optimizer.fields;
 
-import com.google.common.annotations.VisibleForTesting;
+import java.util.List;
 
-import java.util.LinkedHashSet;
-import java.util.Objects;
-import java.util.Set;
+/**
+ * Represent set of SQL fields.
+ * @see FieldSet
+ */
+public interface FieldSet {
 
-public class FieldSet {
+	/**
+	 * The fields which this set of fields handle.
+	 *
+	 * @return the fields this set of fields handle.
+	 */
+	List<Field> fields();
 
-	private Set<Field> fields = new LinkedHashSet<>();
-	private long scanned;
-	private long hits;
+	/**
+	 * The potential total of scanned bytes coverable by this set of field.
+	 *
+	 * @return the potential total of scanned bytes coverable by this set of
+	 * field.
+	 */
+	long scannedBytesMb();
 
-	public FieldSet() {
 
-	}
+	/**
+	 * The potential number of usage this set of field has received.
+	 *
+	 * @return the potential number of usage this set of field has received.
+	 */
+	int hits();
 
-	@VisibleForTesting
-	public FieldSet(Field field) {
-		this.fields.add(field);
-	}
+	/**
+	 * The field at given index in the field set.
+	 *
+	 * @return the field at given index in the field set.
+	 */
+	Field fieldAt(int index);
 
-	public FieldSet(Set<Field> fields) {
-		this.fields = fields;
-	}
-
-	public Set<Field> getFields() {
-		return fields;
-	}
-
-	public void setFields(Set<Field> fields) {
-		this.fields = fields;
-	}
-
-	public long getScanned() {
-		return scanned;
-	}
-
-	public void setScanned(long scanned) {
-		this.scanned = scanned;
-	}
-
-	public long getHits() {
-		return hits;
-	}
-
-	public void setHits(long hits) {
-		this.hits = hits;
-	}
-
-	public void addField(Field field) {
-		this.fields.add(field);
-	}
-
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
-		FieldSet fieldSet = (FieldSet) o;
-		return scanned == fieldSet.scanned &&
-				hits == fieldSet.hits &&
-				Objects.equals(fields, fieldSet.fields);
-	}
-
-	@Override
-	public int hashCode() {
-		return Objects.hash(fields, scanned, hits);
-	}
-
-	@Override
-	public String toString() {
-		return "FieldSet{" +
-				"fields=" + fields +
-				", scanned=" + scanned +
-				", hits=" + hits +
-				'}';
-	}
+	/**
+	 * Add new Field to the field set.
+	 *
+	 * @return
+	 */
+	void add(Field field);
 }

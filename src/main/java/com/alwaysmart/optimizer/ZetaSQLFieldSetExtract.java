@@ -2,6 +2,7 @@ package com.alwaysmart.optimizer;
 
 import com.alwaysmart.optimizer.fields.Field;
 import com.alwaysmart.optimizer.fields.FieldSet;
+import com.alwaysmart.optimizer.fields.FieldSetFactory;
 import com.alwaysmart.optimizer.fields.ReferenceField;
 import com.google.zetasql.Analyzer;
 import com.google.zetasql.AnalyzerOptions;
@@ -22,45 +23,44 @@ import java.util.Map;
 public class ZetaSQLFieldSetExtract implements FieldSetExtract {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ZetaSQLFieldSetExtract.class);
+	private final AnalyzerOptions options = new AnalyzerOptions();
+	private SimpleCatalog catalog;
 
-	@Override
-	public FieldSet extract(FetchedQuery fetchedQuery, TableMetadata metadata) {
-		AnalyzerOptions options = new AnalyzerOptions();
-		SimpleCatalog catalog = new SimpleCatalog(metadata.getSchema());
-		catalog.addZetaSQLFunctions(new ZetaSQLBuiltinFunctionOptions());
-		SimpleTable simpleTable = new SimpleTable(metadata.getTable());
-		FieldSet fieldSet = new FieldSet();
 
-		for(Map.Entry<String, String> column : metadata.getColumns().entrySet()) {
-			String name = column.getKey();
-			String typeName = column.getValue();
+	public ZetaSQLFieldSetExtract(final TableMetadata metadata) {
+		initializeCatalog(metadata);
+	}
+
+	private void initializeCatalog(TableMetadata metadata) {
+		this.catalog = new SimpleCatalog(metadata.schema());
+		this.catalog.addZetaSQLFunctions(new ZetaSQLBuiltinFunctionOptions());
+		SimpleTable simpleTable = new SimpleTable(metadata.table());
+		for(Map.Entry<String, String> column : metadata.columns().entrySet()) {
+			final String name = column.getKey();
+			final String typeName = column.getValue();
 			ZetaSQLType.TypeKind typeKind = ZetaSQLType.TypeKind.valueOf("TYPE_" + typeName.toUpperCase());
 			Type type = TypeFactory.createSimpleType(typeKind);
 			simpleTable.addSimpleColumn(name, type);
-
 		}
-
-		catalog.addSimpleTable(simpleTable);
-		Analyzer analyzer = new Analyzer(options, catalog);
-		ResolvedNodes.ResolvedStatement statement = analyzer.analyzeStatement(fetchedQuery.getStatement());
-		statement.accept(new ResolvedNodes.Visitor(){
-			public void visit(ResolvedNodes.ResolvedOutputColumn node) {
-				Field field = new ReferenceField(node.getName());
-				fieldSet.addField(field);
-				super.visit(node);
-			}
-		});
-		return fieldSet;
+		this.catalog.addSimpleTable(simpleTable);
 	}
 
-
 	@Override
-	public List<FieldSet> extract(List<FetchedQuery> fetchedQueries, TableMetadata metadata) {
+	public List<FieldSet> extract(List<FetchedQuery> fetchedQueries) {
 		List<FieldSet> fieldSets = new LinkedList<>();
 		for (FetchedQuery query : fetchedQueries) {
-			fieldSets.add(extract(query, metadata));
+			fieldSets.add(extract(query));
 		}
 		return fieldSets;
+	}
+
+	@Override
+	public FieldSet extract(FetchedQuery fetchedQuery) {
+		Analyzer analyzer = new Analyzer(options, catalog);
+		ResolvedNodes.ResolvedStatement statement = analyzer.analyzeStatement(fetchedQuery.statement());
+		ZetaSQLFieldSetExtractVisitor extractVisitor = new ZetaSQLFieldSetExtractVisitor();
+		statement.accept(extractVisitor);
+		return extractVisitor.fields();
 	}
 
 }

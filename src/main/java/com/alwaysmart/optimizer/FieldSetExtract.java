@@ -17,7 +17,7 @@ public interface FieldSetExtract {
 	 * @param fetchedQueries - the queries
 	 * @return
 	 */
-	List<FieldSet> extract(List<FetchedQuery> fetchedQueries, TableMetadata metadata);
+	List<FieldSet> extract(List<FetchedQuery> fetchedQueries);
 
 
 
@@ -27,5 +27,5 @@ public interface FieldSetExtract {
 	 * @param fetchedQueries - the query
 	 * @return
 	 */
-	FieldSet extract(FetchedQuery fetchedQueries, TableMetadata metadata);
+	FieldSet extract(FetchedQuery fetchedQueries);
 }

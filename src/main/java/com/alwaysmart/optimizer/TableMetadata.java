@@ -1,38 +1,34 @@
 package com.alwaysmart.optimizer;
 
-import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Structure of table.
- * Hold schema name, table name and column with their types and names.
+ * Represents a single table from database with metadata.
  */
-public class TableMetadata {
+public interface TableMetadata {
 
-	private String schema;
-	private String table;
-	/* The columns of the table. Key = name, Value = Type */
-	private Map<String, String> columns = new HashMap<>();
+	/**
+	 * The schema name of the table on which metadata was retrieved.
+	 * Example: {@code default}
+	 *
+	 * @return the schema name of the table on which metadata was retrieved.
+	 */
+	String schema();
 
-	public TableMetadata(String schema, String table) {
-		this.schema = schema;
-		this.table = table;
-	}
+	/**
+	 * The name of the table on which metadata was retrieved.
+	 * Example: {@code my_table}
+	 *
+	 * @return the name of the table on which metadata was retrieved.
+	 */
+	String table();
 
-	public String getSchema() {
-		return this.schema;
-	}
-
-	public String getTable() {
-		return this.table;
-	}
-
-	public Map<String, String> getColumns() {
-		return this.columns;
-	}
-
-	public void addColumn(String name, String type) {
-		columns.put(name, type);
-	}
+	/**
+	 * The name and type of the columns of the table.
+	 * Example: {@code [{col1, STRING}, {col2, INTEGER}]
+	 *
+	 * @return the name and type of the columns of the table.
+	 */
+	Map<String, String> columns();
 
 }

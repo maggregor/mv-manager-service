@@ -11,24 +11,21 @@ public abstract class Field {
 	private String expression;
 	private int cardinality;
 
-	public Field(String expression) {
-		this.expression = expression;
+	Field(String expression) {
+		this(expression, 1);
 	}
 
-	public String getName() {
+	Field(String expression, int cardinality) {
+		this.expression = expression;
+		this.cardinality = cardinality;
+	}
+
+	public String name() {
 		return expression;
 	}
 
-	public void setName(String name) {
-		this.expression = name;
-	}
-
-	public int getCardinality() {
-		return cardinality;
-	}
-
-	public void setCardinality(int cardinality) {
-		this.cardinality = cardinality;
+	public int cardinality() {
+		return this.cardinality;
 	}
 
 	@Override
@@ -36,12 +33,19 @@ public abstract class Field {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
 		Field field = (Field) o;
-		return cardinality == field.cardinality &&
-				Objects.equals(expression, field.expression);
+		return Objects.equals(expression, field.expression);
 	}
 
 	@Override
 	public int hashCode() {
 		return Objects.hash(expression, cardinality);
+	}
+
+	@Override
+	public String toString() {
+		return "Field{" +
+				"expression='" + expression + '\'' +
+				", cardinality=" + cardinality +
+				'}';
 	}
 }

@@ -126,6 +126,13 @@
 			<artifactId>zetasql-jni-channel</artifactId>
 			<version>2020.10.1</version>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.google.zetasql/zetasql-jni-channel-darwin -->
+		<dependency>
+			<groupId>com.google.zetasql</groupId>
+			<artifactId>zetasql-jni-channel-darwin</artifactId>
+			<version>2020.10.1</version>
+		</dependency>
+
 	</dependencies>
 
 	<!-- This plugin will result in creating executable jar. -->
