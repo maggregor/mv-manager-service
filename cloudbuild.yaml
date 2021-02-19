@@ -8,9 +8,6 @@ steps:
 # - name: gcr.io/cloud-builders/docker
 #   args: ['build', '-t', 'gcr.io/goptimal/optimizer', '--build-arg=JAR_FILE=target/alwaysmart-optimizer-0.0.1-SNAPSHOT.jar', '.']
 # images: ['gcr.io/goptimal/optimizer']
-- name: maven:3-openjdk-8
-  entrypoint: mvn
-  args: ['cobertura:cobertura']
 - name: 'gcr.io/cloud-builders/curl'
   entrypoint: bash
   args: ['-c', 'bash <(curl -s https://codecov.io/bash)']
