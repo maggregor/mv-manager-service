@@ -11,8 +11,9 @@ public class ZetaSQLFieldSetExtractVisitor extends ResolvedNodes.Visitor {
 	private static final String COLUMN_PREFIX_TO_SKIP = "$";
 	private FieldSet fieldSet = new DefaultFieldSet();
 
+	@Override
 	protected void defaultVisit(ResolvedNode node) {
-		super.defaultVisit(node);
+			super.defaultVisit(node);
 	}
 
 	/**
@@ -21,13 +22,22 @@ public class ZetaSQLFieldSetExtractVisitor extends ResolvedNodes.Visitor {
 	 *
 	 * @param node
 	 */
+	@Override
 	public void visit(ResolvedNodes.ResolvedOutputColumn node) {
-		fieldSet.add(new ReferenceField(node.getName()));
+		final String columnName = node.getColumn().getName();
+		fieldSet.add(new ReferenceField(columnName));
 		super.visit(node);
 	}
 
+	@Override
 	public void visit(ResolvedNodes.ResolvedColumnRef node) {
-		fieldSet.add(new ReferenceField(node.getColumn().getName()));
+		final String referenceName = node.getColumn().getName();
+		fieldSet.add(new ReferenceField(referenceName));
+		super.visit(node);
+	}
+
+	@Override
+	public void visit(ResolvedNodes.ResolvedFunctionCall node) {
 		super.visit(node);
 	}
 
@@ -37,6 +47,7 @@ public class ZetaSQLFieldSetExtractVisitor extends ResolvedNodes.Visitor {
 	 *
 	 * @param node
 	 */
+	@Override
 	public void visit(ResolvedNodes.ResolvedFilterScan node) {
 		node.getFilterExpr().accept(this);
 		super.visit(node);

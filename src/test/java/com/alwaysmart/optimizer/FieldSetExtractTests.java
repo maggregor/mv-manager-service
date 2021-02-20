@@ -1,9 +1,12 @@
 package com.alwaysmart.optimizer;
 
+import com.alwaysmart.optimizer.fields.DefaultFieldSet;
+import com.alwaysmart.optimizer.fields.Field;
 import com.alwaysmart.optimizer.fields.FieldSet;
 import com.alwaysmart.optimizer.fields.ReferenceField;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -35,39 +38,69 @@ public abstract class FieldSetExtractTests {
 	@Test
 	public void singleReference() {
 		final String query = "SELECT col1 FROM mytable";
-		final FieldSet expected = createFieldSet(new ReferenceField("col1"));
-		final FieldSet actual = statementToFieldSet(query, extractor);
-		assertExpectedFieldSet(expected, actual);
+		assertExpectedFieldSet(query, new ReferenceField("col1"));
 	}
 
 	@Test
 	public void multipleReferences() {
 		final String query = "SELECT col1, col2 FROM mytable";
-		final FieldSet expected = createFieldSet(
-				new ReferenceField("col1"),
-				new ReferenceField("col2")
-		);
-		final FieldSet actual = statementToFieldSet(query, extractor);
-		assertExpectedFieldSet(expected, actual);
+		assertExpectedFieldSet(query, new ReferenceField("col1"), new ReferenceField("col2"));
 	}
 
 	@Test
 	public void whereClauseSingleReference() {
-		final String query = "SELECT 'xxx' FROM mytable WHERE col2 = 'xxx'";
-		final FieldSet expected = createFieldSet(
-				new ReferenceField("col2")
-		);
-		final FieldSet actual = statementToFieldSet(query, extractor);
-		assertExpectedFieldSet(expected, actual);
+		final String query = "SELECT 'a' FROM mytable WHERE col1 = 'a'";
+		assertExpectedFieldSet(query, new ReferenceField("col1"));
 	}
 
 	@Test
 	public void whereClauseMultipleReferences() {
 		final String query = "SELECT 'xxx' FROM mytable WHERE col1 = 'xxx' AND col2 = 'yyy'";
-		final FieldSet expected = createFieldSet(
+		assertExpectedFieldSet(query, new ReferenceField("col1"), new ReferenceField("col2"));
+	}
+
+	@Test
+	public void groupByMultipleReferences() {
+		final String query = "SELECT col1, col2, col3, col4 FROM mytable GROUP BY col1, col2, col3, col4";
+		assertExpectedFieldSet(query,
 				new ReferenceField("col1"),
-				new ReferenceField("col2")
-		);
+				new ReferenceField("col2"),
+				new ReferenceField("col3"),
+				new ReferenceField("col4"));
+	}
+
+	@Test
+	public void simpleSubQueryReference() {
+		String query = "SELECT col1 FROM ( SELECT col1 FROM mytable )";
+		assertExpectedFieldSet(query, new ReferenceField("col1"));
+	}
+
+	@Test
+	public void simpleAliasSubQueryReference() {
+		final String query = "SELECT myalias FROM ( SELECT col1 as myalias FROM mytable )";
+		assertExpectedFieldSet(query, new ReferenceField("col1"));
+	}
+
+	@Test @Ignore
+	public void notExtractFromAggregate() {
+		String query = "SELECT SUM(col3) FROM mytable";
+		assertZeroFields(query);
+		query = "SELECT SUM(col3), SUM(1) FROM mytable";
+		assertZeroFields(query);
+		query = "SELECT SUM(col3) FROM mytable";
+		assertZeroFields(query);
+		query = "SELECT SUM(col3), col1 FROM mytable GROUP BY col1";
+		assertExpectedFieldSet(query, new ReferenceField("col1"));
+	}
+
+	private void assertZeroFields(String query) {
+		final FieldSet actual = statementToFieldSet(query, extractor);
+		Assert.assertEquals(new DefaultFieldSet(), actual);
+		Assert.assertTrue("Actual FieldSet should be empty", actual.fields().isEmpty());
+	}
+
+	private void assertExpectedFieldSet(String query, Field...fields) {
+		final FieldSet expected = createFieldSet(fields);
 		final FieldSet actual = statementToFieldSet(query, extractor);
 		assertExpectedFieldSet(expected, actual);
 	}
