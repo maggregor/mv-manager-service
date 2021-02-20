@@ -1,4 +1,4 @@
-![Cloud Build](https://storage.googleapis.com/goptimal-badges/builds/optimizer/branches/test.svg)
+![Cloud Build](https://storage.googleapis.com/goptimal-badges/builds/optimizer/branches/master.svg)
 [![codecov](https://codecov.io/gh/alwaysmartio/optimizer/branch/master/graph/badge.svg?token=QM96UTQZNZ)](https://codecov.io/gh/alwaysmartio/optimizer)
 
 # Optimizer
