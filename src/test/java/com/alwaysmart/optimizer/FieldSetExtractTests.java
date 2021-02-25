@@ -1,5 +1,6 @@
 package com.alwaysmart.optimizer;
 
+import com.alwaysmart.optimizer.fields.AggregateField;
 import com.alwaysmart.optimizer.fields.DefaultFieldSet;
 import com.alwaysmart.optimizer.fields.Field;
 import com.alwaysmart.optimizer.fields.FieldSet;
@@ -81,16 +82,12 @@ public abstract class FieldSetExtractTests {
 		assertExpectedFieldSet(query, new ReferenceField("col1"));
 	}
 
-	@Test @Ignore
+	@Test
 	public void notExtractFromAggregate() {
 		String query = "SELECT SUM(col3) FROM mytable";
-		assertZeroFields(query);
-		query = "SELECT SUM(col3), SUM(1) FROM mytable";
-		assertZeroFields(query);
-		query = "SELECT SUM(col3) FROM mytable";
-		assertZeroFields(query);
-		query = "SELECT SUM(col3), col1 FROM mytable GROUP BY col1";
-		assertExpectedFieldSet(query, new ReferenceField("col1"));
+		assertExpectedFieldSet(query, new AggregateField("SUM(col3)"));
+		query = "SELECT SUM(col3), SUM(col4) FROM mytable";
+		assertExpectedFieldSet(query, new AggregateField("SUM(col3)"), new AggregateField("SUM(col4)"));
 	}
 
 	private void assertZeroFields(String query) {

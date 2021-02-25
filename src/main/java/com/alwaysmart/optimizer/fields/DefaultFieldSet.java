@@ -51,6 +51,11 @@ public class DefaultFieldSet implements FieldSet {
 	}
 
 	@Override
+	public void merge(FieldSet fieldSet) {
+		fields.addAll(fieldSet.fields());
+	}
+
+	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;

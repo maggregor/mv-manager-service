@@ -1,20 +1,10 @@
 package com.alwaysmart.optimizer;
 
-import com.alwaysmart.optimizer.fields.DefaultFieldSet;
-import com.alwaysmart.optimizer.fields.FieldSet;
+import com.alwaysmart.optimizer.fields.AggregateField;
 import com.alwaysmart.optimizer.fields.ReferenceField;
-import com.google.zetasql.resolvedast.ResolvedNode;
 import com.google.zetasql.resolvedast.ResolvedNodes;
 
-public class ZetaSQLFieldSetExtractVisitor extends ResolvedNodes.Visitor {
-
-	private static final String COLUMN_PREFIX_TO_SKIP = "$";
-	private FieldSet fieldSet = new DefaultFieldSet();
-
-	@Override
-	protected void defaultVisit(ResolvedNode node) {
-			super.defaultVisit(node);
-	}
+public class ZetaSQLFieldSetExtractVisitor extends FieldSetExtractVisitor {
 
 	/**
 	 * Visit reference column in the select clause
@@ -25,19 +15,15 @@ public class ZetaSQLFieldSetExtractVisitor extends ResolvedNodes.Visitor {
 	@Override
 	public void visit(ResolvedNodes.ResolvedOutputColumn node) {
 		final String columnName = node.getColumn().getName();
-		fieldSet.add(new ReferenceField(columnName));
+		this.addField(new ReferenceField(columnName));
 		super.visit(node);
 	}
 
-	@Override
-	public void visit(ResolvedNodes.ResolvedColumnRef node) {
-		final String referenceName = node.getColumn().getName();
-		fieldSet.add(new ReferenceField(referenceName));
-		super.visit(node);
-	}
 
 	@Override
-	public void visit(ResolvedNodes.ResolvedFunctionCall node) {
+	public void visit(ResolvedNodes.ResolvedAggregateFunctionCall node) {
+		this.addField(new AggregateField(node.getFunction().getSqlName() +  "("
+				+ ((ResolvedNodes.ResolvedColumnRef)node.getArgumentList().get(0)).getColumn().getName() + ")"));
 		super.visit(node);
 	}
 
@@ -49,12 +35,10 @@ public class ZetaSQLFieldSetExtractVisitor extends ResolvedNodes.Visitor {
 	 */
 	@Override
 	public void visit(ResolvedNodes.ResolvedFilterScan node) {
-		node.getFilterExpr().accept(this);
+		ZetaSQLFieldSetExtractFilterVisitor visitor = new ZetaSQLFieldSetExtractFilterVisitor();
+		node.getFilterExpr().accept(visitor);
+		this.merge(visitor.fieldSet());
 		super.visit(node);
 	}
 
-	public FieldSet fields() {
-		this.fieldSet.fields().removeIf(field -> field.name().startsWith(COLUMN_PREFIX_TO_SKIP));
-		return this.fieldSet;
-	}
 }

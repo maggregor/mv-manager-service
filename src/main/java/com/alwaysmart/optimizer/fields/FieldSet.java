@@ -44,4 +44,10 @@ public interface FieldSet {
 	 * @return
 	 */
 	void add(Field field);
+
+	/**
+	 * Merge fields from a given FieldSet
+	 * @param fieldSet
+	 */
+	void merge(FieldSet fieldSet);
 }

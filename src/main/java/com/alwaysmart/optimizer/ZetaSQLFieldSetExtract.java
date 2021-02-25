@@ -1,9 +1,6 @@
 package com.alwaysmart.optimizer;
 
-import com.alwaysmart.optimizer.fields.Field;
 import com.alwaysmart.optimizer.fields.FieldSet;
-import com.alwaysmart.optimizer.fields.FieldSetFactory;
-import com.alwaysmart.optimizer.fields.ReferenceField;
 import com.google.zetasql.Analyzer;
 import com.google.zetasql.AnalyzerOptions;
 import com.google.zetasql.SimpleCatalog;
@@ -60,7 +57,7 @@ public class ZetaSQLFieldSetExtract implements FieldSetExtract {
 		ResolvedNodes.ResolvedStatement statement = analyzer.analyzeStatement(fetchedQuery.statement());
 		ZetaSQLFieldSetExtractVisitor extractVisitor = new ZetaSQLFieldSetExtractVisitor();
 		statement.accept(extractVisitor);
-		return extractVisitor.fields();
+		return extractVisitor.fieldSet();
 	}
 
 }
