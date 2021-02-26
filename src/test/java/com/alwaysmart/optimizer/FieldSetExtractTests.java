@@ -66,8 +66,7 @@ public abstract class FieldSetExtractTests {
 		assertExpectedFieldSet(query,
 				new ReferenceField("col1"),
 				new ReferenceField("col2"),
-				new ReferenceField("col3"),
-				new ReferenceField("col4"));
+				new ReferenceField("col3"));
 	}
 
 	@Test
