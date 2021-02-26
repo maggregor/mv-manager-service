@@ -1,21 +1,22 @@
 package com.alwaysmart.optimizer.fields;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class DefaultFieldSet implements FieldSet {
 
-	private List<Field> fields;
+	private Set<Field> fields;
 	private long scannedBytesMb;
 	private int hits;
 
 	public DefaultFieldSet() {
-		this(new LinkedList<>(), 0, 0);
+		this(new LinkedHashSet<>(), 0, 0);
 	}
 
 	public DefaultFieldSet(
-			final List<Field> fields,
+			final Set<Field> fields,
 			final long scannedBytes,
 			final int hits) {
 		this.fields = fields;
@@ -24,7 +25,7 @@ public class DefaultFieldSet implements FieldSet {
 	}
 
 	@Override
-	public List<Field> fields() {
+	public Set<Field> fields() {
 		return fields;
 	}
 
@@ -39,20 +40,23 @@ public class DefaultFieldSet implements FieldSet {
 	}
 
 	@Override
-	public Field fieldAt(int index) {
-		return this.fields.get(index);
-	}
-
-	@Override
 	public void add(Field field) {
-		if (!this.fields.contains(field)) {
-			this.fields.add(field);
-		}
+		this.fields.add(field);
 	}
 
 	@Override
 	public void merge(FieldSet fieldSet) {
 		fields.addAll(fieldSet.fields());
+	}
+
+	@Override
+	public Set<Field> aggregates() {
+		return this.fields.stream().filter(field -> field instanceof AggregateField).collect(Collectors.toSet());
+	}
+
+	@Override
+	public Set<Field> references() {
+		return this.fields.stream().filter(field -> field instanceof ReferenceField).collect(Collectors.toSet());
 	}
 
 	@Override

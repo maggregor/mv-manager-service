@@ -1,9 +1,14 @@
 package com.alwaysmart.optimizer;
 
 import com.alwaysmart.optimizer.fields.ReferenceField;
+import com.google.zetasql.SimpleCatalog;
 import com.google.zetasql.resolvedast.ResolvedNodes;
 
-public class ZetaSQLFieldSetExtractFilterVisitor extends FieldSetExtractVisitor {
+public class ZetaSQLFieldSetExtractFilterVisitor extends ZetaSQLFieldSetExtractVisitor {
+
+	public ZetaSQLFieldSetExtractFilterVisitor(SimpleCatalog catalog) {
+		super(catalog);
+	}
 
 	@Override
 	public void visit(ResolvedNodes.ResolvedColumnRef node) {

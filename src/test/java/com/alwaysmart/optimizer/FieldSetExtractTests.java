@@ -21,7 +21,7 @@ public abstract class FieldSetExtractTests {
 
 
 	private static final String[][] SIMPLE_TABLE_COLUMNS = new String[][]{
-			{"col1", "STRING"}, {"col2", "STRING"}, {"col3", "NUMERIC"}, {"col4", "NUMERIC"}
+			{"col1", "STRING"}, {"col2", "STRING"}, {"col3", "INT64"}, {"col4", "INT64"}
 	};
 
 
@@ -62,7 +62,7 @@ public abstract class FieldSetExtractTests {
 
 	@Test
 	public void groupByMultipleReferences() {
-		final String query = "SELECT col1, col2, col3, col4 FROM mytable GROUP BY col1, col2, col3, col4";
+		final String query = "SELECT col1, col2, col3 FROM mytable GROUP BY col1, col2, col3";
 		assertExpectedFieldSet(query,
 				new ReferenceField("col1"),
 				new ReferenceField("col2"),
@@ -83,14 +83,54 @@ public abstract class FieldSetExtractTests {
 	}
 
 	@Test
-	public void notExtractFromAggregate() {
+	public void extractAggregateWhichContainsOneColumn() {
 		String query = "SELECT SUM(col3) FROM mytable";
 		assertExpectedFieldSet(query, new AggregateField("SUM(col3)"));
-		query = "SELECT SUM(col3), SUM(col4) FROM mytable";
-		assertExpectedFieldSet(query, new AggregateField("SUM(col3)"), new AggregateField("SUM(col4)"));
 	}
 
-	private void assertZeroFields(String query) {
+	@Test
+	public void extractAggregateWhichContainsComplexExpression() {
+		String query = "SELECT SUM(col3 + col4) FROM mytable";
+		assertExpectedFieldSet(query, new AggregateField("SUM(col3 + col4)"));
+		query = "SELECT SUM(col4 + col3) FROM mytable";
+		assertExpectedFieldSet(query, new AggregateField("SUM(col4 + col3)"));
+	}
+
+	@Test
+	public void extractAggregatesAndReferences() {
+		String query;
+		query = "SELECT col1, MIN(col3) FROM mytable GROUP BY col1";
+		assertExpectedFieldSet(query,
+				new ReferenceField("col1"),
+				new AggregateField("MIN(col3)"));
+		query = "SELECT col1, MIN(col3) FROM mytable WHERE col1 = 'xxx' GROUP BY col1";
+		assertExpectedFieldSet(query,
+				new ReferenceField("col1"),
+				new AggregateField("MIN(col3)"));
+		query = "SELECT col1, MIN(col3) FROM mytable WHERE col2 = 'xxx' GROUP BY col1";
+		assertExpectedFieldSet(query,
+				new ReferenceField("col1"),
+				new ReferenceField("col2"),
+				new AggregateField("MIN(col3)"));
+	}
+
+	@Test
+	public void notExtractAStarSelect() {
+		String query = "SELECT * FROM mytable";
+		assertZeroFields(query);
+		query = "SELECT col1, col2, col3, col4 FROM mytable";
+		assertZeroFields(query);
+		query = "SELECT col3, col4 FROM mytable WHERE col1 = 'xxx' AND col2 = 'xxx' GROUP BY col3, col4";
+		assertZeroFields(query);
+		query = "SELECT col1, col2, col3, col4 FROM mytable GROUP BY col1, col2, col3, col4";
+		assertZeroFields(query);
+		query = "SELECT * FROM (SELECT * FROM mytable)";
+		assertZeroFields(query);
+		query = "SELECT * FROM (SELECT * FROM (SELECT col1, col2, col3, col4 FROM mytable))";
+		assertZeroFields(query);
+	}
+
+	public void assertZeroFields(String query) {
 		final FieldSet actual = statementToFieldSet(query, extractor);
 		Assert.assertEquals(new DefaultFieldSet(), actual);
 		Assert.assertTrue("Actual FieldSet should be empty", actual.fields().isEmpty());

@@ -1,6 +1,6 @@
 package com.alwaysmart.optimizer.fields;
 
-import java.util.List;
+import java.util.Set;
 
 /**
  * Represent set of SQL fields.
@@ -13,7 +13,7 @@ public interface FieldSet {
 	 *
 	 * @return the fields this set of fields handle.
 	 */
-	List<Field> fields();
+	Set<Field> fields();
 
 	/**
 	 * The potential total of scanned bytes coverable by this set of field.
@@ -32,13 +32,6 @@ public interface FieldSet {
 	int hits();
 
 	/**
-	 * The field at given index in the field set.
-	 *
-	 * @return the field at given index in the field set.
-	 */
-	Field fieldAt(int index);
-
-	/**
 	 * Add new Field to the field set.
 	 *
 	 * @return
@@ -50,4 +43,15 @@ public interface FieldSet {
 	 * @param fieldSet
 	 */
 	void merge(FieldSet fieldSet);
+
+	/**
+	 * Returns aggregate fields in the field set
+	 */
+	Set<Field> aggregates();
+
+	/**
+	 * Returns references fields in the field set
+	 */
+	Set<Field> references();
+
 }

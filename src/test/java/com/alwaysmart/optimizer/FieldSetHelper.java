@@ -5,6 +5,8 @@ import com.alwaysmart.optimizer.fields.Field;
 import com.alwaysmart.optimizer.fields.FieldSet;
 
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 public enum FieldSetHelper {
 
@@ -16,10 +18,14 @@ public enum FieldSetHelper {
 	}
 
 	public static FieldSet createFieldSet(Field... fields) {
-		return new DefaultFieldSet(Arrays.asList(fields), 0, 0);
+		return createFieldSet(0, 0, new HashSet<>(Arrays.asList(fields)));
 	}
 
 	public static FieldSet createFieldSet(long scannedBytesMb, int hits, Field... fields) {
-		return new DefaultFieldSet(Arrays.asList(fields), scannedBytesMb, hits);
+		return createFieldSet(scannedBytesMb, hits, new HashSet<>(Arrays.asList(fields)));
+	}
+
+	public static FieldSet createFieldSet(long scannedBytesMb, int hits, Set<Field> fields) {
+		return new DefaultFieldSet(fields, scannedBytesMb, hits);
 	}
 }

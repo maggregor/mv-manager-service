@@ -2,6 +2,7 @@ package com.alwaysmart.optimizer;
 
 import com.alwaysmart.optimizer.fields.FieldSet;
 
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -17,9 +18,13 @@ public interface FieldSetExtract {
 	 * @param fetchedQueries - the queries
 	 * @return
 	 */
-	List<FieldSet> extract(List<FetchedQuery> fetchedQueries);
-
-
+	default List<FieldSet> extract(List<FetchedQuery> fetchedQueries) {
+		List<FieldSet> fieldSets = new LinkedList<>();
+		for (FetchedQuery query : fetchedQueries) {
+			fieldSets.add(extract(query));
+		}
+		return fieldSets;
+	}
 
 	/**
 	 * Extract all fields from the sql statement and returns FieldSet.

@@ -1,44 +1,48 @@
 package com.alwaysmart.optimizer;
 
-import com.alwaysmart.optimizer.fields.AggregateField;
-import com.alwaysmart.optimizer.fields.ReferenceField;
+import com.alwaysmart.optimizer.fields.DefaultFieldSet;
+import com.alwaysmart.optimizer.fields.Field;
+import com.alwaysmart.optimizer.fields.FieldSet;
+import com.google.zetasql.SimpleCatalog;
+import com.google.zetasql.resolvedast.ResolvedNode;
 import com.google.zetasql.resolvedast.ResolvedNodes;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class ZetaSQLFieldSetExtractVisitor extends FieldSetExtractVisitor {
+public abstract class ZetaSQLFieldSetExtractVisitor  extends ResolvedNodes.Visitor implements FieldSetExtractVisitor {
 
-	/**
-	 * Visit reference column in the select clause
-	 * ie: {@code SELECT col1, col2, ..., colN}
-	 *
-	 * @param node
-	 */
+	private static final Logger LOGGER = LoggerFactory.getLogger(ZetaSQLFieldSetExtractVisitor.class);
+	private static final String COLUMN_PREFIX_TO_SKIP = "$";
+
+	private FieldSet fieldSet = new DefaultFieldSet();
+	private SimpleCatalog catalog;
+
 	@Override
-	public void visit(ResolvedNodes.ResolvedOutputColumn node) {
-		final String columnName = node.getColumn().getName();
-		this.addField(new ReferenceField(columnName));
-		super.visit(node);
+	protected void defaultVisit(ResolvedNode node) {
+		super.defaultVisit(node);
 	}
 
 
-	@Override
-	public void visit(ResolvedNodes.ResolvedAggregateFunctionCall node) {
-		this.addField(new AggregateField(node.getFunction().getSqlName() +  "("
-				+ ((ResolvedNodes.ResolvedColumnRef)node.getArgumentList().get(0)).getColumn().getName() + ")"));
-		super.visit(node);
+	ZetaSQLFieldSetExtractVisitor(SimpleCatalog catalog) {
+		this.catalog = catalog;
 	}
 
-	/**
-	 * Visit the filter clause and visit nodes in expression.
-	 * ie: {@code WHERE col = 'token'}
-	 *
-	 * @param node
-	 */
+	public void addField(Field field) {
+		this.fieldSet.add(field);
+	}
+
+	public void merge(FieldSet fieldSet) {
+		this.fieldSet.merge(fieldSet);
+	}
+
 	@Override
-	public void visit(ResolvedNodes.ResolvedFilterScan node) {
-		ZetaSQLFieldSetExtractFilterVisitor visitor = new ZetaSQLFieldSetExtractFilterVisitor();
-		node.getFilterExpr().accept(visitor);
-		this.merge(visitor.fieldSet());
-		super.visit(node);
+	public FieldSet fieldSet() {
+		this.fieldSet.fields().removeIf(field -> field.name().startsWith(COLUMN_PREFIX_TO_SKIP));
+		return fieldSet;
+	}
+
+	public SimpleCatalog getCatalog() {
+		return this.catalog;
 	}
 
 }

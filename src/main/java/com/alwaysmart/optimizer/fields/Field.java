@@ -1,5 +1,7 @@
 package com.alwaysmart.optimizer.fields;
 
+import com.alwaysmart.optimizer.TableMetadata;
+
 import java.util.Objects;
 
 /**
