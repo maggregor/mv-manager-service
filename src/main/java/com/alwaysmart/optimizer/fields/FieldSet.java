@@ -54,4 +54,9 @@ public interface FieldSet {
 	 */
 	Set<Field> references();
 
+	/**
+	 * Create a FieldSet clone
+	 */
+	FieldSet clone();
+
 }

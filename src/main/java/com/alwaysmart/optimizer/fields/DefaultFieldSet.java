@@ -1,11 +1,17 @@
 package com.alwaysmart.optimizer.fields;
 
+import com.alwaysmart.optimizer.OptimizerApplication;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class DefaultFieldSet implements FieldSet {
+public class DefaultFieldSet implements FieldSet, Cloneable {
+
+	private static Logger LOGGER = LoggerFactory.getLogger(OptimizerApplication.class);
 
 	private Set<Field> fields;
 	private long scannedBytesMb;
@@ -57,6 +63,17 @@ public class DefaultFieldSet implements FieldSet {
 	@Override
 	public Set<Field> references() {
 		return this.fields.stream().filter(field -> field instanceof ReferenceField).collect(Collectors.toSet());
+	}
+
+	@Override
+	public FieldSet clone() {
+		try {
+			return (FieldSet) super.clone();
+		} catch (CloneNotSupportedException e) {
+			LOGGER.error("Error while FieldSet cloning: {}", e.getMessage());
+			e.printStackTrace();
+			return null;
+		}
 	}
 
 	@Override

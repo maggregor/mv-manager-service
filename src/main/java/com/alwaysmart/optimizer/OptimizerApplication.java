@@ -2,9 +2,7 @@ package com.alwaysmart.optimizer;
 
 import java.io.IOException;
 import java.util.Locale;
-import java.util.logging.Level;
 
-import com.alwaysmart.optimizer.controllers.UserController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
