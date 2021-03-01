@@ -38,32 +38,29 @@ public class ZetaSQLFieldSetExtractGlobalVisitor extends ZetaSQLFieldSetExtractV
 
 	@Override
 	public void visit(ResolvedNodes.ResolvedFunctionCall node) {
+		String expression = Analyzer.buildExpression(node, this.getCatalog());
+		expression = hackMappingColumnsInFunction(expression, node);
+		this.addField(new AggregateField(expression));
 		super.visit(node);
 	}
-
-	@Override
-	public void visit(ResolvedNodes.ResolvedFunctionArgument node) {
-		super.visit(node);
-	}
-
-	@Override
-	public void visit(ResolvedNodes.ResolvedCreateFunctionStmt node) {
-		super.visit(node);
-	}
-
 
 	@Override
 	public void visit(ResolvedNodes.ResolvedAggregateFunctionCall node) {
 		String expression = Analyzer.buildExpression(node, this.getCatalog());
+		expression = hackMappingColumnsInFunction(expression, node);
+		this.addField(new AggregateField(expression));
+		super.visit(node);
+	}
+
+	private String hackMappingColumnsInFunction(String expression, ResolvedNodes.ResolvedFunctionCallBase expr) {
 		List<ResolvedNodes.ResolvedColumnRef> refs = new ArrayList<>();
-		hackFindColumnsRefInNode(node.getArgumentList(), refs);
+		hackFindColumnsRefInNode(expr.getArgumentList(), refs);
 		int count = 0;
 		for (ResolvedNodes.ResolvedColumnRef ref : refs) {
 			// Hack in order to build the node with source columns name.
 			expression = expression.replaceAll("a_" + ++count, ref.getColumn().getName());
 		}
-		this.addField(new AggregateField(expression));
-		super.visit(node);
+		return expression;
 	}
 
 	private void hackFindColumnsRefInNode(ImmutableList<ResolvedNodes.ResolvedExpr> exprs, List<ResolvedNodes.ResolvedColumnRef> refs) {

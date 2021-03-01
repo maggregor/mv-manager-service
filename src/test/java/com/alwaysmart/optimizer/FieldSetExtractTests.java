@@ -126,6 +126,18 @@ public abstract class FieldSetExtractTests {
 		assertZeroFields(query);
 	}
 
+	@Test
+	public void extractFunction() {
+		String query = "SELECT col1 = 'x' FROM mytable";
+		assertExpectedFieldSet(query, new AggregateField("col1 = (\"x\")"));
+		query = "SELECT col3 + col4 FROM mytable";
+		assertExpectedFieldSet(query, new AggregateField("col3 + col4"));
+		query = "SELECT IF(col3 < 4, 'bonjour', 'aurevoir') FROM mytable";
+		assertExpectedFieldSet(query, new AggregateField("IF(col3 < 4, \"bonjour\", \"aurevoir\")"), new AggregateField("col3 < 4"));
+		query = "SELECT CASE WHEN col1 = 'x' THEN 'a' ELSE 'b' END FROM mytable";
+		assertExpectedFieldSet(query, new AggregateField("CASE WHEN (col1 = (\"x\")) THEN (\"a\") ELSE (\"b\") END"), new AggregateField("col1 = (\"x\")"));
+	}
+
 	public void assertZeroFields(String query) {
 		final FieldSet actual = statementToFieldSet(query, extractor);
 		Assert.assertEquals(new DefaultFieldSet(), actual);
