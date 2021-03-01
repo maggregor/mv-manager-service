@@ -22,7 +22,6 @@ public abstract class ZetaSQLFieldSetExtractVisitor  extends ResolvedNodes.Visit
 		super.defaultVisit(node);
 	}
 
-
 	ZetaSQLFieldSetExtractVisitor(SimpleCatalog catalog) {
 		this.catalog = catalog;
 	}
