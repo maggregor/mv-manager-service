@@ -11,12 +11,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@RequestMapping(path = "${v1API}")
 @Validated
 public class OptimizerController {
-    private Logger LOGGER = LoggerFactory.getLogger(UserController.class);
+
+    private static Logger LOGGER = LoggerFactory.getLogger(OptimizerController.class);
 
     @Autowired
     private IOptimizerService service;
