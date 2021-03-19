@@ -15,7 +15,7 @@ public interface DatabaseFetcher {
 	 *
 	 * @return - a list of queries as string
 	 */
-	default List<FetchedQuery> fetchQueries(String dataset) {
+	default List<FetchedQuery> fetchQueries(String projectId, String dataset) {
 		throw new UnsupportedOperationException("Not supported to fetch all tables in dataset.");
 	}
 
@@ -27,7 +27,7 @@ public interface DatabaseFetcher {
 	 *
 	 * @return - a list of queries as string
 	 */
-	List<FetchedQuery> fetchQueries(String dataset, String table);
+	List<FetchedQuery> fetchQueries(String projectId, String dataset, String table);
 
 	/**
 	 * Returns history queries for a given table and date range.
@@ -39,7 +39,7 @@ public interface DatabaseFetcher {
 	 *
 	 * @return - a list of queries as string
 	 */
-	List<FetchedQuery> fetchQueries(String dataset, String table, Date start, Date end);
+	List<FetchedQuery> fetchQueries(String projectId, String dataset, String table, Date start, Date end);
 
 	/**
 	 * Returns all metadata of all tables in a given dataset.
@@ -48,7 +48,7 @@ public interface DatabaseFetcher {
 	 *
 	 * @return - all metadata of fetched tables
 	 */
-	default List<TableMetadata> fetchTablesMetadata(String dataset) {
+	default List<TableMetadata> fetchTablesMetadata(String projectId, String dataset) {
 		throw new UnsupportedOperationException("Not supported to fetch all tables in dataset.");
 	}
 
@@ -60,6 +60,6 @@ public interface DatabaseFetcher {
 	 *
 	 * @return - TableMetadata of targeted table
 	 */
-	TableMetadata fetchTableMetadata(String dataset, String table);
+	TableMetadata fetchTableMetadata(String projectId, String dataset, String table);
 
 }

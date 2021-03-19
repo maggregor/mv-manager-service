@@ -1,6 +1,8 @@
 package com.alwaysmart.optimizer.services;
 
+import com.alwaysmart.optimizer.DatabaseFetcher;
 import com.alwaysmart.optimizer.TableMetadata;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -10,6 +12,9 @@ import java.util.List;
  */
 @Service
 public class OptimizerService implements IOptimizerService {
+
+    @Autowired
+    private DatabaseFetcher fetcher;
 
     @Override
     public List<String> getProjects() {
