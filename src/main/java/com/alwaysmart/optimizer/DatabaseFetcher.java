@@ -11,55 +11,54 @@ public interface DatabaseFetcher {
 	/**
 	 * Returns history queries for a given dataset.
 	 *
-	 * @param dataset - the targeted dataset
+	 * @param datasetName - the targeted dataset
 	 *
 	 * @return - a list of queries as string
 	 */
-	default List<FetchedQuery> fetchQueries(String dataset) {
+	default List<FetchedQuery> fetchQueries(String datasetName) {
 		throw new UnsupportedOperationException("Not supported to fetch all tables in dataset.");
 	}
+
 
 	/**
 	 * Returns history queries for a given table.
 	 *
-	 * @param dataset - the targeted dataset
-	 * @param table - the targeted table
+	 * @param datasetName - the targeted dataset
+	 * @param tableName   - the targeted table
 	 *
 	 * @return - a list of queries as string
 	 */
-	List<FetchedQuery> fetchQueries(String dataset, String table);
+	List<FetchedQuery> fetchQueries(String datasetName, String tableName);
 
 	/**
 	 * Returns history queries for a given table and date range.
 	 *
-	 * @param dataset - the targeted dataset
-	 * @param table - the targeted table
-	 * @param start - the start range date
-	 * @param end - the end range date
+	 * @param datasetName - the targeted dataset
+	 * @param tableName   - the targeted table
+	 * @param start       - the start range date
 	 *
 	 * @return - a list of queries as string
 	 */
-	List<FetchedQuery> fetchQueries(String dataset, String table, Date start, Date end);
+	List<FetchedQuery> fetchQueries(String datasetName, String tableName, Date start);
 
 	/**
 	 * Returns all metadata of all tables in a given dataset.
 	 *
-	 * @param dataset - the targeted dataset
+	 * @param datasetName - the targeted dataset
 	 *
 	 * @return - all metadata of fetched tables
 	 */
-	default List<TableMetadata> fetchTablesMetadata(String dataset) {
+	default List<TableMetadata> fetchTablesMetadata(String datasetName) {
 		throw new UnsupportedOperationException("Not supported to fetch all tables in dataset.");
 	}
 
 	/**
 	 * Returns metadata for a given table.
 	 *
-	 * @param dataset - the targeted dataset
-	 * @param table - the targeted tableFe
+	 * @param datasetName - the targeted dataset
+	 * @param tableName   - the targeted tableFe
 	 *
 	 * @return - TableMetadata of targeted table
 	 */
-	TableMetadata fetchTableMetadata(String dataset, String table);
-
+	TableMetadata fetchTableMetadata(String datasetName, String tableName) throws IllegalArgumentException;
 }
