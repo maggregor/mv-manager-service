@@ -3,6 +3,7 @@ package com.alwaysmart.optimizer.services;
 import java.util.List;
 
 import com.alwaysmart.optimizer.TableMetadata;
+import com.google.auth.oauth2.GoogleCredentials;
 
 /**
  * All the useful services to generate relevant Materialized Views.
@@ -34,7 +35,7 @@ public interface IOptimizerService {
      *
      * @return all the tables for a given project.
      */
-    List<String> getTables(/* CREDENTIALS */String projectId, String datasetName);
+    List<String> getTables(GoogleCredentials credentials, String projectId, String datasetName);
 
     /**
      * Returns the metadata for a given table
@@ -45,6 +46,6 @@ public interface IOptimizerService {
      *
      * @return all the tables for a given project.
      */
-    List<TableMetadata> getTableMetadata(/* CREDENTIALS */String projectId, String datasetName, String tableName);
+    List<TableMetadata> getTableMetadata(GoogleCredentials googleCredentials, String projectId, String datasetName, String tableName);
 
 }

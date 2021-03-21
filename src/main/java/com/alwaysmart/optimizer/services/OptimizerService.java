@@ -1,8 +1,9 @@
 package com.alwaysmart.optimizer.services;
 
+import com.alwaysmart.optimizer.BigQueryDatabaseFetcher;
 import com.alwaysmart.optimizer.DatabaseFetcher;
 import com.alwaysmart.optimizer.TableMetadata;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.google.auth.oauth2.GoogleCredentials;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -12,9 +13,6 @@ import java.util.List;
  */
 @Service
 public class OptimizerService implements IOptimizerService {
-
-    @Autowired
-    private DatabaseFetcher fetcher;
 
     @Override
     public List<String> getProjects() {
@@ -27,12 +25,14 @@ public class OptimizerService implements IOptimizerService {
     }
 
     @Override
-    public List<String> getTables(String projectId, String datasetName) {
-        return null;
+    public List<String> getTables(GoogleCredentials googleCredentials, String projectId, String datasetName) {
+        DatabaseFetcher fetcher = new BigQueryDatabaseFetcher(googleCredentials);
+        return fetcher.getTables(projectId, datasetName);
     }
 
     @Override
-    public List<TableMetadata> getTableMetadata(String projectId, String datasetName, String tableName) {
-        return null;
+    public List<TableMetadata> getTableMetadata(GoogleCredentials googleCredentials, String projectId, String datasetName, String tableName) {
+        DatabaseFetcher fetcher = new BigQueryDatabaseFetcher(googleCredentials);
+        return fetcher.fetchTablesMetadata(projectId, datasetName, tableName);
     }
 }

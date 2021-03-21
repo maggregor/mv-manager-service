@@ -11,55 +11,67 @@ public interface DatabaseFetcher {
 	/**
 	 * Returns history queries for a given dataset.
 	 *
-	 * @param dataset - the targeted dataset
+	 * @param datasetName - the targeted dataset
 	 *
 	 * @return - a list of queries as string
 	 */
-	default List<FetchedQuery> fetchQueries(String projectId, String dataset) {
+	default List<FetchedQuery> fetchQueries(String projectId, String datasetName) {
 		throw new UnsupportedOperationException("Not supported to fetch all tables in dataset.");
 	}
+
 
 	/**
 	 * Returns history queries for a given table.
 	 *
-	 * @param dataset - the targeted dataset
-	 * @param table - the targeted table
+	 * @param projectId - the targeted project id
+	 * @param datasetName - the targeted dataset
+	 * @param tableName   - the targeted table
 	 *
 	 * @return - a list of queries as string
 	 */
-	List<FetchedQuery> fetchQueries(String projectId, String dataset, String table);
+	List<FetchedQuery> fetchQueries(String projectId, String datasetName, String tableName);
 
 	/**
 	 * Returns history queries for a given table and date range.
 	 *
-	 * @param dataset - the targeted dataset
-	 * @param table - the targeted table
-	 * @param start - the start range date
-	 * @param end - the end range date
+	 * @param projectId - the targeted project id
+	 * @param datasetName - the targeted dataset
+	 * @param tableName   - the targeted table
+	 * @param start       - the start range date
 	 *
 	 * @return - a list of queries as string
 	 */
-	List<FetchedQuery> fetchQueries(String projectId, String dataset, String table, Date start, Date end);
+	List<FetchedQuery> fetchQueries(String projectId, String datasetName, String tableName, Date start);
 
 	/**
 	 * Returns all metadata of all tables in a given dataset.
 	 *
-	 * @param dataset - the targeted dataset
+	 * @param projectId - the targeted project id
+	 * @param datasetName - the targeted dataset
 	 *
 	 * @return - all metadata of fetched tables
 	 */
-	default List<TableMetadata> fetchTablesMetadata(String projectId, String dataset) {
+	default List<TableMetadata> fetchTablesMetadata(String projectId, String datasetName, String tableName) {
 		throw new UnsupportedOperationException("Not supported to fetch all tables in dataset.");
 	}
 
 	/**
 	 * Returns metadata for a given table.
 	 *
-	 * @param dataset - the targeted dataset
-	 * @param table - the targeted tableFe
+	 * @param projectId - the targeted project id
+	 * @param datasetName - the targeted dataset
+	 * @param tableName   - the targeted tableFe
 	 *
 	 * @return - TableMetadata of targeted table
 	 */
-	TableMetadata fetchTableMetadata(String projectId, String dataset, String table);
+	TableMetadata fetchTableMetadata(String projectId, String datasetName, String tableName);
 
+	/**
+	 * Returns all tables in a given dataset.
+	 *
+	 * @param projectId
+	 * @param datasetName
+	 * @return
+	 */
+	List<String> getTables(String projectId, String datasetName);
 }
