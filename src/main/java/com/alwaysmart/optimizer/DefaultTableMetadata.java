@@ -25,17 +25,17 @@ public class DefaultTableMetadata implements TableMetadata {
 	}
 
 	@Override
-	public String schema() {
+	public String getSchema() {
 		return this.schema;
 	}
 
 	@Override
-	public String table() {
+	public String getTable() {
 		return this.table;
 	}
 
 	@Override
-	public Map<String, String> columns() {
+	public Map<String, String> getColumns() {
 		return this.columns;
 	}
 

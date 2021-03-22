@@ -51,7 +51,7 @@ public interface DatabaseFetcher {
 	 *
 	 * @return - all metadata of fetched tables
 	 */
-	default List<TableMetadata> fetchTablesMetadata(String projectId, String datasetName, String tableName) {
+	default List<TableMetadata> fetchTablesMetadata(String projectId, String datasetName) {
 		throw new UnsupportedOperationException("Not supported to fetch all tables in dataset.");
 	}
 

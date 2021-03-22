@@ -46,6 +46,6 @@ public interface IOptimizerService {
      *
      * @return all the tables for a given project.
      */
-    List<TableMetadata> getTableMetadata(String projectId, String datasetName, String tableName);
+    TableMetadata getTableMetadata(String projectId, String datasetName, String tableName);
 
 }

@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.annotation.RegisteredOAuth2AuthorizedClient;
 import org.springframework.security.oauth2.core.OAuth2RefreshToken;
@@ -47,8 +48,8 @@ public class OptimizerController {
         return service.getTables(projectId, datasetName);
     }
 
-    @GetMapping(path = "/table/{projectId}/dataset/{datasetName}/table/{tableName}", produces = "application/json")
-    public List<TableMetadata> getTable(@PathVariable String projectId, @PathVariable String datasetName, @PathVariable String tableName) {
-        return service.getTableMetadata(projectId, datasetName, tableName);
+    @GetMapping(path = "/project/{projectId}/dataset/{datasetName}/table/{tableName}", produces = "application/json")
+    public ResponseEntity<TableMetadata> getTable(@PathVariable String projectId, @PathVariable String datasetName, @PathVariable String tableName) {
+        return ResponseEntity.ok(service.getTableMetadata(projectId, datasetName, tableName));
     }
 }

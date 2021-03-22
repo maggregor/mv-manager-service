@@ -13,7 +13,7 @@ public interface TableMetadata {
 	 *
 	 * @return the schema name of the table on which metadata was retrieved.
 	 */
-	String schema();
+	String getSchema();
 
 	/**
 	 * The name of the table on which metadata was retrieved.
@@ -21,7 +21,7 @@ public interface TableMetadata {
 	 *
 	 * @return the name of the table on which metadata was retrieved.
 	 */
-	String table();
+	String getTable();
 
 	/**
 	 * The name and type of the columns of the table.
@@ -29,6 +29,6 @@ public interface TableMetadata {
 	 *
 	 * @return the name and type of the columns of the table.
 	 */
-	Map<String, String> columns();
+	Map<String, String> getColumns();
 
 }

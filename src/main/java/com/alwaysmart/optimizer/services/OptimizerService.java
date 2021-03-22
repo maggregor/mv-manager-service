@@ -41,8 +41,8 @@ public class OptimizerService implements IOptimizerService {
     }
 
     @Override
-    public List<TableMetadata> getTableMetadata(String projectId, String datasetName, String tableName) {
-        return new BigQueryDatabaseFetcher(buildGoogleCredentials()).fetchTablesMetadata(projectId, datasetName, tableName);
+    public TableMetadata getTableMetadata(String projectId, String datasetName, String tableName) {
+        return new BigQueryDatabaseFetcher(buildGoogleCredentials()).fetchTableMetadata(projectId, datasetName, tableName);
     }
 
     private GoogleCredentials buildGoogleCredentials() {

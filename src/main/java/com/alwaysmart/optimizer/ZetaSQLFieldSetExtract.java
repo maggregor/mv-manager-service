@@ -14,7 +14,6 @@ import com.google.zetasql.resolvedast.ResolvedNodes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
 import java.util.Map;
 
 public class ZetaSQLFieldSetExtract implements FieldSetExtract {
@@ -30,10 +29,10 @@ public class ZetaSQLFieldSetExtract implements FieldSetExtract {
 	}
 
 	private void initializeCatalog() {
-		this.catalog = new SimpleCatalog(metadata.schema());
+		this.catalog = new SimpleCatalog(metadata.getSchema());
 		this.catalog.addZetaSQLFunctions(new ZetaSQLBuiltinFunctionOptions());
-		SimpleTable simpleTable = new SimpleTable(metadata.table());
-		for(Map.Entry<String, String> column : metadata.columns().entrySet()) {
+		SimpleTable simpleTable = new SimpleTable(metadata.getTable());
+		for(Map.Entry<String, String> column : metadata.getColumns().entrySet()) {
 			final String name = column.getKey();
 			final String typeName = column.getValue();
 			ZetaSQLType.TypeKind typeKind = ZetaSQLType.TypeKind.valueOf("TYPE_" + typeName.toUpperCase());
@@ -55,7 +54,7 @@ public class ZetaSQLFieldSetExtract implements FieldSetExtract {
 	}
 
 	private boolean containsAllReferences(FieldSet fieldSet) {
-		return fieldSet.references().size() >= metadata.columns().size();
+		return fieldSet.references().size() >= metadata.getColumns().size();
 	}
 
 }
