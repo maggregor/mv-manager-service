@@ -5,9 +5,12 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import com.google.api.gax.paging.Page;
+import com.google.auth.oauth2.AccessToken;
 import com.google.auth.oauth2.GoogleCredentials;
+import com.google.auth.oauth2.UserCredentials;
 import com.google.cloud.bigquery.BigQuery;
 import com.google.cloud.bigquery.BigQueryException;
 import com.google.cloud.bigquery.BigQueryOptions;
@@ -20,14 +23,25 @@ import com.google.cloud.bigquery.Schema;
 import com.google.cloud.bigquery.StandardTableDefinition;
 import com.google.cloud.bigquery.TableId;
 import com.google.cloud.bigquery.Table;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
+import org.springframework.security.oauth2.client.annotation.RegisteredOAuth2AuthorizedClient;
 
 public class BigQueryDatabaseFetcher implements DatabaseFetcher {
 
     private static final int LIST_JOB_PAGE_SIZE = 25;
-    private final BigQuery bigquery;
+    private BigQuery bigquery;
 
-    public BigQueryDatabaseFetcher(GoogleCredentials googleCredentials) {
-        bigquery = BigQueryOptions.newBuilder().setCredentials(googleCredentials).build().getService();
+    private OAuth2AuthorizedClient user;
+
+    public BigQueryDatabaseFetcher() {
+        AccessToken accessToken = new AccessToken(user.getAccessToken().getTokenValue(), Date.from(Objects.requireNonNull(user.getAccessToken().getExpiresAt())));
+        GoogleCredentials credentials =
+                UserCredentials.newBuilder()
+                        .setClientId(user.getClientRegistration().getClientId())
+                        .setClientSecret(user.getClientRegistration().getClientSecret())
+                        .setAccessToken(accessToken)
+                        .build();
+        bigquery = BigQueryOptions.newBuilder().setCredentials(credentials).build().getService();
     }
 
     @Override

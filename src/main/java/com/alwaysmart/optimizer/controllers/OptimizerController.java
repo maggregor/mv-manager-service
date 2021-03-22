@@ -1,25 +1,20 @@
 package com.alwaysmart.optimizer.controllers;
 
 import java.security.Principal;
-import java.sql.Date;
 import java.util.List;
 import java.util.Map;
 
 import com.alwaysmart.optimizer.TableMetadata;
 import com.alwaysmart.optimizer.services.IOptimizerService;
 
-import com.google.auth.oauth2.AccessToken;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.auth.oauth2.UserCredentials;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.annotation.RegisteredOAuth2AuthorizedClient;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.OAuth2RefreshToken;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -48,30 +43,12 @@ public class OptimizerController {
     }
 
     @GetMapping(path = "/project/{projectId}/dataset/{datasetName}", produces = "application/json")
-    public List<String> getAllTables(@RegisteredOAuth2AuthorizedClient("google") OAuth2AuthorizedClient user, @PathVariable String projectId, @PathVariable String datasetName) {
-        AccessToken accessToken = new AccessToken(user.getAccessToken().getTokenValue(), Date.from(user.getAccessToken().getExpiresAt()));
-        GoogleCredentials credentials =
-                UserCredentials.newBuilder()
-                        .setClientId(user.getClientRegistration().getClientId())
-                        .setClientSecret(user.getClientRegistration().getClientSecret())
-                        .setAccessToken(accessToken)
-                        .build();
-        return service.getTables(credentials, projectId, datasetName);
+    public List<String> getAllTables(@PathVariable String projectId, @PathVariable String datasetName) {
+        return service.getTables(projectId, datasetName);
     }
 
     @GetMapping(path = "/table/{tableId}", produces = "application/json")
-    public List<TableMetadata> getTable(@RegisteredOAuth2AuthorizedClient("google") OAuth2AuthorizedClient user, @PathVariable String projectId, @PathVariable String datasetName, @PathVariable String tableName) {
-        GoogleCredentials credentials =
-                UserCredentials.newBuilder()
-                        .setClientId(user.getClientRegistration().getClientId())
-                        .setClientSecret(user.getClientRegistration().getClientSecret())
-                        .setRefreshToken(user.getRefreshToken().getTokenValue())
-                        .build();
-        return service.getTableMetadata(credentials, projectId, datasetName, tableName);
-    }
-
-    @GetMapping("/accesstoken")
-    String access(@RegisteredOAuth2AuthorizedClient("google") OAuth2AuthorizedClient user) {
-        return user.getAccessToken().getTokenValue();
+    public List<TableMetadata> getTable(@PathVariable String projectId, @PathVariable String datasetName, @PathVariable String tableName) {
+        return service.getTableMetadata(projectId, datasetName, tableName);
     }
 }

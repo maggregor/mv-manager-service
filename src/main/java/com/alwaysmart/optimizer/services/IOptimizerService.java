@@ -15,7 +15,7 @@ public interface IOptimizerService {
      *
      * @return all the projects.
      */
-    List<String> getProjects(/* CREDENTIALS */);
+    List<String> getProjects();
 
 
     /**
@@ -25,7 +25,7 @@ public interface IOptimizerService {
      *
      * @return all the datasets for a given project.
      */
-    List<String> getDatasets(/* CREDENTIALS */String projectId);
+    List<String> getDatasets(String projectId);
 
     /**
      * Returns all the tables for a given project.
@@ -35,7 +35,7 @@ public interface IOptimizerService {
      *
      * @return all the tables for a given project.
      */
-    List<String> getTables(GoogleCredentials credentials, String projectId, String datasetName);
+    List<String> getTables(String projectId, String datasetName);
 
     /**
      * Returns the metadata for a given table
@@ -46,6 +46,6 @@ public interface IOptimizerService {
      *
      * @return all the tables for a given project.
      */
-    List<TableMetadata> getTableMetadata(GoogleCredentials googleCredentials, String projectId, String datasetName, String tableName);
+    List<TableMetadata> getTableMetadata(String projectId, String datasetName, String tableName);
 
 }
