@@ -112,11 +112,6 @@
 			<artifactId>spring-boot-starter-actuator</artifactId>
 		</dependency>
 
-		<!-- To have a good UI in Browser for Actuator endpoints -->
-		<dependency>
-			<groupId>org.springframework.data</groupId>
-			<artifactId>spring-data-rest-hal-browser</artifactId>
-		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.springframework.security/spring-security-oauth2-client -->
 		<dependency>
 			<groupId>org.springframework.security</groupId>
