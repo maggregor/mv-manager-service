@@ -116,13 +116,6 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>
 		</dependency>
-
-		<!-- To have a good UI in Browser for Actuator endpoints -->
-		<dependency>
-			<groupId>org.springframework.data</groupId>
-			<artifactId>spring-data-rest-hal-browser</artifactId>
-		</dependency>
-
 		<dependency>
 			<groupId>com.google.cloud</groupId>
 			<artifactId>google-cloud-bigquery</artifactId>
