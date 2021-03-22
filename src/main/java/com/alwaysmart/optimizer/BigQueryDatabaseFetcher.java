@@ -23,25 +23,24 @@ import com.google.cloud.bigquery.Schema;
 import com.google.cloud.bigquery.StandardTableDefinition;
 import com.google.cloud.bigquery.TableId;
 import com.google.cloud.bigquery.Table;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
-import org.springframework.security.oauth2.client.annotation.RegisteredOAuth2AuthorizedClient;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.stereotype.Service;
 
 public class BigQueryDatabaseFetcher implements DatabaseFetcher {
 
     private static final int LIST_JOB_PAGE_SIZE = 25;
     private BigQuery bigquery;
 
-    private OAuth2AuthorizedClient user;
+    @Autowired
+    OAuth2AuthorizedClientService clientService;
 
-    public BigQueryDatabaseFetcher() {
-        AccessToken accessToken = new AccessToken(user.getAccessToken().getTokenValue(), Date.from(Objects.requireNonNull(user.getAccessToken().getExpiresAt())));
-        GoogleCredentials credentials =
-                UserCredentials.newBuilder()
-                        .setClientId(user.getClientRegistration().getClientId())
-                        .setClientSecret(user.getClientRegistration().getClientSecret())
-                        .setAccessToken(accessToken)
-                        .build();
-        bigquery = BigQueryOptions.newBuilder().setCredentials(credentials).build().getService();
+    public BigQueryDatabaseFetcher(GoogleCredentials googleCredentials) {
+        bigquery = BigQueryOptions.newBuilder().setCredentials(googleCredentials).build().getService();
     }
 
     @Override
@@ -85,7 +84,7 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
         List<String> tables = new ArrayList<>();
         DatasetId datasetId = DatasetId.of(projectId, datasetName);
         for (Table table :  bigquery.listTables(datasetId).getValues()) {
-            tables.add(table.getTableId().getTable());
+            tables.add(table.getTableId().getIAMResourceName());
         }
         return tables;
     }

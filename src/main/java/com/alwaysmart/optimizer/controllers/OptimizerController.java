@@ -47,7 +47,7 @@ public class OptimizerController {
         return service.getTables(projectId, datasetName);
     }
 
-    @GetMapping(path = "/table/{tableId}", produces = "application/json")
+    @GetMapping(path = "/table/{projectId}/dataset/{datasetName}/table/{tableName}", produces = "application/json")
     public List<TableMetadata> getTable(@PathVariable String projectId, @PathVariable String datasetName, @PathVariable String tableName) {
         return service.getTableMetadata(projectId, datasetName, tableName);
     }
