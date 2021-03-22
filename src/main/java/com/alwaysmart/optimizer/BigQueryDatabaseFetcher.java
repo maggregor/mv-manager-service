@@ -11,6 +11,7 @@ import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.bigquery.BigQuery;
 import com.google.cloud.bigquery.BigQueryException;
 import com.google.cloud.bigquery.BigQueryOptions;
+import com.google.cloud.bigquery.DatasetId;
 import com.google.cloud.bigquery.Field;
 import com.google.cloud.bigquery.Job;
 import com.google.cloud.bigquery.JobStatistics;
@@ -68,7 +69,10 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     @Override
     public List<String> getTables(String projectId, String datasetName) {
         List<String> tables = new ArrayList<>();
-        bigquery.listTables(datasetName).iterateAll().forEach(table -> tables.add(table.getFriendlyName()));
+        DatasetId datasetId = DatasetId.of(projectId, datasetName);
+        for (Table table :  bigquery.listTables(datasetId).getValues()) {
+            tables.add(table.getTableId().getTable());
+        }
         return tables;
     }
 
