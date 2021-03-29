@@ -8,6 +8,8 @@ import java.util.List;
  */
 public interface DatabaseFetcher {
 
+
+
 	/**
 	 * Returns history queries for a given dataset.
 	 *
@@ -74,4 +76,19 @@ public interface DatabaseFetcher {
 	 * @return
 	 */
 	List<String> getTables(String projectId, String datasetName);
+
+	/**
+	 * Returns all datasets in a given projectId.
+	 *
+	 * @param projectId
+	 * @return
+	 */
+	List<String> getDatasets(String projectId);
+
+	/**
+	 * Returns all projects.
+	 *
+	 * @return
+	 */
+	List<String> getProjects();
 }

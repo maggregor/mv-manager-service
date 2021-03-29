@@ -1,6 +1,7 @@
 package com.alwaysmart.optimizer.services;
 
 import com.alwaysmart.optimizer.BigQueryDatabaseFetcher;
+import com.alwaysmart.optimizer.DatabaseFetcher;
 import com.alwaysmart.optimizer.TableMetadata;
 import com.google.auth.oauth2.AccessToken;
 import com.google.auth.oauth2.GoogleCredentials;
@@ -27,22 +28,26 @@ public class OptimizerService implements IOptimizerService {
 
     @Override
     public List<String> getProjects() {
-        return null;
+        return fetcher().getProjects();
     }
 
     @Override
     public List<String> getDatasets(String projectId) {
-        return null;
+        return fetcher().getDatasets(projectId);
     }
 
     @Override
     public List<String> getTables(String projectId, String datasetName) {
-        return new BigQueryDatabaseFetcher(buildGoogleCredentials()).getTables(projectId, datasetName);
+        return fetcher().getTables(projectId, datasetName);
     }
 
     @Override
     public TableMetadata getTableMetadata(String projectId, String datasetName, String tableName) {
-        return new BigQueryDatabaseFetcher(buildGoogleCredentials()).fetchTableMetadata(projectId, datasetName, tableName);
+        return fetcher().fetchTableMetadata(projectId, datasetName, tableName);
+    }
+
+    private DatabaseFetcher fetcher() {
+        return new BigQueryDatabaseFetcher(buildGoogleCredentials());
     }
 
     private GoogleCredentials buildGoogleCredentials() {
