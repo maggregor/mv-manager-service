@@ -8,6 +8,21 @@ import java.util.Map;
 public interface TableMetadata {
 
 	/**
+	 * The table id of the table on which metadata was retrieved.
+	 * Example: {@code project.dataset:mytable}
+	 *
+	 * @return the table id of the table on which metadata was retrieved.
+	 */
+	String getTableId();
+
+	/**
+	 * The project name of the table on which metadata was retrieved.
+	 *
+	 * @return the project name of the table on which metadata was retrieved.
+	 * */
+	String getProject();
+
+	/**
 	 * The schema name of the table on which metadata was retrieved.
 	 * Example: {@code default}
 	 *

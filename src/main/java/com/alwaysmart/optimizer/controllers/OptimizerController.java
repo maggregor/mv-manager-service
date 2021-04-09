@@ -2,6 +2,8 @@ package com.alwaysmart.optimizer.controllers;
 
 import java.util.List;
 
+import com.alwaysmart.optimizer.DatasetMetadata;
+import com.alwaysmart.optimizer.ProjectMetadata;
 import com.alwaysmart.optimizer.TableMetadata;
 import com.alwaysmart.optimizer.services.IOptimizerService;
 
@@ -30,18 +32,19 @@ public class OptimizerController {
         return service.getProjects();
     }
 
-    @GetMapping(path = "/dataset", produces = "application/json")
-    public List<String> getAllDatasets(@PathVariable String projectId) {
-        return service.getDatasets(projectId);
+    @GetMapping(path = "/project/{projectId}", produces = "application/json")
+    public ProjectMetadata getProject(@PathVariable String projectId) {
+        return service.getProject(projectId);
     }
 
-    @GetMapping(path = "/project/{projectId}/dataset/{datasetName}", produces = "application/json")
-    public List<String> getAllTables(@PathVariable String projectId, @PathVariable String datasetName) {
-        return service.getTables(projectId, datasetName);
+    @GetMapping(path = "/dataset/{datasetId}", produces = "application/json")
+    public DatasetMetadata getDataset(@PathVariable String datasetId) {
+        return service.getDataset(datasetId);
     }
 
-    @GetMapping(path = "/project/{projectId}/dataset/{datasetName}/table/{tableName}", produces = "application/json")
-    public ResponseEntity<TableMetadata> getTable(@PathVariable String projectId, @PathVariable String datasetName, @PathVariable String tableName) {
-        return ResponseEntity.ok(service.getTableMetadata(projectId, datasetName, tableName));
+    @GetMapping(path = "/table/{tableId}", produces = "application/json")
+    public TableMetadata getTable(@PathVariable String tableId) {
+        return service.getTableMetadata(tableId);
     }
+
 }

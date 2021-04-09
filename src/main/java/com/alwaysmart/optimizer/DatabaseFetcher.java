@@ -8,87 +8,71 @@ import java.util.List;
  */
 public interface DatabaseFetcher {
 
-
-
-	/**
-	 * Returns history queries for a given dataset.
-	 *
-	 * @param datasetName - the targeted dataset
-	 *
-	 * @return - a list of queries as string
-	 */
-	default List<FetchedQuery> fetchQueries(String projectId, String datasetName) {
-		throw new UnsupportedOperationException("Not supported to fetch all tables in dataset.");
-	}
-
-
 	/**
 	 * Returns history queries for a given table.
 	 *
-	 * @param projectId - the targeted project id
-	 * @param datasetName - the targeted dataset
-	 * @param tableName   - the targeted table
+	 * @param tableId - the targeted table id
 	 *
 	 * @return - a list of queries as string
 	 */
-	List<FetchedQuery> fetchQueries(String projectId, String datasetName, String tableName);
+	List<FetchedQuery> fetchQueries(String tableId);
 
 	/**
 	 * Returns history queries for a given table and date range.
 	 *
-	 * @param projectId - the targeted project id
-	 * @param datasetName - the targeted dataset
-	 * @param tableName   - the targeted table
+	 * @param tableId - the targeted project id
 	 * @param start       - the start range date
 	 *
 	 * @return - a list of queries as string
 	 */
-	List<FetchedQuery> fetchQueries(String projectId, String datasetName, String tableName, Date start);
-
-	/**
-	 * Returns all metadata of all tables in a given dataset.
-	 *
-	 * @param projectId - the targeted project id
-	 * @param datasetName - the targeted dataset
-	 *
-	 * @return - all metadata of fetched tables
-	 */
-	default List<TableMetadata> fetchTablesMetadata(String projectId, String datasetName) {
-		throw new UnsupportedOperationException("Not supported to fetch all tables in dataset.");
-	}
+	List<FetchedQuery> fetchQueries(String tableId, Date start);
 
 	/**
 	 * Returns metadata for a given table.
 	 *
-	 * @param projectId - the targeted project id
-	 * @param datasetName - the targeted dataset
-	 * @param tableName   - the targeted tableFe
+	 * @param tableId   - the targeted table id
 	 *
 	 * @return - TableMetadata of targeted table
 	 */
-	TableMetadata fetchTableMetadata(String projectId, String datasetName, String tableName);
+	TableMetadata fetchTable(String tableId);
 
 	/**
-	 * Returns all tables in a given dataset.
+	 * Returns all projects id.
+	 *
+	 * @return
+	 */
+	List<String> fetchProjects();
+
+
+	/**
+	 * Returns all the information for a given project.
+	 *
+	 * @return
+	 */
+	ProjectMetadata fetchProject(String projectName);
+
+	/**
+	 * Returns all dataset id in a given projectId.
 	 *
 	 * @param projectId
-	 * @param datasetName
 	 * @return
 	 */
-	List<String> getTables(String projectId, String datasetName);
+	List<String> fetchDatasets(String projectId);
 
 	/**
-	 * Returns all datasets in a given projectId.
+	 * Returns the dataset metadata in a given projectId.
 	 *
-	 * @param projectId
+	 * @param datasetId
 	 * @return
 	 */
-	List<String> getDatasets(String projectId);
+	DatasetMetadata fetchDataset(String datasetId);
 
 	/**
-	 * Returns all projects.
+	 * Returns all tables id in a given dataset.
 	 *
+	 * @param datasetId
 	 * @return
 	 */
-	List<String> getProjects();
+	List<String> fetchTables(String datasetId);
+
 }

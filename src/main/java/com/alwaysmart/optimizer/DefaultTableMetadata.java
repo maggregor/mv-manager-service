@@ -8,20 +8,38 @@ public class DefaultTableMetadata implements TableMetadata {
 	/**
 	 * Table Metadata object.
 	 *
+	 * @attribute tableId - the targeted table id
 	 * @attribute datasetName - the targeted dataset
 	 * @attribute tableName - the targeted table
 	 * @attribute colums - map of the columns: key is the column name, value is the
 	 *            data type
 	 */
+	private String tableId;
+	private String project;
 	private String schema;
 	private String table;
 	private Map<String, String> columns;
-	// TODO: Replace map columns with a custom Columns object
-	
-	DefaultTableMetadata(final String schema, final String table, final Map<String, String> columns) {
+
+	DefaultTableMetadata(final String tableId,
+						 final String project,
+						 final String schema,
+						 final String table,
+						 final Map<String, String> columns) {
+		this.tableId = tableId;
+		this.project = project;
 		this.schema = schema;
 		this.table = table;
 		this.columns = columns;
+	}
+
+	@Override
+	public String getTableId() {
+		return this.tableId;
+	}
+
+	@Override
+	public String getProject() {
+		return this.project;
 	}
 
 	@Override
@@ -41,17 +59,18 @@ public class DefaultTableMetadata implements TableMetadata {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o)
-			return true;
-		if (o == null || getClass() != o.getClass())
-			return false;
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
 		DefaultTableMetadata that = (DefaultTableMetadata) o;
-		return Objects.equals(schema, that.schema) && Objects.equals(table, that.table)
-				&& Objects.equals(columns, that.columns);
+		return Objects.equals(tableId, that.tableId) &&
+				Objects.equals(project, that.project) &&
+				Objects.equals(schema, that.schema) &&
+				Objects.equals(table, that.table) &&
+				Objects.equals(columns, that.columns);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(schema, table, columns);
+		return Objects.hash(tableId, project, schema, table, columns);
 	}
 }

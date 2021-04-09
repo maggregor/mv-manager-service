@@ -2,6 +2,8 @@ package com.alwaysmart.optimizer.services;
 
 import com.alwaysmart.optimizer.BigQueryDatabaseFetcher;
 import com.alwaysmart.optimizer.DatabaseFetcher;
+import com.alwaysmart.optimizer.DatasetMetadata;
+import com.alwaysmart.optimizer.ProjectMetadata;
 import com.alwaysmart.optimizer.TableMetadata;
 import com.google.auth.oauth2.AccessToken;
 import com.google.auth.oauth2.GoogleCredentials;
@@ -28,22 +30,32 @@ public class OptimizerService implements IOptimizerService {
 
     @Override
     public List<String> getProjects() {
-        return fetcher().getProjects();
+        return fetcher().fetchProjects();
+    }
+
+    @Override
+    public ProjectMetadata getProject(String projectId) {
+        return fetcher().fetchProject(projectId);
     }
 
     @Override
     public List<String> getDatasets(String projectId) {
-        return fetcher().getDatasets(projectId);
+        return fetcher().fetchDatasets(projectId);
     }
 
     @Override
-    public List<String> getTables(String projectId, String datasetName) {
-        return fetcher().getTables(projectId, datasetName);
+    public DatasetMetadata getDataset(String datasetId) {
+        return fetcher().fetchDataset(datasetId);
     }
 
     @Override
-    public TableMetadata getTableMetadata(String projectId, String datasetName, String tableName) {
-        return fetcher().fetchTableMetadata(projectId, datasetName, tableName);
+    public List<String> getTables(String datasetId) {
+        return fetcher().fetchTables(datasetId);
+    }
+
+    @Override
+    public TableMetadata getTableMetadata(String tableId) {
+        return fetcher().fetchTable(tableId);
     }
 
     private DatabaseFetcher fetcher() {
@@ -57,9 +69,10 @@ public class OptimizerService implements IOptimizerService {
         OAuth2AuthorizedClient client = clientService.loadAuthorizedClient(clientRegistrationId, oauthToken.getName());
         AccessToken accessToken = new AccessToken(client.getAccessToken().getTokenValue(), Date.from(client.getAccessToken().getExpiresAt()));
         return UserCredentials.newBuilder()
-                        .setClientId(client.getClientRegistration().getClientId())
-                        .setClientSecret(client.getClientRegistration().getClientSecret())
-                        .setAccessToken(accessToken)
-                        .build();
+                .setClientId(client.getClientRegistration().getClientId())
+                .setClientSecret(client.getClientRegistration().getClientSecret())
+                .setAccessToken(accessToken)
+                .build();
     }
+
 }

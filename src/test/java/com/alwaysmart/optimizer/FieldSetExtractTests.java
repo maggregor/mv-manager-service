@@ -29,7 +29,7 @@ public abstract class FieldSetExtractTests {
 
 	@Before
 	public void before() {
-		this.simpleTable = createTableMetadata("default", "mytable", SIMPLE_TABLE_COLUMNS);
+		this.simpleTable = createTableMetadata("myproject.default.mytable", SIMPLE_TABLE_COLUMNS);
 		this.extractor = createFieldSetExtract(simpleTable);
 	}
 

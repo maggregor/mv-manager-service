@@ -2,8 +2,9 @@ package com.alwaysmart.optimizer.services;
 
 import java.util.List;
 
+import com.alwaysmart.optimizer.DatasetMetadata;
+import com.alwaysmart.optimizer.ProjectMetadata;
 import com.alwaysmart.optimizer.TableMetadata;
-import com.google.auth.oauth2.GoogleCredentials;
 
 /**
  * All the useful services to generate relevant Materialized Views.
@@ -17,6 +18,14 @@ public interface IOptimizerService {
      */
     List<String> getProjects();
 
+    /**
+     * Returns all detail for a given project.
+     *
+     * @param projectId
+     * @return all the information of a project.
+     */
+    ProjectMetadata getProject(String projectId);
+
 
     /**
      * Returns all the datasets for a given project.
@@ -28,24 +37,30 @@ public interface IOptimizerService {
     List<String> getDatasets(String projectId);
 
     /**
+     * Returns all the information for a given dataset.
+     *
+     * @param datasetId the concerned dataset id
+     *
+     * @return all the information for a given dataset.
+     */
+    DatasetMetadata getDataset(String datasetId);
+
+    /**
      * Returns all the tables for a given project.
      *
-     * @param projectId the concerned project id
-     * @param datasetName the concerned dataset name
+     * @param datasetId the concerned dataset id
      *
      * @return all the tables for a given project.
      */
-    List<String> getTables(String projectId, String datasetName);
+    List<String> getTables(String datasetId);
 
     /**
      * Returns the metadata for a given table
      *
-     * @param projectId the concerned project id
-     * @param datasetName the concerned dataset name
-     * @param tableName the concerned project id
+     * @param tableId the concerned table id
      *
      * @return all the tables for a given project.
      */
-    TableMetadata getTableMetadata(String projectId, String datasetName, String tableName);
+    TableMetadata getTableMetadata(String tableId);
 
 }
