@@ -1,9 +1,13 @@
 package com.alwaysmart.optimizer;
 
+import java.util.List;
+
 public class ZetaSQLFieldSetExtractTests extends FieldSetExtractTests {
 
+
 	@Override
-	protected FieldSetExtract createFieldSetExtract(TableMetadata metadata) {
-		return new ZetaSQLFieldSetExtract(metadata);
+	protected FieldSetExtract createFieldSetExtract(List<TableMetadata> tables) {
+		return new ZetaSQLFieldSetExtract(tables);
 	}
+
 }

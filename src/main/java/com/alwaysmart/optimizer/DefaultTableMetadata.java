@@ -16,7 +16,7 @@ public class DefaultTableMetadata implements TableMetadata {
 	 */
 	private String tableId;
 	private String project;
-	private String schema;
+	private String dataset;
 	private String table;
 	private Map<String, String> columns;
 
@@ -27,7 +27,7 @@ public class DefaultTableMetadata implements TableMetadata {
 						 final Map<String, String> columns) {
 		this.tableId = tableId;
 		this.project = project;
-		this.schema = schema;
+		this.dataset = schema;
 		this.table = table;
 		this.columns = columns;
 	}
@@ -43,8 +43,8 @@ public class DefaultTableMetadata implements TableMetadata {
 	}
 
 	@Override
-	public String getSchema() {
-		return this.schema;
+	public String getDataset() {
+		return this.dataset;
 	}
 
 	@Override
@@ -64,13 +64,13 @@ public class DefaultTableMetadata implements TableMetadata {
 		DefaultTableMetadata that = (DefaultTableMetadata) o;
 		return Objects.equals(tableId, that.tableId) &&
 				Objects.equals(project, that.project) &&
-				Objects.equals(schema, that.schema) &&
+				Objects.equals(dataset, that.dataset) &&
 				Objects.equals(table, that.table) &&
 				Objects.equals(columns, that.columns);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(tableId, project, schema, table, columns);
+		return Objects.hash(tableId, project, dataset, table, columns);
 	}
 }

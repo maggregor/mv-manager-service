@@ -1,9 +1,11 @@
 package com.alwaysmart.optimizer;
 
 import com.alwaysmart.optimizer.fields.FieldSet;
+import com.google.cloud.bigquery.TableId;
 
-import java.util.LinkedList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * FieldSetBuilder create field set ready to be optimized.
@@ -18,8 +20,8 @@ public interface FieldSetExtract {
 	 * @param fetchedQueries - the queries
 	 * @return
 	 */
-	default List<FieldSet> extract(List<FetchedQuery> fetchedQueries) {
-		List<FieldSet> fieldSets = new LinkedList<>();
+	default Set<FieldSet> extract(List<FetchedQuery> fetchedQueries) {
+		Set<FieldSet> fieldSets = new HashSet<>();
 		for (FetchedQuery query : fetchedQueries) {
 			fieldSets.add(extract(query));
 		}
@@ -33,4 +35,32 @@ public interface FieldSetExtract {
 	 * @return
 	 */
 	FieldSet extract(FetchedQuery fetchedQueries);
+
+
+	/**
+	 * Extract all schemas / tables id
+	 *
+	 * @param fetchedQueries - the query
+	 * @return
+	 */
+	default Set<TableId> extractAllTableId(List<FetchedQuery> fetchedQueries) {
+		Set<TableId> fieldSets = new HashSet<>();
+		fetchedQueries.forEach(fetchedQuery -> fieldSets.addAll(extractTableId(fetchedQuery)));
+		return fieldSets;
+	}
+
+	/**
+	 * Extract all schemas / tables id
+	 *
+	 * @param fetchedQueries - the query
+	 * @return
+	 */
+	Set<TableId> extractTableId(FetchedQuery fetchedQueries);
+
+	/**
+	 * Register data model in the extractor.
+	 *
+	 * @param tables
+	 */
+	void registerTables(List<TableMetadata> tables);
 }

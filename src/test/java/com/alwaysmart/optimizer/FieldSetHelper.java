@@ -14,6 +14,8 @@ public enum FieldSetHelper {
 
 	public static FieldSet statementToFieldSet(String statement, FieldSetExtract extractor) {
 		FetchedQuery query = FetchedQueryFactory.createFetchedQuery(statement);
+		// (Dirty) hack to retrieve tableId
+		extractor.extractTableId(query);
 		return extractor.extract(query);
 	}
 

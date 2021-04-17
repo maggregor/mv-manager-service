@@ -1,7 +1,10 @@
 package com.alwaysmart.optimizer;
 
+import com.google.cloud.bigquery.TableId;
+
 public class DefaultFetchedQuery implements FetchedQuery {
 
+	private TableId tableId;
 	private String statement;
 	private long cost;
 
@@ -9,6 +12,14 @@ public class DefaultFetchedQuery implements FetchedQuery {
 							   final long cost) {
 		this.statement = statement;
 		this.cost = cost;
+	}
+
+	public void setTableId(TableId tableId) {
+		this.tableId = tableId;
+	}
+
+	public TableId getTableId() {
+		return this.tableId;
 	}
 
 	public long cost() {

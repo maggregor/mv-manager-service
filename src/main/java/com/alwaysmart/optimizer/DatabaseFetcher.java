@@ -1,5 +1,9 @@
 package com.alwaysmart.optimizer;
 
+import com.google.cloud.bigquery.TableId;
+
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -41,7 +45,7 @@ public interface DatabaseFetcher {
 	 *
 	 * @return
 	 */
-	List<String> fetchProjects();
+	List<String> fetchProjectIds();
 
 
 	/**
@@ -57,7 +61,7 @@ public interface DatabaseFetcher {
 	 * @param projectId
 	 * @return
 	 */
-	List<String> fetchDatasets(String projectId);
+	List<String> fetchDatasetIds(String projectId);
 
 	/**
 	 * Returns the dataset metadata in a given projectId.
@@ -73,6 +77,24 @@ public interface DatabaseFetcher {
 	 * @param datasetId
 	 * @return
 	 */
-	List<String> fetchTables(String datasetId);
+	List<String> fetchTableIds(String datasetId);
+
+	/**
+	 * #TODO -> Dirty
+	 * Returns table metadata for each given table.
+	 *
+	 * @param tableIds - List of TableId object.
+	 * @return the table metadata for each given table.
+	 */
+	default List<TableMetadata> fetchTables(Collection<TableId> tableIds) {
+		List<TableMetadata> tables = new ArrayList<>();
+		for (TableId tableId : tableIds) {
+			TableMetadata table = fetchTable(BigQueryHelper.tableToString(tableId));
+			if (table != null) {
+				tables.add(table);
+			}
+		}
+		return tables;
+	}
 
 }

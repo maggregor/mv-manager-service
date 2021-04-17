@@ -4,6 +4,12 @@
 # Optimizer
 Determines the most relevant materialized views in a given BigQuery context.
 
+# Development
+Run Postgres and Adminer
+```shell script
+docker-compose -f stack.yml
+```
+
 # HTTP Routes
 - GET /api/v1/project
 - GET /api/v1/project/{projectName}

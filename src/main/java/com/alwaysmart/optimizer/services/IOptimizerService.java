@@ -1,10 +1,12 @@
 package com.alwaysmart.optimizer.services;
 
+import java.util.Collection;
 import java.util.List;
 
 import com.alwaysmart.optimizer.DatasetMetadata;
 import com.alwaysmart.optimizer.ProjectMetadata;
 import com.alwaysmart.optimizer.TableMetadata;
+import com.alwaysmart.optimizer.fields.FieldSet;
 
 /**
  * All the useful services to generate relevant Materialized Views.
@@ -63,4 +65,10 @@ public interface IOptimizerService {
      */
     TableMetadata getTableMetadata(String tableId);
 
+    /**
+     * Execute an optimize workflow on a given table.
+     *
+     * @param tableId the concerned tableId
+     */
+    Collection<FieldSet> optimizeProject(String tableId);
 }

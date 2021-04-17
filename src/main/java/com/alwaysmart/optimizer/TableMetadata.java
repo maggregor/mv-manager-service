@@ -23,12 +23,12 @@ public interface TableMetadata {
 	String getProject();
 
 	/**
-	 * The schema name of the table on which metadata was retrieved.
+	 * The schema dataset of the table on which metadata was retrieved.
 	 * Example: {@code default}
 	 *
-	 * @return the schema name of the table on which metadata was retrieved.
+	 * @return the dataset name of the table on which metadata was retrieved.
 	 */
-	String getSchema();
+	String getDataset();
 
 	/**
 	 * The name of the table on which metadata was retrieved.

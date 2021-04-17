@@ -26,6 +26,10 @@ import com.google.cloud.bigquery.TableId;
 import com.google.cloud.resourcemanager.Project;
 import com.google.cloud.resourcemanager.ResourceManager;
 import com.google.cloud.resourcemanager.ResourceManagerOptions;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.zetasql.ZetaSQLType;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 
@@ -36,7 +40,7 @@ import static com.alwaysmart.optimizer.BigQueryHelper.tableToString;
 
 public class BigQueryDatabaseFetcher implements DatabaseFetcher {
 
-    private static final int LIST_JOB_PAGE_SIZE = 25;
+    private static final int LIST_JOB_PAGE_SIZE = 25000;
     private BigQuery bigquery;
     private ResourceManager resourceManager;
 
@@ -49,12 +53,12 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     }
 
     @Override
-    public List<FetchedQuery> fetchQueries(String tableId) {
-        return fetchQueries(tableId, null);
+    public List<FetchedQuery> fetchQueries(String project) {
+        return fetchQueries(project, null);
     }
 
     @Override
-    public List<FetchedQuery> fetchQueries(String tableId, Date start) {
+    public List<FetchedQuery> fetchQueries(String project, Date start) {
         List<BigQuery.JobListOption> options = new ArrayList<>();
         options.add(BigQuery.JobListOption.pageSize(LIST_JOB_PAGE_SIZE));
         if (start != null) {
@@ -64,8 +68,14 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
         List<FetchedQuery> fetchedQueries = new ArrayList<>();
         for (Job job : jobs.getValues()) {
             String query = ((QueryJobConfiguration) job.getConfiguration()).getQuery();
+            if (!query.toUpperCase().startsWith("SELECT") || query.toUpperCase().contains("INFORMATION_SCHEMA")) {
+                continue;
+            }
             JobStatistics.QueryStatistics queryStatistics = job.getStatistics();
-            fetchedQueries.add(FetchedQueryFactory.createFetchedQuery(query, queryStatistics.getTotalBytesBilled()));
+            Long billed = queryStatistics.getTotalBytesBilled();
+            long cost = billed == null ? -1 : billed;
+            fetchedQueries.add(FetchedQueryFactory.createFetchedQuery(query, cost));
+            System.out.println(query.replaceAll("\n", " "));
         }
         return fetchedQueries;
     }
@@ -75,8 +85,22 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
         try {
             TableId tableId = parseTable(tableIdString);
             Table table = bigquery.getTable(tableId);
+            if (
+            /*
+             * Element should exists.
+             * Should be a table and not a View or Materialized View.
+             */
+            table == null
+
+            || !table.exists()
+            || !(table.getDefinition() instanceof StandardTableDefinition)) {
+                return null;
+            }
             StandardTableDefinition tableDefinition = table.getDefinition();
             Schema tableSchema = tableDefinition.getSchema();
+            final GsonBuilder builder = new GsonBuilder();
+            final Gson gson = builder.create();
+            System.out.println(gson.toJson(tableSchema));
             Map<String, String> tableColumns = this.fetchColumns(tableSchema.getFields());
             return new DefaultTableMetadata(tableIdString, tableId.getProject(), tableId.getDataset(), tableId.getTable(), tableColumns);
         } catch (BigQueryException e) {
@@ -85,7 +109,7 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     }
 
     @Override
-    public List<String> fetchTables(String datasetIdString) {
+    public List<String> fetchTableIds(String datasetIdString) {
         DatasetId datasetId = parseDataset(datasetIdString);
         List<String> tables = new ArrayList<>();
         for (Table table :  bigquery.listTables(datasetId).getValues()) {
@@ -97,13 +121,31 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     private Map<String, String> fetchColumns(List<Field> googleFields) {
         Map<String, String> tableColumns = new HashMap<>();
         for (Field field : googleFields) {
-            tableColumns.put(field.getName(), field.getType().toString());
+            String fetchedType = field.getType().toString();
+            String type = convertToZetaSQLType(fetchedType);
+            tableColumns.put(field.getName(), type);
         }
         return tableColumns;
     }
 
+    private String convertToZetaSQLType(String fetchedType) {
+        fetchedType = fetchedType.toUpperCase();
+        switch (fetchedType) {
+            case "INTEGER":
+                fetchedType = ZetaSQLType.TypeKind.TYPE_INT64.name();
+                break;
+            case "BOOLEAN":
+                fetchedType = ZetaSQLType.TypeKind.TYPE_BOOL.name();
+                break;
+            default:
+                fetchedType = "TYPE_" + fetchedType;
+                break;
+        }
+        return fetchedType;
+    }
+
     @Override
-    public List<String> fetchProjects() {
+    public List<String> fetchProjectIds() {
         Set<String> projects = new HashSet<>();
         for(Project project : resourceManager.list().iterateAll()) {
             projects.add(project.getName());
@@ -113,11 +155,11 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
 
     @Override
     public ProjectMetadata fetchProject(String projectName) {
-        return new DefaultProjectMetadata(projectName, fetchDatasets(projectName));
+        return new DefaultProjectMetadata(projectName, fetchDatasetIds(projectName));
     }
 
     @Override
-    public List<String> fetchDatasets(String projectId) {
+    public List<String> fetchDatasetIds(String projectId) {
         List<String> datasets = new ArrayList<>();
         for (Dataset dataset :  bigquery.listDatasets(projectId).getValues()) {
             datasets.add(datasetToString(dataset.getDatasetId()));
@@ -128,7 +170,7 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     @Override
     public DatasetMetadata fetchDataset(String datasetIdString) {
         DatasetId datasetId = parseDataset(datasetIdString);
-        return new DefaultDatasetMetadata(datasetIdString, datasetId.getProject(), datasetId.getDataset(), fetchTables(datasetIdString));
+        return new DefaultDatasetMetadata(datasetIdString, datasetId.getProject(), datasetId.getDataset(), fetchTableIds(datasetIdString));
     }
 
 }

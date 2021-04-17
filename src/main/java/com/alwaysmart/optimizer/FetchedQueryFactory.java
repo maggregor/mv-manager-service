@@ -5,7 +5,7 @@ public enum FetchedQueryFactory {
 		;
 
 		public static FetchedQuery createFetchedQuery(String statement) {
-			return createFetchedQuery(statement, 0);
+			return createFetchedQuery(statement,0);
 		}
 
 		public static FetchedQuery createFetchedQuery(String statement, long cost) {
