@@ -1,16 +1,13 @@
 package com.alwaysmart.optimizer;
 
-import com.alwaysmart.optimizer.fields.AggregateField;
-import com.alwaysmart.optimizer.fields.DefaultFieldSet;
-import com.alwaysmart.optimizer.fields.Field;
-import com.alwaysmart.optimizer.fields.FieldSet;
-import com.alwaysmart.optimizer.fields.ReferenceField;
+import com.alwaysmart.optimizer.extract.fields.AggregateField;
+import com.alwaysmart.optimizer.extract.fields.DefaultFieldSet;
+import com.alwaysmart.optimizer.extract.fields.FieldSet;
+import com.alwaysmart.optimizer.extract.fields.ReferenceField;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.Set;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DefaultFieldSetTests {

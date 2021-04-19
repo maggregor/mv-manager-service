@@ -1,8 +1,11 @@
 package com.alwaysmart.optimizer;
 
-import com.alwaysmart.optimizer.fields.DefaultFieldSet;
-import com.alwaysmart.optimizer.fields.Field;
-import com.alwaysmart.optimizer.fields.FieldSet;
+import com.alwaysmart.optimizer.databases.FetchedQuery;
+import com.alwaysmart.optimizer.databases.FetchedQueryFactory;
+import com.alwaysmart.optimizer.extract.FieldSetExtract;
+import com.alwaysmart.optimizer.extract.fields.DefaultFieldSet;
+import com.alwaysmart.optimizer.extract.fields.Field;
+import com.alwaysmart.optimizer.extract.fields.FieldSet;
 
 import java.util.Arrays;
 import java.util.HashSet;

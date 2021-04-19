@@ -1,8 +1,10 @@
 package com.alwaysmart.optimizer;
 
-import com.alwaysmart.optimizer.fields.FieldSet;
+import com.alwaysmart.optimizer.extract.fields.FieldSet;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Optimizer service
@@ -18,5 +20,5 @@ public interface Optimizer {
 	 * @param fieldSet - Row field set
 	 * @return -
 	 */
-	Collection<FieldSet> optimize(Collection<FieldSet> fieldSet);
+	Set<FieldSet> optimize(Set<FieldSet> fieldSet);
 }
