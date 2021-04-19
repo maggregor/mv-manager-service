@@ -26,7 +26,9 @@ public class BigQueryMaterializedViewStatementBuilder implements MaterializedVie
 		final StringJoiner joiner = new StringJoiner(SEP_SQL_VERBS);
 		joiner.add(buildSelect(fieldSet));
 		joiner.add(buildFrom(fieldSet));
-		joiner.add(buildGroupBy(fieldSet));
+		if (!fieldSet.references().isEmpty()) {
+			joiner.add(buildGroupBy(fieldSet));
+		}
 		return joiner.toString();
 	}
 
@@ -37,13 +39,16 @@ public class BigQueryMaterializedViewStatementBuilder implements MaterializedVie
 	}
 
 	public String serializeField(Field field, boolean addAlias) {
-		StringJoiner alias = new StringJoiner(SEP_SQL_VERBS);
-		alias.add(field.name());
+		StringJoiner aliasJoiner = new StringJoiner(SEP_SQL_VERBS);
+		String name = field.hasAlias() ? field.alias() : field.name();
+		aliasJoiner.add(name);
 		if (addAlias) {
-			alias.add(SQL_VERB_AS);
-			alias.add(generateRandomAlias());
+			final String alias = generateRandomAlias();
+			field.setAlias(alias);
+			aliasJoiner.add(SQL_VERB_AS);
+			aliasJoiner.add(alias);
 		}
-		return alias.toString();
+		return aliasJoiner.toString();
 	}
 
 	/**
@@ -55,15 +60,18 @@ public class BigQueryMaterializedViewStatementBuilder implements MaterializedVie
 		String uuid = UUID.randomUUID().toString();
 		Random r = new Random();
 		char c = (char) (r.nextInt(26) + 'a');
-		uuid = uuid.replaceAll("[a-z]{0}", String.valueOf(c));
+		uuid = uuid.replaceFirst("[a-z]{0}", String.valueOf(c));
 		uuid = uuid.replaceAll("-", StringUtils.EMPTY);
-		return uuid;
+		return uuid.substring(0,4);
 	}
 
 	public String buildSelect(FieldSet fieldSet) {
 		StringJoiner joiner = new StringJoiner(SEP_SQL_VERBS);
 		joiner.add(SQL_VERB_SELECT);
 		joiner.add(buildColumns(fieldSet.references(), true));
+		if (!fieldSet.references().isEmpty()) {
+			joiner.add(SEP_COLUMNS);
+		}
 		joiner.add(buildColumns(fieldSet.aggregates(), true));
 		return joiner.toString();
 	}
@@ -83,11 +91,7 @@ public class BigQueryMaterializedViewStatementBuilder implements MaterializedVie
 	}
 
 	public String buildTableReference(TableId tableId) {
-		Preconditions.checkNotNull(tableId);
-		if (StringUtils.isEmpty(tableId.getProject())) {
-			throw new IllegalArgumentException("Project name is empty or null");
-		}
-		return String.format("`%s`.`%s`.`%s`", tableId.getProject(), tableId.getDataset(), tableId.getTable());
+		return String.format("`%s`.`%s`", tableId.getDataset(), tableId.getTable());
 	}
 
 }

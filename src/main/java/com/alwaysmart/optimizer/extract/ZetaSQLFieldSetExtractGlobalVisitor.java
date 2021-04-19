@@ -40,7 +40,7 @@ public class ZetaSQLFieldSetExtractGlobalVisitor extends ZetaSQLFieldSetExtractV
 	public void visit(ResolvedNodes.ResolvedFunctionCall node) {
 		String expression = Analyzer.buildExpression(node, this.getCatalog());
 		expression = hackMappingColumnsInFunction(expression, node);
-		this.addField(new AggregateField(expression));
+		this.addField(new ReferenceField(expression));
 		super.visit(node);
 	}
 

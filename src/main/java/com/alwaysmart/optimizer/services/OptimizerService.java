@@ -47,8 +47,11 @@ public class OptimizerService implements IOptimizerService {
 
     @Autowired
     OAuth2AuthorizedClientService clientService;
-    @Autowired
     BigQueryMaterializedViewStatementBuilder statementBuilder;
+
+    public OptimizerService() {
+        this.statementBuilder = new BigQueryMaterializedViewStatementBuilder();
+    }
 
     @PersistenceContext
     private EntityManager entityManager;

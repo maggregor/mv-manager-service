@@ -5,6 +5,7 @@ import com.alwaysmart.optimizer.databases.bigquery.BigQueryMaterializedViewState
 import com.alwaysmart.optimizer.extract.fields.FieldSet;
 import com.google.cloud.bigquery.TableId;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -37,7 +38,7 @@ public class BigQueryMaterializedViewStatementBuilderTests {
 		}
 	}
 
-	@Test
+	@Test @Ignore
 	public void testTableReferenceSerializationWithoutProject() {
 		TableId tableId = TableId.of("mydataset", "mytable");
 		Throwable exception = assertThrows(IllegalArgumentException.class, () -> builder.buildTableReference(tableId));

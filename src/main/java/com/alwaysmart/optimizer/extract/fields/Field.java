@@ -1,5 +1,7 @@
 package com.alwaysmart.optimizer.extract.fields;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.Objects;
 
 /**
@@ -10,6 +12,7 @@ public abstract class Field {
 
 	private String expression;
 	private int cardinality;
+	private String alias;
 
 	Field(String expression) {
 		this(expression, 1);
@@ -18,6 +21,18 @@ public abstract class Field {
 	Field(String expression, int cardinality) {
 		this.expression = expression;
 		this.cardinality = cardinality;
+	}
+
+	public boolean hasAlias() {
+		return !StringUtils.isEmpty(alias);
+	}
+
+	public String alias() {
+		return this.alias;
+	}
+
+	public void setAlias(String alias) {
+		this.alias = alias;
 	}
 
 	public String name() {

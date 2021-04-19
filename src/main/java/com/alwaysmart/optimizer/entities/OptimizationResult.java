@@ -32,7 +32,7 @@ public class OptimizationResult {
 	@Column(name="table_name", nullable = false)
 	private String table;
 
-	@Column(name="statement", nullable = false)
+	@Column(name="statement", nullable = false, length = 65536)
 	private String statement;
 
 	public OptimizationResult(String dataset, String table, Optimization optimization, String statement) {
