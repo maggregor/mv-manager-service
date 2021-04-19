@@ -122,12 +122,6 @@
 			<artifactId>google-cloud-bigquery</artifactId>
 			<version>1.128.0</version>
 		</dependency>
-		<!-- https://mvnrepository.com/artifact/com.google.cloud/google-cloud-bigquery -->
-		<dependency>
-			<groupId>com.google.cloud.solutions</groupId>
-			<artifactId>bigquery-data-lineage</artifactId>
-			<version>0.1-SNAPSHOT</version>
-		</dependency>
 		<!-- https://mvnrepository.com/artifact/com.google.zetasql/zetasql-client -->
 		<dependency>
 			<groupId>com.google.zetasql</groupId>
