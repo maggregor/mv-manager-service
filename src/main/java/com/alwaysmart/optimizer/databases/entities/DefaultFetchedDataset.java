@@ -2,14 +2,14 @@ package com.alwaysmart.optimizer.databases.entities;
 
 import java.util.List;
 
-public class DefaultDatasetMetadata implements DatasetMetadata {
+public class DefaultFetchedDataset implements FetchedDataset {
 
 	private String datasetId;
 	private String project;
 	private String name;
 	private List<String> tables;
 
-	public DefaultDatasetMetadata(String datasetId, String project, String name, List<String> tables) {
+	public DefaultFetchedDataset(String datasetId, String project, String name, List<String> tables) {
 		this.datasetId = datasetId;
 		this.project = project;
 		this.name = name;

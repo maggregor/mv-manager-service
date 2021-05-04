@@ -1,6 +1,6 @@
 package com.alwaysmart.optimizer;
 
-import com.alwaysmart.optimizer.databases.entities.TableMetadata;
+import com.alwaysmart.optimizer.databases.entities.FetchedTable;
 import com.alwaysmart.optimizer.extract.FieldSetExtract;
 import com.alwaysmart.optimizer.extract.fields.AggregateField;
 import com.alwaysmart.optimizer.extract.fields.Field;
@@ -13,16 +13,16 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.alwaysmart.optimizer.FieldSetHelper.createFieldSet;
 import static com.alwaysmart.optimizer.FieldSetHelper.statementToFieldSet;
-import static com.alwaysmart.optimizer.databases.entities.TableMetadataHelper.createTableMetadata;
+import static com.alwaysmart.optimizer.databases.entities.FetchedTableHelper.createFetchedTable;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(SpringRunner.class)
 public abstract class FieldSetExtractTests {
 
 	private static final String[][] SIMPLE_TABLE_COLUMNS = new String[][]{
@@ -34,12 +34,12 @@ public abstract class FieldSetExtractTests {
 
 	private FieldSetExtract extractor;
 
-	protected abstract FieldSetExtract createFieldSetExtract(String projectName, List<TableMetadata> metadata);
+	protected abstract FieldSetExtract createFieldSetExtract(String projectName, List<FetchedTable> metadata);
 
 	@Before
 	public void before() {
-		List<TableMetadata> tables = new ArrayList<>();
-		tables.add(createTableMetadata("myproject.mydataset.mytable", SIMPLE_TABLE_COLUMNS));
+		List<FetchedTable> tables = new ArrayList<>();
+		tables.add(createFetchedTable("myproject.mydataset.mytable", SIMPLE_TABLE_COLUMNS));
 		this.extractor = createFieldSetExtract("myproject", tables);
 	}
 

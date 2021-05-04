@@ -8,8 +8,9 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(SpringRunner.class)
 public class DefaultFieldSetTests {
 
 	private static final FieldSet FIELD_SET_1 = FieldSetHelper.createFieldSet(10, 100, new AggregateField("SUM(col1)"), new ReferenceField("col2"));

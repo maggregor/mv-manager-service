@@ -3,7 +3,7 @@ package com.alwaysmart.optimizer.databases.entities;
 import java.util.Map;
 import java.util.Objects;
 
-public class DefaultTableMetadata implements TableMetadata {
+public class DefaultFetchedTable implements FetchedTable {
 
 	/**
 	 * Table Metadata object.
@@ -20,7 +20,7 @@ public class DefaultTableMetadata implements TableMetadata {
 	private String table;
 	private Map<String, String> columns;
 
-	public DefaultTableMetadata(final String tableId,
+	public DefaultFetchedTable(final String tableId,
 								final String project,
 								final String schema,
 								final String table,
@@ -61,7 +61,7 @@ public class DefaultTableMetadata implements TableMetadata {
 	public boolean equals(Object o) {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
-		DefaultTableMetadata that = (DefaultTableMetadata) o;
+		DefaultFetchedTable that = (DefaultFetchedTable) o;
 		return Objects.equals(tableId, that.tableId) &&
 				Objects.equals(project, that.project) &&
 				Objects.equals(dataset, that.dataset) &&

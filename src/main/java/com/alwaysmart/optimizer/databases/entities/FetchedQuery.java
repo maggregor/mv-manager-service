@@ -1,5 +1,6 @@
-package com.alwaysmart.optimizer.databases;
+package com.alwaysmart.optimizer.databases.entities;
 
+import com.alwaysmart.optimizer.databases.DatabaseFetcher;
 import com.google.cloud.bigquery.TableId;
 
 /**

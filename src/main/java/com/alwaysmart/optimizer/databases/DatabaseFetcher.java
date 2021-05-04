@@ -1,9 +1,10 @@
 package com.alwaysmart.optimizer.databases;
 
 import com.alwaysmart.optimizer.databases.bigquery.BigQueryHelper;
-import com.alwaysmart.optimizer.databases.entities.DatasetMetadata;
-import com.alwaysmart.optimizer.databases.entities.ProjectMetadata;
-import com.alwaysmart.optimizer.databases.entities.TableMetadata;
+import com.alwaysmart.optimizer.databases.entities.FetchedDataset;
+import com.alwaysmart.optimizer.databases.entities.FetchedProject;
+import com.alwaysmart.optimizer.databases.entities.FetchedQuery;
+import com.alwaysmart.optimizer.databases.entities.FetchedTable;
 import com.google.cloud.bigquery.TableId;
 
 import java.util.ArrayList;
@@ -40,9 +41,9 @@ public interface DatabaseFetcher {
 	 *
 	 * @param tableId   - the targeted table id
 	 *
-	 * @return - TableMetadata of targeted table
+	 * @return - FetchedTable of targeted table
 	 */
-	TableMetadata fetchTable(String tableId);
+	FetchedTable fetchTable(String tableId);
 
 	/**
 	 * Returns all projects id.
@@ -57,7 +58,7 @@ public interface DatabaseFetcher {
 	 *
 	 * @return
 	 */
-	ProjectMetadata fetchProject(String projectName);
+	FetchedProject fetchProject(String projectName);
 
 	/**
 	 * Returns all dataset id in a given projectId.
@@ -73,7 +74,7 @@ public interface DatabaseFetcher {
 	 * @param datasetId
 	 * @return
 	 */
-	DatasetMetadata fetchDataset(String datasetId);
+	FetchedDataset fetchDataset(String datasetId);
 
 	/**
 	 * Returns all tables id in a given dataset.
@@ -90,10 +91,10 @@ public interface DatabaseFetcher {
 	 * @param tableIds - List of TableId object.
 	 * @return the table metadata for each given table.
 	 */
-	default List<TableMetadata> fetchTables(Collection<TableId> tableIds) {
-		List<TableMetadata> tables = new ArrayList<>();
+	default List<FetchedTable> fetchTables(Collection<TableId> tableIds) {
+		List<FetchedTable> tables = new ArrayList<>();
 		for (TableId tableId : tableIds) {
-			TableMetadata table = fetchTable(BigQueryHelper.tableToString(tableId));
+			FetchedTable table = fetchTable(BigQueryHelper.tableToString(tableId));
 			if (table != null) {
 				tables.add(table);
 			}

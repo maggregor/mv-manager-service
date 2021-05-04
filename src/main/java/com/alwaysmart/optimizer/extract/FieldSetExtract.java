@@ -1,7 +1,7 @@
 package com.alwaysmart.optimizer.extract;
 
-import com.alwaysmart.optimizer.databases.FetchedQuery;
-import com.alwaysmart.optimizer.databases.entities.TableMetadata;
+import com.alwaysmart.optimizer.databases.entities.FetchedQuery;
+import com.alwaysmart.optimizer.databases.entities.FetchedTable;
 import com.alwaysmart.optimizer.extract.fields.FieldSet;
 import com.google.cloud.bigquery.TableId;
 
@@ -67,5 +67,5 @@ public interface FieldSetExtract {
 	 *
 	 * @param tables
 	 */
-	void registerTables(List<TableMetadata> tables);
+	void registerTables(List<FetchedTable> tables);
 }

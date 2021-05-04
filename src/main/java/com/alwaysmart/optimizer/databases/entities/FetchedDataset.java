@@ -5,7 +5,7 @@ import java.util.List;
 /**
  * Represents a single project from database with metadata.
  */
-public interface DatasetMetadata {
+public interface FetchedDataset {
 
 	/**
 	 * Return the dataset id.

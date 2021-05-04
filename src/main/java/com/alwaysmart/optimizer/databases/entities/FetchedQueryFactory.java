@@ -1,4 +1,4 @@
-package com.alwaysmart.optimizer.databases;
+package com.alwaysmart.optimizer.databases.entities;
 
 public enum FetchedQueryFactory {
 

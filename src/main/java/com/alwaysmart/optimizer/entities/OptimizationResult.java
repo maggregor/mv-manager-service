@@ -42,6 +42,10 @@ public class OptimizationResult {
 		this.statement = statement;
 	}
 
+	public OptimizationResult() {
+
+	}
+
 	public Long getId() {
 		return id;
 	}

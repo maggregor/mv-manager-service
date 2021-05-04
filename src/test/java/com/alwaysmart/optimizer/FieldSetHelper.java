@@ -1,7 +1,7 @@
 package com.alwaysmart.optimizer;
 
-import com.alwaysmart.optimizer.databases.FetchedQuery;
-import com.alwaysmart.optimizer.databases.FetchedQueryFactory;
+import com.alwaysmart.optimizer.databases.entities.FetchedQuery;
+import com.alwaysmart.optimizer.databases.entities.FetchedQueryFactory;
 import com.alwaysmart.optimizer.extract.FieldSetExtract;
 import com.alwaysmart.optimizer.extract.fields.DefaultFieldSet;
 import com.alwaysmart.optimizer.extract.fields.Field;

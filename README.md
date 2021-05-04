@@ -9,9 +9,11 @@ Run Postgres and Adminer
 ```shell script
 docker-compose -f stack.yml
 ```
+# Deploy
+```shell script
+# Set the your gcloud project id
+gcloud config set project achilio-dev
+# Deploy in appengine
+mvn clean package appengine:deploy
+```
 
-# HTTP Routes
-- GET /api/v1/project
-- GET /api/v1/project/{projectName}
-- GET /api/v1/dataset/{projectName.datasetName}
-- GET /api/v1/table/{projectName.datasetName.tableName}

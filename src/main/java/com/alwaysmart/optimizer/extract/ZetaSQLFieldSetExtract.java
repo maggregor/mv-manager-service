@@ -1,8 +1,8 @@
 package com.alwaysmart.optimizer.extract;
 
 import com.alwaysmart.optimizer.databases.bigquery.BigQueryHelper;
-import com.alwaysmart.optimizer.databases.FetchedQuery;
-import com.alwaysmart.optimizer.databases.entities.TableMetadata;
+import com.alwaysmart.optimizer.databases.entities.FetchedQuery;
+import com.alwaysmart.optimizer.databases.entities.FetchedTable;
 import com.alwaysmart.optimizer.extract.fields.FieldSet;
 import com.alwaysmart.optimizer.extract.fields.FieldSetFactory;
 import com.google.cloud.bigquery.TableId;
@@ -49,16 +49,16 @@ public class ZetaSQLFieldSetExtract implements FieldSetExtract {
 		this(projectName, new ArrayList<>());
 	}
 
-	public ZetaSQLFieldSetExtract(String projectName, List<TableMetadata> tables) {
+	public ZetaSQLFieldSetExtract(String projectName, List<FetchedTable> tables) {
 		registerProjectCatalog(projectName);
 		this.registerTables(tables);
 	}
 
-	public void registerTables(List<TableMetadata> tables) {
+	public void registerTables(List<FetchedTable> tables) {
 		tables.forEach(this::registerTable);
 	}
 
-	private void registerTable(TableMetadata table) {
+	private void registerTable(FetchedTable table) {
 		final String datasetCatalogName = table.getDataset();
 		final String fullTableName = table.getTable();
 		SimpleCatalog dataset = registerDatasetCatalogIfNotExists(datasetCatalogName);

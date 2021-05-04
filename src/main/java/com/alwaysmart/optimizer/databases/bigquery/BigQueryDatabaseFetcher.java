@@ -9,14 +9,14 @@ import java.util.Map;
 import java.util.Set;
 
 import com.alwaysmart.optimizer.databases.DatabaseFetcher;
-import com.alwaysmart.optimizer.databases.FetchedQuery;
-import com.alwaysmart.optimizer.databases.FetchedQueryFactory;
-import com.alwaysmart.optimizer.databases.entities.DatasetMetadata;
-import com.alwaysmart.optimizer.databases.entities.DefaultDatasetMetadata;
-import com.alwaysmart.optimizer.databases.entities.DefaultProjectMetadata;
-import com.alwaysmart.optimizer.databases.entities.DefaultTableMetadata;
-import com.alwaysmart.optimizer.databases.entities.ProjectMetadata;
-import com.alwaysmart.optimizer.databases.entities.TableMetadata;
+import com.alwaysmart.optimizer.databases.entities.FetchedQuery;
+import com.alwaysmart.optimizer.databases.entities.FetchedQueryFactory;
+import com.alwaysmart.optimizer.databases.entities.DefaultFetchedDataset;
+import com.alwaysmart.optimizer.databases.entities.DefaultFetchedProject;
+import com.alwaysmart.optimizer.databases.entities.DefaultFetchedTable;
+import com.alwaysmart.optimizer.databases.entities.FetchedDataset;
+import com.alwaysmart.optimizer.databases.entities.FetchedProject;
+import com.alwaysmart.optimizer.databases.entities.FetchedTable;
 import com.google.api.gax.paging.Page;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.bigquery.BigQuery;
@@ -37,8 +37,6 @@ import com.google.cloud.resourcemanager.ResourceManager;
 import com.google.cloud.resourcemanager.ResourceManagerOptions;
 import com.google.zetasql.ZetaSQLType;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 
 import static com.alwaysmart.optimizer.databases.bigquery.BigQueryHelper.datasetToString;
 import static com.alwaysmart.optimizer.databases.bigquery.BigQueryHelper.parseDataset;
@@ -50,9 +48,6 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     private static final int LIST_JOB_PAGE_SIZE = 25000;
     private BigQuery bigquery;
     private ResourceManager resourceManager;
-
-    @Autowired
-    OAuth2AuthorizedClientService clientService;
 
     public BigQueryDatabaseFetcher(GoogleCredentials googleCredentials, String projectId) {
         BigQueryOptions.Builder bqOptBuilder = BigQueryOptions
@@ -100,7 +95,7 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     }
 
     @Override
-    public TableMetadata fetchTable(String tableIdString) throws IllegalArgumentException {
+    public FetchedTable fetchTable(String tableIdString) throws IllegalArgumentException {
         try {
             TableId tableId = parseTable(tableIdString);
             Table table = bigquery.getTable(tableId);
@@ -118,7 +113,7 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
             StandardTableDefinition tableDefinition = table.getDefinition();
             Schema tableSchema = tableDefinition.getSchema();
             Map<String, String> tableColumns = this.fetchColumns(tableSchema.getFields());
-            return new DefaultTableMetadata(tableIdString, tableId.getProject(), tableId.getDataset(), tableId.getTable(), tableColumns);
+            return new DefaultFetchedTable(tableIdString, tableId.getProject(), tableId.getDataset(), tableId.getTable(), tableColumns);
         } catch (BigQueryException e) {
             throw new IllegalArgumentException(e.toString());
         }
@@ -164,14 +159,23 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     public List<String> fetchProjectIds() {
         Set<String> projects = new HashSet<>();
         for(Project project : resourceManager.list().iterateAll()) {
-            projects.add(project.getName());
+            projects.add(project.getProjectId());
         }
         return new ArrayList<>(projects);
     }
 
     @Override
-    public ProjectMetadata fetchProject(String projectName) {
-        return new DefaultProjectMetadata(projectName, fetchDatasetIds(projectName));
+    public FetchedProject fetchProject(String projectId) {
+        return new DefaultFetchedProject(projectId, fetchProjectName(projectId), fetchDatasetIds(projectId));
+    }
+
+    public String fetchProjectName(String projectId) {
+        for(Project project : resourceManager.list().iterateAll()) {
+            if (projectId.equals(project.getProjectId())) {
+                return project.getName();
+            }
+        }
+        return null;
     }
 
     @Override
@@ -184,9 +188,9 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     }
 
     @Override
-    public DatasetMetadata fetchDataset(String datasetIdString) {
+    public FetchedDataset fetchDataset(String datasetIdString) {
         DatasetId datasetId = parseDataset(datasetIdString);
-        return new DefaultDatasetMetadata(datasetIdString, datasetId.getProject(), datasetId.getDataset(), fetchTableIds(datasetIdString));
+        return new DefaultFetchedDataset(datasetIdString, datasetId.getProject(), datasetId.getDataset(), fetchTableIds(datasetIdString));
     }
 
 }

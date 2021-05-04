@@ -5,7 +5,7 @@ import java.util.Map;
 /**
  * Represents a single table from database with metadata.
  */
-public interface TableMetadata {
+public interface FetchedTable {
 
 	/**
 	 * The table id of the table on which metadata was retrieved.
