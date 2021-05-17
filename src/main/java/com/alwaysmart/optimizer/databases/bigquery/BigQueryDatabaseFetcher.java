@@ -81,15 +81,19 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
         List<FetchedQuery> fetchedQueries = new ArrayList<>();
         for (Job job : jobs.getValues()) {
             QueryJobConfiguration queryJobConfiguration = job.getConfiguration();
-            String query = queryJobConfiguration.getQuery();
-            if (!query.toUpperCase().startsWith("SELECT")
-                    || query.toUpperCase().contains("INFORMATION_SCHEMA")) {
-                continue;
+            String jobQuery = queryJobConfiguration.getQuery();
+            // TODO: Split hard by ; really sure?
+            String[] queries = jobQuery.split(";");
+            for (String query : queries) {
+                if (!jobQuery.toUpperCase().startsWith("SELECT")
+                        || jobQuery.toUpperCase().contains("INFORMATION_SCHEMA")) {
+                    continue;
+                }
+                JobStatistics.QueryStatistics queryStatistics = job.getStatistics();
+                Long billed = queryStatistics.getTotalBytesBilled();
+                long cost = billed == null ? -1 : billed;
+                fetchedQueries.add(FetchedQueryFactory.createFetchedQuery(query, cost));
             }
-            JobStatistics.QueryStatistics queryStatistics = job.getStatistics();
-            Long billed = queryStatistics.getTotalBytesBilled();
-            long cost = billed == null ? -1 : billed;
-            fetchedQueries.add(FetchedQueryFactory.createFetchedQuery(query, cost));
         }
         return fetchedQueries;
     }
@@ -142,6 +146,10 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     private String convertToZetaSQLType(String fetchedType) {
         fetchedType = fetchedType.toUpperCase();
         switch (fetchedType) {
+            case "DOUBLE":
+            case "FLOAT":
+                fetchedType = ZetaSQLType.TypeKind.TYPE_NUMERIC.name();
+                break;
             case "INTEGER":
                 fetchedType = ZetaSQLType.TypeKind.TYPE_INT64.name();
                 break;

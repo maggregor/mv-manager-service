@@ -19,7 +19,6 @@ public class MetadataService {
 
     public MetadataService() {}
 
-
     public boolean isProjectActivated(String projectId) {
         Optional<ProjectMetadata> projectMetadata = getProject(projectId);
         return projectMetadata.isPresent() && projectMetadata.get().isActivated();

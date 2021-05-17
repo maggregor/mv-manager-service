@@ -155,7 +155,7 @@ public abstract class FieldSetExtractTests {
 		assertExpectedFieldSet(query, new AggregateField("CASE WHEN (col1 = (\"x\")) THEN (\"a\") ELSE (\"b\") END"), new AggregateField("col1 = (\"x\")"));
 	}
 
-	@Test @Ignore //TODO: Support my-project.mydataset.mytable
+	@Test //TODO: Support my-project.mydataset.mytable
 	public void extractTablesWithProject() {
 		final String query = "SELECT col1 FROM my-project.mydataset.mytable";
 		assertExpectedFieldSet(query, new ReferenceField("col1"));

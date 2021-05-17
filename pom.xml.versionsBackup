@@ -11,13 +11,12 @@
 	</parent>
 	<groupId>com.alwaysmart</groupId>
 	<artifactId>alwaysmart-optimizer</artifactId>
-	<version>${project.version}</version>
+	<version>0.0.1-SNAPSHOT</version>
 	<name>alwaysmart-optimizer</name>
 	<description>Determines the most relevant materialized views in a given BigQuery context.</description>
 	<packaging>war</packaging>
 
 	<properties>
-		<project.version>0.0.0-dev</project.version>
 		<java.version>1.8</java.version>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
@@ -235,16 +234,6 @@
 				<version>3.0.0-M5</version>
 			</plugin>
 		</plugins>
-
-		<resources>
-			<resource>
-				<filtering>true</filtering>
-				<directory>src/main/resources</directory>
-				<includes>
-					<include>application.properties</include>
-				</includes>
-			</resource>
-		</resources>
 	</build>
 
 </project>

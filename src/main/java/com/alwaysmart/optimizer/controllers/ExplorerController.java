@@ -9,9 +9,7 @@ import com.alwaysmart.optimizer.databases.entities.FetchedProject;
 
 import com.alwaysmart.optimizer.services.FetcherService;
 import com.alwaysmart.optimizer.services.MetadataService;
-import com.google.auth.oauth2.AccessToken;
-import com.google.auth.oauth2.GoogleCredentials;
-import com.google.auth.oauth2.UserCredentials;
+import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,21 +31,26 @@ public class ExplorerController {
 
     @Autowired
     private MetadataService metadataService;
+    @Autowired
+    private FetcherService fetcherService;
 
     @GetMapping(path = "/project", produces = "application/json")
-    public List<ProjectResponse> getAllProjects(@RequestHeader("Authorization") String accessTokenString) {
-        return new FetcherService(buildGoogleCredentials(accessTokenString)).fetchAllProjects()
+    @ApiOperation("List the project")
+    public List<ProjectResponse> getAllProjects() {
+        return fetcherService.fetchAllProjects()
                 .stream()
                 .map(this::toProjectResponse)
                 .collect(Collectors.toList());
     }
 
     @GetMapping(path = "/project/{projectId}", produces = "application/json")
+    @ApiOperation("Get a project for a given projectId")
     public ProjectResponse getProject(@RequestHeader("Authorization") String accessTokenString, @PathVariable final String projectId) {
-        return toProjectResponse(new FetcherService(buildGoogleCredentials(accessTokenString)).fetchProject(projectId));
+        return toProjectResponse(fetcherService.fetchProject(projectId));
     }
 
     @PutMapping(path = "/project/{projectId}", produces = "application/json")
+    @ApiOperation("Update metadata of a project")
     public void updateProject(@PathVariable final String projectId, @RequestBody final UpdateProjectRequest request) {
         metadataService.updateProject(projectId, request.isActivated());
     }
@@ -57,16 +60,5 @@ public class ExplorerController {
         boolean activated = metadataService.isProjectActivated(projectId);
         return new ProjectResponse(projectId, "Free Plan", activated, project.getDatasets());
     }
-
-
-    private GoogleCredentials buildGoogleCredentials(String accessTokenString) {
-        AccessToken accessToken = new AccessToken(accessTokenString, new GregorianCalendar(2021, Calendar.JUNE, 25, 5, 0).getTime());
-        return UserCredentials.newBuilder()
-                .setClientId("293325499254-8h7bv5piflnjdoufjak8jjh03tpqss8b.apps.googleusercontent.com")
-                .setClientSecret("OZeUkdunGSTQ7ZyvM7oDtabD")
-                .setAccessToken(accessToken)
-                .build();
-    }
-
 
 }

@@ -1,15 +1,15 @@
 package com.alwaysmart.optimizer.services;
 
+import com.alwaysmart.optimizer.configuration.SimpleGoogleCredentialsAuthentication;
 import com.alwaysmart.optimizer.databases.bigquery.BigQueryDatabaseFetcher;
-import com.alwaysmart.optimizer.BruteForceOptimizer;
 import com.alwaysmart.optimizer.databases.DatabaseFetcher;
 import com.alwaysmart.optimizer.databases.bigquery.BigQueryMaterializedViewStatementBuilder;
 import com.alwaysmart.optimizer.databases.entities.FetchedQuery;
 import com.alwaysmart.optimizer.databases.entities.FetchedDataset;
 import com.alwaysmart.optimizer.databases.entities.FetchedProject;
 import com.alwaysmart.optimizer.databases.entities.FetchedTable;
-import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.bigquery.TableId;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityManager;
@@ -21,17 +21,17 @@ import java.util.stream.Collectors;
 /**
  * All the useful services to generate relevant Materialized Views.
  */
+@Service
 public class FetcherService {
 
 	BigQueryMaterializedViewStatementBuilder statementBuilder;
-	private final GoogleCredentials googleCredentials;
-	public FetcherService(GoogleCredentials googleCredentials) {
-		this.googleCredentials = googleCredentials;
-		this.statementBuilder = new BigQueryMaterializedViewStatementBuilder();
-	}
 
 	@PersistenceContext
 	private EntityManager entityManager;
+
+	public FetcherService() {
+		this.statementBuilder = new BigQueryMaterializedViewStatementBuilder();
+	}
 
 	public List<String> fetchAllProjectsIds() {
 		return fetcher().fetchProjectIds();
@@ -73,10 +73,13 @@ public class FetcherService {
 	}
 
 	private DatabaseFetcher fetcher() {
-		return new BigQueryDatabaseFetcher(googleCredentials, null);
+		return fetcher(null);
 	}
 
 	private DatabaseFetcher fetcher(String projectId) {
-		return new BigQueryDatabaseFetcher(googleCredentials, projectId);
+		SimpleGoogleCredentialsAuthentication authentication = (SimpleGoogleCredentialsAuthentication) SecurityContextHolder.getContext().getAuthentication();
+		return new BigQueryDatabaseFetcher(authentication.getCredentials(), projectId);
 	}
+
+
 }

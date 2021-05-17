@@ -7,6 +7,7 @@ import com.google.cloud.bigquery.TableId;
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.StringUtils;
 
+import java.security.MessageDigest;
 import java.util.Random;
 import java.util.Set;
 import java.util.StringJoiner;
@@ -20,6 +21,8 @@ public class BigQueryMaterializedViewStatementBuilder implements MaterializedVie
 	private final static String SQL_VERB_AS = "AS";
 	private final static String SQL_VERB_FROM = "FROM";
 	private final static String SQL_VERB_GROUP_BY = "GROUP BY";
+
+	private final static String ALIAS_PREFIX = "a_";
 
 	@Override
 	public String build(FieldSet fieldSet) {
@@ -38,31 +41,21 @@ public class BigQueryMaterializedViewStatementBuilder implements MaterializedVie
 		return columns.toString();
 	}
 
+	@Override
 	public String serializeField(Field field, boolean addAlias) {
 		StringJoiner aliasJoiner = new StringJoiner(SEP_SQL_VERBS);
 		String name = field.hasAlias() ? field.alias() : field.name();
 		aliasJoiner.add(name);
-		if (addAlias) {
-			final String alias = generateRandomAlias();
-			field.setAlias(alias);
+		if (addAlias && !field.hasAlias()) {
+			createStableAlias(field);
 			aliasJoiner.add(SQL_VERB_AS);
-			aliasJoiner.add(alias);
+			aliasJoiner.add(field.alias());
 		}
 		return aliasJoiner.toString();
 	}
 
-	/**
-	 * Alias who respect BigQuery rules for column name.
-	 *
-	 * @return a random alias compatible with BigQuery syntax.
-	 */
-	public String generateRandomAlias() {
-		String uuid = UUID.randomUUID().toString();
-		Random r = new Random();
-		char c = (char) (r.nextInt(26) + 'a');
-		uuid = uuid.replaceFirst("[a-z]{0}", String.valueOf(c));
-		uuid = uuid.replaceAll("-", StringUtils.EMPTY);
-		return uuid.substring(0,4);
+	public void createStableAlias(Field field) {
+		field.setAlias(ALIAS_PREFIX + Math.abs(field.name().hashCode()));
 	}
 
 	public String buildSelect(FieldSet fieldSet) {

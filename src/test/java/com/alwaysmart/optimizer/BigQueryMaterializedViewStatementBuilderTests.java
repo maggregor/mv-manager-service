@@ -21,23 +21,6 @@ public class BigQueryMaterializedViewStatementBuilderTests {
 
 	private final BigQueryMaterializedViewStatementBuilder builder = new BigQueryMaterializedViewStatementBuilder();
 
-	/**
-	 * https://cloud.google.com/bigquery/docs/schemas#column_names
-	 */
-	@Test
-	public void checkGenerationAliasRespectRules() {
-		List<String> aliases = new ArrayList<>();
-		for (int i = 0; i < 1000; i++) {
-			String alias = builder.generateRandomAlias();
-			Assert.assertFalse( "Duplicate alias: " + alias, aliases.contains(alias));
-			Assert.assertNotNull(alias);
-			Assert.assertTrue(alias.length() > 0 && alias.length() <= 300);
-			Assert.assertFalse(alias.contains("-"));
-			Assert.assertTrue("First char should be a letter: " + alias,Character.isLetter(alias.charAt(0)));
-			aliases.add(alias);
-		}
-	}
-
 	@Test @Ignore
 	public void testTableReferenceSerializationWithoutProject() {
 		TableId tableId = TableId.of("mydataset", "mytable");

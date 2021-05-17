@@ -27,6 +27,8 @@ public class ProjectMetadata {
 	@Column(name="activated", nullable = false)
 	private Boolean activated;
 
+	public ProjectMetadata() {	}
+
 	public ProjectMetadata(String projectId, Boolean activated) {
 		this.projectId = projectId;
 		this.activated = activated;

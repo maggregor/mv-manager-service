@@ -13,6 +13,7 @@ import com.alwaysmart.optimizer.extract.ZetaSQLFieldSetExtract;
 import com.alwaysmart.optimizer.extract.fields.FieldSet;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.bigquery.TableId;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.stereotype.Service;
 
@@ -26,14 +27,15 @@ import java.util.Set;
  * All the useful services to generate relevant Materialized Views.
  */
 @EnableJpaAuditing
+@Service
 public class OptimizerService {
 
     BigQueryMaterializedViewStatementBuilder statementBuilder;
+    @Autowired
     private FetcherService fetcherService;
 
-    public OptimizerService(GoogleCredentials googleCredentials) {
+    public OptimizerService() {
         this.statementBuilder = new BigQueryMaterializedViewStatementBuilder();
-        this.fetcherService = new FetcherService(googleCredentials);
     }
 
     @PersistenceContext
@@ -53,6 +55,10 @@ public class OptimizerService {
         Optimizer optimizer = new BruteForceOptimizer();
         Set<FieldSet> optimized = optimizer.optimize(fieldSets);
         for (FieldSet fieldSet : optimized) {
+            if (fieldSet.getTableId() == null) {
+                // TODO: Why it's null ?
+                continue;
+            }
             String dataset = fieldSet.getTableId().getDataset();
             String table = fieldSet.getTableId().getTable();
             String statement = statementBuilder.build(fieldSet);
