@@ -5,13 +5,9 @@ import com.alwaysmart.optimizer.extract.fields.Field;
 import com.alwaysmart.optimizer.extract.fields.FieldSet;
 import com.google.cloud.bigquery.TableId;
 import com.google.common.base.Preconditions;
-import org.apache.commons.lang3.StringUtils;
 
-import java.security.MessageDigest;
-import java.util.Random;
 import java.util.Set;
 import java.util.StringJoiner;
-import java.util.UUID;
 
 public class BigQueryMaterializedViewStatementBuilder implements MaterializedViewStatementBuilder {
 
@@ -63,6 +59,7 @@ public class BigQueryMaterializedViewStatementBuilder implements MaterializedVie
 		joiner.add(SQL_VERB_SELECT);
 		joiner.add(buildColumns(fieldSet.references(), true));
 		if (!fieldSet.references().isEmpty()) {
+			// Add separator if there is references.
 			joiner.add(SEP_COLUMNS);
 		}
 		joiner.add(buildColumns(fieldSet.aggregates(), true));
@@ -84,7 +81,9 @@ public class BigQueryMaterializedViewStatementBuilder implements MaterializedVie
 	}
 
 	public String buildTableReference(TableId tableId) {
-		return String.format("`%s`.`%s`", tableId.getDataset(), tableId.getTable());
+		Preconditions.checkNotNull(tableId);
+		Preconditions.checkNotNull(tableId.getProject(), "Project is required.");
+		return String.format("`%s`.`%s`.`%s`", tableId.getProject(), tableId.getDataset(), tableId.getTable());
 	}
 
 }

@@ -11,7 +11,6 @@ import com.alwaysmart.optimizer.entities.OptimizationResult;
 import com.alwaysmart.optimizer.extract.FieldSetExtract;
 import com.alwaysmart.optimizer.extract.ZetaSQLFieldSetExtract;
 import com.alwaysmart.optimizer.extract.fields.FieldSet;
-import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.bigquery.TableId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
@@ -42,14 +41,13 @@ public class OptimizerService {
     private EntityManager entityManager;
 
     @Transactional
-    public String optimizeProject(final String project) {
-        Optimization optimization = new Optimization(project, true);
+    public Optimization optimizeProject(final String projectId) {
+        Optimization optimization = new Optimization(projectId, true);
         entityManager.persist(optimization);
         entityManager.persist(new OptimizationEvent(optimization, OptimizationEvent.Type.IN_PROGRESS));
-        List<FetchedQuery> fetchedQueries = fetcherService.fetchQueries(project);
-        FieldSetExtract extractor = new ZetaSQLFieldSetExtract(project);
-        Set<TableId> tableIds = extractor.extractAllTableId(fetchedQueries);
-        List<FetchedTable> tables = fetcherService.fetchTables(tableIds);
+        List<FetchedQuery> fetchedQueries = fetcherService.fetchQueries(projectId);
+        FieldSetExtract extractor = new ZetaSQLFieldSetExtract(projectId);
+        List<FetchedTable> tables = fetcherService.fetchAllTables(projectId);
         extractor.registerTables(tables);
         Set<FieldSet> fieldSets = extractor.extract(fetchedQueries);
         Optimizer optimizer = new BruteForceOptimizer();
@@ -66,7 +64,7 @@ public class OptimizerService {
             entityManager.persist(result);
         }
         entityManager.persist(new OptimizationEvent(optimization, OptimizationEvent.Type.FINISHED));
-        return String.format("{ optimization_id: '%s' }", optimization.getId());
+        return optimization;
     }
 
 }

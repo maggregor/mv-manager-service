@@ -8,24 +8,20 @@ public class DefaultFetchedTable implements FetchedTable {
 	/**
 	 * Table Metadata object.
 	 *
-	 * @attribute tableId - the targeted table id
 	 * @attribute datasetName - the targeted dataset
 	 * @attribute tableName - the targeted table
 	 * @attribute colums - map of the columns: key is the column name, value is the
 	 *            data type
 	 */
-	private String tableId;
-	private String project;
-	private String dataset;
-	private String table;
-	private Map<String, String> columns;
+	private final String project;
+	private final String dataset;
+	private final String table;
+	private final Map<String, String> columns;
 
-	public DefaultFetchedTable(final String tableId,
-								final String project,
+	public DefaultFetchedTable(final String project,
 								final String schema,
 								final String table,
 								final Map<String, String> columns) {
-		this.tableId = tableId;
 		this.project = project;
 		this.dataset = schema;
 		this.table = table;
@@ -33,22 +29,17 @@ public class DefaultFetchedTable implements FetchedTable {
 	}
 
 	@Override
-	public String getTableId() {
-		return this.tableId;
-	}
-
-	@Override
-	public String getProject() {
+	public String getProjectId() {
 		return this.project;
 	}
 
 	@Override
-	public String getDataset() {
+	public String getDatasetName() {
 		return this.dataset;
 	}
 
 	@Override
-	public String getTable() {
+	public String getTableName() {
 		return this.table;
 	}
 
@@ -62,8 +53,7 @@ public class DefaultFetchedTable implements FetchedTable {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
 		DefaultFetchedTable that = (DefaultFetchedTable) o;
-		return Objects.equals(tableId, that.tableId) &&
-				Objects.equals(project, that.project) &&
+		return Objects.equals(project, that.project) &&
 				Objects.equals(dataset, that.dataset) &&
 				Objects.equals(table, that.table) &&
 				Objects.equals(columns, that.columns);
@@ -71,6 +61,6 @@ public class DefaultFetchedTable implements FetchedTable {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(tableId, project, dataset, table, columns);
+		return Objects.hash(project, dataset, table, columns);
 	}
 }

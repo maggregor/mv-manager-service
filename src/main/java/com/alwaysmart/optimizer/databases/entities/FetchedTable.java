@@ -8,19 +8,11 @@ import java.util.Map;
 public interface FetchedTable {
 
 	/**
-	 * The table id of the table on which metadata was retrieved.
-	 * Example: {@code project.dataset:mytable}
-	 *
-	 * @return the table id of the table on which metadata was retrieved.
-	 */
-	String getTableId();
-
-	/**
 	 * The project name of the table on which metadata was retrieved.
 	 *
 	 * @return the project name of the table on which metadata was retrieved.
 	 * */
-	String getProject();
+	String getProjectId();
 
 	/**
 	 * The schema dataset of the table on which metadata was retrieved.
@@ -28,7 +20,7 @@ public interface FetchedTable {
 	 *
 	 * @return the dataset name of the table on which metadata was retrieved.
 	 */
-	String getDataset();
+	String getDatasetName();
 
 	/**
 	 * The name of the table on which metadata was retrieved.
@@ -36,7 +28,7 @@ public interface FetchedTable {
 	 *
 	 * @return the name of the table on which metadata was retrieved.
 	 */
-	String getTable();
+	String getTableName();
 
 	/**
 	 * The name and type of the columns of the table.

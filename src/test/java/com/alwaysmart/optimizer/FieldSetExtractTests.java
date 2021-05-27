@@ -157,7 +157,7 @@ public abstract class FieldSetExtractTests {
 
 	@Test //TODO: Support my-project.mydataset.mytable
 	public void extractTablesWithProject() {
-		final String query = "SELECT col1 FROM my-project.mydataset.mytable";
+		final String query = "SELECT col1 FROM mydataset.mytable GROUP BY col1";
 		assertExpectedFieldSet(query, new ReferenceField("col1"));
 	}
 

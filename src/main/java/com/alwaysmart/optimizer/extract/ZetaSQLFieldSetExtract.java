@@ -20,6 +20,7 @@ import com.google.zetasql.ZetaSQLBuiltinFunctionOptions;
 import com.google.zetasql.ZetaSQLOptions;
 import com.google.zetasql.ZetaSQLType;
 import com.google.zetasql.resolvedast.ResolvedNodes;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,10 +60,10 @@ public class ZetaSQLFieldSetExtract implements FieldSetExtract {
 	}
 
 	private void registerTable(FetchedTable table) {
-		final String datasetCatalogName = table.getDataset();
-		final String fullTableName = table.getTable();
-		SimpleCatalog dataset = registerDatasetCatalogIfNotExists(datasetCatalogName);
-		SimpleTable simpleTable = new SimpleTable(fullTableName);
+		final String datasetCatalogName = table.getProjectId() + "." + table.getDatasetName();
+		final String fullTableName = table.getProjectId() + "." + table.getDatasetName() + "." + table.getTableName();
+		final SimpleCatalog dataset = registerDatasetCatalogIfNotExists(datasetCatalogName);
+		final SimpleTable simpleTable = new SimpleTable(fullTableName);
 		for(Map.Entry<String, String> column : table.getColumns().entrySet()) {
 			final String name = column.getKey();
 			String typeName = column.getValue();
@@ -72,7 +73,16 @@ public class ZetaSQLFieldSetExtract implements FieldSetExtract {
 		}
 		try {
 			// Temp. hack //
-			List<String> path = BigQueryHelper.parseTableIdToPath(table.getTableId());
+			List<String> path = new ArrayList<>();
+			if(StringUtils.isNotEmpty(table.getProjectId())) {
+				path.add(table.getProjectId());
+			}
+			if(StringUtils.isNotEmpty(table.getDatasetName())) {
+				path.add(table.getDatasetName());
+			}
+			if(StringUtils.isNotEmpty(table.getTableName())) {
+				path.add(table.getTableName());
+			}
 			String tableName = path.get(path.size()-1);
 			path.clear();
 			path.add(tableName);
@@ -104,9 +114,9 @@ public class ZetaSQLFieldSetExtract implements FieldSetExtract {
 			ResolvedNodes.ResolvedStatement resolvedStatement = Analyzer.analyzeStatement(statement, options, catalog);
 			ZetaSQLFieldSetExtractGlobalVisitor extractVisitor = new ZetaSQLFieldSetExtractGlobalVisitor(catalog);
 			resolvedStatement.accept(extractVisitor);
-			FieldSet fieldSet = extractVisitor.fieldSet();
-			return /*containsAllReferences(fetchedQuery.getTableId(), fieldSet) ?
-					FieldSetFactory.EMPTY_FIELD_SET : */fieldSet;
+			// TODO: Remove references.
+			/*containsAllReferences(fetchedQuery.getTableId(), fieldSet) ? FieldSetFactory.EMPTY_FIELD_SET : */
+			return extractVisitor.fieldSet();
 		} catch (Exception e) {
 			return FieldSetFactory.EMPTY_FIELD_SET;
 		}

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -38,11 +39,6 @@ import com.google.cloud.resourcemanager.ResourceManagerOptions;
 import com.google.zetasql.ZetaSQLType;
 import org.apache.commons.lang3.StringUtils;
 
-import static com.alwaysmart.optimizer.databases.bigquery.BigQueryHelper.datasetToString;
-import static com.alwaysmart.optimizer.databases.bigquery.BigQueryHelper.parseDataset;
-import static com.alwaysmart.optimizer.databases.bigquery.BigQueryHelper.parseTable;
-import static com.alwaysmart.optimizer.databases.bigquery.BigQueryHelper.tableToString;
-
 public class BigQueryDatabaseFetcher implements DatabaseFetcher {
 
     private static final int LIST_JOB_PAGE_SIZE = 25000;
@@ -66,12 +62,17 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     }
 
     @Override
-    public List<FetchedQuery> fetchQueries(String project) {
-        return fetchQueries(project, null);
+    public List<FetchedQuery> fetchAllQueries() {
+        return fetchQueries(null);
     }
 
     @Override
-    public List<FetchedQuery> fetchQueries(String project, Date start) {
+    public List<FetchedQuery> fetchAllQueriesFrom(Date start) {
+        return fetchQueries(start);
+    }
+
+    // TODO: Refacto !
+    public List<FetchedQuery> fetchQueries(Date start) {
         List<BigQuery.JobListOption> options = new ArrayList<>();
         options.add(BigQuery.JobListOption.pageSize(LIST_JOB_PAGE_SIZE));
         if (start != null) {
@@ -98,42 +99,66 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
         return fetchedQueries;
     }
 
+    //TODO: Refacto !
     @Override
-    public FetchedTable fetchTable(String tableIdString) throws IllegalArgumentException {
+    public FetchedTable fetchTable(String projectId, String datasetName, String tableName) throws IllegalArgumentException {
         try {
-            TableId tableId = parseTable(tableIdString);
+            TableId tableId = TableId.of(projectId, datasetName, tableName);
             Table table = bigquery.getTable(tableId);
-            if (
-            /*
-             * Element should exists.
-             * Should be a table and not a View or Materialized View.
-             */
-            table == null
-
-            || !table.exists()
-            || !(table.getDefinition() instanceof StandardTableDefinition)) {
+            if (!isValidTable(table)) {
                 return null;
             }
-            StandardTableDefinition tableDefinition = table.getDefinition();
-            Schema tableSchema = tableDefinition.getSchema();
-            Map<String, String> tableColumns = this.fetchColumns(tableSchema.getFields());
-            return new DefaultFetchedTable(tableIdString, tableId.getProject(), tableId.getDataset(), tableId.getTable(), tableColumns);
+            return toFetchedTable(table);
         } catch (BigQueryException e) {
             throw new IllegalArgumentException(e.toString());
         }
     }
 
+    private FetchedTable toFetchedTable(Table table) {
+        StandardTableDefinition tableDefinition = table.getDefinition();
+        Schema tableSchema = tableDefinition.getSchema();
+        assert tableSchema != null;
+        Map<String, String> tableColumns = mapColumns(tableSchema.getFields());
+        TableId tableId = table.getTableId();
+       return new DefaultFetchedTable(tableId.getProject(), tableId.getDataset(), tableId.getTable(), tableColumns);
+    }
+
     @Override
-    public List<String> fetchTableIds(String datasetIdString) {
-        DatasetId datasetId = parseDataset(datasetIdString);
-        List<String> tables = new ArrayList<>();
-        for (Table table :  bigquery.listTables(datasetId).getValues()) {
-            tables.add(tableToString(table.getTableId()));
-        }
+    public List<FetchedTable> fetchAllTables() {
+        List<FetchedTable> tables = new ArrayList<>();
+        bigquery.listDatasets().getValues()
+                .forEach(dataset -> {
+                    final String datasetName = dataset.getDatasetId().getDataset();
+                    List<FetchedTable> fetchedTables = fetchTablesInDataset(datasetName);
+                    tables.addAll(fetchedTables);
+                });
         return tables;
     }
 
-    private Map<String, String> fetchColumns(List<Field> googleFields) {
+    public List<FetchedTable> fetchTablesInDataset(String datasetName) {
+        List<FetchedTable> tables = new LinkedList<>();
+        bigquery.listTables(datasetName).getValues().forEach(table -> {
+            // Force in order to retrieve metadata (ie: schema)
+            table = bigquery.getTable(table.getTableId());
+            if (isValidTable(table)) {
+                tables.add(toFetchedTable(table));
+            }
+        });
+        return tables;
+    }
+
+    /*
+     * Filter on:
+     * - should exists.
+     * - should be a StandardTableDefinition (and not a View or Materialized View).
+     */
+    private boolean isValidTable(Table table) {
+        return table != null
+                && table.exists()
+                && table.getDefinition() instanceof StandardTableDefinition;
+    }
+
+    private Map<String, String> mapColumns(List<Field> googleFields) {
         Map<String, String> tableColumns = new HashMap<>();
         for (Field field : googleFields) {
             String fetchedType = field.getType().toString();
@@ -174,7 +199,7 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
 
     @Override
     public FetchedProject fetchProject(String projectId) {
-        return new DefaultFetchedProject(projectId, fetchProjectName(projectId), fetchDatasetIds(projectId));
+        return new DefaultFetchedProject(projectId, fetchProjectName(projectId));
     }
 
     public String fetchProjectName(String projectId) {
@@ -187,18 +212,38 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     }
 
     @Override
-    public List<String> fetchDatasetIds(String projectId) {
-        List<String> datasets = new ArrayList<>();
-        for (Dataset dataset :  bigquery.listDatasets(projectId).getValues()) {
-            datasets.add(datasetToString(dataset.getDatasetId()));
+    public List<FetchedDataset> fetchAllDatasets() {
+        List<FetchedDataset> datasets = new ArrayList<>();
+        for (Dataset dataset :  bigquery.listDatasets().iterateAll()) {
+            // Force retrieve metadata
+            dataset = bigquery.getDataset(dataset.getDatasetId());
+            datasets.add(toFetchedDataset(dataset));
         }
         return datasets;
     }
 
     @Override
-    public FetchedDataset fetchDataset(String datasetIdString) {
-        DatasetId datasetId = parseDataset(datasetIdString);
-        return new DefaultFetchedDataset(datasetIdString, datasetId.getProject(), datasetId.getDataset(), fetchTableIds(datasetIdString));
+    public FetchedDataset fetchDataset(String datasetName) {
+        Dataset dataset = bigquery.getDataset(datasetName);
+        return toFetchedDataset(dataset);
     }
+
+    public FetchedDataset toFetchedDataset(Dataset dataset) {
+        DatasetId datasetId = dataset.getDatasetId();
+        final String location = dataset.getLocation();
+        final String friendlyName = dataset.getFriendlyName();
+        final String description = dataset.getDescription();
+        final Long createdAt = dataset.getCreationTime();
+        final Long lastModified = dataset.getLastModified();
+        return new DefaultFetchedDataset(
+                datasetId.getProject(),
+                datasetId.getDataset(),
+                location,
+                friendlyName,
+                description,
+                createdAt,
+                lastModified);
+    }
+
 
 }

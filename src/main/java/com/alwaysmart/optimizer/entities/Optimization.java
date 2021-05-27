@@ -39,6 +39,8 @@ public class Optimization {
 		this.approvalRequired = approvalRequired;
 	}
 
+	public Optimization() {}
+
 	public Long getId() {
 		return id;
 	}

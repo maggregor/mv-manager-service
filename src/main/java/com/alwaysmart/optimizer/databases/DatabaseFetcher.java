@@ -1,14 +1,10 @@
 package com.alwaysmart.optimizer.databases;
 
-import com.alwaysmart.optimizer.databases.bigquery.BigQueryHelper;
 import com.alwaysmart.optimizer.databases.entities.FetchedDataset;
 import com.alwaysmart.optimizer.databases.entities.FetchedProject;
 import com.alwaysmart.optimizer.databases.entities.FetchedQuery;
 import com.alwaysmart.optimizer.databases.entities.FetchedTable;
-import com.google.cloud.bigquery.TableId;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -20,30 +16,29 @@ public interface DatabaseFetcher {
 	/**
 	 * Returns history queries for a given table.
 	 *
-	 * @param tableId - the targeted table id
-	 *
 	 * @return - a list of queries as string
 	 */
-	List<FetchedQuery> fetchQueries(String tableId);
+	List<FetchedQuery> fetchAllQueries();
 
 	/**
 	 * Returns history queries for a given table and date range.
 	 *
-	 * @param tableId - the targeted project id
-	 * @param start       - the start range date
+	 * @param start - the start range date
 	 *
 	 * @return - a list of queries as string
 	 */
-	List<FetchedQuery> fetchQueries(String tableId, Date start);
+	List<FetchedQuery> fetchAllQueriesFrom(Date start);
 
 	/**
 	 * Returns metadata for a given table.
 	 *
-	 * @param tableId   - the targeted table id
+	 * @param projectId
+	 * @param datasetName
+	 * @param tableName
 	 *
 	 * @return - FetchedTable of targeted table
 	 */
-	FetchedTable fetchTable(String tableId);
+	FetchedTable fetchTable(String projectId, String datasetName, String tableName);
 
 	/**
 	 * Returns all projects id.
@@ -58,48 +53,24 @@ public interface DatabaseFetcher {
 	 *
 	 * @return
 	 */
-	FetchedProject fetchProject(String projectName);
+	FetchedProject fetchProject(String projectId);
 
 	/**
 	 * Returns all dataset id in a given projectId.
-	 *
-	 * @param projectId
 	 * @return
 	 */
-	List<String> fetchDatasetIds(String projectId);
+	List<FetchedDataset> fetchAllDatasets();
 
 	/**
 	 * Returns the dataset metadata in a given projectId.
 	 *
-	 * @param datasetId
+	 * @param datasetName
 	 * @return
 	 */
-	FetchedDataset fetchDataset(String datasetId);
+	FetchedDataset fetchDataset(String datasetName);
 
-	/**
-	 * Returns all tables id in a given dataset.
-	 *
-	 * @param datasetId
-	 * @return
-	 */
-	List<String> fetchTableIds(String datasetId);
+	List<FetchedTable> fetchAllTables();
 
-	/**
-	 * #TODO -> Dirty with this tableToString
-	 * Returns table metadata for each given table.
-	 *
-	 * @param tableIds - List of TableId object.
-	 * @return the table metadata for each given table.
-	 */
-	default List<FetchedTable> fetchTables(Collection<TableId> tableIds) {
-		List<FetchedTable> tables = new ArrayList<>();
-		for (TableId tableId : tableIds) {
-			FetchedTable table = fetchTable(BigQueryHelper.tableToString(tableId));
-			if (table != null) {
-				tables.add(table);
-			}
-		}
-		return tables;
-	}
+	List<FetchedTable> fetchTablesInDataset(String datasetName);
 
 }

@@ -22,11 +22,4 @@ public interface FetchedProject {
 	 */
 	String getName();
 
-	/**
-	 * Return the dataset list.
-	 *
-	 * @return the dataset list.
-	 */
-	List<String> getDatasets();
-
 }

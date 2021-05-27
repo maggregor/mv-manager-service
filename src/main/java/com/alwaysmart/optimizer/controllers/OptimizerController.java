@@ -1,5 +1,6 @@
 package com.alwaysmart.optimizer.controllers;
 
+import com.alwaysmart.optimizer.entities.Optimization;
 import com.alwaysmart.optimizer.services.OptimizerService;
 import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
@@ -23,8 +24,9 @@ public class OptimizerController {
 
     @PostMapping(path = "/optimize/{projectId}", produces = "application/json")
     @ApiOperation("Trigger an optimization on a projectId")
-    public String optimizeProject(@PathVariable("projectId") String projectId) {
-        return service.optimizeProject(projectId);
+    public OptimizationResponse optimizeProject(@PathVariable("projectId") String projectId) {
+        Optimization optimization = service.optimizeProject(projectId);
+        return new OptimizationResponse(optimization.getId(), optimization.getProjectId());
     }
 
 }

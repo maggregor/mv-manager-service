@@ -1,38 +1,64 @@
 package com.alwaysmart.optimizer.databases.entities;
 
-import java.util.List;
-
 public class DefaultFetchedDataset implements FetchedDataset {
 
-	private String datasetId;
-	private String project;
-	private String name;
-	private List<String> tables;
+	private final String projectId;
+	private final String datasetName;
+	private final String location;
+	private final String friendlyName;
+	private final String description;
+	private final Long createdAt;
+	private final Long lastModified;
 
-	public DefaultFetchedDataset(String datasetId, String project, String name, List<String> tables) {
-		this.datasetId = datasetId;
-		this.project = project;
-		this.name = name;
-		this.tables = tables;
+	public DefaultFetchedDataset(final String projectId,
+								 final String datasetName,
+								 final String location,
+								 final String friendlyName,
+								 final String description,
+								 final Long createdAt,
+								 final Long lastModified) {
+		this.projectId = projectId;
+		this.datasetName = datasetName;
+		this.location = location;
+		this.friendlyName = friendlyName;
+		this.description = description;
+		this.createdAt = createdAt;
+		this.lastModified = lastModified;
 	}
 
 	@Override
-	public String getDatasetId() {
-		return this.datasetId;
+	public String getDatasetName() {
+		return this.datasetName;
 	}
 
 	@Override
-	public String getProject() {
-		return this.project;
+	public String getProjectId() {
+		return this.projectId;
 	}
 
 	@Override
-	public String getName() {
-		return this.name;
+	public String getLocation() {
+		return this.location;
 	}
 
 	@Override
-	public List<String> getTables() {
-		return this.tables;
+	public String getFriendlyName() {
+		return friendlyName;
 	}
+
+	@Override
+	public String getDescription() {
+		return description;
+	}
+
+	@Override
+	public Long getCreatedAt() {
+		return createdAt;
+	}
+
+	@Override
+	public Long getLastModified() {
+		return lastModified;
+	}
+
 }

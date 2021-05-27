@@ -2,15 +2,15 @@ package com.alwaysmart.optimizer.controllers;
 
 import lombok.Data;
 
-import java.util.Date;
-
 @Data
 public class OptimizationResponse {
 
+	private Long optimizationId;
+
 	private String projectId;
 
-	private Date createdAt;
-
-	private int resultCount;
-
+	public OptimizationResponse(Long optimizationId, String projectId) {
+		this.optimizationId = optimizationId;
+		this.projectId = projectId;
+	}
 }

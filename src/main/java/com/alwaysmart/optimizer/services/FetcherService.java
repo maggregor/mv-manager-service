@@ -8,13 +8,11 @@ import com.alwaysmart.optimizer.databases.entities.FetchedQuery;
 import com.alwaysmart.optimizer.databases.entities.FetchedDataset;
 import com.alwaysmart.optimizer.databases.entities.FetchedProject;
 import com.alwaysmart.optimizer.databases.entities.FetchedTable;
-import com.google.cloud.bigquery.TableId;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -45,31 +43,27 @@ public class FetcherService {
 	}
 
 	public FetchedProject fetchProject(String projectId) {
-		return fetcher().fetchProject(projectId);
+		return fetcher(projectId).fetchProject(projectId);
 	}
 
-	public List<String> fetchAllDatasetIds(String projectId) {
-		return fetcher().fetchDatasetIds(projectId);
+	public List<FetchedDataset> fetchAllDatasets(String projectId) {
+		return fetcher(projectId).fetchAllDatasets();
 	}
 
-	public FetchedDataset fetchDataset(String datasetId) {
-		return fetcher().fetchDataset(datasetId);
-	}
-
-	public List<String> fetchAllTableIds(String datasetId) {
-		return fetcher().fetchTableIds(datasetId);
+	public FetchedDataset fetchDataset(String projectId, String datasetName) {
+		return fetcher(projectId).fetchDataset(datasetName);
 	}
 
 	public List<FetchedQuery> fetchQueries(String projectId) {
-		return fetcher(projectId).fetchQueries(projectId);
+		return fetcher(projectId).fetchAllQueries();
 	}
 
-	public FetchedTable fetchTable(String tableId) {
-		return fetcher().fetchTable(tableId);
+	public FetchedTable fetchTable(String projectId, String datasetName, String tableName) {
+		return fetcher(projectId).fetchTable(projectId, datasetName, tableName);
 	}
 
-	public List<FetchedTable> fetchTables(Collection<TableId> tableIds) {
-		return fetcher().fetchTables(tableIds);
+	public List<FetchedTable> fetchAllTables(String projectId) {
+		return fetcher(projectId).fetchAllTables();
 	}
 
 	private DatabaseFetcher fetcher() {

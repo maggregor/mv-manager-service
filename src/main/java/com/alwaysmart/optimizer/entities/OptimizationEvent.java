@@ -48,6 +48,8 @@ public class OptimizationEvent {
 		ERROR,
 	}
 
+	public OptimizationEvent() {}
+
 	public OptimizationEvent(Optimization optimization, Type type) {
 		this.optimization = optimization;
 		this.status = type;
