@@ -1,19 +1,25 @@
-![Cloud Build](https://storage.googleapis.com/goptimal-badges/builds/optimizer/branches/master.svg)
 [![codecov](https://codecov.io/gh/alwaysmartio/optimizer/branch/master/graph/badge.svg?token=QM96UTQZNZ)](https://codecov.io/gh/alwaysmartio/optimizer)
 
-# Optimizer
+# mv-manager-service
 Determines the most relevant materialized views in a given BigQuery context.
 
 # Development
+## With docker
 Run Postgres and Adminer
 ```shell script
 docker-compose -f stack.yml
 ```
-# Deploy
+## With AppEngine (local mode)
+```shell script
+mvn package appengine:run
+```
+#Tomcat
+Tomcat is 
+# Deploy on AppEngine
 ```shell script
 # Set the your gcloud project id
-gcloud config set project achilio-dev
-# Deploy in appengine
-mvn clean package appengine:deploy
+gcloud config set project <project-id>
+# Package with maven and deploy in appengine
+mvn package appengine:deploy
 ```
 
