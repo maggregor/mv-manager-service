@@ -1,5 +1,6 @@
 package com.alwaysmart.optimizer.configuration;
 
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.hateoas.client.LinkDiscoverer;
@@ -19,6 +20,7 @@ import java.util.List;
  * 
  */
 @Configuration
+@EnableAutoConfiguration
 public class WebConfig implements WebMvcConfigurer {
 
 	@Override

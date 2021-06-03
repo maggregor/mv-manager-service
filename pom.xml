@@ -161,7 +161,10 @@
 			<artifactId>google-cloud-resourcemanager</artifactId>
 			<version>0.118.12-alpha</version>
 		</dependency>
-
+		<dependency>
+			<groupId>com.google.cloud</groupId>
+			<artifactId>google-cloud-pubsub</artifactId>
+		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
 		<dependency>
 			<groupId>org.apache.commons</groupId>
@@ -202,7 +205,7 @@
 			<version>2.7.0</version>
 		</dependency>
 
-    </dependencies>
+	</dependencies>
 
 	<!-- This plugin will result in creating executable jar. -->
 	<build>

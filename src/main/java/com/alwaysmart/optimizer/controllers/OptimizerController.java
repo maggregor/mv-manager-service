@@ -12,6 +12,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
+import java.util.concurrent.ExecutionException;
+
 @RestController
 @RequestMapping(path = "${v1API}")
 @Validated
@@ -24,7 +27,7 @@ public class OptimizerController {
 
     @PostMapping(path = "/optimize/{projectId}", produces = "application/json")
     @ApiOperation("Trigger an optimization on a projectId")
-    public OptimizationResponse optimizeProject(@PathVariable("projectId") String projectId) {
+    public OptimizationResponse optimizeProject(@PathVariable("projectId") String projectId) throws IOException, ExecutionException, InterruptedException {
         Optimization optimization = service.optimizeProject(projectId);
         return new OptimizationResponse(optimization.getId(), optimization.getProjectId());
     }
