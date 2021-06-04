@@ -13,8 +13,8 @@ docker-compose -f stack.yml
 ```shell script
 mvn package appengine:run
 ```
-#Tomcat
-Tomcat is 
+# Tomcat
+Maven dependency must have the provided scope in order to run the service as a Spring standalone application (for development and debug) and let AppEngine provide his own servlet.
 # Deploy on AppEngine
 ```shell script
 # Set the your gcloud project id
