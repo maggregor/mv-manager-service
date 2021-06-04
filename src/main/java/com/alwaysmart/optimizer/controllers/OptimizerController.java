@@ -32,4 +32,11 @@ public class OptimizerController {
         return new OptimizationResponse(optimization.getId(), optimization.getProjectId());
     }
 
+    @PostMapping(path = "/wait/{seconds}", produces = "application/json")
+    public String optimizeProject5s(@PathVariable("seconds") Integer seconds) throws InterruptedException {
+        long ms = seconds * 1000;
+        Thread.sleep(ms);
+        return "I slept " + ms + "ms." ;
+    }
+
 }

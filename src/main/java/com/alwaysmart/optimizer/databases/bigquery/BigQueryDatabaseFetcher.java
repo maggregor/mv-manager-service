@@ -139,7 +139,7 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
         List<FetchedTable> tables = new LinkedList<>();
         bigquery.listTables(datasetName).getValues().forEach(table -> {
             // Force in order to retrieve metadata (ie: schema)
-            table = bigquery.getTable(table.getTableId());
+            //table = bigquery.getTable(table.getTableId());
             if (isValidTable(table)) {
                 tables.add(toFetchedTable(table));
             }
