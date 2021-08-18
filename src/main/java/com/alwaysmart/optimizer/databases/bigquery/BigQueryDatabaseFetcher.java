@@ -81,19 +81,21 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
         Page<Job> jobs = bigquery.listJobs(options.toArray(new BigQuery.JobListOption[0]));
         List<FetchedQuery> fetchedQueries = new ArrayList<>();
         for (Job job : jobs.getValues()) {
-            QueryJobConfiguration queryJobConfiguration = job.getConfiguration();
-            String jobQuery = queryJobConfiguration.getQuery();
-            // TODO: Split hard by ; really sure?
-            String[] queries = jobQuery.split(";");
-            for (String query : queries) {
-                if (!jobQuery.toUpperCase().startsWith("SELECT")
-                        || jobQuery.toUpperCase().contains("INFORMATION_SCHEMA")) {
-                    continue;
+            if (job.getConfiguration() instanceof QueryJobConfiguration) {
+                QueryJobConfiguration queryJobConfiguration = job.getConfiguration();
+                String jobQuery = queryJobConfiguration.getQuery();
+                // TODO: Split hard by ; really sure?
+                String[] queries = jobQuery.split(";");
+                for (String query : queries) {
+                    if (!jobQuery.toUpperCase().startsWith("SELECT")
+                            || jobQuery.toUpperCase().contains("INFORMATION_SCHEMA")) {
+                        continue;
+                    }
+                    JobStatistics.QueryStatistics queryStatistics = job.getStatistics();
+                    Long billed = queryStatistics.getTotalBytesBilled();
+                    long cost = billed == null ? -1 : billed;
+                    fetchedQueries.add(FetchedQueryFactory.createFetchedQuery(query, cost));
                 }
-                JobStatistics.QueryStatistics queryStatistics = job.getStatistics();
-                Long billed = queryStatistics.getTotalBytesBilled();
-                long cost = billed == null ? -1 : billed;
-                fetchedQueries.add(FetchedQueryFactory.createFetchedQuery(query, cost));
             }
         }
         return fetchedQueries;
@@ -103,7 +105,7 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     @Override
     public FetchedTable fetchTable(String projectId, String datasetName, String tableName) throws IllegalArgumentException {
         try {
-            TableId tableId = TableId.of(projectId, datasetName, tableName);
+            TableId tableId = TableId.of(datasetName, tableName);
             Table table = bigquery.getTable(tableId);
             if (!isValidTable(table)) {
                 return null;
@@ -139,7 +141,7 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
         List<FetchedTable> tables = new LinkedList<>();
         bigquery.listTables(datasetName).getValues().forEach(table -> {
             // Force in order to retrieve metadata (ie: schema)
-            //table = bigquery.getTable(table.getTableId());
+            table = bigquery.getTable(table.getTableId());
             if (isValidTable(table)) {
                 tables.add(toFetchedTable(table));
             }

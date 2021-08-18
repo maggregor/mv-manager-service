@@ -45,7 +45,7 @@ public class OptimizerService {
     private EntityManager entityManager;
 
     @Transactional
-    public Optimization optimizeProject(final String projectId) throws IOException, ExecutionException, InterruptedException {
+    public Optimization     optimizeProject(final String projectId) throws IOException, ExecutionException, InterruptedException {
         Optimization optimization = new Optimization(projectId, true);
         //entityManager.persist(optimization);
         //entityManager.persist(new OptimizationEvent(optimization, OptimizationEvent.Type.IN_PROGRESS));
