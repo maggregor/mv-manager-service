@@ -47,8 +47,8 @@ public class OptimizerService {
     @Transactional
     public Optimization     optimizeProject(final String projectId) throws IOException, ExecutionException, InterruptedException {
         Optimization optimization = new Optimization(projectId, true);
-        //entityManager.persist(optimization);
-        //entityManager.persist(new OptimizationEvent(optimization, OptimizationEvent.Type.IN_PROGRESS));
+        entityManager.persist(optimization);
+        entityManager.persist(new OptimizationEvent(optimization, OptimizationEvent.Type.IN_PROGRESS));
         List<FetchedQuery> fetchedQueries = fetcherService.fetchQueries(projectId);
         FieldSetExtract extractor = new ZetaSQLFieldSetExtract(projectId);
         List<FetchedTable> tables = fetcherService.fetchAllTables(projectId);
@@ -67,10 +67,10 @@ public class OptimizerService {
             String statement = statementBuilder.build(fieldSet);
             OptimizationResult result = new OptimizationResult(dataset, table, optimization, statement);
             results.add(result);
-        //    entityManager.persist(result);
+            entityManager.persist(result);
         }
-        //entityManager.persist(new OptimizationEvent(optimization, OptimizationEvent.Type.FINISHED));
-        //publisherService.publishOptimization(optimization, results);
+        entityManager.persist(new OptimizationEvent(optimization, OptimizationEvent.Type.FINISHED));
+        publisherService.publishOptimization(optimization, results);
         return optimization;
     }
 

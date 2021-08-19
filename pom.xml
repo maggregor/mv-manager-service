@@ -55,6 +55,19 @@
 			<scope>provided</scope>
 		</dependency>
 
+		<dependency>
+			<groupId>io.grpc</groupId>
+			<artifactId>grpc-netty</artifactId>
+		</dependency>
+
+
+		<dependency>
+			<groupId>io.grpc</groupId>
+			<artifactId>grpc-netty-shaded</artifactId>
+		</dependency>
+
+
+
 		<!-- Exclude any jul-to-slf4j -->
 		<dependency>
 			<groupId>org.slf4j</groupId>
