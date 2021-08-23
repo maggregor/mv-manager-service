@@ -100,15 +100,6 @@ public class DefaultFieldSet implements FieldSet, Cloneable {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(fields, scannedBytesMb, hits);
-	}
-
-	@Override
-	public String toString() {
-		return "DefaultFieldSet{" +
-				"fields=" + fields +
-				", scannedBytesMb=" + scannedBytesMb +
-				", hits=" + hits +
-				'}';
+		return Objects.hash(tableId, fields, scannedBytesMb, hits);
 	}
 }

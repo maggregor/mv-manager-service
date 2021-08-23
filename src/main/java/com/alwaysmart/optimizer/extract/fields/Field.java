@@ -48,19 +48,11 @@ public abstract class Field {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
 		Field field = (Field) o;
-		return Objects.equals(expression, field.expression);
+		return cardinality == field.cardinality && expression.equals(field.expression) && Objects.equals(alias, field.alias);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(expression, cardinality);
-	}
-
-	@Override
-	public String toString() {
-		return "Field{" +
-				"expression='" + expression + '\'' +
-				", cardinality=" + cardinality +
-				'}';
+		return Objects.hash(expression, cardinality, alias);
 	}
 }

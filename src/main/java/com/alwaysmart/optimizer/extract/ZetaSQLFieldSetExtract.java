@@ -29,6 +29,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.google.zetasql.Analyzer.extractTableNamesFromStatement;
 
@@ -51,59 +52,60 @@ public class ZetaSQLFieldSetExtract implements FieldSetExtract {
 	}
 
 	public ZetaSQLFieldSetExtract(String projectName, List<FetchedTable> tables) {
-		registerProjectCatalog(projectName);
+		this.catalog = new SimpleCatalog(projectName);
+		this.catalog.addZetaSQLFunctions(new ZetaSQLBuiltinFunctionOptions());
 		this.registerTables(tables);
 	}
 
+	@Override
 	public void registerTables(List<FetchedTable> tables) {
 		tables.forEach(this::registerTable);
 	}
 
-	private void registerTable(FetchedTable table) {
-		final String datasetCatalogName = table.getProjectId() + "." + table.getDatasetName();
-		final String fullTableName = table.getProjectId() + "." + table.getDatasetName() + "." + table.getTableName();
-		final SimpleCatalog dataset = registerDatasetCatalogIfNotExists(datasetCatalogName);
+	@Override
+	public void registerTable(FetchedTable table) {
+		final String datasetName = table.getDatasetName();
+		ensureDatasetExists(datasetName);
+		final String tableName = table.getTableName();
+		final SimpleCatalog dataset = getDatasetCatalog(datasetName);
+		final String fullTableName = datasetName + "." + tableName;
 		final SimpleTable simpleTable = new SimpleTable(fullTableName);
 		for(Map.Entry<String, String> column : table.getColumns().entrySet()) {
 			final String name = column.getKey();
-			String typeName = column.getValue();
-			ZetaSQLType.TypeKind typeKind = ZetaSQLType.TypeKind.valueOf(typeName);
-			Type type = TypeFactory.createSimpleType(typeKind);
+			final String typeName = column.getValue();
+			final ZetaSQLType.TypeKind typeKind = ZetaSQLType.TypeKind.valueOf(typeName);
+			final Type type = TypeFactory.createSimpleType(typeKind);
 			simpleTable.addSimpleColumn(name, type);
 		}
-		try {
-			// Temp. hack //
-			List<String> path = new ArrayList<>();
-			if(StringUtils.isNotEmpty(table.getProjectId())) {
-				path.add(table.getProjectId());
-			}
-			if(StringUtils.isNotEmpty(table.getDatasetName())) {
-				path.add(table.getDatasetName());
-			}
-			if(StringUtils.isNotEmpty(table.getTableName())) {
-				path.add(table.getTableName());
-			}
-			String tableName = path.get(path.size()-1);
-			path.clear();
-			path.add(tableName);
-			dataset.findTable(path);
-		} catch (Exception e) {
-			dataset.addSimpleTable(simpleTable);
+		dataset.addSimpleTable(tableName, simpleTable);
+	}
+
+	private void ensureDatasetExists(final String datasetName) {
+		if (!this.catalog.getCatalogList().contains(datasetName)) {
+			this.catalog.addNewSimpleCatalog(datasetName);
 		}
 	}
 
-	private void registerProjectCatalog(String project) {
-		this.catalog = new SimpleCatalog(project);
-		this.catalog.addZetaSQLFunctions(new ZetaSQLBuiltinFunctionOptions());
+	@Override
+	public boolean isTableRegistered(final String datasetName, final String tableName) {
+		try {
+			List<String> paths = new ArrayList<>();
+			paths.add(datasetName);
+			paths.add(tableName);
+			this.catalog.findTable(paths);
+			return true;
+		} catch (NotFoundException e) {
+			return false;
+		}
 	}
 
-	private SimpleCatalog registerDatasetCatalogIfNotExists(String datasetName) {
+	private SimpleCatalog getDatasetCatalog(String datasetName) {
 		for(SimpleCatalog catalog : this.catalog.getCatalogList()) {
 			if(catalog.getFullName().equalsIgnoreCase(datasetName)) {
 				return catalog;
 			}
 		}
-		return this.catalog.addNewSimpleCatalog(datasetName);
+		return null;
 	}
 
 	@Override
@@ -125,7 +127,7 @@ public class ZetaSQLFieldSetExtract implements FieldSetExtract {
 	@Override
 	public Set<TableId> extractTableId(FetchedQuery fetchedQuery) {
 		Set<TableId> tableIds = new HashSet<>();
-		List<List<String>> allTables = null;
+		List<List<String>> allTables;
 		try {
 			allTables = extractTableNamesFromStatement(fetchedQuery.statement(), options);
 		} catch (Exception e) {

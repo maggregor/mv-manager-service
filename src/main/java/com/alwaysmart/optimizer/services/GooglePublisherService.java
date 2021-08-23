@@ -29,9 +29,6 @@ public class GooglePublisherService {
 
 	private static Logger LOGGER = LoggerFactory.getLogger(OptimizerApplication.class);
 
-	@Autowired
-	private FetcherService fetcherService;
-
 	@Value("${publisher.google-project-id}")
 	private String PUBLISHER_GOOGLE_PROJECT_ID = "achilio-dev";
 	@Value("${publisher.google-topic-id}")
@@ -45,21 +42,18 @@ public class GooglePublisherService {
 	private final TopicName TOPIC_NAME = TopicName.of(PUBLISHER_GOOGLE_PROJECT_ID, PUBLISHER_GOOGLE_TOPIC_ID);
 
 	public void publishOptimization(Optimization optimization, List<OptimizationResult> results) throws IOException, ExecutionException, InterruptedException {
-		/*if (results.isEmpty()) {
+		if (results.isEmpty()) {
 			LOGGER.info("No optimizations published because no results.");
 			return;
-		}*/
-		final SimpleGoogleCredentialsAuthentication authentication = (SimpleGoogleCredentialsAuthentication) SecurityContextHolder.getContext().getAuthentication();
-		final String accessToken = "monaccesstoken";
-		//final String accessToken = authentication.getCredentials().getAccessToken().getTokenValue();
+		}
 		final StringJoiner messageStringJoiner = new StringJoiner(";");
-		messageStringJoiner.add("SELECT payment_type, SUM(total_amount) as col1 FROM achilio-dev.nyc_trips.tlc_yellow_trips_2015_small GROUP BY payment_type");
+		results.stream()
+				.map(OptimizationResult::getStatement)
+				.forEach(messageStringJoiner::add);
 		// Stupid hack. Dataset name should be in the Optimization object.
-		// final String datasetName = results.get(0).getDataset();
-		final String datasetName = "nyc_trips";
+		final String datasetName = results.get(0).getDataset();
 		final String message = messageStringJoiner.toString();
 		final String projectId = optimization.getProjectId();
-		//final String regionId = fetcherService.fetchDataset(projectId, datasetName).getLocation();
 		final String regionId = "europe-west-1";
 		Publisher publisher = null;
 		try {
@@ -69,7 +63,7 @@ public class GooglePublisherService {
 			PubsubMessage pubsubMessage = PubsubMessage.newBuilder()
 					.putAttributes(ATTRIBUTE_CMD_TYPE, "apply")
 					.putAttributes(ATTRIBUTE_PROJECT_ID, projectId)
-					.putAttributes(ATTRIBUTE_ACCESS_TOKEN, accessToken)
+					.putAttributes(ATTRIBUTE_ACCESS_TOKEN, "lebelaccesstoken")
 					.putAttributes(ATTRIBUTE_REGION_ID, regionId)
 					.putAttributes(ATTRIBUTE_DATASET_NAME, datasetName)
 					.setData(data).build();
@@ -77,7 +71,7 @@ public class GooglePublisherService {
 			ApiFuture<String> messageIdFuture = publisher.publish(pubsubMessage);
 			String messageId = messageIdFuture.get();
 			LOGGER.info("Optimization published with messageId={}", messageId);
-		} finally{
+		} finally {
 			if (publisher != null) {
 				// When finished with the publisher, shutdown to free up resources.
 				publisher.shutdown();

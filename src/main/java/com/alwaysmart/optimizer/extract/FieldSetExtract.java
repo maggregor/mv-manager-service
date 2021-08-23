@@ -68,4 +68,8 @@ public interface FieldSetExtract {
 	 * @param tables
 	 */
 	void registerTables(List<FetchedTable> tables);
+
+	void registerTable(FetchedTable table);
+
+	boolean isTableRegistered(final String dataset, final String tableName);
 }
