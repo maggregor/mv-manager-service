@@ -7,29 +7,15 @@ import com.alwaysmart.optimizer.extract.fields.FieldSet;
 import com.alwaysmart.optimizer.extract.fields.FieldSetFactory;
 import com.google.cloud.bigquery.TableId;
 import com.google.common.base.Preconditions;
-import com.google.zetasql.Analyzer;
-import com.google.zetasql.AnalyzerOptions;
-import com.google.zetasql.LanguageOptions;
-import com.google.zetasql.NotFoundException;
-import com.google.zetasql.SimpleCatalog;
-import com.google.zetasql.SimpleTable;
-import com.google.zetasql.Table;
-import com.google.zetasql.Type;
-import com.google.zetasql.TypeFactory;
-import com.google.zetasql.ZetaSQLBuiltinFunctionOptions;
-import com.google.zetasql.ZetaSQLOptions;
-import com.google.zetasql.ZetaSQLType;
+import com.google.zetasql.*;
 import com.google.zetasql.resolvedast.ResolvedNodes;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import static com.google.zetasql.Analyzer.extractTableNamesFromStatement;
 
@@ -81,9 +67,15 @@ public class ZetaSQLFieldSetExtract implements FieldSetExtract {
 	}
 
 	private void ensureDatasetExists(final String datasetName) {
-		if (!this.catalog.getCatalogList().contains(datasetName)) {
+		if (!containsDataset(datasetName)) {
 			this.catalog.addNewSimpleCatalog(datasetName);
 		}
+	}
+
+	private boolean containsDataset(String datasetName) {
+		return this.catalog.getCatalogList()
+				.stream()
+				.anyMatch(simpleCatalog -> simpleCatalog.getFullName().equalsIgnoreCase(datasetName));
 	}
 
 	@Override
@@ -116,23 +108,26 @@ public class ZetaSQLFieldSetExtract implements FieldSetExtract {
 			ResolvedNodes.ResolvedStatement resolvedStatement = Analyzer.analyzeStatement(statement, options, catalog);
 			ZetaSQLFieldSetExtractGlobalVisitor extractVisitor = new ZetaSQLFieldSetExtractGlobalVisitor(catalog);
 			resolvedStatement.accept(extractVisitor);
-			// TODO: Remove references.
 			/*containsAllReferences(fetchedQuery.getTableId(), fieldSet) ? FieldSetFactory.EMPTY_FIELD_SET : */
-			return extractVisitor.fieldSet();
+			FieldSet fieldSet = extractVisitor.fieldSet();
+			fieldSet.setProjectId(fetchedQuery.getProjectId());
+			fieldSet.setDataset(fetchedQuery.getDatasetName());
+			fieldSet.setTable(fetchedQuery.getTableName());
+			return fieldSet;
 		} catch (Exception e) {
 			return FieldSetFactory.EMPTY_FIELD_SET;
 		}
 	}
 
 	@Override
-	public Set<TableId> extractTableId(FetchedQuery fetchedQuery) {
-		Set<TableId> tableIds = new HashSet<>();
+	public boolean discoverTablePath(FetchedQuery fetchedQuery) {
+		List<TableId> tableIds = new ArrayList<>();
 		List<List<String>> allTables;
 		try {
 			allTables = extractTableNamesFromStatement(fetchedQuery.statement(), options);
 		} catch (Exception e) {
 			LOGGER.warn(e.getMessage());
-			return new HashSet<>();
+			return false;
 		}
 		for (List<String> table : allTables) {
 			try {
@@ -141,11 +136,18 @@ public class ZetaSQLFieldSetExtract implements FieldSetExtract {
 				LOGGER.warn(e.getMessage());
 			}
 		}
-		// Hack to maintain table origin in fetched query.
-		if (!tableIds.isEmpty()) {
-			fetchedQuery.setTableId(tableIds.iterator().next());
+		if (tableIds.isEmpty()) {
+			LOGGER.debug("No one table path found for this query: " + fetchedQuery.statement());
+			return false;
 		}
-		return tableIds;
+		// HACK: Persist only one found table ID. Not support JOIN to date.
+		TableId tableId = tableIds.get(0);
+		if (StringUtils.isNotEmpty(tableId.getProject())) {
+			fetchedQuery.setProjectId(tableId.getProject());
+		}
+		fetchedQuery.setDatasetName(tableId.getDataset());
+		fetchedQuery.setTableName(tableId.getTable());
+		return true;
 	}
 
 	private boolean containsAllReferences(TableId tableId, FieldSet fieldSet) throws NotFoundException {

@@ -3,7 +3,6 @@ package com.alwaysmart.optimizer.extract;
 import com.alwaysmart.optimizer.databases.entities.FetchedQuery;
 import com.alwaysmart.optimizer.databases.entities.FetchedTable;
 import com.alwaysmart.optimizer.extract.fields.FieldSet;
-import com.google.cloud.bigquery.TableId;
 
 import java.util.HashSet;
 import java.util.List;
@@ -25,10 +24,10 @@ public interface FieldSetExtract {
 	default Set<FieldSet> extract(List<FetchedQuery> fetchedQueries) {
 		Set<FieldSet> fieldSets = new HashSet<>();
 		for (FetchedQuery query : fetchedQueries) {
-			FieldSet fieldSet = extract(query);
-			fieldSets.add(fieldSet);
-			// Hack - Keep the TableId in the fieldset. Dirty here.
-			fieldSet.setTableId(query.getTableId());
+			if(discoverTablePath(query)) {
+				FieldSet fieldSet = extract(query);
+				fieldSets.add(fieldSet);
+			}
 		}
 		return fieldSets;
 	}
@@ -41,26 +40,14 @@ public interface FieldSetExtract {
 	 */
 	FieldSet extract(FetchedQuery fetchedQueries);
 
-
 	/**
 	 * Extract all schemas / tables id
 	 *
 	 * @param fetchedQueries - the query
-	 * @return
+	 * @return true if a path was found
 	 */
-	default Set<TableId> extractAllTableId(List<FetchedQuery> fetchedQueries) {
-		Set<TableId> fieldSets = new HashSet<>();
-		fetchedQueries.forEach(fetchedQuery -> fieldSets.addAll(extractTableId(fetchedQuery)));
-		return fieldSets;
-	}
-
-	/**
-	 * Extract all schemas / tables id
-	 *
-	 * @param fetchedQueries - the query
-	 * @return
-	 */
-	Set<TableId> extractTableId(FetchedQuery fetchedQueries);
+	boolean
+	discoverTablePath(FetchedQuery fetchedQueries);
 
 	/**
 	 * Register data model in the extractor.

@@ -44,6 +44,7 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     private static final int LIST_JOB_PAGE_SIZE = 25000;
     private BigQuery bigquery;
     private ResourceManager resourceManager;
+    private String projectId;
 
     public BigQueryDatabaseFetcher(GoogleCredentials googleCredentials, String projectId) {
         BigQueryOptions.Builder bqOptBuilder = BigQueryOptions
@@ -59,6 +60,7 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
         }
         this.bigquery = bqOptBuilder.build().getService();
         this.resourceManager = rmOptBuilder.build().getService();
+        this.projectId = projectId;
     }
 
     @Override
@@ -94,14 +96,15 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
                     JobStatistics.QueryStatistics queryStatistics = job.getStatistics();
                     Long billed = queryStatistics.getTotalBytesBilled();
                     long cost = billed == null ? -1 : billed;
-                    fetchedQueries.add(FetchedQueryFactory.createFetchedQuery(query, cost));
+                    FetchedQuery fetchedQuery = FetchedQueryFactory.createFetchedQuery(query, cost);
+                    fetchedQuery.setProjectId(projectId);
+                    fetchedQueries.add(fetchedQuery);
                 }
             }
         }
         return fetchedQueries;
     }
 
-    //TODO: Refacto !
     @Override
     public FetchedTable fetchTable(String projectId, String datasetName, String tableName) throws IllegalArgumentException {
         try {

@@ -31,11 +31,19 @@ public class Optimization {
 	@Column(name = "project_id", nullable = false)
 	private String projectId;
 
+	@Column(name = "region_id", nullable = false)
+	private String regionId;
+
+	@Column(name = "dataset_name", nullable = false)
+	private String datasetName;
+
 	@Column(name = "approval_required", nullable = false)
 	private boolean approvalRequired;
 
-	public Optimization(String projectId, boolean approvalRequired) {
+	public Optimization(String projectId, String regionId, String datasetName, boolean approvalRequired) {
 		this.projectId = projectId;
+		this.regionId = regionId;
+		this.datasetName = datasetName;
 		this.approvalRequired = approvalRequired;
 	}
 
@@ -51,6 +59,14 @@ public class Optimization {
 
 	public String getProjectId() {
 		return projectId;
+	}
+
+	public String getRegionId() {
+		return projectId;
+	}
+
+	public String getDatasetName() {
+		return datasetName;
 	}
 
 	public boolean isApprovalRequired() {

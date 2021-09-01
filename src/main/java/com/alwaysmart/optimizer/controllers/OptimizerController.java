@@ -27,16 +27,17 @@ public class OptimizerController {
 
     @PostMapping(path = "/optimize/{projectId}", produces = "application/json")
     @ApiOperation("Trigger an optimization on a projectId")
-    public OptimizationResponse optimizeProject(@PathVariable("projectId") String projectId) throws IOException, ExecutionException, InterruptedException {
+    public OptimizationResponse optimizeProject(@PathVariable("projectId") String projectId) throws Exception {
         Optimization optimization = service.optimizeProject(projectId);
-        return new OptimizationResponse(optimization.getId(), optimization.getProjectId());
+        return new OptimizationResponse(optimization);
     }
 
-    @PostMapping(path = "/wait/{seconds}", produces = "application/json")
-    public String optimizeProject5s(@PathVariable("seconds") Integer seconds) throws InterruptedException {
-        long ms = seconds * 1000;
-        Thread.sleep(ms);
-        return "I slept " + ms + "ms." ;
+    @PostMapping(path = "/optimize/{projectId}/dataset/{datasetName}", produces = "application/json")
+    @ApiOperation("Trigger an optimization on a dataset")
+    public OptimizationResponse optimizeDataset(@PathVariable("projectId") String projectId,
+                                                @PathVariable("datasetName") String datasetName) throws Exception {
+        Optimization optimization = service.optimizeDataset(projectId, datasetName);
+        return new OptimizationResponse(optimization);
     }
 
 }

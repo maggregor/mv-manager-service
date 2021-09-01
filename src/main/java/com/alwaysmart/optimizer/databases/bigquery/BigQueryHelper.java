@@ -27,6 +27,11 @@ public class BigQueryHelper {
 	}
 
 	public static TableId parseTable(String[] tableId) {
+		if (tableId.length == 1) {
+			if (tableId[0].contains(".")) {
+				tableId = tableId[0].split("\\.");
+			}
+		}
 		if (tableId.length == 2) {
 			return TableId.of(tableId[0], tableId[1]);
 		} else if (tableId.length == 3) {

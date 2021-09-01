@@ -41,7 +41,10 @@ public class GooglePublisherService {
 
 	private final TopicName TOPIC_NAME = TopicName.of(PUBLISHER_GOOGLE_PROJECT_ID, PUBLISHER_GOOGLE_TOPIC_ID);
 
-	public void publishOptimization(Optimization optimization, List<OptimizationResult> results) throws IOException, ExecutionException, InterruptedException {
+	public void publishOptimization(Optimization optimization,
+									List<OptimizationResult> results,
+									String accessToken
+	) throws IOException, ExecutionException, InterruptedException {
 		if (results.isEmpty()) {
 			LOGGER.info("No optimizations published because no results.");
 			return;
@@ -50,11 +53,10 @@ public class GooglePublisherService {
 		results.stream()
 				.map(OptimizationResult::getStatement)
 				.forEach(messageStringJoiner::add);
-		// Stupid hack. Dataset name should be in the Optimization object.
-		final String datasetName = results.get(0).getDataset();
 		final String message = messageStringJoiner.toString();
 		final String projectId = optimization.getProjectId();
-		final String regionId = "europe-west-1";
+		final String datasetName = optimization.getDatasetName();
+		final String regionId = optimization.getRegionId();
 		Publisher publisher = null;
 		try {
 			publisher = Publisher.newBuilder(TOPIC_NAME).build();
@@ -63,7 +65,7 @@ public class GooglePublisherService {
 			PubsubMessage pubsubMessage = PubsubMessage.newBuilder()
 					.putAttributes(ATTRIBUTE_CMD_TYPE, "apply")
 					.putAttributes(ATTRIBUTE_PROJECT_ID, projectId)
-					.putAttributes(ATTRIBUTE_ACCESS_TOKEN, "lebelaccesstoken")
+					.putAttributes(ATTRIBUTE_ACCESS_TOKEN, accessToken)
 					.putAttributes(ATTRIBUTE_REGION_ID, regionId)
 					.putAttributes(ATTRIBUTE_DATASET_NAME, datasetName)
 					.setData(data).build();

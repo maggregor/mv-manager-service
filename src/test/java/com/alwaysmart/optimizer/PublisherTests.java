@@ -16,8 +16,8 @@ public class PublisherTests {
 
     @Test @Ignore
     public void testPublisher() throws IOException, ExecutionException, InterruptedException {
-        Optimization optimization = new Optimization("achilio-dev", false);
+        Optimization optimization = new Optimization("achilio-dev", "europe-west1", "nyc_trips", false);
         GooglePublisherService publisherService = new GooglePublisherService();
-        publisherService.publishOptimization(optimization, new ArrayList<>());
+        publisherService.publishOptimization(optimization, new ArrayList<>(), "");
     }
 }

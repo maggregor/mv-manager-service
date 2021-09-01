@@ -14,7 +14,9 @@ public class DefaultFieldSet implements FieldSet, Cloneable {
 
 	private static Logger LOGGER = LoggerFactory.getLogger(OptimizerApplication.class);
 
-	private TableId tableId;
+	private String projectId;
+	private String dataset;
+	private String table;
 	private Set<Field> fields;
 	private long scannedBytesMb;
 	private int hits;
@@ -33,13 +35,33 @@ public class DefaultFieldSet implements FieldSet, Cloneable {
 	}
 
 	@Override
-	public void setTableId(TableId tableId) {
-		this.tableId = tableId;
+	public String getProjectId() {
+		return this.projectId;
 	}
 
 	@Override
-	public TableId getTableId() {
-		return this.tableId;
+	public String getDataset() {
+		return this.dataset;
+	}
+
+	@Override
+	public String getTable() {
+		return this.table;
+	}
+
+	@Override
+	public void setTable(String tableName) {
+		this.table = tableName;
+	}
+
+	@Override
+	public void setDataset(String datasetName) {
+		this.dataset = datasetName;
+	}
+
+	@Override
+	public void setProjectId(String projectId) {
+		this.projectId = projectId;
 	}
 
 	@Override
@@ -68,7 +90,7 @@ public class DefaultFieldSet implements FieldSet, Cloneable {
 	}
 
 	@Override
-	public Set<Field> aggregates() {
+ 	public Set<Field> aggregates() {
 		return this.fields.stream().filter(field -> field instanceof AggregateField).collect(Collectors.toSet());
 	}
 
@@ -93,13 +115,22 @@ public class DefaultFieldSet implements FieldSet, Cloneable {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
 		DefaultFieldSet that = (DefaultFieldSet) o;
-		return scannedBytesMb == that.scannedBytesMb &&
-				hits == that.hits &&
-				Objects.equals(fields, that.fields);
+		return scannedBytesMb == that.scannedBytesMb && hits == that.hits && Objects.equals(dataset, that.dataset) && Objects.equals(table, that.table) && Objects.equals(fields, that.fields);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(tableId, fields, scannedBytesMb, hits);
+		return Objects.hash(dataset, table, fields, scannedBytesMb, hits);
+	}
+
+	@Override
+	public String toString() {
+		return "DefaultFieldSet{" +
+				"dataset='" + dataset + '\'' +
+				", table='" + table + '\'' +
+				", fields=" + fields +
+				", scannedBytesMb=" + scannedBytesMb +
+				", hits=" + hits +
+				'}';
 	}
 }

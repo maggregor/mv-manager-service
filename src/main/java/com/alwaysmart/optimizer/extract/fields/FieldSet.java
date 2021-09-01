@@ -1,7 +1,5 @@
 package com.alwaysmart.optimizer.extract.fields;
 
-import com.google.cloud.bigquery.TableId;
-
 import java.util.Set;
 
 /**
@@ -10,13 +8,16 @@ import java.util.Set;
  */
 public interface FieldSet {
 
-	/**
-	 * The TableId of this set of fields.
-	 *
-	 */
-	TableId getTableId();
+	String getProjectId();
+	String getDataset();
 
-	void setTableId(TableId tableId);
+	String getTable();
+
+	void setProjectId(String projectName);
+
+	void setTable(String tableName);
+
+	void setDataset(String datasetName);
 
 	/**
 	 * The fields which this set of fields handle.

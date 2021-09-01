@@ -55,4 +55,14 @@ public abstract class Field {
 	public int hashCode() {
 		return Objects.hash(expression, cardinality, alias);
 	}
+
+	@Override
+	public String toString() {
+		return "Field{" +
+				"class='" + getClass().getSimpleName() + '\'' +
+				"expression='" + expression + '\'' +
+				", cardinality=" + cardinality +
+				", alias='" + alias + '\'' +
+				'}';
+	}
 }

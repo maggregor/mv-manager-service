@@ -1,12 +1,12 @@
 package com.alwaysmart.optimizer.databases.entities;
 
-import com.google.cloud.bigquery.TableId;
-
 public class DefaultFetchedQuery implements FetchedQuery {
 
-	private TableId tableId;
 	private String statement;
 	private long cost;
+	private String projectId;
+	private String datasetName;
+	private String tableName;
 
 	public DefaultFetchedQuery(final String statement,
 							   final long cost) {
@@ -14,16 +14,38 @@ public class DefaultFetchedQuery implements FetchedQuery {
 		this.cost = cost;
 	}
 
-	public void setTableId(TableId tableId) {
-		this.tableId = tableId;
-	}
-
-	public TableId getTableId() {
-		return this.tableId;
-	}
-
 	public long cost() {
 		return cost;
+	}
+
+	@Override
+	public String getProjectId() {
+		return this.projectId;
+	}
+
+	@Override
+	public String getDatasetName() {
+		return this.datasetName;
+	}
+
+	@Override
+	public String getTableName() {
+		return this.tableName;
+	}
+
+	@Override
+	public void setProjectId(String projectId) {
+		this.projectId = projectId;
+	}
+
+	@Override
+	public void setDatasetName(String datasetName) {
+		this.datasetName = datasetName;
+	}
+
+	@Override
+	public void setTableName(String tableName) {
+		this.tableName = tableName;
 	}
 
 	public String statement() {

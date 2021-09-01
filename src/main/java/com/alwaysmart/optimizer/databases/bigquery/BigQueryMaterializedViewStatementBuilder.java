@@ -3,7 +3,6 @@ package com.alwaysmart.optimizer.databases.bigquery;
 import com.alwaysmart.optimizer.databases.MaterializedViewStatementBuilder;
 import com.alwaysmart.optimizer.extract.fields.Field;
 import com.alwaysmart.optimizer.extract.fields.FieldSet;
-import com.google.cloud.bigquery.TableId;
 import com.google.common.base.Preconditions;
 
 import java.util.Set;
@@ -69,7 +68,7 @@ public class BigQueryMaterializedViewStatementBuilder implements MaterializedVie
 	public String buildFrom(FieldSet fieldSet) {
 		StringJoiner joiner = new StringJoiner(SEP_SQL_VERBS);
 		joiner.add(SQL_VERB_FROM);
-		joiner.add(buildTableReference(fieldSet.getTableId()));
+		joiner.add(buildTableReference(fieldSet));
 		return joiner.toString();
 	}
 
@@ -80,10 +79,11 @@ public class BigQueryMaterializedViewStatementBuilder implements MaterializedVie
 		return joiner.toString();
 	}
 
-	public String buildTableReference(TableId tableId) {
-		Preconditions.checkNotNull(tableId);
-		Preconditions.checkNotNull(tableId.getProject(), "Project is required.");
-		return String.format("`%s`.`%s`.`%s`", tableId.getProject(), tableId.getDataset(), tableId.getTable());
+	public String buildTableReference(FieldSet fieldSet) {
+		Preconditions.checkNotNull(fieldSet.getProjectId(), "Project ID is required");
+		Preconditions.checkNotNull(fieldSet.getDataset(), "Dataset name is required");
+		Preconditions.checkNotNull(fieldSet.getTable(), "Table name is required.");
+		return String.format("`%s`.`%s`.`%s`", fieldSet.getProjectId(), fieldSet.getDataset(), fieldSet.getTable());
 	}
 
 }

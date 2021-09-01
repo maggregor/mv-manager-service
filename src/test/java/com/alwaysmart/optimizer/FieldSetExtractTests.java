@@ -1,6 +1,8 @@
 package com.alwaysmart.optimizer;
 
 import com.alwaysmart.optimizer.databases.entities.DefaultFetchedTable;
+import com.alwaysmart.optimizer.databases.entities.FetchedQuery;
+import com.alwaysmart.optimizer.databases.entities.FetchedQueryFactory;
 import com.alwaysmart.optimizer.databases.entities.FetchedTable;
 import com.alwaysmart.optimizer.extract.FieldSetExtract;
 import com.alwaysmart.optimizer.extract.fields.AggregateField;
@@ -8,6 +10,7 @@ import com.alwaysmart.optimizer.extract.fields.Field;
 import com.alwaysmart.optimizer.extract.fields.FieldSet;
 import com.alwaysmart.optimizer.extract.fields.FieldSetFactory;
 import com.alwaysmart.optimizer.extract.fields.ReferenceField;
+import com.google.cloud.bigquery.TableId;
 import com.google.zetasql.ZetaSQLType;
 import org.junit.Assert;
 import org.junit.Before;
@@ -61,7 +64,7 @@ public abstract class FieldSetExtractTests {
 	@Test
 	public void whereClauseAndAggregateInSelect() {
 		final String query = "SELECT SUM(col3) FROM mydataset.mytable WHERE col3 < 5";
-		assertContainsFields(query, new ReferenceField("col3"), new AggregateField("SUM(col3)"));
+		assertContainsFields(query, new ReferenceField("col3 < 5"), new AggregateField("SUM(col3)"));
 	}
 
 	@Test
@@ -74,6 +77,19 @@ public abstract class FieldSetExtractTests {
 	public void whereClauseMultipleReferences() {
 		final String query = "SELECT 'xxx' FROM mydataset.mytable WHERE col1 = 'xxx' AND col2 = 'yyy'";
 		assertContainsFields(query, new ReferenceField("col1"), new ReferenceField("col2"));
+	}
+
+	@Test
+	public void discoverTablePaths() {
+		FetchedQuery fetchedQuery;
+		fetchedQuery = FetchedQueryFactory.createFetchedQuery("SELECT 'xxx' FROM mydataset.mytable");
+		extractor.discoverTablePath(fetchedQuery);
+		Assert.assertEquals("mydataset", fetchedQuery.getDatasetName());
+		Assert.assertEquals("mytable", fetchedQuery.getTableName());
+		fetchedQuery = FetchedQueryFactory.createFetchedQuery("SELECT COUNT(*) FROM `achilio-dev.nyc_trips.mvm_123456`");
+		extractor.discoverTablePath(fetchedQuery);
+		Assert.assertEquals("nyc_trips", fetchedQuery.getDatasetName());
+		Assert.assertEquals("mvm_123456", fetchedQuery.getTableName());
 	}
 
 	@Test
@@ -183,7 +199,10 @@ public abstract class FieldSetExtractTests {
 			final FieldSet expected = createFieldSet(fields);
 			final FieldSet actual = statementToFieldSet(query, extractor);
 			for (Field field : expected.fields()) {
-				Assert.assertTrue("One field is missing: " + field.name(), actual.fields().contains(field));
+				Assert.assertTrue(
+						String.format("One field is missing: %s.\nActual fields: %s", field.name(), actual),
+						actual.fields().contains(field)
+				);
 			}
 		}
 

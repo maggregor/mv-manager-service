@@ -10,20 +10,17 @@ import com.google.cloud.bigquery.TableId;
  */
 public interface FetchedQuery {
 
+	String getProjectId();
 
-	/**
-	 * The TableId origin of the SELECT.
-	 *
-	 * @return the TableId origin of the SELECT.
-	 */
-	TableId getTableId();
+	String getDatasetName();
 
-	/**
-	 * Define the TableId origin.
-	 *
-	 * @param tableId
-	 */
-	void setTableId(TableId tableId);
+	String getTableName();
+
+	void setProjectId(String projectId);
+
+	void setDatasetName(String datasetName);
+
+	void setTableName(String tableName);
 
 	/**
 	 * The SQL statement of the fetched query.
