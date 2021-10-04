@@ -6,7 +6,7 @@ steps:
   - name: maven:3-openjdk-8
     id: "mvn-package"
     entrypoint: mvn
-    args: ["package", "-Dmaven.test.skip=true"]
+    args: ["package", "appengine:deploy"]
   # - name: gcr.io/cloud-builders/docker
   #   args:
   #     [
@@ -18,9 +18,9 @@ steps:
   #     ]
   # - name: "gcr.io/cloud-builders/docker"
   #   args: ["push", "gcr.io/achilio-dev/mvm-service"]
-  - name: maven:3-openjdk-8
-    entrypoint: "mvn"
-    args: ["package", "appengine:deploy"]
+  # - name: maven:3-openjdk-8
+  #   entrypoint: "mvn"
+  #   args: ["package", "appengine:deploy"]
 images: ["gcr.io/achilio-dev/mvm-service"]
 # - name: 'gcr.io/cloud-builders/curl'
 #   id: 'codecov-report'
