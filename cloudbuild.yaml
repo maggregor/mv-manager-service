@@ -7,17 +7,17 @@ steps:
     id: "mvn-package"
     entrypoint: mvn
     args: ["package", "-Dmaven.test.skip=true"]
-  - name: gcr.io/cloud-builders/docker
-    args:
-      [
-        "build",
-        "-t",
-        "gcr.io/achilio-dev/mvm-service",
-        "--build-arg=JAR_FILE=target/alwaysmart-optimizer-0.0.1-SNAPSHOT.jar",
-        ".",
-      ]
-  - name: "gcr.io/cloud-builders/docker"
-    args: ["push", "gcr.io/achilio-dev/mvm-service"]
+  # - name: gcr.io/cloud-builders/docker
+  #   args:
+  #     [
+  #       "build",
+  #       "-t",
+  #       "gcr.io/achilio-dev/mvm-service",
+  #       "--build-arg=JAR_FILE=target/alwaysmart-optimizer-0.0.1-SNAPSHOT.jar",
+  #       ".",
+  #     ]
+  # - name: "gcr.io/cloud-builders/docker"
+  #   args: ["push", "gcr.io/achilio-dev/mvm-service"]
   - name: maven:3-openjdk-8
     entrypoint: "mvn"
     args: ["package", "appengine:deploy"]
