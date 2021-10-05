@@ -35,6 +35,6 @@ public class OptimizerApplication implements CommandLineRunner {
 	@Bean
 	public Docket productApi() {
 		return new Docket(DocumentationType.SWAGGER_2).select()
-				.apis(RequestHandlerSelectors.basePackage("com.alwaysmart.optimizer")).build();
+				.apis(RequestHandlerSelectors.basePackage("com.achilio.mvm.service")).build();
 	}
 }
