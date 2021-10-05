@@ -60,7 +60,7 @@ public class OptimizerService {
     public Optimization optimizeDataset(final String projectId, final String datasetName) throws Exception {
         LOGGER.info("New optimization...");
         FetchedDataset dataset = fetcherService.fetchDataset(projectId, datasetName);
-        Optimization optimization = new Optimization(projectId,  dataset.getLocation(), datasetName,true);
+        Optimization optimization = new Optimization(projectId, dataset.getLocation(), datasetName, true);
         entityManager.persist(optimization);
         entityManager.persist(new OptimizationEvent(optimization, OptimizationEvent.Type.IN_PROGRESS));
         List<FetchedQuery> fetchedQueries = fetcherService.fetchQueries(projectId);
@@ -73,13 +73,16 @@ public class OptimizerService {
         List<OptimizationResult> results = new LinkedList<>();
         for (FieldSet fieldSet : optimized) {
             String statement = statementBuilder.build(fieldSet);
-            OptimizationResult result = new OptimizationResult(fieldSet.getDataset(), fieldSet.getTable(), optimization, statement);
+            OptimizationResult result = new OptimizationResult(fieldSet.getDataset(), fieldSet.getTable(), optimization,
+                    statement);
             results.add(result);
             entityManager.persist(result);
         }
-        SimpleGoogleCredentialsAuthentication authentication = (SimpleGoogleCredentialsAuthentication) SecurityContextHolder.getContext().getAuthentication();
+        SimpleGoogleCredentialsAuthentication authentication = (SimpleGoogleCredentialsAuthentication) SecurityContextHolder
+                .getContext().getAuthentication();
         entityManager.persist(new OptimizationEvent(optimization, OptimizationEvent.Type.FINISHED));
-        publisherService.publishOptimization(optimization, results, authentication.getCredentials().getAccessToken().toString());
+        publisherService.publishOptimization(optimization, results,
+                authentication.getCredentials().getAccessToken().getTokenValue());
         LOGGER.info("Optimization done with {} results.", results.size());
         return optimization;
     }
