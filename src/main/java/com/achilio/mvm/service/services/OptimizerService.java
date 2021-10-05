@@ -59,7 +59,7 @@ public class OptimizerService {
     public Optimization optimizeDataset(final String projectId, final String datasetName) throws Exception {
         LOGGER.info("New optimization...");
         FetchedDataset dataset = fetcherService.fetchDataset(projectId, datasetName);
-        Optimization optimization = new Optimization(projectId,  datasetName, dataset.getLocation(),true);
+        Optimization optimization = new Optimization(projectId,  dataset.getLocation(), datasetName,true);
         entityManager.persist(optimization);
         entityManager.persist(new OptimizationEvent(optimization, OptimizationEvent.Type.IN_PROGRESS));
         List<FetchedQuery> fetchedQueries = fetcherService.fetchQueries(projectId);
