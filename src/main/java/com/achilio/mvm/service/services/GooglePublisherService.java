@@ -41,22 +41,14 @@ public class GooglePublisherService {
 
 	private final TopicName TOPIC_NAME = TopicName.of(PUBLISHER_GOOGLE_PROJECT_ID, PUBLISHER_GOOGLE_TOPIC_ID);
 
-	public void publishOptimization(Optimization optimization,
-									List<OptimizationResult> results,
-									String accessToken
-	) throws IOException, ExecutionException, InterruptedException {
-		if (!PUBLISHER_ENABLED) {
-			LOGGER.info("The publisher is disabled. The optimization {} was not published on the topic.", optimization.getId());
-			return;
-		}
+	public void publishOptimization(Optimization optimization, List<OptimizationResult> results, String accessToken)
+			throws IOException, ExecutionException, InterruptedException {
 		if (results.isEmpty()) {
 			LOGGER.info("No optimizations published because no results.");
 			return;
 		}
 		final StringJoiner messageStringJoiner = new StringJoiner(";");
-		results.stream()
-				.map(OptimizationResult::getStatement)
-				.forEach(messageStringJoiner::add);
+		results.stream().map(OptimizationResult::getStatement).forEach(messageStringJoiner::add);
 		final String message = messageStringJoiner.toString();
 		final String projectId = optimization.getProjectId();
 		final String datasetName = optimization.getDatasetName();
@@ -66,12 +58,9 @@ public class GooglePublisherService {
 			publisher = Publisher.newBuilder(TOPIC_NAME).build();
 
 			ByteString data = ByteString.copyFromUtf8(message);
-			PubsubMessage pubsubMessage = PubsubMessage.newBuilder()
-					.putAttributes(ATTRIBUTE_CMD_TYPE, "apply")
-					.putAttributes(ATTRIBUTE_PROJECT_ID, projectId)
-					.putAttributes(ATTRIBUTE_ACCESS_TOKEN, accessToken)
-					.putAttributes(ATTRIBUTE_REGION_ID, regionId)
-					.putAttributes(ATTRIBUTE_DATASET_NAME, datasetName)
+			PubsubMessage pubsubMessage = PubsubMessage.newBuilder().putAttributes(ATTRIBUTE_CMD_TYPE, "apply")
+					.putAttributes(ATTRIBUTE_PROJECT_ID, projectId).putAttributes(ATTRIBUTE_ACCESS_TOKEN, accessToken)
+					.putAttributes(ATTRIBUTE_REGION_ID, regionId).putAttributes(ATTRIBUTE_DATASET_NAME, datasetName)
 					.setData(data).build();
 
 			ApiFuture<String> messageIdFuture = publisher.publish(pubsubMessage);
