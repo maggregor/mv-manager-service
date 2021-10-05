@@ -43,6 +43,10 @@ public class GooglePublisherService {
 
 	public void publishOptimization(Optimization optimization, List<OptimizationResult> results, String accessToken)
 			throws IOException, ExecutionException, InterruptedException {
+		if (!PUBLISHER_ENABLED) {
+			LOGGER.info("Publisher disabled. The optimization {} will not be published.", optimization.getId());
+			return;
+		}
 		if (results.isEmpty()) {
 			LOGGER.info("No optimizations published because no results.");
 			return;
