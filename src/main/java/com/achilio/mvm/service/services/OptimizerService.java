@@ -78,8 +78,8 @@ public class OptimizerService {
         }
         SimpleGoogleCredentialsAuthentication authentication = (SimpleGoogleCredentialsAuthentication) SecurityContextHolder.getContext().getAuthentication();
         entityManager.persist(new OptimizationEvent(optimization, OptimizationEvent.Type.FINISHED));
-        //publisherService.publishOptimization(optimization, results, authentication.getCredentials().getAccessToken().toString());
-        LOGGER.info("Optimization done");
+        publisherService.publishOptimization(optimization, results, authentication.getCredentials().getAccessToken().toString());
+        LOGGER.info("Optimization done ");
         return optimization;
     }
 
