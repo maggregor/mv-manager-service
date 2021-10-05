@@ -9,10 +9,10 @@
 		<version>2.4.3</version>
 		<relativePath />
 	</parent>
-	<groupId>com.alwaysmart</groupId>
-	<artifactId>alwaysmart-optimizer</artifactId>
+	<groupId>com.achilio</groupId>
+	<artifactId>mvm-service</artifactId>
 	<version>${project.version}</version>
-	<name>alwaysmart-optimizer</name>
+	<name>mvm-service</name>
 	<description>Determines the most relevant materialized views in a given BigQuery context.</description>
 	<packaging>war</packaging>
 
