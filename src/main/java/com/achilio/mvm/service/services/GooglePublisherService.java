@@ -36,12 +36,19 @@ public class GooglePublisherService {
 	private final static String ATTRIBUTE_REGION_ID = "regionId";
 	private final static String ATTRIBUTE_DATASET_NAME = "datasetName";
 
+	@Value("${publisher.enabled}")
+	private boolean PUBLISHER_ENABLED = true;
+
 	private final TopicName TOPIC_NAME = TopicName.of(PUBLISHER_GOOGLE_PROJECT_ID, PUBLISHER_GOOGLE_TOPIC_ID);
 
 	public void publishOptimization(Optimization optimization,
 									List<OptimizationResult> results,
 									String accessToken
 	) throws IOException, ExecutionException, InterruptedException {
+		if (!PUBLISHER_ENABLED) {
+			LOGGER.info("The publisher is disabled. The optimization {} was not published on the topic.", optimization.getId());
+			return;
+		}
 		if (results.isEmpty()) {
 			LOGGER.info("No optimizations published because no results.");
 			return;

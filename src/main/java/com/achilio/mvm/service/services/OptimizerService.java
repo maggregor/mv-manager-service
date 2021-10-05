@@ -17,6 +17,7 @@ import com.achilio.mvm.service.extract.fields.FieldSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -78,7 +79,7 @@ public class OptimizerService {
         }
         SimpleGoogleCredentialsAuthentication authentication = (SimpleGoogleCredentialsAuthentication) SecurityContextHolder.getContext().getAuthentication();
         entityManager.persist(new OptimizationEvent(optimization, OptimizationEvent.Type.FINISHED));
-        //publisherService.publishOptimization(optimization, results, authentication.getCredentials().getAccessToken().toString());
+        publisherService.publishOptimization(optimization, results, authentication.getCredentials().getAccessToken().toString());
         LOGGER.info("Optimization done with {} results.", results.size());
         return optimization;
     }
