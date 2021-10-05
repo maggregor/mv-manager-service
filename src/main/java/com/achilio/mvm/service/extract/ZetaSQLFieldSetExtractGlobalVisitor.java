@@ -5,6 +5,7 @@ import com.achilio.mvm.service.extract.fields.ReferenceField;
 import com.google.common.collect.ImmutableList;
 import com.google.zetasql.Analyzer;
 import com.google.zetasql.SimpleCatalog;
+import com.google.zetasql.resolvedast.ResolvedColumn;
 import com.google.zetasql.resolvedast.ResolvedNodes;
 
 import java.util.ArrayList;
@@ -24,17 +25,19 @@ public class ZetaSQLFieldSetExtractGlobalVisitor extends ZetaSQLFieldSetExtractV
 	 */
 	@Override
 	public void visit(ResolvedNodes.ResolvedOutputColumn node) {
-		final String columnName = node.getColumn().getName();
-		this.addField(new ReferenceField(columnName));
+		final ResolvedColumn column = node.getColumn();
+		final String columnName = column.getName();
+		// If isn't regular table its may an alias on a function.
+		if (isRegularTable(column.getTableName())) {
+			this.addField(new ReferenceField(columnName));
+		}
 		super.visit(node);
 	}
-
 
 	@Override
 	public void visit(ResolvedNodes.ResolvedAggregateScan node) {
 		super.visit(node);
 	}
-
 
 	@Override
 	public void visit(ResolvedNodes.ResolvedFunctionCall node) {
@@ -50,6 +53,10 @@ public class ZetaSQLFieldSetExtractGlobalVisitor extends ZetaSQLFieldSetExtractV
 		expression = hackMappingColumnsInFunction(expression, node);
 		this.addField(new AggregateField(expression));
 		super.visit(node);
+	}
+
+	private boolean isRegularTable(String tableName) {
+		return tableName != null && !tableName.startsWith("$aggregate");
 	}
 
 	private String hackMappingColumnsInFunction(String expression, ResolvedNodes.ResolvedFunctionCallBase expr) {

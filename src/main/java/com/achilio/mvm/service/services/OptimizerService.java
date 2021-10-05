@@ -68,7 +68,7 @@ public class OptimizerService {
         List<FetchedTable> tables = fetcherService.fetchAllTables(projectId);
         extractor.registerTables(tables);
         Set<FieldSet> fieldSets = extractor.extract(fetchedQueries);
-        Optimizer optimizer = new BruteForceOptimizer();
+        Optimizer optimizer = new BruteForceOptimizer(20);
         Set<FieldSet> optimized = optimizer.optimize(fieldSets);
         List<OptimizationResult> results = new LinkedList<>();
         for (FieldSet fieldSet : optimized) {

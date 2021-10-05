@@ -187,22 +187,28 @@ public abstract class FieldSetExtractTests {
 		Assert.assertTrue(extractor.isTableRegistered(fetchedTable.getDatasetName(), fetchedTable.getTableName()));
 	}
 
+	@Test
+	public void aliasOnFunctionsShouldNotBeExtracted() {
+		String query = "SELECT COUNT(*) as count FROM mydataset.mytable GROUP BY col1";
+		assertExpectedFieldSet(query, new AggregateField("COUNT(*)"));
+	}
+
 	public void assertZeroFields(String query) {
 		final FieldSet actual = FieldSetHelper.statementToFieldSet(query, extractor);
 		Assert.assertEquals(FieldSetFactory.EMPTY_FIELD_SET, actual);
 		Assert.assertTrue("Actual FieldSet should be empty", actual.fields().isEmpty());
 	}
 
-		private void assertContainsFields(String query, Field...fields) {
-			final FieldSet expected = FieldSetHelper.createFieldSet(fields);
-			final FieldSet actual = FieldSetHelper.statementToFieldSet(query, extractor);
-			for (Field field : expected.fields()) {
-				Assert.assertTrue(
-						String.format("One field is missing: %s.\nActual fields: %s", field.name(), actual),
-						actual.fields().contains(field)
-				);
-			}
+	private void assertContainsFields(String query, Field...fields) {
+		final FieldSet expected = FieldSetHelper.createFieldSet(fields);
+		final FieldSet actual = FieldSetHelper.statementToFieldSet(query, extractor);
+		for (Field field : expected.fields()) {
+			Assert.assertTrue(
+					String.format("One field is missing: %s.\nActual fields: %s", field.name(), actual),
+					actual.fields().contains(field)
+			);
 		}
+	}
 
 	private void assertExpectedFieldSet(String query, Field...fields) {
 		final FieldSet expected = FieldSetHelper.createFieldSet(fields);
