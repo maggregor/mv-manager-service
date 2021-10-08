@@ -27,10 +27,10 @@ public class BruteForceOptimizer implements Optimizer {
 
 	private void removeExcessFieldSet(Set<FieldSet> fieldSets) {
 		Iterator<FieldSet> iterator = fieldSets.iterator();
-		int i = 0;
+		int i = 1;
 		while(iterator.hasNext()) {
 			FieldSet current = iterator.next();
-			if (i + 1 > maxFieldSet) {
+			if (i > maxFieldSet) {
 				iterator.remove();
 				LOGGER.info("Fieldset limit reached. Removed " + current.toString());
 			}
