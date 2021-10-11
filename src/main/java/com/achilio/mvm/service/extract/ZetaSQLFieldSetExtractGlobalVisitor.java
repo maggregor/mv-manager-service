@@ -1,11 +1,13 @@
 package com.achilio.mvm.service.extract;
 
 import com.achilio.mvm.service.extract.fields.AggregateField;
+import com.achilio.mvm.service.extract.fields.ExpressionField;
 import com.achilio.mvm.service.extract.fields.ReferenceField;
 import com.google.common.collect.ImmutableList;
 import com.google.zetasql.Analyzer;
 import com.google.zetasql.SimpleCatalog;
 import com.google.zetasql.resolvedast.ResolvedColumn;
+import com.google.zetasql.resolvedast.ResolvedNode;
 import com.google.zetasql.resolvedast.ResolvedNodes;
 
 import java.util.ArrayList;
@@ -18,8 +20,22 @@ public class ZetaSQLFieldSetExtractGlobalVisitor extends ZetaSQLFieldSetExtractV
 	}
 
 	@Override
+	protected void defaultVisit(ResolvedNode node) {
+		node.getClass();
+		super.defaultVisit(node);
+	}
+
+	@Override
 	public void visit(ResolvedNodes.ResolvedAggregateScan node) {
 		super.visit(node);
+	}
+
+	@Override
+	public void visit(ResolvedNodes.ResolvedOutputColumn node) {
+		final String tableName = node.getColumn().getTableName();
+		if (!tableName.startsWith("$")) {
+			this.addField(new ReferenceField(node.getColumn().getName()));
+		}
 	}
 
 	/**
@@ -29,34 +45,25 @@ public class ZetaSQLFieldSetExtractGlobalVisitor extends ZetaSQLFieldSetExtractV
 	 * @param node
 	 */
 	@Override
-	public void visit(ResolvedNodes.ResolvedOutputColumn node) {
-		final ResolvedColumn column = node.getColumn();
-		final String columnName = column.getName();
-		// If isn't regular table its may an alias on a function.
-		if (isRegularTable(column.getTableName())) {
-			this.addField(new ReferenceField(columnName));
+	public void visit(ResolvedNodes.ResolvedComputedColumn node) {
+		if (node.getExpr() instanceof ResolvedNodes.ResolvedColumnRef) {
+			ResolvedNodes.ResolvedColumnRef ref = (ResolvedNodes.ResolvedColumnRef) node.getExpr();
+			ResolvedColumn column = ref.getColumn();
+			this.addField(new ReferenceField(column.getName()));
+
+		}  else if (node.getExpr() instanceof ResolvedNodes.ResolvedAggregateFunctionCall){
+			ResolvedNodes.ResolvedAggregateFunctionCall func = (ResolvedNodes.ResolvedAggregateFunctionCall) node.getExpr();
+			String expression = Analyzer.buildExpression(func, this.getCatalog());
+			expression = hackMappingColumnsInFunction(expression, func);
+			this.addField(new AggregateField(expression));
+
+		} else if (node.getExpr() instanceof ResolvedNodes.ResolvedFunctionCallBase){
+			ResolvedNodes.ResolvedFunctionCallBase func = (ResolvedNodes.ResolvedFunctionCallBase) node.getExpr();
+			String expression = Analyzer.buildExpression(func, this.getCatalog());
+			expression = hackMappingColumnsInFunction(expression, func);
+			this.addField(new ExpressionField(expression));
 		}
 		super.visit(node);
-	}
-
-	@Override
-	public void visit(ResolvedNodes.ResolvedFunctionCall node) {
-		String expression = Analyzer.buildExpression(node, this.getCatalog());
-		expression = hackMappingColumnsInFunction(expression, node);
-		this.addField(new ReferenceField(expression));
-		super.visit(node);
-	}
-
-	@Override
-	public void visit(ResolvedNodes.ResolvedAggregateFunctionCall node) {
-		String expression = Analyzer.buildExpression(node, this.getCatalog());
-		expression = hackMappingColumnsInFunction(expression, node);
-		this.addField(new AggregateField(expression));
-		super.visit(node);
-	}
-
-	private boolean isRegularTable(String tableName) {
-		return tableName != null && !tableName.startsWith("$aggregate");
 	}
 
 	private String hackMappingColumnsInFunction(String expression, ResolvedNodes.ResolvedFunctionCallBase expr) {

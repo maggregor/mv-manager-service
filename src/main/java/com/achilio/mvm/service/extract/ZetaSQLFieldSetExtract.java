@@ -108,7 +108,6 @@ public class ZetaSQLFieldSetExtract implements FieldSetExtract {
 			ResolvedNodes.ResolvedStatement resolvedStatement = Analyzer.analyzeStatement(statement, options, catalog);
 			ZetaSQLFieldSetExtractGlobalVisitor extractVisitor = new ZetaSQLFieldSetExtractGlobalVisitor(catalog);
 			resolvedStatement.accept(extractVisitor);
-			/*containsAllReferences(fetchedQuery.getTableId(), fieldSet) ? FieldSetFactory.EMPTY_FIELD_SET : */
 			FieldSet fieldSet = extractVisitor.fieldSet();
 			fieldSet.setProjectId(fetchedQuery.getProjectId());
 			fieldSet.setDataset(fetchedQuery.getDatasetName());

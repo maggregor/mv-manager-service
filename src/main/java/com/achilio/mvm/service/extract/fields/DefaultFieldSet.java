@@ -90,7 +90,7 @@ public class DefaultFieldSet implements FieldSet, Cloneable {
 
 	@Override
  	public Set<Field> aggregates() {
-		return this.fields.stream().filter(field -> field instanceof AggregateField).collect(Collectors.toSet());
+		return this.fields.stream().filter(field -> field instanceof ExpressionField).collect(Collectors.toSet());
 	}
 
 	@Override

@@ -16,4 +16,5 @@ public class ZetaSQLFieldSetExtractFilterVisitor extends ZetaSQLFieldSetExtractV
 		this.addField(new ReferenceField(referenceName));
 		super.visit(node);
 	}
+
 }

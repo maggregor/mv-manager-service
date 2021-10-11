@@ -5,12 +5,9 @@ import com.achilio.mvm.service.databases.entities.DefaultFetchedTable;
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedQueryFactory;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
-import com.achilio.mvm.service.extract.fields.AggregateField;
-import com.achilio.mvm.service.extract.fields.Field;
-import com.achilio.mvm.service.extract.fields.FieldSet;
-import com.achilio.mvm.service.extract.fields.FieldSetFactory;
-import com.achilio.mvm.service.extract.fields.ReferenceField;
+import com.achilio.mvm.service.extract.fields.*;
 import com.google.zetasql.*;
+import org.checkerframework.checker.units.qual.A;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -61,7 +58,9 @@ public abstract class FieldSetExtractTest {
 	@Test
 	public void whereClauseAndAggregateInSelect() {
 		final String query = "SELECT SUM(col3) FROM mydataset.mytable WHERE col3 < 5";
-		assertContainsFields(query, new ReferenceField("col3 < 5"), new AggregateField("SUM(col3)"));
+		assertContainsFields(query,
+				new ReferenceField("col3"),
+				new AggregateField("SUM(col3)"));
 	}
 
 	@Test
@@ -159,16 +158,16 @@ public abstract class FieldSetExtractTest {
 		assertZeroFields(query);
 	}
 
-	@Test @Ignore
-	public void extractFunction() {
+	@Test
+	public void extractExpression() {
 		String query = "SELECT col1 = 'x' FROM mydataset.mytable";
-		assertExpectedFieldSet(query, new AggregateField("col1 = (\"x\")"));
+		assertExpectedFieldSet(query, new ExpressionField("col1 = (\"x\")"));
 		query = "SELECT col3 + col4 FROM mydataset.mytable";
-		assertExpectedFieldSet(query, new AggregateField("col3 + col4"));
+		assertExpectedFieldSet(query, new ExpressionField("col3 + col4"));
 		query = "SELECT IF(col3 < 4, 'bonjour', 'aurevoir') FROM mydataset.mytable";
-		assertExpectedFieldSet(query, new AggregateField("IF(col3 < 4, \"bonjour\", \"aurevoir\")"), new AggregateField("col3 < 4"));
+		assertExpectedFieldSet(query, new ExpressionField("IF(col3 < 4, \"bonjour\", \"aurevoir\")"));
 		query = "SELECT CASE WHEN col1 = 'x' THEN 'a' ELSE 'b' END FROM mydataset.mytable";
-		assertExpectedFieldSet(query, new AggregateField("CASE WHEN (col1 = (\"x\")) THEN (\"a\") ELSE (\"b\") END"), new AggregateField("col1 = (\"x\")"));
+		assertExpectedFieldSet(query, new ExpressionField("CASE WHEN (col1 = (\"x\")) THEN (\"a\") ELSE (\"b\") END"));
 	}
 
 	@Test //TODO: Support my-project.mydataset.mytable
@@ -187,16 +186,27 @@ public abstract class FieldSetExtractTest {
 	}
 
 	@Test
-	public void aliasOnFunctionsShouldNotBeExtracted() {
-		String query = "SELECT COUNT(*) as count FROM mydataset.mytable";
-		assertExpectedFieldSet(query, new AggregateField("COUNT(*)"));
+	public void aliasWithoutGroupBy() {
+		String query = "SELECT col1 as myalias FROM mydataset.mytable";
+		assertExpectedFieldSet(query, new ReferenceField("col1"));
 	}
 
-	@Test @Ignore
+	@Test
+	public void aliasOnFunctionsShouldNotBeExtracted() {
+		String query = "SELECT col1 as myalias, COUNT(*) as count FROM mydataset.mytable GROUP BY myalias";
+		assertExpectedFieldSet(query,
+				new ReferenceField("col1"),
+				new AggregateField("COUNT(*)"));
+	}
+
+	@Test
 	// TODO: Alias support :)
 	public void aliasOnFunctionsInGroupByShouldNotBeExtracted() {
 		String query = "SELECT col1, CONCAT(col1, col2) as myalias, col3 FROM mydataset.mytable GROUP BY col1, myalias, col3";
-		assertExpectedFieldSet(query, new ReferenceField("CONCAT(col1, col2)"));
+		assertExpectedFieldSet(query,
+				new ReferenceField("col1"),
+				new ReferenceField("col3"),
+				new ExpressionField("CONCAT(col1, col2)"));
 	}
 
 	public void assertZeroFields(String query) {

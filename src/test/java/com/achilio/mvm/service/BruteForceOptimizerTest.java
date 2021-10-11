@@ -1,6 +1,6 @@
 package com.achilio.mvm.service;
 
-import com.achilio.mvm.service.extract.fields.AggregateField;
+import com.achilio.mvm.service.extract.fields.ExpressionField;
 import com.achilio.mvm.service.extract.fields.FieldSet;
 import com.achilio.mvm.service.extract.fields.ReferenceField;
 import org.junit.Assert;
@@ -20,7 +20,7 @@ public class BruteForceOptimizerTest {
         // Initialize field sets
         Set<FieldSet> fieldSets = new LinkedHashSet<>();
         fieldSets.add(FieldSetHelper.createFieldSet(new ReferenceField("col1")));
-        fieldSets.add(FieldSetHelper.createFieldSet(new AggregateField("col2")));
+        fieldSets.add(FieldSetHelper.createFieldSet(new ExpressionField("col2")));
         // Remove exceeded
         optimizer = new BruteForceOptimizer(1);
         Assert.assertEquals(1, optimizer.optimize(fieldSets).size());
