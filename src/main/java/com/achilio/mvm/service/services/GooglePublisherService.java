@@ -24,22 +24,19 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class GooglePublisherService {
 
-	private static Logger LOGGER = LoggerFactory.getLogger(OptimizerApplication.class);
-
-	@Value("${publisher.google-project-id}")
-	private String PUBLISHER_GOOGLE_PROJECT_ID = "achilio-dev";
-	@Value("${publisher.google-topic-id}")
-	private String PUBLISHER_GOOGLE_TOPIC_ID = "mvExecutorTopic";
 	private final static String ATTRIBUTE_CMD_TYPE = "cmdType";
 	private final static String ATTRIBUTE_PROJECT_ID = "projectId";
 	private final static String ATTRIBUTE_ACCESS_TOKEN = "accessToken";
 	private final static String ATTRIBUTE_REGION_ID = "regionId";
 	private final static String ATTRIBUTE_DATASET_NAME = "datasetName";
-
+	private static Logger LOGGER = LoggerFactory.getLogger(OptimizerApplication.class);
+	@Value("${publisher.google-project-id}")
+	private String PUBLISHER_GOOGLE_PROJECT_ID = "achilio-dev";
+	@Value("${publisher.google-topic-id}")
+	private String PUBLISHER_GOOGLE_TOPIC_ID = "mvExecutorTopic";
+	private final TopicName TOPIC_NAME = TopicName.of(PUBLISHER_GOOGLE_PROJECT_ID, PUBLISHER_GOOGLE_TOPIC_ID);
 	@Value("${publisher.enabled}")
 	private boolean PUBLISHER_ENABLED = true;
-
-	private final TopicName TOPIC_NAME = TopicName.of(PUBLISHER_GOOGLE_PROJECT_ID, PUBLISHER_GOOGLE_TOPIC_ID);
 
 	public void publishOptimization(Optimization optimization, List<OptimizationResult> results, String accessToken)
 			throws IOException, ExecutionException, InterruptedException {

@@ -4,20 +4,22 @@ import java.util.Set;
 
 /**
  * Represent set of SQL fields.
+ *
  * @see FieldSet
  */
 public interface FieldSet {
 
 	String getProjectId();
-	String getDataset();
-
-	String getTable();
 
 	void setProjectId(String projectName);
 
-	void setTable(String tableName);
+	String getDataset();
 
 	void setDataset(String datasetName);
+
+	String getTable();
+
+	void setTable(String tableName);
 
 	/**
 	 * The fields which this set of fields handle.
@@ -51,6 +53,7 @@ public interface FieldSet {
 
 	/**
 	 * Merge fields from a given FieldSet
+	 *
 	 * @param fieldSet
 	 */
 	void merge(FieldSet fieldSet);

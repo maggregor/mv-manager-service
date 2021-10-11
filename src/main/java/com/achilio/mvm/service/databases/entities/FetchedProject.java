@@ -1,7 +1,5 @@
 package com.achilio.mvm.service.databases.entities;
 
-import java.util.List;
-
 /**
  * Represents a single project from database with metadata.
  */

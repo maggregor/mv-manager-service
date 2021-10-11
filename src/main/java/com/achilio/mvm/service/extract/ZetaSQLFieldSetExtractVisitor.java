@@ -9,7 +9,7 @@ import com.google.zetasql.resolvedast.ResolvedNodes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class ZetaSQLFieldSetExtractVisitor  extends ResolvedNodes.Visitor implements FieldSetExtractVisitor {
+public abstract class ZetaSQLFieldSetExtractVisitor extends ResolvedNodes.Visitor implements FieldSetExtractVisitor {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ZetaSQLFieldSetExtractVisitor.class);
 	private static final String COLUMN_PREFIX_TO_SKIP = "$";
@@ -17,13 +17,13 @@ public abstract class ZetaSQLFieldSetExtractVisitor  extends ResolvedNodes.Visit
 	private FieldSet fieldSet = new DefaultFieldSet();
 	private SimpleCatalog catalog;
 
+	ZetaSQLFieldSetExtractVisitor(SimpleCatalog catalog) {
+		this.catalog = catalog;
+	}
+
 	@Override
 	protected void defaultVisit(ResolvedNode node) {
 		super.defaultVisit(node);
-	}
-
-	ZetaSQLFieldSetExtractVisitor(SimpleCatalog catalog) {
-		this.catalog = catalog;
 	}
 
 	public void addField(Field field) {

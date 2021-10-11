@@ -1,8 +1,8 @@
 package com.achilio.mvm.service.databases.bigquery;
 
+import com.achilio.mvm.service.databases.MaterializedViewStatementBuilder;
 import com.achilio.mvm.service.extract.fields.Field;
 import com.achilio.mvm.service.extract.fields.FieldSet;
-import com.achilio.mvm.service.databases.MaterializedViewStatementBuilder;
 import com.google.common.base.Preconditions;
 
 import java.util.Set;

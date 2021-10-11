@@ -1,10 +1,10 @@
 package com.achilio.mvm.service.extract;
 
-import com.achilio.mvm.service.extract.fields.FieldSet;
-import com.achilio.mvm.service.extract.fields.FieldSetFactory;
 import com.achilio.mvm.service.databases.bigquery.BigQueryHelper;
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
+import com.achilio.mvm.service.extract.fields.FieldSet;
+import com.achilio.mvm.service.extract.fields.FieldSetFactory;
 import com.google.cloud.bigquery.TableId;
 import com.google.common.base.Preconditions;
 import com.google.zetasql.*;
@@ -56,7 +56,7 @@ public class ZetaSQLFieldSetExtract implements FieldSetExtract {
 		final SimpleCatalog dataset = getDatasetCatalog(datasetName);
 		final String fullTableName = datasetName + "." + tableName;
 		final SimpleTable simpleTable = new SimpleTable(fullTableName);
-		for(Map.Entry<String, String> column : table.getColumns().entrySet()) {
+		for (Map.Entry<String, String> column : table.getColumns().entrySet()) {
 			final String name = column.getKey();
 			final String typeName = column.getValue();
 			final ZetaSQLType.TypeKind typeKind = ZetaSQLType.TypeKind.valueOf(typeName);
@@ -92,8 +92,8 @@ public class ZetaSQLFieldSetExtract implements FieldSetExtract {
 	}
 
 	private SimpleCatalog getDatasetCatalog(String datasetName) {
-		for(SimpleCatalog catalog : this.catalog.getCatalogList()) {
-			if(catalog.getFullName().equalsIgnoreCase(datasetName)) {
+		for (SimpleCatalog catalog : this.catalog.getCatalogList()) {
+			if (catalog.getFullName().equalsIgnoreCase(datasetName)) {
 				return catalog;
 			}
 		}
@@ -150,7 +150,7 @@ public class ZetaSQLFieldSetExtract implements FieldSetExtract {
 	}
 
 	private boolean containsAllReferences(TableId tableId, FieldSet fieldSet) throws NotFoundException {
-		Table table = this.catalog.findTable(new ArrayList<String>(){{
+		Table table = this.catalog.findTable(new ArrayList<String>() {{
 			add(tableId.getDataset());
 			add(tableId.getTable());
 		}});

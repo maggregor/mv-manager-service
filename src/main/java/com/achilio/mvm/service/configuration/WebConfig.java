@@ -17,7 +17,6 @@ import java.util.List;
 /**
  * By default use of @MatrixVariable is disabled in Spring MVC. To use these
  * variables we have to manually enable them by implementing below class.
- * 
  */
 @Configuration
 @EnableAutoConfiguration

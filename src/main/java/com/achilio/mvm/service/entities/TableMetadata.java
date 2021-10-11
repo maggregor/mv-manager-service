@@ -3,14 +3,7 @@ package com.achilio.mvm.service.entities;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EntityListeners;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 @Entity
 @Table(name = "tables_metadata")
@@ -28,6 +21,6 @@ public class TableMetadata {
 	@ManyToOne
 	private DatasetMetadata datasetMetadata;
 
-	@Column(name="enabled", nullable = false)
+	@Column(name = "enabled", nullable = false)
 	private boolean enabled;
 }

@@ -2,11 +2,11 @@ steps:
   - name: maven:3-openjdk-8
     id: "mvn-test"
     entrypoint: mvn
-    args: ["test"]
+    args: [ "test" ]
   - name: maven:3-openjdk-8
     id: "mvn-package"
     entrypoint: mvn
-    args: ["package", "appengine:deploy"]
+    args: [ "package", "appengine:deploy" ]
 # - name: 'gcr.io/cloud-builders/curl'
 #   id: 'codecov-report'
 #   waitFor: ['mvn-test']

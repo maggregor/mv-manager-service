@@ -3,14 +3,7 @@ package com.achilio.mvm.service.entities;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EntityListeners;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.util.Objects;
 
 @Entity
@@ -26,13 +19,13 @@ public class OptimizationResult {
 	@ManyToOne
 	private Optimization optimization;
 
-	@Column(name="dataset_name", nullable = false)
+	@Column(name = "dataset_name", nullable = false)
 	private String dataset;
 
-	@Column(name="table_name", nullable = false)
+	@Column(name = "table_name", nullable = false)
 	private String table;
 
-	@Column(name="statement", nullable = false, length = 65536)
+	@Column(name = "statement", nullable = false, length = 65536)
 	private String statement;
 
 	public OptimizationResult(String dataset, String table, Optimization optimization, String statement) {

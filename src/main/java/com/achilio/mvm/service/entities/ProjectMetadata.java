@@ -3,13 +3,7 @@ package com.achilio.mvm.service.entities;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EntityListeners;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 @Entity
 @Table(name = "projects_metadata")
@@ -21,13 +15,14 @@ public class ProjectMetadata {
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Long id;
 
-	@Column(name="project_id", nullable = false)
+	@Column(name = "project_id", nullable = false)
 	private String projectId;
 
-	@Column(name="activated", nullable = false)
+	@Column(name = "activated", nullable = false)
 	private Boolean activated;
 
-	public ProjectMetadata() {	}
+	public ProjectMetadata() {
+	}
 
 	public ProjectMetadata(String projectId, Boolean activated) {
 		this.projectId = projectId;

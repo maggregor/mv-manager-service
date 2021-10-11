@@ -24,7 +24,6 @@ public interface DatabaseFetcher {
 	 * Returns history queries for a given table and date range.
 	 *
 	 * @param start - the start range date
-	 *
 	 * @return - a list of queries as string
 	 */
 	List<FetchedQuery> fetchAllQueriesFrom(Date start);
@@ -35,7 +34,6 @@ public interface DatabaseFetcher {
 	 * @param projectId
 	 * @param datasetName
 	 * @param tableName
-	 *
 	 * @return - FetchedTable of targeted table
 	 */
 	FetchedTable fetchTable(String projectId, String datasetName, String tableName);
@@ -57,6 +55,7 @@ public interface DatabaseFetcher {
 
 	/**
 	 * Returns all dataset id in a given projectId.
+	 *
 	 * @return
 	 */
 	List<FetchedDataset> fetchAllDatasets();

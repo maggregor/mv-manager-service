@@ -14,7 +14,7 @@ import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
-@SpringBootApplication(exclude = { SecurityAutoConfiguration.class })
+@SpringBootApplication(exclude = {SecurityAutoConfiguration.class})
 @EnableConfigurationProperties
 @EnableSwagger2
 public class OptimizerApplication implements CommandLineRunner {
@@ -32,6 +32,7 @@ public class OptimizerApplication implements CommandLineRunner {
 	public void run(String... args) throws Exception {
 		LOGGER.info("Server Port:" + serverPort);
 	}
+
 	@Bean
 	public Docket productApi() {
 		return new Docket(DocumentationType.SWAGGER_2).select()

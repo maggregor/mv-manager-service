@@ -17,24 +17,24 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 public class OptimizerController {
 
-    private static Logger LOGGER = LoggerFactory.getLogger(OptimizerController.class);
+	private static Logger LOGGER = LoggerFactory.getLogger(OptimizerController.class);
 
-    @Autowired
-    private OptimizerService service;
+	@Autowired
+	private OptimizerService service;
 
-    @PostMapping(path = "/optimize/{projectId}", produces = "application/json")
-    @ApiOperation("Trigger an optimization on a projectId")
-    public OptimizationResponse optimizeProject(@PathVariable("projectId") String projectId) throws Exception {
-        Optimization optimization = service.optimizeProject(projectId);
-        return new OptimizationResponse(optimization);
-    }
+	@PostMapping(path = "/optimize/{projectId}", produces = "application/json")
+	@ApiOperation("Trigger an optimization on a projectId")
+	public OptimizationResponse optimizeProject(@PathVariable("projectId") String projectId) throws Exception {
+		Optimization optimization = service.optimizeProject(projectId);
+		return new OptimizationResponse(optimization);
+	}
 
-    @PostMapping(path = "/optimize/{projectId}/dataset/{datasetName}", produces = "application/json")
-    @ApiOperation("Trigger an optimization on a dataset")
-    public OptimizationResponse optimizeDataset(@PathVariable("projectId") String projectId,
-                                                @PathVariable("datasetName") String datasetName) throws Exception {
-        Optimization optimization = service.optimizeDataset(projectId, datasetName);
-        return new OptimizationResponse(optimization);
-    }
+	@PostMapping(path = "/optimize/{projectId}/dataset/{datasetName}", produces = "application/json")
+	@ApiOperation("Trigger an optimization on a dataset")
+	public OptimizationResponse optimizeDataset(@PathVariable("projectId") String projectId,
+												@PathVariable("datasetName") String datasetName) throws Exception {
+		Optimization optimization = service.optimizeDataset(projectId, datasetName);
+		return new OptimizationResponse(optimization);
+	}
 
 }

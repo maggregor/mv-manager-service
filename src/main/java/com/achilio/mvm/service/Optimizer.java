@@ -6,8 +6,9 @@ import java.util.Set;
 
 /**
  * Optimizer service
- *
+ * <p>
  * Able to manipulate field set and returns optimized field set.
+ *
  * @see FieldSet
  */
 public interface Optimizer {
