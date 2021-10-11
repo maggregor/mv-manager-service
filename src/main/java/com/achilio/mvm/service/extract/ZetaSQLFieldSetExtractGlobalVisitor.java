@@ -22,6 +22,23 @@ public class ZetaSQLFieldSetExtractGlobalVisitor extends ZetaSQLFieldSetExtractV
 		super.visit(node);
 	}
 
+	/**
+	 * Visit reference column in the select clause
+	 * ie: {@code SELECT col1, col2, ..., colN}
+	 *
+	 * @param node
+	 */
+	@Override
+	public void visit(ResolvedNodes.ResolvedOutputColumn node) {
+		final ResolvedColumn column = node.getColumn();
+		final String columnName = column.getName();
+		// If isn't regular table its may an alias on a function.
+		if (isRegularTable(column.getTableName())) {
+			this.addField(new ReferenceField(columnName));
+		}
+		super.visit(node);
+	}
+
 	@Override
 	public void visit(ResolvedNodes.ResolvedFunctionCall node) {
 		String expression = Analyzer.buildExpression(node, this.getCatalog());
