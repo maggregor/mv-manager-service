@@ -10,7 +10,7 @@ import org.junit.runner.RunWith;
 import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
-public class DefaultFieldSetTests {
+public class DefaultFieldSetTest {
 
 	private static final FieldSet FIELD_SET_1 = FieldSetHelper.createFieldSet(10, 100, new AggregateField("SUM(col1)"), new ReferenceField("col2"));
 	private static final FieldSet FIELD_SET_SAME_AS_1 = FieldSetHelper.createFieldSet(10, 100, new AggregateField("SUM(col1)"), new ReferenceField("col2"));

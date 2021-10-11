@@ -12,7 +12,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 @RunWith(SpringRunner.class)
-public class BruteForceOptimizerTests {
+public class BruteForceOptimizerTest {
 
     @Test
     public void simpleReachLimitFieldSet() {

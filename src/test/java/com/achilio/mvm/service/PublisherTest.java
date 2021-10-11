@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 
 @RunWith(SpringRunner.class)
-public class PublisherTests {
+public class PublisherTest {
 
     @Test @Ignore
     public void testPublisher() throws IOException, ExecutionException, InterruptedException {

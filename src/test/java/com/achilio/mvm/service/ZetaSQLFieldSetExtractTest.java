@@ -6,7 +6,7 @@ import com.achilio.mvm.service.databases.entities.FetchedTable;
 
 import java.util.List;
 
-public class ZetaSQLFieldSetExtractTests extends FieldSetExtractTests {
+public class ZetaSQLFieldSetExtractTest extends FieldSetExtractTest {
 
 	@Override
 	protected FieldSetExtract createFieldSetExtract(String projectName, List<FetchedTable> tables) {

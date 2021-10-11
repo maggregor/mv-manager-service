@@ -10,7 +10,7 @@ import com.achilio.mvm.service.extract.fields.Field;
 import com.achilio.mvm.service.extract.fields.FieldSet;
 import com.achilio.mvm.service.extract.fields.FieldSetFactory;
 import com.achilio.mvm.service.extract.fields.ReferenceField;
-import com.google.zetasql.ZetaSQLType;
+import com.google.zetasql.*;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -23,11 +23,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.achilio.mvm.service.FieldSetHelper.createFieldSet;
 import static com.achilio.mvm.service.databases.entities.FetchedTableHelper.createFetchedTable;
 
 @RunWith(SpringRunner.class)
-public abstract class FieldSetExtractTests {
+public abstract class FieldSetExtractTest {
 
 	private static final String[][] SIMPLE_TABLE_COLUMNS = new String[][]{
 			{"col1", ZetaSQLType.TypeKind.TYPE_STRING.name()},
@@ -189,8 +188,14 @@ public abstract class FieldSetExtractTests {
 
 	@Test
 	public void aliasOnFunctionsShouldNotBeExtracted() {
-		String query = "SELECT COUNT(*) as count FROM mydataset.mytable GROUP BY col1";
+		String query = "SELECT COUNT(*) as count FROM mydataset.mytable";
 		assertExpectedFieldSet(query, new AggregateField("COUNT(*)"));
+	}
+
+	@Test
+	public void aliasOnFunctionsInGroupByShouldNotBeExtracted() {
+		String query = "SELECT col1, CONCAT(col1, col2) as myalias, col3 FROM mydataset.mytable GROUP BY col1, myalias, col3";
+		assertExpectedFieldSet(query, new ReferenceField("CONCAT(col1, col2)"));
 	}
 
 	public void assertZeroFields(String query) {

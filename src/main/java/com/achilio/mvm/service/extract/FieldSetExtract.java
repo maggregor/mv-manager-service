@@ -47,8 +47,7 @@ public interface FieldSetExtract {
 	 * @param fetchedQueries - the query
 	 * @return true if a path was found
 	 */
-	boolean
-	discoverTablePath(FetchedQuery fetchedQueries);
+	boolean discoverTablePath(FetchedQuery fetchedQueries);
 
 	/**
 	 * Register data model in the extractor.

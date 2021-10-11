@@ -90,6 +90,15 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-hateoas</artifactId>
 		</dependency>
+		<!--
+		mvn test doesn't work without :)
+		https://stackoverflow.com/questions/31681855/maven-not-running-spring-boot-tests#comment118563906_66903823
+		-->
+		<dependency>
+			<groupId>org.junit.vintage</groupId>
+			<artifactId>junit-vintage-engine</artifactId>
+			<scope>test</scope>
+		</dependency>
 
 		<!-- This will create in-memory database. -->
 		<dependency>

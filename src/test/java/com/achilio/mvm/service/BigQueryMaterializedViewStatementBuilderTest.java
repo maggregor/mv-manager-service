@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @RunWith(SpringRunner.class)
-public class BigQueryMaterializedViewStatementBuilderTests {
+public class BigQueryMaterializedViewStatementBuilderTest {
 
 	private final BigQueryMaterializedViewStatementBuilder builder = new BigQueryMaterializedViewStatementBuilder();
 
