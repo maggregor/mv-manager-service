@@ -21,7 +21,6 @@ public class ZetaSQLFieldSetExtractGlobalVisitor extends ZetaSQLFieldSetExtractV
 
 	@Override
 	protected void defaultVisit(ResolvedNode node) {
-		node.getClass();
 		super.defaultVisit(node);
 	}
 
@@ -44,20 +43,23 @@ public class ZetaSQLFieldSetExtractGlobalVisitor extends ZetaSQLFieldSetExtractV
 	 *
 	 * @param node
 	 */
+
 	@Override
 	public void visit(ResolvedNodes.ResolvedComputedColumn node) {
 		if (node.getExpr() instanceof ResolvedNodes.ResolvedColumnRef) {
 			ResolvedNodes.ResolvedColumnRef ref = (ResolvedNodes.ResolvedColumnRef) node.getExpr();
-			ResolvedColumn column = ref.getColumn();
-			this.addField(new ReferenceField(column.getName()));
+			if (!ref.getColumn().getTableName().startsWith("$")) {
+				ResolvedColumn column = ref.getColumn();
+				this.addField(new ReferenceField(column.getName()));
+			}
 
-		}  else if (node.getExpr() instanceof ResolvedNodes.ResolvedAggregateFunctionCall){
+		} else if (node.getExpr() instanceof ResolvedNodes.ResolvedAggregateFunctionCall) {
 			ResolvedNodes.ResolvedAggregateFunctionCall func = (ResolvedNodes.ResolvedAggregateFunctionCall) node.getExpr();
 			String expression = Analyzer.buildExpression(func, this.getCatalog());
 			expression = hackMappingColumnsInFunction(expression, func);
 			this.addField(new AggregateField(expression));
 
-		} else if (node.getExpr() instanceof ResolvedNodes.ResolvedFunctionCallBase){
+		} else if (node.getExpr() instanceof ResolvedNodes.ResolvedFunctionCallBase) {
 			ResolvedNodes.ResolvedFunctionCallBase func = (ResolvedNodes.ResolvedFunctionCallBase) node.getExpr();
 			String expression = Analyzer.buildExpression(func, this.getCatalog());
 			expression = hackMappingColumnsInFunction(expression, func);
@@ -93,6 +95,7 @@ public class ZetaSQLFieldSetExtractGlobalVisitor extends ZetaSQLFieldSetExtractV
 	 *
 	 * @param node
 	 */
+
 	@Override
 	public void visit(ResolvedNodes.ResolvedFilterScan node) {
 		ZetaSQLFieldSetExtractFilterVisitor visitor = new ZetaSQLFieldSetExtractFilterVisitor(this.getCatalog());

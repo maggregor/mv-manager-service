@@ -209,6 +209,15 @@ public abstract class FieldSetExtractTest {
 				new ExpressionField("CONCAT(col1, col2)"));
 	}
 
+	@Test
+	public void noUnderscoreTimestamp() {
+		String query = "SELECT col1 AS col1, TIMESTAMP_TRUNC(ts, DAY) AS __timestamp, sum(col3) AS SUM_tip_amount__f2041 FROM mydataset.mytable GROUP BY col1, __timestamp ORDER BY SUM_tip_amount__f2041 DESC LIMIT 10000;";
+		assertExpectedFieldSet(query,
+				new ReferenceField("col1"),
+				new ExpressionField("TIMESTAMP_TRUNC(ts, DAY)"),
+				new AggregateField("SUM(col3)"));
+	}
+
 	public void assertZeroFields(String query) {
 		final FieldSet actual = FieldSetHelper.statementToFieldSet(query, extractor);
 		Assert.assertEquals(FieldSetFactory.EMPTY_FIELD_SET, actual);
