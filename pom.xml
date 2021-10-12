@@ -229,6 +229,12 @@
       <optional>true</optional>
     </dependency>
 
+    <dependency>
+      <groupId>com.google.cloud</groupId>
+      <artifactId>google-cloud-logging-logback</artifactId>
+      <version>0.122.1-alpha</version>
+    </dependency>
+
     <!-- Swagger -->
     <dependency>
       <artifactId>springfox-swagger2</artifactId>
