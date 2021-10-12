@@ -7,7 +7,7 @@ public class ReferenceField extends Field {
     super(name);
   }
 
-  public ReferenceField(String name, int cardinality) {
-    super(name, cardinality);
+  public ReferenceField(String name, String alias) {
+    super(name, alias);
   }
 }

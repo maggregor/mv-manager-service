@@ -7,7 +7,7 @@ public class FunctionField extends Field {
     super(name);
   }
 
-  public FunctionField(String name, int cardinality) {
-    super(name, cardinality);
+  public FunctionField(String name, String alias) {
+    super(name, alias);
   }
 }

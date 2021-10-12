@@ -1,21 +1,34 @@
 package com.achilio.mvm.service.extract.fields;
 
+import com.google.common.annotations.VisibleForTesting;
 import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 
 /** Represents a field in sql query. Can be a function, an aggregate or reference to a column. */
 public abstract class Field {
 
-  private String expression;
-  private int cardinality;
-  private String alias;
+  private static final String ALIAS_PREFIX = "a_";
 
-  Field(String expression) {
+  private final String expression;
+  private final int cardinality;
+  private final String alias;
+
+  public Field(String expression) {
     this(expression, 1);
   }
 
-  Field(String expression, int cardinality) {
+  public Field(String expression, int cardinality) {
+    this(expression, ALIAS_PREFIX + Math.abs(expression.hashCode()), cardinality);
+  }
+
+  @VisibleForTesting
+  public Field(String expression, String alias) {
+    this(expression, alias, 1);
+  }
+
+  public Field(String expression, String alias, int cardinality) {
     this.expression = expression;
+    this.alias = alias;
     this.cardinality = cardinality;
   }
 
@@ -25,10 +38,6 @@ public abstract class Field {
 
   public String alias() {
     return this.alias;
-  }
-
-  public void setAlias(String alias) {
-    this.alias = alias;
   }
 
   public String name() {

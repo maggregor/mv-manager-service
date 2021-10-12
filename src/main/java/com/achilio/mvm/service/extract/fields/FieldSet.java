@@ -62,6 +62,9 @@ public interface FieldSet {
   /** Returns references fields in the field set */
   Set<Field> references();
 
+  /** Returns functions fields in the field set */
+  Set<Field> functions();
+
   /** Create a FieldSet clone */
   FieldSet clone();
 }

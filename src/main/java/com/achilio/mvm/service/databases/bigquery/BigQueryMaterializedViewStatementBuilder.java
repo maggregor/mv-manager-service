@@ -4,64 +4,53 @@ import com.achilio.mvm.service.databases.MaterializedViewStatementBuilder;
 import com.achilio.mvm.service.extract.fields.Field;
 import com.achilio.mvm.service.extract.fields.FieldSet;
 import com.google.common.base.Preconditions;
-import java.util.Set;
 import java.util.StringJoiner;
 
 public class BigQueryMaterializedViewStatementBuilder implements MaterializedViewStatementBuilder {
 
   private static final String SEP_SQL_VERBS = " ";
-  private static final String SEP_COLUMNS = ",";
+  private static final String SEP_COLUMNS = ", ";
   private static final String SQL_VERB_SELECT = "SELECT";
   private static final String SQL_VERB_AS = "AS";
   private static final String SQL_VERB_FROM = "FROM";
   private static final String SQL_VERB_GROUP_BY = "GROUP BY";
-
-  private static final String ALIAS_PREFIX = "a_";
 
   @Override
   public String build(FieldSet fieldSet) {
     final StringJoiner joiner = new StringJoiner(SEP_SQL_VERBS);
     joiner.add(buildSelect(fieldSet));
     joiner.add(buildFrom(fieldSet));
-    if (!fieldSet.references().isEmpty()) {
+    if (!fieldSet.references().isEmpty() || !fieldSet.functions().isEmpty()) {
       joiner.add(buildGroupBy(fieldSet));
     }
     return joiner.toString();
   }
 
-  public String buildColumns(Set<Field> fields, boolean addAlias) {
-    StringJoiner columns = new StringJoiner(SEP_COLUMNS);
-    fields.forEach(field -> columns.add(serializeField(field, addAlias)));
-    return columns.toString();
-  }
-
-  @Override
-  public String serializeField(Field field, boolean addAlias) {
+  public String serializeFieldWithAlias(Field field) {
     StringJoiner aliasJoiner = new StringJoiner(SEP_SQL_VERBS);
-    String name = field.hasAlias() ? field.alias() : field.name();
-    aliasJoiner.add(name);
-    if (addAlias && !field.hasAlias()) {
-      createStableAlias(field);
-      aliasJoiner.add(SQL_VERB_AS);
-      aliasJoiner.add(field.alias());
-    }
+    aliasJoiner.add(field.name());
+    aliasJoiner.add(SQL_VERB_AS);
+    aliasJoiner.add(field.alias());
     return aliasJoiner.toString();
   }
 
-  public void createStableAlias(Field field) {
-    field.setAlias(ALIAS_PREFIX + Math.abs(field.name().hashCode()));
+  public String serializeAlias(Field field) {
+    return field.alias();
   }
 
   public String buildSelect(FieldSet fieldSet) {
-    StringJoiner joiner = new StringJoiner(SEP_SQL_VERBS);
-    joiner.add(SQL_VERB_SELECT);
-    joiner.add(buildColumns(fieldSet.references(), true));
-    if (!fieldSet.references().isEmpty()) {
-      // Add separator if there is references.
-      joiner.add(SEP_COLUMNS);
+    StringBuilder builder = new StringBuilder();
+    builder.append(SQL_VERB_SELECT);
+    builder.append(SEP_SQL_VERBS);
+    StringJoiner columns = new StringJoiner(SEP_COLUMNS);
+    fieldSet.references().forEach(field -> columns.add(serializeFieldWithAlias(field)));
+    fieldSet.functions().forEach(field -> columns.add(serializeFieldWithAlias(field)));
+    if (!fieldSet.aggregates().isEmpty()) {
+      // Add separator if there is aggregates.
+      fieldSet.aggregates().forEach(field -> columns.add(serializeFieldWithAlias(field)));
     }
-    joiner.add(buildColumns(fieldSet.aggregates(), true));
-    return joiner.toString();
+    builder.append(columns);
+    return builder.toString();
   }
 
   public String buildFrom(FieldSet fieldSet) {
@@ -72,10 +61,14 @@ public class BigQueryMaterializedViewStatementBuilder implements MaterializedVie
   }
 
   public String buildGroupBy(FieldSet fieldSet) {
-    StringJoiner joiner = new StringJoiner(SEP_SQL_VERBS);
-    joiner.add(SQL_VERB_GROUP_BY);
-    joiner.add(buildColumns(fieldSet.references(), false));
-    return joiner.toString();
+    StringBuilder builder = new StringBuilder();
+    builder.append(SQL_VERB_GROUP_BY);
+    builder.append(SEP_SQL_VERBS);
+    StringJoiner columns = new StringJoiner(SEP_COLUMNS);
+    fieldSet.references().forEach(field -> columns.add(serializeAlias(field)));
+    fieldSet.functions().forEach(field -> columns.add(serializeAlias(field)));
+    builder.append(columns);
+    return builder.toString();
   }
 
   public String buildTableReference(FieldSet fieldSet) {

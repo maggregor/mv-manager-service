@@ -4,8 +4,10 @@ package com.achilio.mvm.service.extract.fields;
 public class AggregateField extends FunctionField {
 
   public AggregateField(String name) {
-    // Cardinality of an aggregate is always 1.
-    // Because of no-effect on table cardinality with an aggregate field.
-    super(name, 1);
+    super(name);
+  }
+
+  public AggregateField(String name, String alias) {
+    super(name, alias);
   }
 }
