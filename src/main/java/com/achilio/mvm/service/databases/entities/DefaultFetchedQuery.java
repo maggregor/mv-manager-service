@@ -24,23 +24,23 @@ public class DefaultFetchedQuery implements FetchedQuery {
 	}
 
 	@Override
-	public String getDatasetName() {
-		return this.datasetName;
-	}
-
-	@Override
-	public String getTableName() {
-		return this.tableName;
-	}
-
-	@Override
 	public void setProjectId(String projectId) {
 		this.projectId = projectId;
 	}
 
 	@Override
+	public String getDatasetName() {
+		return this.datasetName;
+	}
+
+	@Override
 	public void setDatasetName(String datasetName) {
 		this.datasetName = datasetName;
+	}
+
+	@Override
+	public String getTableName() {
+		return this.tableName;
 	}
 
 	@Override

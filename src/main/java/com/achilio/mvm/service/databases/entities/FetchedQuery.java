@@ -11,13 +11,13 @@ public interface FetchedQuery {
 
 	String getProjectId();
 
-	String getDatasetName();
-
-	String getTableName();
-
 	void setProjectId(String projectId);
 
+	String getDatasetName();
+
 	void setDatasetName(String datasetName);
+
+	String getTableName();
 
 	void setTableName(String tableName);
 

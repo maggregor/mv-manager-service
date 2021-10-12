@@ -1,7 +1,5 @@
 package com.achilio.mvm.service.exception.controllers;
 
-import java.util.Date;
-
 import com.achilio.mvm.service.exceptions.UserNotFoundException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -12,6 +10,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+
+import java.util.Date;
 
 /**
  * Handling exceptions with proper response.
@@ -39,7 +39,8 @@ public class CustomizedResponsedEntityExceptionHandler extends ResponseEntityExc
 	 * Handling invalid User Fields send in the request.
 	 */
 	protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
-			HttpHeaders headers, HttpStatus status, WebRequest request) {
+																  HttpHeaders headers, HttpStatus status,
+																  WebRequest request) {
 		ExceptionResponse exResponse = new ExceptionResponse(new Date(), ex.getBindingResult().toString(),
 				"Invalid User Fields");
 		return new ResponseEntity<Object>(exResponse, HttpStatus.BAD_REQUEST);

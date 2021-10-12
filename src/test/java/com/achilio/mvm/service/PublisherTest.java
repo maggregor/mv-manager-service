@@ -14,10 +14,11 @@ import java.util.concurrent.ExecutionException;
 @RunWith(SpringRunner.class)
 public class PublisherTest {
 
-    @Test @Ignore
-    public void testPublisher() throws IOException, ExecutionException, InterruptedException {
-        Optimization optimization = new Optimization("achilio-dev", "europe-west1", "nyc_trips", false);
-        GooglePublisherService publisherService = new GooglePublisherService();
-        publisherService.publishOptimization(optimization, new ArrayList<>(), "");
-    }
+	@Test
+	@Ignore
+	public void testPublisher() throws IOException, ExecutionException, InterruptedException {
+		Optimization optimization = new Optimization("achilio-dev", "europe-west1", "nyc_trips", false);
+		GooglePublisherService publisherService = new GooglePublisherService();
+		publisherService.publishOptimization(optimization, new ArrayList<>(), "");
+	}
 }

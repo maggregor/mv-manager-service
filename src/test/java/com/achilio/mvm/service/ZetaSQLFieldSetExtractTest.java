@@ -1,8 +1,8 @@
 package com.achilio.mvm.service;
 
+import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.extract.FieldSetExtract;
 import com.achilio.mvm.service.extract.ZetaSQLFieldSetExtract;
-import com.achilio.mvm.service.databases.entities.FetchedTable;
 
 import java.util.List;
 

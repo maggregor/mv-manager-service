@@ -1,17 +1,16 @@
 package com.achilio.mvm.service.configuration;
 
-import java.io.IOException;
-
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 @Component
 public class AccessTokenInterceptor extends OncePerRequestFilter {
@@ -35,7 +34,7 @@ public class AccessTokenInterceptor extends OncePerRequestFilter {
 		}
 	}
 
-	private String validateToken(HttpServletRequest request) throws IllegalArgumentException{
+	private String validateToken(HttpServletRequest request) throws IllegalArgumentException {
 		final String authorization = request.getHeader(HEADER);
 		if (!authorization.contains(PREFIX)) {
 			throw new IllegalArgumentException("Bearer prefix is missing");

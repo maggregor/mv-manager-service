@@ -10,7 +10,7 @@ public class ProjectResponse {
 	@JsonProperty("projectName")
 	private final String projectName;
 
-	public ProjectResponse(String projectId, String projectName){
+	public ProjectResponse(String projectId, String projectName) {
 		this.projectId = projectId;
 		this.projectName = projectName;
 	}

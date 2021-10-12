@@ -11,7 +11,7 @@ public class DefaultFetchedTable implements FetchedTable {
 	 * @attribute datasetName - the targeted dataset
 	 * @attribute tableName - the targeted table
 	 * @attribute colums - map of the columns: key is the column name, value is the
-	 *            data type
+	 * data type
 	 */
 	private final String project;
 	private final String dataset;
@@ -19,9 +19,9 @@ public class DefaultFetchedTable implements FetchedTable {
 	private final Map<String, String> columns;
 
 	public DefaultFetchedTable(final String project,
-								final String schema,
-								final String table,
-								final Map<String, String> columns) {
+							   final String schema,
+							   final String table,
+							   final Map<String, String> columns) {
 		this.project = project;
 		this.dataset = schema;
 		this.table = table;

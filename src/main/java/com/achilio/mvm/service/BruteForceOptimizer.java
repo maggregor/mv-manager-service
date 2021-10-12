@@ -1,6 +1,5 @@
 package com.achilio.mvm.service;
 
-import com.achilio.mvm.service.extract.ZetaSQLFieldSetExtractVisitor;
 import com.achilio.mvm.service.extract.fields.FieldSet;
 import com.achilio.mvm.service.extract.fields.FieldSetFactory;
 import org.slf4j.Logger;
@@ -18,6 +17,7 @@ public class BruteForceOptimizer implements Optimizer {
 	public BruteForceOptimizer(int maxFieldSet) {
 		this.maxFieldSet = maxFieldSet;
 	}
+
 	@Override
 	public Set<FieldSet> optimize(Set<FieldSet> fieldSet) {
 		fieldSet.remove(FieldSetFactory.EMPTY_FIELD_SET);
@@ -28,7 +28,7 @@ public class BruteForceOptimizer implements Optimizer {
 	private void removeExcessFieldSet(Set<FieldSet> fieldSets) {
 		Iterator<FieldSet> iterator = fieldSets.iterator();
 		int i = 1;
-		while(iterator.hasNext()) {
+		while (iterator.hasNext()) {
 			FieldSet current = iterator.next();
 			if (i > maxFieldSet) {
 				iterator.remove();

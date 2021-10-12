@@ -39,8 +39,18 @@ public class DefaultFieldSet implements FieldSet, Cloneable {
 	}
 
 	@Override
+	public void setProjectId(String projectId) {
+		this.projectId = projectId;
+	}
+
+	@Override
 	public String getDataset() {
 		return this.dataset;
+	}
+
+	@Override
+	public void setDataset(String datasetName) {
+		this.dataset = datasetName;
 	}
 
 	@Override
@@ -51,16 +61,6 @@ public class DefaultFieldSet implements FieldSet, Cloneable {
 	@Override
 	public void setTable(String tableName) {
 		this.table = tableName;
-	}
-
-	@Override
-	public void setDataset(String datasetName) {
-		this.dataset = datasetName;
-	}
-
-	@Override
-	public void setProjectId(String projectId) {
-		this.projectId = projectId;
 	}
 
 	@Override
@@ -89,7 +89,7 @@ public class DefaultFieldSet implements FieldSet, Cloneable {
 	}
 
 	@Override
- 	public Set<Field> aggregates() {
+	public Set<Field> aggregates() {
 		return this.fields.stream().filter(field -> field instanceof ExpressionField).collect(Collectors.toSet());
 	}
 

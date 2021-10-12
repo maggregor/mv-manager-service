@@ -6,11 +6,11 @@
     <sessions-enabled>true</sessions-enabled>
     <instance-class>F1</instance-class>
     <system-properties>
-        <property name="java.util.logging.config.file" value="WEB-INF/classes/logging.properties" />
+        <property name="java.util.logging.config.file" value="WEB-INF/classes/logging.properties"/>
     </system-properties>
     <env-variables>
-        <env-var name="SPRING_DATASOURCE_URL" value="jdbc:postgresql://34.140.78.47:5432/optimizer_dev" />
-        <env-var name="SPRING_DATASOURCE_USERNAME" value="optimizer" />
-        <env-var name="SPRING_DATASOURCE_PASSWORD" value="optimizer" />
+        <env-var name="SPRING_DATASOURCE_URL" value="jdbc:postgresql://34.140.78.47:5432/optimizer_dev"/>
+        <env-var name="SPRING_DATASOURCE_USERNAME" value="optimizer"/>
+        <env-var name="SPRING_DATASOURCE_PASSWORD" value="optimizer"/>
     </env-variables>
 </appengine-web-app>

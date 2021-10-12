@@ -1,11 +1,11 @@
 package com.achilio.mvm.service;
 
+import com.achilio.mvm.service.databases.entities.FetchedQuery;
+import com.achilio.mvm.service.databases.entities.FetchedQueryFactory;
 import com.achilio.mvm.service.extract.FieldSetExtract;
 import com.achilio.mvm.service.extract.fields.DefaultFieldSet;
 import com.achilio.mvm.service.extract.fields.Field;
 import com.achilio.mvm.service.extract.fields.FieldSet;
-import com.achilio.mvm.service.databases.entities.FetchedQuery;
-import com.achilio.mvm.service.databases.entities.FetchedQueryFactory;
 
 import java.util.Arrays;
 import java.util.HashSet;

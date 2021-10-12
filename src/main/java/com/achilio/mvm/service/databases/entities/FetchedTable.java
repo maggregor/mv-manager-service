@@ -11,7 +11,7 @@ public interface FetchedTable {
 	 * The project name of the table on which metadata was retrieved.
 	 *
 	 * @return the project name of the table on which metadata was retrieved.
-	 * */
+	 */
 	String getProjectId();
 
 	/**

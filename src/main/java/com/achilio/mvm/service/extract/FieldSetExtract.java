@@ -1,8 +1,8 @@
 package com.achilio.mvm.service.extract;
 
-import com.achilio.mvm.service.extract.fields.FieldSet;
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
+import com.achilio.mvm.service.extract.fields.FieldSet;
 
 import java.util.HashSet;
 import java.util.List;
@@ -25,7 +25,7 @@ public interface FieldSetExtract {
 	default Set<FieldSet> extract(List<FetchedQuery> fetchedQueries) {
 		Set<FieldSet> fieldSets = new HashSet<>();
 		for (FetchedQuery query : fetchedQueries) {
-			if(discoverTablePath(query)) {
+			if (discoverTablePath(query)) {
 				FieldSet fieldSet = extract(query);
 				fieldSets.add(fieldSet);
 			}

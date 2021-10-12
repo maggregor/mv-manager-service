@@ -4,16 +4,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EntityListeners;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.util.Date;
 import java.util.Objects;
 
@@ -38,17 +29,8 @@ public class OptimizationEvent {
 	@Column(name = "status", nullable = false)
 	private Type status;
 
-	public enum Type {
-		IN_PROGRESS,
-		APPROVAL_PENDING,
-		FINISHED,
-		DECLINED,
-		SENT,
-		DEPLOYED,
-		ERROR,
+	public OptimizationEvent() {
 	}
-
-	public OptimizationEvent() {}
 
 	public OptimizationEvent(Optimization optimization, Type type) {
 		this.optimization = optimization;
@@ -85,6 +67,16 @@ public class OptimizationEvent {
 	@Override
 	public int hashCode() {
 		return Objects.hash(id, optimization, createdDate, status);
+	}
+
+	public enum Type {
+		IN_PROGRESS,
+		APPROVAL_PENDING,
+		FINISHED,
+		DECLINED,
+		SENT,
+		DEPLOYED,
+		ERROR,
 	}
 
 }
