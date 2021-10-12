@@ -7,7 +7,6 @@ import com.achilio.mvm.service.databases.entities.FetchedQueryFactory;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.extract.fields.*;
 import com.google.zetasql.*;
-import org.checkerframework.checker.units.qual.A;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;

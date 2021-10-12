@@ -25,7 +25,6 @@ public class BigQueryMaterializedViewStatementBuilderTest {
 		fieldSet.setTable("mytable");
 		Throwable exception = assertThrows(IllegalArgumentException.class, () -> builder.buildTableReference(fieldSet));
 		assertEquals("Project name is empty or null", exception.getMessage());
-		;
 	}
 
 	@Test
