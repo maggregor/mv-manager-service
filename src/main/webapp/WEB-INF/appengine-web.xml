@@ -9,9 +9,9 @@
   <runtime>java8</runtime>
   <service>mvm-service</service>
   <sessions-enabled>true</sessions-enabled>
-  <system-properties>
-    <property name="java.util.logging.config.file" value="WEB-INF/classes/logging.properties"/>
-  </system-properties>
+  <manual-scaling>
+    <instances>2</instances>
+  </manual-scaling>
   <threadsafe>true</threadsafe>
   <version>alpha</version>
 </appengine-web-app>
