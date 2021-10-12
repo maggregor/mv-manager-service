@@ -31,8 +31,8 @@ public class AccessTokenInterceptor extends OncePerRequestFilter {
       setUpSpringAuthentication(validateToken(request));
       chain.doFilter(request, response);
     } catch (Exception e) {
-      response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-      response.sendError(HttpServletResponse.SC_FORBIDDEN, e.getMessage());
+      response.setStatus(HttpServletResponse.SC_ACCEPTED);
+      response.sendError(HttpServletResponse.SC_ACCEPTED, e.getMessage());
     }
   }
 

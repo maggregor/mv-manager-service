@@ -5,13 +5,13 @@
     <env-var name="SPRING_DATASOURCE_USERNAME" value="optimizer"/>
     <env-var name="SPRING_DATASOURCE_PASSWORD" value="optimizer"/>
   </env-variables>
-  <instance-class>B2</instance-class>
+  <instance-class>F1</instance-class>
   <runtime>java8</runtime>
   <service>mvm-service</service>
   <sessions-enabled>true</sessions-enabled>
-  <manual-scaling>
-    <instances>2</instances>
-  </manual-scaling>
+  <!--  <system-properties>-->
+  <!--    <property name="java.util.logging.config.file" value="WEB-INF/classes/logging.properties"/>-->
+  <!--  </system-properties>-->
   <threadsafe>true</threadsafe>
   <version>alpha</version>
 </appengine-web-app>
