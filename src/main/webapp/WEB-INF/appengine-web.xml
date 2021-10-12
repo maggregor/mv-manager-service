@@ -5,7 +5,7 @@
     <env-var name="SPRING_DATASOURCE_USERNAME" value="optimizer"/>
     <env-var name="SPRING_DATASOURCE_PASSWORD" value="optimizer"/>
   </env-variables>
-  <instance-class>F1</instance-class>
+  <instance-class>B2</instance-class>
   <runtime>java8</runtime>
   <service>mvm-service</service>
   <sessions-enabled>true</sessions-enabled>
