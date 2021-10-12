@@ -1,4 +1,11 @@
 steps:
+  - name: maven:3-openjdk-11
+    id: "mvn-verify"
+    volumes:
+      - name: 'maven-repository'
+        path: '/root/.m2'
+    entrypoint: mvn
+    args: [ "-DskipTests", "verify" ]
   - name: maven:3-openjdk-8
     id: "mvn-test"
     volumes:
@@ -6,13 +13,6 @@ steps:
         path: '/root/.m2'
     entrypoint: mvn
     args: [ "test" ]
-  - name: maven:3-openjdk-8
-    id: "mvn-verify"
-    volumes:
-      - name: 'maven-repository'
-        path: '/root/.m2'
-    entrypoint: mvn
-    args: [ "-DskipTests", "verify" ]
   - name: maven:3-openjdk-8
     id: "mvn-package"
     volumes:
