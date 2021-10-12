@@ -1,16 +1,26 @@
 steps:
   - name: maven:3-openjdk-8
     id: "mvn-test"
+    volumes:
+      - name: 'maven-repository'
+        path: '/root/.m2'
     entrypoint: mvn
     args: [ "test" ]
   - name: maven:3-openjdk-8
     id: "mvn-verify"
+    volumes:
+      - name: 'maven-repository'
+        path: '/root/.m2'
     entrypoint: mvn
     args: [ "-DskipTests", "verify" ]
   - name: maven:3-openjdk-8
     id: "mvn-package"
+    volumes:
+      - name: 'maven-repository'
+        path: '/root/.m2'
     entrypoint: mvn
     args: [ "-DskipTests", "package", "appengine:deploy" ]
+
 # - name: 'gcr.io/cloud-builders/curl'
 #   id: 'codecov-report'
 #   waitFor: ['mvn-test']
