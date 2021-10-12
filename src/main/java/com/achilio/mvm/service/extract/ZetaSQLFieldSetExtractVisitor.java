@@ -9,39 +9,39 @@ import com.google.zetasql.resolvedast.ResolvedNodes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class ZetaSQLFieldSetExtractVisitor extends ResolvedNodes.Visitor implements FieldSetExtractVisitor {
+public abstract class ZetaSQLFieldSetExtractVisitor extends ResolvedNodes.Visitor
+    implements FieldSetExtractVisitor {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(ZetaSQLFieldSetExtractVisitor.class);
-	private static final String COLUMN_PREFIX_TO_SKIP = "$";
+  private static final Logger LOGGER = LoggerFactory.getLogger(ZetaSQLFieldSetExtractVisitor.class);
+  private static final String COLUMN_PREFIX_TO_SKIP = "$";
 
-	private FieldSet fieldSet = new DefaultFieldSet();
-	private SimpleCatalog catalog;
+  private FieldSet fieldSet = new DefaultFieldSet();
+  private SimpleCatalog catalog;
 
-	ZetaSQLFieldSetExtractVisitor(SimpleCatalog catalog) {
-		this.catalog = catalog;
-	}
+  ZetaSQLFieldSetExtractVisitor(SimpleCatalog catalog) {
+    this.catalog = catalog;
+  }
 
-	@Override
-	protected void defaultVisit(ResolvedNode node) {
-		super.defaultVisit(node);
-	}
+  @Override
+  protected void defaultVisit(ResolvedNode node) {
+    super.defaultVisit(node);
+  }
 
-	public void addField(Field field) {
-		this.fieldSet.add(field);
-	}
+  public void addField(Field field) {
+    this.fieldSet.add(field);
+  }
 
-	public void merge(FieldSet fieldSet) {
-		this.fieldSet.merge(fieldSet);
-	}
+  public void merge(FieldSet fieldSet) {
+    this.fieldSet.merge(fieldSet);
+  }
 
-	@Override
-	public FieldSet fieldSet() {
-		this.fieldSet.fields().removeIf(field -> field.name().startsWith(COLUMN_PREFIX_TO_SKIP));
-		return fieldSet;
-	}
+  @Override
+  public FieldSet fieldSet() {
+    this.fieldSet.fields().removeIf(field -> field.name().startsWith(COLUMN_PREFIX_TO_SKIP));
+    return fieldSet;
+  }
 
-	public SimpleCatalog getCatalog() {
-		return this.catalog;
-	}
-
+  public SimpleCatalog getCatalog() {
+    return this.catalog;
+  }
 }

@@ -1,271 +1,272 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xmlns="http://maven.apache.org/POM/4.0.0"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <parent>
+  xmlns="http://maven.apache.org/POM/4.0.0"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <artifactId>mvm-service</artifactId>
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>appengine-maven-plugin</artifactId>
+        <configuration>
+          <projectId>GCLOUD_CONFIG</projectId>
+          <version>GCLOUD_CONFIG</version>
+        </configuration>
+        <groupId>com.google.cloud.tools</groupId>
+        <version>2.2.0</version>
+      </plugin>
+      <plugin>
+        <artifactId>maven-war-plugin</artifactId>
+        <configuration>
+          <failOnMissingWebXml>false</failOnMissingWebXml>
+        </configuration>
+        <version>3.3.1</version>
+      </plugin>
+      <plugin>
+        <artifactId>spring-boot-maven-plugin</artifactId>
         <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.4.3</version>
-        <relativePath/>
-    </parent>
-    <groupId>com.achilio</groupId>
-    <artifactId>mvm-service</artifactId>
-    <version>${project.version}</version>
-    <name>mvm-service</name>
-    <description>Determines the most relevant materialized views in a given BigQuery context.</description>
-    <packaging>war</packaging>
+      </plugin>
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <groupId>org.apache.maven.plugins</groupId>
+        <version>3.0.0-M5</version>
+      </plugin>
+    </plugins>
 
-    <properties>
-        <project.version>0.0.0-dev</project.version>
-        <java.version>1.8</java.version>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>true</filtering>
+        <includes>
+          <include>application.properties</include>
+        </includes>
+      </resource>
+    </resources>
+  </build>
+  <dependencies>
+    <dependency>
+      <artifactId>spring-boot-starter-web</artifactId>
+      <groupId>org.springframework.boot</groupId>
+    </dependency>
+    <dependency>
+      <artifactId>spring-boot-starter-tomcat</artifactId>
+      <groupId>org.springframework.boot</groupId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <artifactId>javax.servlet-api</artifactId>
+      <groupId>javax.servlet</groupId>
+      <scope>provided</scope>
+      <version>3.1.0</version>
+    </dependency>
 
-    <!--  Using libraries-bom to manage versions.
-    See https://github.com/GoogleCloudPlatform/cloud-opensource-java/wiki/The-Google-Cloud-Platform-Libraries-BOM -->
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>com.google.cloud</groupId>
-                <artifactId>libraries-bom</artifactId>
-                <version>21.0.0</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
+    <dependency>
+      <artifactId>grpc-netty</artifactId>
+      <groupId>io.grpc</groupId>
+    </dependency>
 
+    <dependency>
+      <artifactId>protobuf-java-util</artifactId>
+      <groupId>com.google.protobuf</groupId>
+      <version>3.17.3</version>
+    </dependency>
+
+    <!-- Exclude any jul-to-slf4j -->
+    <dependency>
+      <artifactId>jul-to-slf4j</artifactId>
+      <groupId>org.slf4j</groupId>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- Spring data JPA with Hibernate -->
+    <dependency>
+      <artifactId>spring-boot-starter-data-jpa</artifactId>
+      <groupId>org.springframework.boot</groupId>
+    </dependency>
+
+    <!-- This dependency is for Spring Security -->
+    <dependency>
+      <artifactId>spring-boot-starter-security</artifactId>
+      <groupId>org.springframework.boot</groupId>
+    </dependency>
+
+    <!-- Dependency for HATEOAS -->
+    <dependency>
+      <artifactId>spring-boot-starter-hateoas</artifactId>
+      <groupId>org.springframework.boot</groupId>
+    </dependency>
+    <!--
+    mvn test doesn't work without :)
+    https://stackoverflow.com/questions/31681855/maven-not-running-spring-boot-tests#comment118563906_66903823
+    -->
+    <dependency>
+      <artifactId>junit-vintage-engine</artifactId>
+      <groupId>org.junit.vintage</groupId>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- This will create in-memory database. -->
+    <dependency>
+      <artifactId>h2</artifactId>
+      <groupId>com.h2database</groupId>
+      <scope>runtime</scope>
+    </dependency>
+
+    <dependency>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <groupId>org.springframework.boot</groupId>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- To enable @ConfigurationProperties along with @PropertySource tag. -->
+    <dependency>
+      <artifactId>spring-boot-configuration-processor</artifactId>
+      <groupId>org.springframework.boot</groupId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- Enabling support to send and get XML format in RequestBody and Response -->
+    <dependency>
+      <artifactId>jackson-dataformat-xml</artifactId>
+      <groupId>com.fasterxml.jackson.dataformat</groupId>
+    </dependency>
+
+    <dependency>
+      <artifactId>spring-boot-starter-actuator</artifactId>
+      <groupId>org.springframework.boot</groupId>
+    </dependency>
+
+    <!-- https://mvnrepository.com/artifact/com.google.cloud/google-cloud-bigquery -->
+    <dependency>
+      <artifactId>google-cloud-bigquery</artifactId>
+      <groupId>com.google.cloud</groupId>
+      <version>2.1.2</version>
+    </dependency>
+    <!-- https://mvnrepository.com/artifact/com.google.zetasql/zetasql-client -->
+    <dependency>
+      <artifactId>zetasql-client</artifactId>
+      <groupId>com.google.zetasql</groupId>
+      <version>2021.03.2</version>
+    </dependency>
+
+    <!-- https://mvnrepository.com/artifact/com.google.zetasql/zetasql-types -->
+    <dependency>
+      <artifactId>zetasql-types</artifactId>
+      <groupId>com.google.zetasql</groupId>
+      <version>2021.03.2</version>
+    </dependency>
+    <!-- https://mvnrepository.com/artifact/com.google.zetasql/zetasql-jni-channel -->
+    <dependency>
+      <artifactId>zetasql-jni-channel</artifactId>
+      <groupId>com.google.zetasql</groupId>
+      <version>2021.03.2</version>
+    </dependency>
+    <!-- https://mvnrepository.com/artifact/com.google.zetasql/zetasql-jni-channel-darwin -->
+    <dependency>
+      <artifactId>zetasql-jni-channel-darwin</artifactId>
+      <groupId>com.google.zetasql</groupId>
+      <version>2021.03.2</version>
+    </dependency>
+    <!-- https://mvnrepository.com/artifact/com.google.zetasql/zetasql-jni-channel-linux -->
+    <dependency>
+      <artifactId>zetasql-jni-channel-linux</artifactId>
+      <groupId>com.google.zetasql</groupId>
+      <version>2021.03.2</version>
+    </dependency>
+    <!-- https://mvnrepository.com/artifact/junit/junit -->
+    <dependency>
+      <artifactId>junit</artifactId>
+      <groupId>junit</groupId>
+      <scope>test</scope>
+      <version>4.13.2</version>
+    </dependency>
+    <!-- https://mvnrepository.com/artifact/com.google.cloud/google-cloud-resourcemanager -->
+    <dependency>
+      <artifactId>google-cloud-resourcemanager</artifactId>
+      <groupId>com.google.cloud</groupId>
+      <version>0.118.12-alpha</version>
+    </dependency>
+    <dependency>
+      <artifactId>google-cloud-pubsub</artifactId>
+      <groupId>com.google.cloud</groupId>
+    </dependency>
+    <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
+    <dependency>
+      <artifactId>commons-lang3</artifactId>
+      <groupId>org.apache.commons</groupId>
+      <version>3.12.0</version>
+    </dependency>
+
+    <dependency>
+      <artifactId>postgresql</artifactId>
+      <groupId>org.postgresql</groupId>
+    </dependency>
+
+    <dependency>
+      <artifactId>lombok</artifactId>
+      <groupId>org.projectlombok</groupId>
+      <optional>true</optional>
+    </dependency>
+
+    <dependency>
+      <artifactId>lombok</artifactId>
+      <groupId>org.projectlombok</groupId>
+    </dependency>
+
+    <dependency>
+      <artifactId>lombok</artifactId>
+      <groupId>org.projectlombok</groupId>
+    </dependency>
+
+    <!-- Swagger -->
+    <dependency>
+      <artifactId>springfox-swagger2</artifactId>
+      <groupId>io.springfox</groupId>
+      <version>2.7.0</version>
+    </dependency>
+    <dependency>
+      <artifactId>springfox-swagger-ui</artifactId>
+      <groupId>io.springfox</groupId>
+      <version>2.7.0</version>
+    </dependency>
+
+  </dependencies>
+  <dependencyManagement>
     <dependencies>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-tomcat</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-            <version>3.1.0</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>io.grpc</groupId>
-            <artifactId>grpc-netty</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.google.protobuf</groupId>
-            <artifactId>protobuf-java-util</artifactId>
-            <version>3.17.3</version>
-        </dependency>
-
-        <!-- Exclude any jul-to-slf4j -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>jul-to-slf4j</artifactId>
-            <scope>provided</scope>
-        </dependency>
-
-        <!-- Spring data JPA with Hibernate -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jpa</artifactId>
-        </dependency>
-
-        <!-- This dependency is for Spring Security -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-security</artifactId>
-        </dependency>
-
-        <!-- Dependency for HATEOAS -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-hateoas</artifactId>
-        </dependency>
-        <!--
-        mvn test doesn't work without :)
-        https://stackoverflow.com/questions/31681855/maven-not-running-spring-boot-tests#comment118563906_66903823
-        -->
-        <dependency>
-            <groupId>org.junit.vintage</groupId>
-            <artifactId>junit-vintage-engine</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <!-- This will create in-memory database. -->
-        <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <!-- To enable @ConfigurationProperties along with @PropertySource tag. -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-configuration-processor</artifactId>
-            <optional>true</optional>
-        </dependency>
-
-        <!-- Enabling support to send and get XML format in RequestBody and Response -->
-        <dependency>
-            <groupId>com.fasterxml.jackson.dataformat</groupId>
-            <artifactId>jackson-dataformat-xml</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-actuator</artifactId>
-        </dependency>
-
-        <!-- https://mvnrepository.com/artifact/com.google.cloud/google-cloud-bigquery -->
-        <dependency>
-            <groupId>com.google.cloud</groupId>
-            <artifactId>google-cloud-bigquery</artifactId>
-            <version>2.1.2</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/com.google.zetasql/zetasql-client -->
-        <dependency>
-            <groupId>com.google.zetasql</groupId>
-            <artifactId>zetasql-client</artifactId>
-            <version>2021.03.2</version>
-        </dependency>
-
-        <!-- https://mvnrepository.com/artifact/com.google.zetasql/zetasql-types -->
-        <dependency>
-            <groupId>com.google.zetasql</groupId>
-            <artifactId>zetasql-types</artifactId>
-            <version>2021.03.2</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/com.google.zetasql/zetasql-jni-channel -->
-        <dependency>
-            <groupId>com.google.zetasql</groupId>
-            <artifactId>zetasql-jni-channel</artifactId>
-            <version>2021.03.2</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/com.google.zetasql/zetasql-jni-channel-darwin -->
-        <dependency>
-            <groupId>com.google.zetasql</groupId>
-            <artifactId>zetasql-jni-channel-darwin</artifactId>
-            <version>2021.03.2</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/com.google.zetasql/zetasql-jni-channel-linux -->
-        <dependency>
-            <groupId>com.google.zetasql</groupId>
-            <artifactId>zetasql-jni-channel-linux</artifactId>
-            <version>2021.03.2</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/junit/junit -->
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.13.2</version>
-            <scope>test</scope>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/com.google.cloud/google-cloud-resourcemanager -->
-        <dependency>
-            <groupId>com.google.cloud</groupId>
-            <artifactId>google-cloud-resourcemanager</artifactId>
-            <version>0.118.12-alpha</version>
-        </dependency>
-        <dependency>
-            <groupId>com.google.cloud</groupId>
-            <artifactId>google-cloud-pubsub</artifactId>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>3.12.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <optional>true</optional>
-        </dependency>
-
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-        </dependency>
-
-        <!-- Swagger -->
-        <dependency>
-            <groupId>io.springfox</groupId>
-            <artifactId>springfox-swagger2</artifactId>
-            <version>2.7.0</version>
-        </dependency>
-        <dependency>
-            <groupId>io.springfox</groupId>
-            <artifactId>springfox-swagger-ui</artifactId>
-            <version>2.7.0</version>
-        </dependency>
-
+      <dependency>
+        <artifactId>libraries-bom</artifactId>
+        <groupId>com.google.cloud</groupId>
+        <scope>import</scope>
+        <type>pom</type>
+        <version>21.0.0</version>
+      </dependency>
     </dependencies>
+  </dependencyManagement>
+  <description>Determines the most relevant materialized views in a given BigQuery context.
+  </description>
+  <groupId>com.achilio</groupId>
+  <modelVersion>4.0.0</modelVersion>
+  <name>mvm-service</name>
 
-    <!-- This plugin will result in creating executable jar. -->
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>com.google.cloud.tools</groupId>
-                <artifactId>appengine-maven-plugin</artifactId>
-                <version>2.2.0</version>
-                <configuration>
-                    <projectId>GCLOUD_CONFIG</projectId>
-                    <version>GCLOUD_CONFIG</version>
-                </configuration>
-            </plugin>
-            <plugin>
-                <artifactId>maven-war-plugin</artifactId>
-                <version>3.3.1</version>
-                <configuration>
-                    <failOnMissingWebXml>false</failOnMissingWebXml>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.0.0-M5</version>
-            </plugin>
-        </plugins>
+  <packaging>war</packaging>
 
-        <resources>
-            <resource>
-                <filtering>true</filtering>
-                <directory>src/main/resources</directory>
-                <includes>
-                    <include>application.properties</include>
-                </includes>
-            </resource>
-        </resources>
-    </build>
+  <!--  Using libraries-bom to manage versions.
+  See https://github.com/GoogleCloudPlatform/cloud-opensource-java/wiki/The-Google-Cloud-Platform-Libraries-BOM -->
+  <parent>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <groupId>org.springframework.boot</groupId>
+    <relativePath/>
+    <version>2.4.3</version>
+  </parent>
+
+  <properties>
+    <java.version>1.8</java.version>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.version>0.0.0-dev</project.version>
+  </properties>
+
+  <!-- This plugin will result in creating executable jar. -->
+  <version>${project.version}</version>
 
 </project>

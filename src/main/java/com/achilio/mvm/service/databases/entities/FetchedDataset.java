@@ -1,31 +1,29 @@
 package com.achilio.mvm.service.databases.entities;
 
-/**
- * Represents a single project from database with metadata.
- */
+/** Represents a single project from database with metadata. */
 public interface FetchedDataset {
 
-	/**
-	 * Return the project name.
-	 *
-	 * @return the project name.
-	 */
-	String getProjectId();
+  /**
+   * Return the project name.
+   *
+   * @return the project name.
+   */
+  String getProjectId();
 
-	/**
-	 * Return the dataset name.
-	 *
-	 * @return the dataset name.
-	 */
-	String getDatasetName();
+  /**
+   * Return the dataset name.
+   *
+   * @return the dataset name.
+   */
+  String getDatasetName();
 
-	String getLocation();
+  String getLocation();
 
-	String getFriendlyName();
+  String getFriendlyName();
 
-	String getDescription();
+  String getDescription();
 
-	Long getCreatedAt();
+  Long getCreatedAt();
 
-	Long getLastModified();
+  Long getLastModified();
 }

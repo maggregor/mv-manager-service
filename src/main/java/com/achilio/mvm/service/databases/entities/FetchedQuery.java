@@ -9,30 +9,29 @@ import com.achilio.mvm.service.databases.DatabaseFetcher;
  */
 public interface FetchedQuery {
 
-	String getProjectId();
+  String getProjectId();
 
-	void setProjectId(String projectId);
+  void setProjectId(String projectId);
 
-	String getDatasetName();
+  String getDatasetName();
 
-	void setDatasetName(String datasetName);
+  void setDatasetName(String datasetName);
 
-	String getTableName();
+  String getTableName();
 
-	void setTableName(String tableName);
+  void setTableName(String tableName);
 
-	/**
-	 * The SQL statement of the fetched query.
-	 *
-	 * @return the SQL statement of the fetched query.
-	 */
-	String statement();
+  /**
+   * The SQL statement of the fetched query.
+   *
+   * @return the SQL statement of the fetched query.
+   */
+  String statement();
 
-	/**
-	 * The query cost weight estimation on the underlying database.
-	 *
-	 * @return the query cost on the underlying database.
-	 */
-	long cost();
-
+  /**
+   * The query cost weight estimation on the underlying database.
+   *
+   * @return the query cost on the underlying database.
+   */
+  long cost();
 }

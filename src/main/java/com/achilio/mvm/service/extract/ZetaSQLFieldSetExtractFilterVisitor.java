@@ -6,15 +6,14 @@ import com.google.zetasql.resolvedast.ResolvedNodes;
 
 public class ZetaSQLFieldSetExtractFilterVisitor extends ZetaSQLFieldSetExtractVisitor {
 
-	public ZetaSQLFieldSetExtractFilterVisitor(SimpleCatalog catalog) {
-		super(catalog);
-	}
+  public ZetaSQLFieldSetExtractFilterVisitor(SimpleCatalog catalog) {
+    super(catalog);
+  }
 
-	@Override
-	public void visit(ResolvedNodes.ResolvedColumnRef node) {
-		final String referenceName = node.getColumn().getName();
-		this.addField(new ReferenceField(referenceName));
-		super.visit(node);
-	}
-
+  @Override
+  public void visit(ResolvedNodes.ResolvedColumnRef node) {
+    final String referenceName = node.getColumn().getName();
+    this.addField(new ReferenceField(referenceName));
+    super.visit(node);
+  }
 }

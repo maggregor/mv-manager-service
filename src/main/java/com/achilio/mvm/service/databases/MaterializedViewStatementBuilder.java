@@ -5,7 +5,7 @@ import com.achilio.mvm.service.extract.fields.FieldSet;
 
 public interface MaterializedViewStatementBuilder {
 
-	String build(FieldSet fieldSet);
+  String build(FieldSet fieldSet);
 
-	String serializeField(Field field, boolean addAlias);
+  String serializeField(Field field, boolean addAlias);
 }

@@ -5,6 +5,5 @@ import lombok.Data;
 @Data
 public class UpdateProjectRequest {
 
-	private boolean activated;
-
+  private boolean activated;
 }

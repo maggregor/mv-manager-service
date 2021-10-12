@@ -16,22 +16,20 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @Configuration
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-	@Override
-	protected void configure(HttpSecurity http) throws Exception {
-		http
-				.cors()
-				.configurationSource(request -> new CorsConfiguration().applyPermitDefaultValues())
-				.and()
-				.csrf()
-				.disable()
-				.addFilterAfter(new AccessTokenInterceptor(), BasicAuthenticationFilter.class);
-	}
+  @Override
+  protected void configure(HttpSecurity http) throws Exception {
+    http.cors()
+        .configurationSource(request -> new CorsConfiguration().applyPermitDefaultValues())
+        .and()
+        .csrf()
+        .disable()
+        .addFilterAfter(new AccessTokenInterceptor(), BasicAuthenticationFilter.class);
+  }
 
-	@Bean
-	CorsConfigurationSource corsConfigurationSource() {
-		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-		source.registerCorsConfiguration("/**", new CorsConfiguration().applyPermitDefaultValues());
-		return source;
-	}
-
+  @Bean
+  CorsConfigurationSource corsConfigurationSource() {
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/**", new CorsConfiguration().applyPermitDefaultValues());
+    return source;
+  }
 }
