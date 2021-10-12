@@ -4,9 +4,13 @@ steps:
     entrypoint: mvn
     args: [ "test" ]
   - name: maven:3-openjdk-8
+    id: "mvn-verify"
+    entrypoint: mvn
+    args: [ "-DskipTests", "verify" ]
+  - name: maven:3-openjdk-8
     id: "mvn-package"
     entrypoint: mvn
-    args: [ "package", "appengine:deploy" ]
+    args: [ "-DskipTests", "package", "appengine:deploy" ]
 # - name: 'gcr.io/cloud-builders/curl'
 #   id: 'codecov-report'
 #   waitFor: ['mvn-test']
