@@ -24,7 +24,8 @@ steps:
           "--cpu",
           "4",
           "--memory",
-          "2Gi"
+          "2Gi",
+          "--allow-unauthenticated"
       ]
 images: [ "gcr.io/achilio-dev/mvm-service" ]
 

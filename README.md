@@ -11,7 +11,13 @@ Determines the most relevant materialized views in a given BigQuery context.
 Run Postgres and Adminer
 
 ```shell script
-docker-compose -f stack.yml
+docker-compose up db adminer
+```
+
+Run Postgres, Adminer, and the web app locally
+
+```shell script
+docker-compose up
 ```
 
 ## With AppEngine (local mode)
@@ -26,9 +32,11 @@ Maven dependency must have the provided scope in order to run the service as a S
 application (for development and debug) and let AppEngine provide his own servlet.
 
 # Run
+
 ```shell script
 mvn spring-boot:run
 ```
+
 # Deploy on AppEngine
 
 ```shell script
