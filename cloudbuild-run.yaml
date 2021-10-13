@@ -1,4 +1,7 @@
 steps:
+  # Build the container image
+  - name: "gcr.io/cloud-builders/docker"
+    args: [ "build", "-t", "gcr.io/achilio-dev/mvm-service", "." ]
   # Push the container image to Container Registry
   - name: "gcr.io/cloud-builders/docker"
     args: [ "push", "gcr.io/achilio-dev/mvm-service" ]
