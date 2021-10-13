@@ -25,6 +25,10 @@ mvn package appengine:run
 Maven dependency must have the provided scope in order to run the service as a Spring standalone
 application (for development and debug) and let AppEngine provide his own servlet.
 
+# Run
+```shell script
+mvn spring-boot:run
+```
 # Deploy on AppEngine
 
 ```shell script
