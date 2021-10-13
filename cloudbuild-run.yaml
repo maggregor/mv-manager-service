@@ -21,6 +21,10 @@ steps:
           "europe-west1",
           "--platform",
           "managed",
+          "--cpu",
+          "4",
+          "--memory",
+          "2Gi"
       ]
 images: [ "gcr.io/achilio-dev/mvm-service" ]
 
