@@ -10,5 +10,5 @@ COPY . /build
 
 # Build application
 RUN mvn -DskipTests clean install
-ENTRYPOINT ["mvn", "spring-boot:run"]
+ENTRYPOINT ["java", "-jar", "target/mvm-service-0.0.0-dev.war"]
 

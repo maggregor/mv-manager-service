@@ -22,7 +22,7 @@ steps:
           "--platform",
           "managed",
       ]
-images: [ "gcr.io/achilio-dev/mvm-executor" ]
+images: [ "gcr.io/achilio-dev/mvm-service" ]
 
 # - name: 'gcr.io/cloud-builders/curl'
 #   id: 'codecov-report'
