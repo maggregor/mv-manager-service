@@ -1,4 +1,9 @@
 steps:
+  # Run the unit tests
+  - name: maven:3-openjdk-8
+    id: "mvn-test"
+    entrypoint: mvn
+    args: [ "test" ]
   # Build the container image
   - name: "gcr.io/cloud-builders/docker"
     args: [ "build", "-t", "gcr.io/achilio-dev/mvm-service", "." ]
@@ -27,16 +32,16 @@ steps:
           "2Gi",
           "--allow-unauthenticated"
       ]
+  - name: 'gcr.io/cloud-builders/curl'
+    id: 'codecov-report'
+    waitFor: [ 'mvn-test' ]
+    entrypoint: bash
+    args: [ '-c', 'bash <(curl -s https://codecov.io/bash)' ]
+    env:
+      - 'VCS_COMMIT_ID=$COMMIT_SHA'
+      - 'VCS_BRANCH_NAME=$BRANCH_NAME'
+      - 'VCS_PULL_REQUEST=$_PR_NUMBER'
+      - 'CI_BUILD_ID=$BUILD_ID'
+      - 'CODECOV_TOKEN=e4d865c5-5163-457d-aa52-709ca403f72b' # _CODECOV_TOKEN is user user substituion variable specified in my cloud build trigger
 images: [ "gcr.io/achilio-dev/mvm-service" ]
 
-# - name: 'gcr.io/cloud-builders/curl'
-#   id: 'codecov-report'
-#   waitFor: ['mvn-test']
-#   entrypoint: bash
-#   args: ['-c', 'bash <(curl -s https://codecov.io/bash)']
-#   env:
-#   - 'VCS_COMMIT_ID=$COMMIT_SHA'
-#   - 'VCS_BRANCH_NAME=$BRANCH_NAME'
-#   - 'VCS_PULL_REQUEST=$_PR_NUMBER'
-#   - 'CI_BUILD_ID=$BUILD_ID'
-#   - 'CODECOV_TOKEN=7eba3863-665f-4a7b-ae66-478ef51cb7fa' # _CODECOV_TOKEN is user user substituion variable specified in my cloud build trigger
