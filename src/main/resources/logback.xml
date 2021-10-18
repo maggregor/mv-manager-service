@@ -1,5 +1,5 @@
 <configuration>
-  <appender name="CLOUD" class="com.google.cloud.logging.logback.LoggingAppender"/>
+  <appender class="com.google.cloud.logging.logback.LoggingAppender" name="CLOUD"/>
 
   <root level="info">
     <appender-ref ref="CLOUD"/>

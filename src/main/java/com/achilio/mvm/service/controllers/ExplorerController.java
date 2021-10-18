@@ -76,6 +76,14 @@ public class ExplorerController {
     return toDatasetResponse(fetchedDataset);
   }
 
+  @GetMapping(path = "/project/{projectId}/dataset/{datasetName}/mmv/count", produces = "application/json")
+  @ApiOperation("Get number of materialized view for given dataset")
+  public int getMaterializedViewCount(
+      @PathVariable final String projectId, @PathVariable final String datasetName) {
+    FetchedDataset fetchedDataset = fetcherService.fet(projectId, datasetName);
+    return toDatasetResponse(fetchedDataset);
+  }
+
   @GetMapping(
       path = "/project/{projectId}/dataset/{datasetName}/table",
       produces = "application/json")

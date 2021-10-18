@@ -59,6 +59,14 @@ public class FetcherService {
     return fetcher(projectId).fetchAllTables();
   }
 
+  public int fetchMMVCount(String projectId) {
+    return fetcher(projectId).fetchMMVCount(projectId);
+  }
+
+  public int fetchScannedBytes(String projectId) {
+    return fetcher(projectId).fetchMMVCount(projectId);
+  }
+
   private DatabaseFetcher fetcher() {
     return fetcher(null);
   }

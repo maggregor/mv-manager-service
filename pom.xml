@@ -22,36 +22,36 @@
         <version>3.3.2</version>
       </plugin>
       <plugin>
-        <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
+        <groupId>org.springframework.boot</groupId>
       </plugin>
       <plugin>
         <artifactId>maven-surefire-plugin</artifactId>
         <groupId>org.apache.maven.plugins</groupId>
         <version>3.0.0-M5</version>
       </plugin>
-      <plugin>
-        <groupId>com.cosium.code</groupId>
-        <artifactId>git-code-format-maven-plugin</artifactId>
-        <version>3.1</version>
-        <executions>
-          <!-- On commit, format the modified java files -->
-          <execution>
-            <id>install-formatter-hook</id>
-            <goals>
-              <goal>install-hooks</goal>
-            </goals>
-          </execution>
-          <!-- On Maven verify phase, fail if any file
-          (including unmodified) is badly formatted -->
-          <execution>
-            <id>validate-code-format</id>
-            <goals>
-              <goal>validate-code-format</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
+<!--      <plugin>-->
+<!--        <artifactId>git-code-format-maven-plugin</artifactId>-->
+<!--        <executions>-->
+<!--          &lt;!&ndash; On commit, format the modified java files &ndash;&gt;-->
+<!--          <execution>-->
+<!--            <goals>-->
+<!--              <goal>install-hooks</goal>-->
+<!--            </goals>-->
+<!--            <id>install-formatter-hook</id>-->
+<!--          </execution>-->
+<!--          &lt;!&ndash; On Maven verify phase, fail if any file-->
+<!--          (including unmodified) is badly formatted &ndash;&gt;-->
+<!--          <execution>-->
+<!--            <goals>-->
+<!--              <goal>validate-code-format</goal>-->
+<!--            </goals>-->
+<!--            <id>validate-code-format</id>-->
+<!--          </execution>-->
+<!--        </executions>-->
+<!--        <groupId>com.cosium.code</groupId>-->
+<!--        <version>3.1</version>-->
+<!--      </plugin>-->
     </plugins>
 
     <resources>
@@ -66,10 +66,10 @@
   </build>
   <dependencies>
     <dependency>
-      <groupId>org.apache.maven.plugins</groupId>
       <artifactId>maven-war-plugin</artifactId>
-      <version>3.3.2</version>
+      <groupId>org.apache.maven.plugins</groupId>
       <type>maven-plugin</type>
+      <version>3.3.2</version>
     </dependency>
     <dependency>
       <artifactId>spring-boot-starter-web</artifactId>
@@ -251,8 +251,8 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>com.google.cloud</groupId>
         <artifactId>libraries-bom</artifactId>
+        <groupId>com.google.cloud</groupId>
         <scope>import</scope>
         <type>pom</type>
         <version>23.1.0</version>

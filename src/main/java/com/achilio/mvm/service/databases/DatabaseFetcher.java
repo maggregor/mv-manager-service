@@ -4,6 +4,7 @@ import com.achilio.mvm.service.databases.entities.FetchedDataset;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -67,4 +68,8 @@ public interface DatabaseFetcher {
   List<FetchedTable> fetchAllTables();
 
   List<FetchedTable> fetchTablesInDataset(String datasetName);
+
+  int fetchMMVCount(String projectId);
+
+  long totalScannedBytesSince(String projectId, ZonedDateTime time);
 }

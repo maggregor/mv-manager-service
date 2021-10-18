@@ -28,6 +28,7 @@ import com.google.cloud.resourcemanager.Project;
 import com.google.cloud.resourcemanager.ResourceManager;
 import com.google.cloud.resourcemanager.ResourceManagerOptions;
 import com.google.zetasql.ZetaSQLType;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -36,6 +37,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 
 public class BigQueryDatabaseFetcher implements DatabaseFetcher {
@@ -161,6 +163,18 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
               }
             });
     return tables;
+  }
+
+  @Override
+  public int fetchMMVCount(String projectId) {
+    // TODO: Temporary
+    return RandomUtils.nextInt(0, 20);
+  }
+
+  @Override
+  public long totalScannedBytesSince(String projectId, ZonedDateTime time) {
+    // TODO: Temporary
+    return RandomUtils.nextLong(10_000_000_000L, 1_000_000_000_000L);
   }
 
   /*
