@@ -30,28 +30,26 @@
         <groupId>org.apache.maven.plugins</groupId>
         <version>3.0.0-M5</version>
       </plugin>
-<!--      <plugin>-->
-<!--        <artifactId>git-code-format-maven-plugin</artifactId>-->
-<!--        <executions>-->
-<!--          &lt;!&ndash; On commit, format the modified java files &ndash;&gt;-->
-<!--          <execution>-->
-<!--            <goals>-->
-<!--              <goal>install-hooks</goal>-->
-<!--            </goals>-->
-<!--            <id>install-formatter-hook</id>-->
-<!--          </execution>-->
-<!--          &lt;!&ndash; On Maven verify phase, fail if any file-->
-<!--          (including unmodified) is badly formatted &ndash;&gt;-->
-<!--          <execution>-->
-<!--            <goals>-->
-<!--              <goal>validate-code-format</goal>-->
-<!--            </goals>-->
-<!--            <id>validate-code-format</id>-->
-<!--          </execution>-->
-<!--        </executions>-->
-<!--        <groupId>com.cosium.code</groupId>-->
-<!--        <version>3.1</version>-->
-<!--      </plugin>-->
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>0.8.2</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
+          </execution>
+          <!-- attached to Maven test phase -->
+          <execution>
+            <id>report</id>
+            <phase>test</phase>
+            <goals>
+              <goal>report</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
 
     <resources>

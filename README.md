@@ -1,4 +1,4 @@
-[![codecov](https://codecov.io/gh/alwaysmartio/optimizer/branch/master/graph/badge.svg?token=QM96UTQZNZ)](https://codecov.io/gh/alwaysmartio/optimizer)
+[![codecov](https://codecov.io/gh/achilio/mv-manager-service/branch/master/graph/badge.svg?token=SAABWG9HJO)](https://codecov.io/gh/achilio/mv-manager-service)
 
 # mv-manager-service
 
@@ -11,7 +11,13 @@ Determines the most relevant materialized views in a given BigQuery context.
 Run Postgres and Adminer
 
 ```shell script
-docker-compose -f stack.yml
+docker-compose up db adminer
+```
+
+Run Postgres, Adminer, and the web app locally
+
+```shell script
+docker-compose up
 ```
 
 ## With AppEngine (local mode)
