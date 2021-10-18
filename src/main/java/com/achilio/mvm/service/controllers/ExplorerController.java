@@ -80,8 +80,7 @@ public class ExplorerController {
   @ApiOperation("Get number of materialized view for given dataset")
   public int getMaterializedViewCount(
       @PathVariable final String projectId, @PathVariable final String datasetName) {
-    FetchedDataset fetchedDataset = fetcherService.fet(projectId, datasetName);
-    return toDatasetResponse(fetchedDataset);
+    return fetcherService.fetchMMVCount(projectId);
   }
 
   @GetMapping(
