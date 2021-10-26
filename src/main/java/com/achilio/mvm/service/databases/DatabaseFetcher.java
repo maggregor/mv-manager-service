@@ -41,7 +41,7 @@ public interface DatabaseFetcher {
    *
    * @return
    */
-  List<String> fetchProjectIds();
+  List<FetchedProject> fetchAllProjects();
 
   /**
    * Returns all the information for a given project.

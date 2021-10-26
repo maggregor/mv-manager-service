@@ -3,9 +3,9 @@ package com.achilio.mvm.service.databases.entities;
 public class DefaultFetchedDataset implements FetchedDataset {
 
   private final String projectId;
+  private final String friendlyName;
   private final String datasetName;
   private final String location;
-  private final String friendlyName;
   private final String description;
   private final Long createdAt;
   private final Long lastModified;

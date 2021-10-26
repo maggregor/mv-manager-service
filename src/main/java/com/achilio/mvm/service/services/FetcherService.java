@@ -27,12 +27,8 @@ public class FetcherService {
     this.statementBuilder = new BigQueryMaterializedViewStatementBuilder();
   }
 
-  public List<String> fetchAllProjectsIds() {
-    return fetcher().fetchProjectIds();
-  }
-
   public List<FetchedProject> fetchAllProjects() {
-    return fetchAllProjectsIds().stream().map(this::fetchProject).collect(Collectors.toList());
+    return fetcher().fetchAllProjects();
   }
 
   public FetchedProject fetchProject(String projectId) {

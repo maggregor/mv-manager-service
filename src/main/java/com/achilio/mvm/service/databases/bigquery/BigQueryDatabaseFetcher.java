@@ -26,17 +26,16 @@ import com.google.cloud.bigquery.Table;
 import com.google.cloud.bigquery.TableId;
 import com.google.cloud.resourcemanager.Project;
 import com.google.cloud.resourcemanager.ResourceManager;
+import com.google.cloud.resourcemanager.ResourceManager.ProjectGetOption;
 import com.google.cloud.resourcemanager.ResourceManagerOptions;
 import com.google.zetasql.ZetaSQLType;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -219,34 +218,24 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
   }
 
   @Override
-  public List<String> fetchProjectIds() {
-    Set<String> projects = new HashSet<>();
+  public List<FetchedProject> fetchAllProjects() {
+    List<FetchedProject> projects = new ArrayList<>();
     for (Project project : resourceManager.list().iterateAll()) {
-      projects.add(project.getProjectId());
+      projects.add(toFetchedProject(project));
     }
-    return new ArrayList<>(projects);
+    return projects;
   }
 
   @Override
   public FetchedProject fetchProject(String projectId) {
-    return new DefaultFetchedProject(projectId, fetchProjectName(projectId));
-  }
-
-  public String fetchProjectName(String projectId) {
-    for (Project project : resourceManager.list().iterateAll()) {
-      if (projectId.equals(project.getProjectId())) {
-        return project.getName();
-      }
-    }
-    return null;
+    Project project = resourceManager.get(projectId);
+    return toFetchedProject(project);
   }
 
   @Override
   public List<FetchedDataset> fetchAllDatasets() {
     List<FetchedDataset> datasets = new ArrayList<>();
     for (Dataset dataset : bigquery.listDatasets().iterateAll()) {
-      // Force retrieve metadata
-      dataset = bigquery.getDataset(dataset.getDatasetId());
       datasets.add(toFetchedDataset(dataset));
     }
     return datasets;
@@ -256,6 +245,10 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
   public FetchedDataset fetchDataset(String datasetName) {
     Dataset dataset = bigquery.getDataset(datasetName);
     return toFetchedDataset(dataset);
+  }
+
+  public FetchedProject toFetchedProject(Project project) {
+    return new DefaultFetchedProject(project.getProjectId(), project.getName());
   }
 
   public FetchedDataset toFetchedDataset(Dataset dataset) {
