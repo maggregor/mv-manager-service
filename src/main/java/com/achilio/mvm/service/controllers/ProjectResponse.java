@@ -10,9 +10,13 @@ public class ProjectResponse {
   @JsonProperty("projectName")
   private final String projectName;
 
-  public ProjectResponse(String projectId, String projectName) {
+  @JsonProperty("activated")
+  private final boolean activated;
+
+  public ProjectResponse(String projectId, String projectName, boolean activated) {
     this.projectId = projectId;
     this.projectName = projectName;
+    this.activated = activated;
   }
 
   public String getProjectId() {

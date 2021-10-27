@@ -9,6 +9,7 @@ import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedQueryFactory;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
+import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import com.google.api.gax.paging.Page;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.bigquery.BigQuery;
@@ -26,7 +27,6 @@ import com.google.cloud.bigquery.Table;
 import com.google.cloud.bigquery.TableId;
 import com.google.cloud.resourcemanager.Project;
 import com.google.cloud.resourcemanager.ResourceManager;
-import com.google.cloud.resourcemanager.ResourceManager.ProjectGetOption;
 import com.google.cloud.resourcemanager.ResourceManagerOptions;
 import com.google.zetasql.ZetaSQLType;
 import java.time.ZonedDateTime;
@@ -46,7 +46,8 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
   private final ResourceManager resourceManager;
   private final String projectId;
 
-  public BigQueryDatabaseFetcher(GoogleCredentials googleCredentials, String projectId) {
+  public BigQueryDatabaseFetcher(GoogleCredentials googleCredentials, String projectId)
+      throws ProjectNotFoundException {
     BigQueryOptions.Builder bqOptBuilder =
         BigQueryOptions.newBuilder().setCredentials(googleCredentials);
     ResourceManagerOptions.Builder rmOptBuilder =
@@ -59,6 +60,8 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     this.bigquery = bqOptBuilder.build().getService();
     this.resourceManager = rmOptBuilder.build().getService();
     this.projectId = projectId;
+    // Checks if the Google credentials have access.
+    fetchProject(projectId);
   }
 
   @Override
@@ -227,8 +230,11 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
   }
 
   @Override
-  public FetchedProject fetchProject(String projectId) {
+  public FetchedProject fetchProject(String projectId) throws ProjectNotFoundException {
     Project project = resourceManager.get(projectId);
+    if (project == null) {
+      throw new ProjectNotFoundException(projectId + " not found");
+    }
     return toFetchedProject(project);
   }
 

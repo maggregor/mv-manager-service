@@ -3,6 +3,7 @@ package com.achilio.mvm.service.controllers;
 import com.achilio.mvm.service.databases.entities.FetchedDataset;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
+import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import com.achilio.mvm.service.services.FetcherService;
 import com.achilio.mvm.service.services.MetadataService;
 import io.swagger.annotations.ApiOperation;
@@ -31,7 +32,7 @@ public class ExplorerController {
 
   @GetMapping(path = "/project", produces = "application/json")
   @ApiOperation("List the project")
-  public List<ProjectResponse> getAllProjects() {
+  public List<ProjectResponse> getAllProjects() throws Exception {
     return fetcherService.fetchAllProjects().stream()
         .map(this::toProjectResponse)
         .collect(Collectors.toList());
@@ -40,7 +41,7 @@ public class ExplorerController {
   @GetMapping(path = "/project/{projectId}", produces = "application/json")
   @ApiOperation("Get a project for a given projectId")
   public ProjectResponse getProject(@PathVariable final String projectId) {
-    return toProjectResponse(fetcherService.fetchProject(projectId));
+      return toProjectResponse(fetcherService.fetchProject(projectId));
   }
 
   @GetMapping(path = "/project/{projectId}/metadata", produces = "application/json")
@@ -62,7 +63,7 @@ public class ExplorerController {
 
   @GetMapping(path = "/project/{projectId}/dataset", produces = "application/json")
   @ApiOperation("Get all dataset for a given projectId")
-  public List<DatasetResponse> getDatasets(@PathVariable final String projectId) {
+  public List<DatasetResponse> getDatasets(@PathVariable final String projectId) throws Exception {
     return fetcherService.fetchAllDatasets(projectId).stream()
         .map(this::toDatasetResponse)
         .collect(Collectors.toList());
@@ -71,7 +72,8 @@ public class ExplorerController {
   @GetMapping(path = "/project/{projectId}/dataset/{datasetName}", produces = "application/json")
   @ApiOperation("Get all dataset for a given projectId")
   public DatasetResponse getDataset(
-      @PathVariable final String projectId, @PathVariable final String datasetName) {
+      @PathVariable final String projectId, @PathVariable final String datasetName)
+      throws Exception {
     FetchedDataset fetchedDataset = fetcherService.fetchDataset(projectId, datasetName);
     return toDatasetResponse(fetchedDataset);
   }
@@ -79,7 +81,8 @@ public class ExplorerController {
   @GetMapping(path = "/project/{projectId}/dataset/{datasetName}/mmv/count", produces = "application/json")
   @ApiOperation("Get number of materialized view for given dataset")
   public int getMaterializedViewCount(
-      @PathVariable final String projectId, @PathVariable final String datasetName) {
+      @PathVariable final String projectId, @PathVariable final String datasetName)
+      throws Exception {
     return fetcherService.fetchMMVCount(projectId);
   }
 
@@ -88,7 +91,8 @@ public class ExplorerController {
       produces = "application/json")
   @ApiOperation("Get all dataset for a given projectId")
   public List<TableResponse> getTables(
-      @PathVariable final String projectId, @PathVariable final String datasetName) {
+      @PathVariable final String projectId, @PathVariable final String datasetName)
+      throws Exception {
     return fetcherService.fetchAllTables(projectId).stream()
         .map(this::toTableResponse)
         .collect(Collectors.toList());
@@ -96,7 +100,8 @@ public class ExplorerController {
 
   public ProjectResponse toProjectResponse(FetchedProject project) {
     final String projectId = project.getProjectId();
-    return new ProjectResponse(projectId, project.getName());
+    boolean activated = metadataService.isProjectActivated(projectId);
+    return new ProjectResponse(projectId, project.getName(), activated);
   }
 
   public DatasetResponse toDatasetResponse(FetchedDataset dataset) {

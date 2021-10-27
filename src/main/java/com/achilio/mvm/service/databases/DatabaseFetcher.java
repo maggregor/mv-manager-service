@@ -4,6 +4,7 @@ import com.achilio.mvm.service.databases.entities.FetchedDataset;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
+import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.List;
@@ -48,7 +49,7 @@ public interface DatabaseFetcher {
    *
    * @return
    */
-  FetchedProject fetchProject(String projectId);
+  FetchedProject fetchProject(String projectId) throws ProjectNotFoundException;
 
   /**
    * Returns all dataset id in a given projectId.

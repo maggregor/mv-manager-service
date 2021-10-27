@@ -8,8 +8,8 @@ import com.achilio.mvm.service.databases.entities.FetchedDataset;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
+import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import java.util.List;
-import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -27,47 +27,47 @@ public class FetcherService {
     this.statementBuilder = new BigQueryMaterializedViewStatementBuilder();
   }
 
-  public List<FetchedProject> fetchAllProjects() {
+  public List<FetchedProject> fetchAllProjects() throws Exception {
     return fetcher().fetchAllProjects();
   }
 
-  public FetchedProject fetchProject(String projectId) {
+  public FetchedProject fetchProject(String projectId) throws ProjectNotFoundException {
     return fetcher(projectId).fetchProject(projectId);
   }
 
-  public List<FetchedDataset> fetchAllDatasets(String projectId) {
+  public List<FetchedDataset> fetchAllDatasets(String projectId) throws Exception {
     return fetcher(projectId).fetchAllDatasets();
   }
 
-  public FetchedDataset fetchDataset(String projectId, String datasetName) {
+  public FetchedDataset fetchDataset(String projectId, String datasetName) throws Exception{
     return fetcher(projectId).fetchDataset(datasetName);
   }
 
-  public List<FetchedQuery> fetchQueries(String projectId) {
+  public List<FetchedQuery> fetchQueries(String projectId) throws Exception{
     return fetcher(projectId).fetchAllQueries();
   }
 
-  public FetchedTable fetchTable(String projectId, String datasetName, String tableName) {
+  public FetchedTable fetchTable(String projectId, String datasetName, String tableName) throws Exception{
     return fetcher(projectId).fetchTable(projectId, datasetName, tableName);
   }
 
-  public List<FetchedTable> fetchAllTables(String projectId) {
+  public List<FetchedTable> fetchAllTables(String projectId) throws Exception {
     return fetcher(projectId).fetchAllTables();
   }
 
-  public int fetchMMVCount(String projectId) {
+  public int fetchMMVCount(String projectId) throws Exception {
     return fetcher(projectId).fetchMMVCount(projectId);
   }
 
-  public int fetchScannedBytes(String projectId) {
+  public int fetchScannedBytes(String projectId) throws Exception {
     return fetcher(projectId).fetchMMVCount(projectId);
   }
 
-  private DatabaseFetcher fetcher() {
+  private DatabaseFetcher fetcher() throws Exception {
     return fetcher(null);
   }
 
-  private DatabaseFetcher fetcher(String projectId) {
+  private DatabaseFetcher fetcher(String projectId) throws ProjectNotFoundException {
     SimpleGoogleCredentialsAuthentication authentication =
         (SimpleGoogleCredentialsAuthentication)
             SecurityContextHolder.getContext().getAuthentication();

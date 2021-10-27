@@ -1,6 +1,6 @@
 package com.achilio.mvm.service.exception.controllers;
 
-import com.achilio.mvm.service.exceptions.UserNotFoundException;
+import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import java.util.Date;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -25,8 +25,8 @@ public class CustomizedResponsedEntityExceptionHandler extends ResponseEntityExc
     return new ResponseEntity<Object>(exResponse, HttpStatus.INTERNAL_SERVER_ERROR);
   }
 
-  @ExceptionHandler(UserNotFoundException.class)
-  public final ResponseEntity<Object> userNotFoundException(Exception ex, WebRequest request)
+  @ExceptionHandler(ProjectNotFoundException.class)
+  public final ResponseEntity<Object> projectNotFoundException(Exception ex, WebRequest request)
       throws Exception {
     ExceptionResponse exResponse =
         new ExceptionResponse(new Date(), ex.getMessage(), request.getDescription(false));
