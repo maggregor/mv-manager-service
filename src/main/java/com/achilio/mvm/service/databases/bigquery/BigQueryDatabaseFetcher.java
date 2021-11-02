@@ -61,7 +61,9 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     this.resourceManager = rmOptBuilder.build().getService();
     this.projectId = projectId;
     // Checks if the Google credentials have access.
-    fetchProject(projectId);
+    if (StringUtils.isNotEmpty(projectId)) {
+      fetchProject(projectId);
+    }
   }
 
   @Override
