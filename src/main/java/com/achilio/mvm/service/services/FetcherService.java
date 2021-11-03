@@ -55,6 +55,10 @@ public class FetcherService {
     return fetcher(projectId).fetchAllTables();
   }
 
+  public List<FetchedTable> fetchTableNamesInDataset(String projectId, String datasetName) throws Exception {
+    return fetcher(projectId).fetchTableNamesInDataset(datasetName);
+  }
+
   public int fetchMMVCount(String projectId) throws Exception {
     return fetcher(projectId).fetchMMVCount(projectId);
   }

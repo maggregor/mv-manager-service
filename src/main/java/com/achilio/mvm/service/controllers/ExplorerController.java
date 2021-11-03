@@ -3,7 +3,6 @@ package com.achilio.mvm.service.controllers;
 import com.achilio.mvm.service.databases.entities.FetchedDataset;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
-import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import com.achilio.mvm.service.services.FetcherService;
 import com.achilio.mvm.service.services.MetadataService;
 import io.swagger.annotations.ApiOperation;
@@ -91,9 +90,10 @@ public class ExplorerController {
       produces = "application/json")
   @ApiOperation("Get all dataset for a given projectId")
   public List<TableResponse> getTables(
-      @PathVariable final String projectId, @PathVariable final String datasetName)
+      @PathVariable final String projectId,
+      @PathVariable final String datasetName)
       throws Exception {
-    return fetcherService.fetchAllTables(projectId).stream()
+    return fetcherService.fetchTableNamesInDataset(projectId, datasetName).stream()
         .map(this::toTableResponse)
         .collect(Collectors.toList());
   }

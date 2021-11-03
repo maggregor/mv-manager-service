@@ -16,7 +16,16 @@ public class DefaultFetchedTable implements FetchedTable {
 
   private final String dataset;
   private final String table;
-  private final Map<String, String> columns;
+  private Map<String, String> columns;
+
+  public DefaultFetchedTable(
+          final String project,
+          final String schema,
+          final String table) {
+    this.project = project;
+    this.dataset = schema;
+    this.table = table;
+  }
 
   public DefaultFetchedTable(
       final String project,

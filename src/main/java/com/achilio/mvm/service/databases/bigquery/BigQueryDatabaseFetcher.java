@@ -152,8 +152,19 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
             });
     return tables;
   }
+  public List<FetchedTable> fetchTableNamesInDataset(String datasetName) {
+    List<FetchedTable> tables = new LinkedList<>();
+    bigquery
+            .listTables(datasetName)
+            .getValues()
+            .forEach(
+                    tableName -> {
+                        tables.add(new DefaultFetchedTable(projectId, datasetName, tableName.getFriendlyName()));
+                    });
+    return tables;
+  }
 
-  public List<FetchedTable> fetchTablesInDataset(String datasetName) {
+    public List<FetchedTable> fetchTablesInDataset(String datasetName) {
     List<FetchedTable> tables = new LinkedList<>();
     bigquery
         .listTables(datasetName)

@@ -1,9 +1,7 @@
 package com.achilio.mvm.service.controllers;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
 
-@Data
 public class DatasetResponse {
 
   @JsonProperty("projectId")
@@ -42,5 +40,33 @@ public class DatasetResponse {
     this.description = description;
     this.createdAt = createdAt;
     this.lastModified = lastModified;
+  }
+
+  public String getProjectId() {
+    return projectId;
+  }
+
+  public String getDatasetName() {
+    return datasetName;
+  }
+
+  public String getLocation() {
+    return location;
+  }
+
+  public String getFriendlyName() {
+    return friendlyName;
+  }
+
+  public String getDescription() {
+    return description;
+  }
+
+  public Long getCreatedAt() {
+    return createdAt;
+  }
+
+  public Long getLastModified() {
+    return lastModified;
   }
 }

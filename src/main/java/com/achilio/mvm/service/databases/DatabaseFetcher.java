@@ -70,6 +70,8 @@ public interface DatabaseFetcher {
 
   List<FetchedTable> fetchTablesInDataset(String datasetName);
 
+  List<FetchedTable> fetchTableNamesInDataset(String datasetName);
+
   int fetchMMVCount(String projectId);
 
   long totalScannedBytesSince(String projectId, ZonedDateTime time);

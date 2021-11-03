@@ -227,12 +227,6 @@
       <groupId>org.postgresql</groupId>
     </dependency>
 
-    <dependency>
-      <artifactId>lombok</artifactId>
-      <groupId>org.projectlombok</groupId>
-      <optional>true</optional>
-    </dependency>
-
     <!-- Swagger -->
     <dependency>
       <artifactId>springfox-swagger2</artifactId>
