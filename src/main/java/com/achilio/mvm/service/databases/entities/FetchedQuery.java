@@ -21,6 +21,10 @@ public interface FetchedQuery {
 
   void setTableName(String tableName);
 
+  boolean isUsingManagedMV();
+
+  void setUsingManagedMV(boolean usingManagedMV);
+
   /**
    * The SQL statement of the fetched query.
    *

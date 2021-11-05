@@ -9,6 +9,8 @@ import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
+
+import java.util.Date;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -45,6 +47,10 @@ public class FetcherService {
 
   public List<FetchedQuery> fetchQueries(String projectId) throws Exception{
     return fetcher(projectId).fetchAllQueries();
+  }
+
+  public List<FetchedQuery> fetchQueriesSince(String projectId, Date date) throws Exception{
+    return fetcher(projectId).fetchAllQueriesFrom(date);
   }
 
   public FetchedTable fetchTable(String projectId, String datasetName, String tableName) throws Exception{

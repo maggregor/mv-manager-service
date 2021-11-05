@@ -2,10 +2,15 @@ package com.achilio.mvm.service.controllers;
 
 import com.achilio.mvm.service.databases.entities.FetchedDataset;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
+import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.services.FetcherService;
 import com.achilio.mvm.service.services.MetadataService;
 import io.swagger.annotations.ApiOperation;
+
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -96,6 +101,24 @@ public class ExplorerController {
     return fetcherService.fetchTableNamesInDataset(projectId, datasetName).stream()
         .map(this::toTableResponse)
         .collect(Collectors.toList());
+  }
+
+  @GetMapping(path = "/project/{projectId}/queries/{lastDays}/statistics", produces = "application/json")
+  @ApiOperation("Get number of queries ")
+  public QueryStatisticsResponse getQueryStatistics(@PathVariable final String projectId, @PathVariable final int lastDays) throws Exception {
+    ZoneId defaultZoneId = ZoneId.systemDefault();
+    LocalDate localDate = LocalDate.now().minusDays(lastDays);
+    Date date = Date.from(localDate.atStartOfDay(defaultZoneId).toInstant());
+    List<FetchedQuery> queries = fetcherService.fetchQueriesSince(projectId, date);
+    List<FetchedQuery> queriesCaught = queries
+            .stream()
+            .filter(FetchedQuery::isUsingManagedMV)
+            .collect(Collectors.toList());
+    long totalSelect = queries.size();
+    long totalSelectCaught = queriesCaught.size();
+    long totalScanned = queries.stream().mapToInt(fetcherService -> Math.toIntExact(fetcherService.cost())).sum();
+    long totalScannedCaught = queriesCaught.stream().mapToInt(fetcherService -> Math.toIntExact(fetcherService.cost())).sum();
+    return new QueryStatisticsResponse(totalSelect, totalSelectCaught, totalScanned, totalScannedCaught);
   }
 
   public ProjectResponse toProjectResponse(FetchedProject project) {

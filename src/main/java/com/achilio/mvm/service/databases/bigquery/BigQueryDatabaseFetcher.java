@@ -12,19 +12,7 @@ import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import com.google.api.gax.paging.Page;
 import com.google.auth.oauth2.GoogleCredentials;
-import com.google.cloud.bigquery.BigQuery;
-import com.google.cloud.bigquery.BigQueryException;
-import com.google.cloud.bigquery.BigQueryOptions;
-import com.google.cloud.bigquery.Dataset;
-import com.google.cloud.bigquery.DatasetId;
-import com.google.cloud.bigquery.Field;
-import com.google.cloud.bigquery.Job;
-import com.google.cloud.bigquery.JobStatistics;
-import com.google.cloud.bigquery.QueryJobConfiguration;
-import com.google.cloud.bigquery.Schema;
-import com.google.cloud.bigquery.StandardTableDefinition;
-import com.google.cloud.bigquery.Table;
-import com.google.cloud.bigquery.TableId;
+import com.google.cloud.bigquery.*;
 import com.google.cloud.resourcemanager.Project;
 import com.google.cloud.resourcemanager.ResourceManager;
 import com.google.cloud.resourcemanager.ResourceManagerOptions;
@@ -38,8 +26,12 @@ import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BigQueryDatabaseFetcher implements DatabaseFetcher {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(BigQueryDatabaseFetcher.class);
 
   private static final int LIST_JOB_PAGE_SIZE = 25000;
   private final BigQuery bigquery;
@@ -90,21 +82,52 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
         // Should we optimize query sent like SQL script ?
         // TODO: Split hard by ; really sure?
         String[] queries = jobQuery.split(";");
-        for (String query : queries) {
-          if (!jobQuery.toUpperCase().startsWith("SELECT")
-              || jobQuery.toUpperCase().contains("INFORMATION_SCHEMA")) {
-            continue;
+
+          for (String query : queries) {
+            if (!jobQuery.toUpperCase().startsWith("SELECT")
+                    || jobQuery.toUpperCase().contains("INFORMATION_SCHEMA")) {
+              continue;
+            }
+            JobStatistics.QueryStatistics queryStatistics = job.getStatistics();
+            Long billed = queryStatistics.getTotalBytesBilled();
+            long cost = billed == null ? -1 : billed;
+            boolean usingManagedMV = containsMVManagedUsageInQueryStages(queryStatistics.getQueryPlan());
+            FetchedQuery fetchedQuery = FetchedQueryFactory.createFetchedQuery(query, cost);
+            fetchedQuery.setProjectId(projectId);
+            fetchedQuery.setUsingManagedMV(usingManagedMV);
+            fetchedQueries.add(fetchedQuery);
           }
-          JobStatistics.QueryStatistics queryStatistics = job.getStatistics();
-          Long billed = queryStatistics.getTotalBytesBilled();
-          long cost = billed == null ? -1 : billed;
-          FetchedQuery fetchedQuery = FetchedQueryFactory.createFetchedQuery(query, cost);
-          fetchedQuery.setProjectId(projectId);
-          fetchedQueries.add(fetchedQuery);
-        }
       }
     }
     return fetchedQueries;
+  }
+
+  private boolean containsMVManagedUsageInQueryStages(List<QueryStage> stages) {
+    try {
+      if (stages == null) {
+        LOGGER.error("Skipped plan analysis: no stages");
+        return false;
+      }
+      for (QueryStage queryStage : stages) {
+        if (queryStage == null || queryStage.getSteps() == null) {
+          LOGGER.error("Skipped plan analysis: no steps");
+          return false;
+        }
+        for (QueryStage.QueryStep queryStep : queryStage.getSteps()) {
+          if (queryStep.getSubsteps() == null) {
+            LOGGER.error("Skipped plan analysis: no substeps");
+            return false;
+          }
+          for (String subStep : queryStep.getSubsteps()) {
+            return StringUtils.containsIgnoreCase(subStep, "FROM")
+                    && StringUtils.containsIgnoreCase(subStep, "mvm_");
+          }
+        }
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return false;
   }
 
   private List<BigQuery.JobListOption> defaultJobListOptions() {
