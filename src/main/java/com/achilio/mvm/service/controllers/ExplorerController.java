@@ -116,7 +116,7 @@ public class ExplorerController {
             .collect(Collectors.toList());
     long totalSelect = queries.size();
     long totalSelectCaught = queriesCaught.size();
-    long totalScanned = queries.stream().mapToInt(fetcherService -> Math.toIntExact(fetcherService.cost())).sum();
+    long totalScanned = queries.stream().mapToLong(fetcherService -> Math.toIntExact(fetcherService.cost())).sum();
     long totalScannedCaught = queriesCaught.stream().mapToInt(fetcherService -> Math.toIntExact(fetcherService.cost())).sum();
     return new QueryStatisticsResponse(totalSelect, totalSelectCaught, totalScanned, totalScannedCaught);
   }
