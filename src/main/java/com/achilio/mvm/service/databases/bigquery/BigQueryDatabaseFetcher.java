@@ -16,6 +16,7 @@ import com.google.cloud.bigquery.*;
 import com.google.cloud.resourcemanager.Project;
 import com.google.cloud.resourcemanager.ResourceManager;
 import com.google.cloud.resourcemanager.ResourceManagerOptions;
+import com.google.common.collect.Lists;
 import com.google.zetasql.ZetaSQLType;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -66,6 +67,7 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
   @Override
   public List<FetchedQuery> fetchAllQueriesFrom(Date start) {
     List<BigQuery.JobListOption> options = defaultJobListOptions();
+    options.add(BigQuery.JobListOption.allUsers());
     if (start != null) {
       options.add(BigQuery.JobListOption.minCreationTime(start.getTime()));
     }
@@ -96,6 +98,7 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
             fetchedQuery.setProjectId(projectId);
             fetchedQuery.setUsingManagedMV(usingManagedMV);
             fetchedQueries.add(fetchedQuery);
+           //Lists.transform(queryStatistics.getQueryPlan(), QueryStage.);
           }
       }
     }
