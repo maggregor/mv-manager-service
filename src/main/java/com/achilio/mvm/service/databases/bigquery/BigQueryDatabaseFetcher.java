@@ -13,6 +13,8 @@ import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import com.google.api.gax.paging.Page;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.bigquery.*;
+import com.google.cloud.bigquery.BigQuery.JobListOption;
+import com.google.cloud.bigquery.QueryStage.QueryStep;
 import com.google.cloud.resourcemanager.Project;
 import com.google.cloud.resourcemanager.ResourceManager;
 import com.google.cloud.resourcemanager.ResourceManagerOptions;
@@ -121,6 +123,17 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
       }
     }
     return false;
+  }
+
+  /**
+   * In the query substeps, filter only the steps that hit a managed materialized view (mmv)
+   *
+   * @param steps - A list of QueryStage#QueryStep from fetched BigQuery history.
+   * @return boolean - True if the query plan used a MVM.
+   */
+  private boolean containsSubStepUsingMVM(QueryStep steps) {
+    return steps.getSubsteps().stream()
+        .anyMatch(step -> step.contains("FROM") && step.contains("mvm_"));
   }
 
   private List<BigQuery.JobListOption> defaultJobListOptions() {
