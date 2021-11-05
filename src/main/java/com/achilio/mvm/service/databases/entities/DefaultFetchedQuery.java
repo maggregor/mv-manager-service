@@ -3,19 +3,17 @@ package com.achilio.mvm.service.databases.entities;
 public class DefaultFetchedQuery implements FetchedQuery {
 
   private String statement;
-  private long cost;
+  private long billedBytes;
+  private long processedBytes;
   private String projectId;
   private String datasetName;
   private String tableName;
   private boolean usingManagedMV;
+  private boolean cached;
 
-  public DefaultFetchedQuery(final String statement, final long cost) {
+  public DefaultFetchedQuery(final String statement, final long billedBytes) {
     this.statement = statement;
-    this.cost = cost;
-  }
-
-  public long cost() {
-    return cost;
+    this.billedBytes = billedBytes;
   }
 
   @Override
@@ -60,5 +58,35 @@ public class DefaultFetchedQuery implements FetchedQuery {
 
   public String statement() {
     return statement;
+  }
+
+  @Override
+  public long getBilledBytes() {
+    return this.billedBytes;
+  }
+
+  @Override
+  public void setBilledBytes(long billedBytes) {
+    this.billedBytes = billedBytes;
+  }
+
+  @Override
+  public long getProcessedBytes() {
+    return this.processedBytes;
+  }
+
+  @Override
+  public void setProcessedBytes(long processedBytes) {
+    this.processedBytes = processedBytes;
+  }
+
+  @Override
+  public boolean isCached() {
+    return this.cached;
+  }
+
+  @Override
+  public void setUseCache(boolean useCache) {
+    this.cached = useCache;
   }
 }

@@ -47,7 +47,8 @@ public class Optimization {
     this.approvalRequired = approvalRequired;
   }
 
-  public Optimization() {}
+  public Optimization() {
+  }
 
   public Long getId() {
     return id;
@@ -75,8 +76,12 @@ public class Optimization {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
     Optimization that = (Optimization) o;
     return createdDate == that.createdDate
         && approvalRequired == that.approvalRequired

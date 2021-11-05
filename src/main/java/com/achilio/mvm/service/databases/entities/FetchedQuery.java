@@ -37,5 +37,15 @@ public interface FetchedQuery {
    *
    * @return the query cost on the underlying database.
    */
-  long cost();
+  long getBilledBytes();
+
+  void setBilledBytes(long billedBytes);
+
+  long getProcessedBytes();
+
+  void setProcessedBytes(long processedBytes);
+
+  void setUseCache(boolean useCache);
+
+  boolean isCached();
 }

@@ -19,9 +19,9 @@ public class DefaultFetchedTable implements FetchedTable {
   private Map<String, String> columns;
 
   public DefaultFetchedTable(
-          final String project,
-          final String schema,
-          final String table) {
+      final String project,
+      final String schema,
+      final String table) {
     this.project = project;
     this.dataset = schema;
     this.table = table;
@@ -60,8 +60,12 @@ public class DefaultFetchedTable implements FetchedTable {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
     DefaultFetchedTable that = (DefaultFetchedTable) o;
     return Objects.equals(project, that.project)
         && Objects.equals(dataset, that.dataset)

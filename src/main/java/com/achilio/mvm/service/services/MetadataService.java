@@ -7,13 +7,17 @@ import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-/** All the useful services to generate relevant Materialized Views. */
+/**
+ * All the useful services to generate relevant Materialized Views.
+ */
 @Service
 public class MetadataService {
 
-  @Autowired private ProjectMetadataRepository projectRepository;
+  @Autowired
+  private ProjectMetadataRepository projectRepository;
 
-  public MetadataService() {}
+  public MetadataService() {
+  }
 
   public boolean isProjectActivated(String projectId) {
     Optional<ProjectMetadata> projectMetadata = getProject(projectId);

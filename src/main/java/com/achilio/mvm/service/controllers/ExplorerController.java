@@ -2,15 +2,11 @@ package com.achilio.mvm.service.controllers;
 
 import com.achilio.mvm.service.databases.entities.FetchedDataset;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
-import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
+import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics;
 import com.achilio.mvm.service.services.FetcherService;
 import com.achilio.mvm.service.services.MetadataService;
 import io.swagger.annotations.ApiOperation;
-
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -31,8 +27,10 @@ public class ExplorerController {
 
   private static Logger LOGGER = LoggerFactory.getLogger(ExplorerController.class);
 
-  @Autowired private MetadataService metadataService;
-  @Autowired private FetcherService fetcherService;
+  @Autowired
+  private MetadataService metadataService;
+  @Autowired
+  private FetcherService fetcherService;
 
   @GetMapping(path = "/project", produces = "application/json")
   @ApiOperation("List the project")
@@ -45,7 +43,7 @@ public class ExplorerController {
   @GetMapping(path = "/project/{projectId}", produces = "application/json")
   @ApiOperation("Get a project for a given projectId")
   public ProjectResponse getProject(@PathVariable final String projectId) {
-      return toProjectResponse(fetcherService.fetchProject(projectId));
+    return toProjectResponse(fetcherService.fetchProject(projectId));
   }
 
   @GetMapping(path = "/project/{projectId}/metadata", produces = "application/json")
@@ -103,22 +101,17 @@ public class ExplorerController {
         .collect(Collectors.toList());
   }
 
-  @GetMapping(path = "/project/{projectId}/queries/{lastDays}/statistics", produces = "application/json")
+  @GetMapping(path = "/project/{projectId}/queries/{days}/statistics", produces = "application/json")
   @ApiOperation("Get number of queries ")
-  public QueryStatisticsResponse getQueryStatistics(@PathVariable final String projectId, @PathVariable final int lastDays) throws Exception {
-    ZoneId defaultZoneId = ZoneId.systemDefault();
-    LocalDate localDate = LocalDate.now().minusDays(lastDays);
-    Date date = Date.from(localDate.atStartOfDay(defaultZoneId).toInstant());
-    List<FetchedQuery> queries = fetcherService.fetchQueriesSince(projectId, date);
-    List<FetchedQuery> queriesCaught = queries
-            .stream()
-            .filter(FetchedQuery::isUsingManagedMV)
-            .collect(Collectors.toList());
-    long totalSelect = queries.size();
-    long totalSelectCaught = queriesCaught.size();
-    long totalScanned = queries.stream().mapToLong(fetcherService -> Math.toIntExact(fetcherService.cost())).sum();
-    long totalScannedCaught = queriesCaught.stream().mapToInt(fetcherService -> Math.toIntExact(fetcherService.cost())).sum();
-    return new QueryStatisticsResponse(totalSelect, totalSelectCaught, totalScanned, totalScannedCaught);
+  public GlobalQueryStatisticsResponse getQueryStatistics(@PathVariable final String projectId,
+      @PathVariable final int days) {
+    GlobalQueryStatistics statistics = fetcherService.getStatistics(projectId, days);
+    return toGlobalQueryStatisticsResponse(statistics);
+  }
+
+  public GlobalQueryStatisticsResponse toGlobalQueryStatisticsResponse(
+      GlobalQueryStatistics statistics) {
+    return new GlobalQueryStatisticsResponse(statistics);
   }
 
   public ProjectResponse toProjectResponse(FetchedProject project) {
@@ -146,3 +139,18 @@ public class ExplorerController {
     return new TableResponse(projectId, datasetName, tableName);
   }
 }
+
+/**
+ * ZoneId defaultZoneId = ZoneId.systemDefault(); LocalDate localDate =
+ * LocalDate.now().minusDays(lastDays); Date date = Date.from(localDate.atStartOfDay(defaultZoneId).toInstant());
+ * List<FetchedQuery> queries = fetcherService.fetchQueriesSince(projectId, date);
+ * List<FetchedQuery> queriesCaught = queries .stream() .filter(FetchedQuery::isUsingManagedMV)
+ * .collect(Collectors.toList()); long totalNumberOfSelect = queries.size(); long numberOfSelectIn =
+ * queriesCaught.size(); long numberOfSelectOut = queriesCaught.size(); long totalBilledBytes =
+ * queries.stream().mapToLong(fetcherService -> Math.toIntExact(fetcherService.getBilledBytes())).sum();
+ * long totalProcessedBytes = queriesCaught.stream().mapToInt(fetcherService ->
+ * Math.toIntExact(fetcherService.cost())).sum();
+ * <p>
+ * return new QueryStatisticsResponse(totalSelect, totalSelectCaught, totalScanned,
+ * totalScannedCaught);
+ */

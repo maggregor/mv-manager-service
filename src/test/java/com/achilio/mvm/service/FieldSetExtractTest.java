@@ -29,12 +29,12 @@ import org.springframework.test.context.junit4.SpringRunner;
 public abstract class FieldSetExtractTest {
 
   private static final String[][] SIMPLE_TABLE_COLUMNS =
-      new String[][] {
-        {"col1", ZetaSQLType.TypeKind.TYPE_STRING.name()},
-        {"col2", ZetaSQLType.TypeKind.TYPE_STRING.name()},
-        {"col3", ZetaSQLType.TypeKind.TYPE_INT64.name()},
-        {"col4", ZetaSQLType.TypeKind.TYPE_INT64.name()},
-        {"ts", ZetaSQLType.TypeKind.TYPE_TIMESTAMP.name()}
+      new String[][]{
+          {"col1", ZetaSQLType.TypeKind.TYPE_STRING.name()},
+          {"col2", ZetaSQLType.TypeKind.TYPE_STRING.name()},
+          {"col3", ZetaSQLType.TypeKind.TYPE_INT64.name()},
+          {"col4", ZetaSQLType.TypeKind.TYPE_INT64.name()},
+          {"ts", ZetaSQLType.TypeKind.TYPE_TIMESTAMP.name()}
       };
 
   private FieldSetExtract extractor;

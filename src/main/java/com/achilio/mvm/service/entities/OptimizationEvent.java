@@ -26,7 +26,8 @@ public class OptimizationEvent {
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Long id;
 
-  @ManyToOne private Optimization optimization;
+  @ManyToOne
+  private Optimization optimization;
 
   @CreatedDate
   @Column(name = "created_date", nullable = false)
@@ -36,7 +37,8 @@ public class OptimizationEvent {
   @Column(name = "status", nullable = false)
   private Type status;
 
-  public OptimizationEvent() {}
+  public OptimizationEvent() {
+  }
 
   public OptimizationEvent(Optimization optimization, Type type) {
     this.optimization = optimization;
@@ -61,8 +63,12 @@ public class OptimizationEvent {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
     OptimizationEvent that = (OptimizationEvent) o;
     return createdDate == that.createdDate
         && id.equals(that.id)

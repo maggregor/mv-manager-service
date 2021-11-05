@@ -119,8 +119,12 @@ public class DefaultFieldSet implements FieldSet, Cloneable {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
     DefaultFieldSet that = (DefaultFieldSet) o;
     return scannedBytesMb == that.scannedBytesMb
         && hits == that.hits

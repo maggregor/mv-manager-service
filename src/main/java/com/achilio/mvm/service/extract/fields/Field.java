@@ -4,7 +4,9 @@ import com.google.common.annotations.VisibleForTesting;
 import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 
-/** Represents a field in sql query. Can be a function, an aggregate or reference to a column. */
+/**
+ * Represents a field in sql query. Can be a function, an aggregate or reference to a column.
+ */
 public abstract class Field {
 
   private static final String ALIAS_PREFIX = "a_";
@@ -50,8 +52,12 @@ public abstract class Field {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
     Field field = (Field) o;
     return cardinality == field.cardinality
         && expression.equals(field.expression)

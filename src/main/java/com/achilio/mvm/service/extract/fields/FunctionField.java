@@ -1,6 +1,8 @@
 package com.achilio.mvm.service.extract.fields;
 
-/** Represents a function field. */
+/**
+ * Represents a function field.
+ */
 public class FunctionField extends Field {
 
   public FunctionField(String name) {

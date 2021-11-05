@@ -2,7 +2,9 @@ package com.achilio.mvm.service.databases.entities;
 
 import java.util.Map;
 
-/** Represents a single table from database with metadata. */
+/**
+ * Represents a single table from database with metadata.
+ */
 public interface FetchedTable {
 
   /**
@@ -27,8 +29,8 @@ public interface FetchedTable {
   String getTableName();
 
   /**
-   * The name and type of the columns of the table.
-   * Example: {@code [{col1, STRING}, {col2, INTEGER}]
+   * The name and type of the columns of the table. Example: {@code [{col1, STRING}, {col2,
+   * INTEGER}]
    *
    * @return the name and type of the columns of the table.
    */

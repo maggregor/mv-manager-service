@@ -1,6 +1,8 @@
 package com.achilio.mvm.service.extract.fields;
 
-/** Represents an aggregate field. */
+/**
+ * Represents an aggregate field.
+ */
 public class AggregateField extends FunctionField {
 
   public AggregateField(String name) {

@@ -19,7 +19,8 @@ public class OptimizerController {
 
   private static Logger LOGGER = LoggerFactory.getLogger(OptimizerController.class);
 
-  @Autowired private OptimizerService service;
+  @Autowired
+  private OptimizerService service;
 
   @PostMapping(path = "/optimize/{projectId}", produces = "application/json")
   @ApiOperation("Trigger an optimization on a projectId")

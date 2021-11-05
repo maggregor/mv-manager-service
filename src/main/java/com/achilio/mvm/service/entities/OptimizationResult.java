@@ -22,7 +22,8 @@ public class OptimizationResult {
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Long id;
 
-  @ManyToOne private Optimization optimization;
+  @ManyToOne
+  private Optimization optimization;
 
   @Column(name = "dataset_name", nullable = false)
   private String dataset;
@@ -41,7 +42,8 @@ public class OptimizationResult {
     this.statement = statement;
   }
 
-  public OptimizationResult() {}
+  public OptimizationResult() {
+  }
 
   public Long getId() {
     return id;
@@ -65,8 +67,12 @@ public class OptimizationResult {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
     OptimizationResult that = (OptimizationResult) o;
     return id.equals(that.id)
         && optimization.equals(that.optimization)

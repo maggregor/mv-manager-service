@@ -26,7 +26,9 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-/** All the useful services to generate relevant Materialized Views. */
+/**
+ * All the useful services to generate relevant Materialized Views.
+ */
 @EnableJpaAuditing
 @Service
 public class OptimizerService {
@@ -34,9 +36,12 @@ public class OptimizerService {
   private static Logger LOGGER = LoggerFactory.getLogger(OptimizerService.class);
 
   BigQueryMaterializedViewStatementBuilder statementBuilder;
-  @Autowired private FetcherService fetcherService;
-  @Autowired private GooglePublisherService publisherService;
-  @PersistenceContext private EntityManager entityManager;
+  @Autowired
+  private FetcherService fetcherService;
+  @Autowired
+  private GooglePublisherService publisherService;
+  @PersistenceContext
+  private EntityManager entityManager;
 
   public OptimizerService() {
     this.statementBuilder = new BigQueryMaterializedViewStatementBuilder();

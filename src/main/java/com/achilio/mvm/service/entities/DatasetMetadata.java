@@ -21,7 +21,8 @@ public class DatasetMetadata {
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Long id;
 
-  @ManyToOne private ProjectMetadata projectMetadata;
+  @ManyToOne
+  private ProjectMetadata projectMetadata;
 
   @Column(name = "enabled", nullable = false)
   private boolean enabled;

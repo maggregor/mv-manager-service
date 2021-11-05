@@ -12,11 +12,23 @@ import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import com.google.api.gax.paging.Page;
 import com.google.auth.oauth2.GoogleCredentials;
-import com.google.cloud.bigquery.*;
+import com.google.cloud.bigquery.BigQuery;
+import com.google.cloud.bigquery.BigQueryException;
+import com.google.cloud.bigquery.BigQueryOptions;
+import com.google.cloud.bigquery.Dataset;
+import com.google.cloud.bigquery.DatasetId;
+import com.google.cloud.bigquery.Field;
+import com.google.cloud.bigquery.Job;
+import com.google.cloud.bigquery.JobStatistics;
+import com.google.cloud.bigquery.QueryJobConfiguration;
+import com.google.cloud.bigquery.QueryStage;
+import com.google.cloud.bigquery.Schema;
+import com.google.cloud.bigquery.StandardTableDefinition;
+import com.google.cloud.bigquery.Table;
+import com.google.cloud.bigquery.TableId;
 import com.google.cloud.resourcemanager.Project;
 import com.google.cloud.resourcemanager.ResourceManager;
 import com.google.cloud.resourcemanager.ResourceManagerOptions;
-import com.google.common.collect.Lists;
 import com.google.zetasql.ZetaSQLType;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -25,6 +37,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -79,27 +92,33 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     List<FetchedQuery> fetchedQueries = new ArrayList<>();
     for (Job job : jobs.getValues()) {
       if (job.getConfiguration() instanceof QueryJobConfiguration) {
+        if (job.getStatus().getError() != null) {
+          continue;
+        }
         QueryJobConfiguration queryJobConfiguration = job.getConfiguration();
         String jobQuery = queryJobConfiguration.getQuery();
         // Should we optimize query sent like SQL script ?
         // TODO: Split hard by ; really sure?
         String[] queries = jobQuery.split(";");
-
-          for (String query : queries) {
-            if (!jobQuery.toUpperCase().startsWith("SELECT")
-                    || jobQuery.toUpperCase().contains("INFORMATION_SCHEMA")) {
-              continue;
-            }
+        for (String query : queries) {
+          if (!query.toUpperCase().startsWith("SELECT")
+              || query.toUpperCase().contains("INFORMATION_SCHEMA")) {
+            continue;
+          }
+          try {
             JobStatistics.QueryStatistics queryStatistics = job.getStatistics();
-            Long billed = queryStatistics.getTotalBytesBilled();
-            long cost = billed == null ? -1 : billed;
             boolean usingManagedMV = containsMVMUsageInQueryStages(queryStatistics.getQueryPlan());
-            FetchedQuery fetchedQuery = FetchedQueryFactory.createFetchedQuery(query, cost);
+            FetchedQuery fetchedQuery = FetchedQueryFactory.createFetchedQuery(query);
             fetchedQuery.setProjectId(projectId);
             fetchedQuery.setUsingManagedMV(usingManagedMV);
+            fetchedQuery.setBilledBytes(queryStatistics.getTotalBytesBilled());
+            fetchedQuery.setProcessedBytes(queryStatistics.getTotalBytesProcessed());
+            fetchedQuery.setUseCache(BooleanUtils.isTrue(queryStatistics.getCacheHit()));
             fetchedQueries.add(fetchedQuery);
-           //Lists.transform(queryStatistics.getQueryPlan(), QueryStage.);
+          } catch (Exception e) {
+            e.printStackTrace();
           }
+        }
       }
     }
     return fetchedQueries;
@@ -122,8 +141,8 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
             return false;
           }
           for (String subStep : queryStep.getSubsteps()) {
-            if(StringUtils.containsIgnoreCase(subStep, "FROM")
-                    && StringUtils.containsIgnoreCase(subStep, "mvm_")) {
+            if (StringUtils.containsIgnoreCase(subStep, "FROM")
+                && StringUtils.containsIgnoreCase(subStep, "mvm_")) {
               return true;
             }
           }
@@ -180,19 +199,21 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
             });
     return tables;
   }
+
   public List<FetchedTable> fetchTableNamesInDataset(String datasetName) {
     List<FetchedTable> tables = new LinkedList<>();
     bigquery
-            .listTables(datasetName)
-            .getValues()
-            .forEach(
-                    tableName -> {
-                        tables.add(new DefaultFetchedTable(projectId, datasetName, tableName.getFriendlyName()));
-                    });
+        .listTables(datasetName)
+        .getValues()
+        .forEach(
+            tableName -> {
+              tables.add(
+                  new DefaultFetchedTable(projectId, datasetName, tableName.getFriendlyName()));
+            });
     return tables;
   }
 
-    public List<FetchedTable> fetchTablesInDataset(String datasetName) {
+  public List<FetchedTable> fetchTablesInDataset(String datasetName) {
     List<FetchedTable> tables = new LinkedList<>();
     bigquery
         .listTables(datasetName)
