@@ -93,7 +93,7 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
             JobStatistics.QueryStatistics queryStatistics = job.getStatistics();
             Long billed = queryStatistics.getTotalBytesBilled();
             long cost = billed == null ? -1 : billed;
-            boolean usingManagedMV = containsMVManagedUsageInQueryStages(queryStatistics.getQueryPlan());
+            boolean usingManagedMV = containsMVMUsageInQueryStages(queryStatistics.getQueryPlan());
             FetchedQuery fetchedQuery = FetchedQueryFactory.createFetchedQuery(query, cost);
             fetchedQuery.setProjectId(projectId);
             fetchedQuery.setUsingManagedMV(usingManagedMV);
@@ -105,7 +105,7 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     return fetchedQueries;
   }
 
-  private boolean containsMVManagedUsageInQueryStages(List<QueryStage> stages) {
+  private boolean containsMVMUsageInQueryStages(List<QueryStage> stages) {
     try {
       if (stages == null) {
         LOGGER.error("Skipped plan analysis: no stages");
@@ -122,8 +122,10 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
             return false;
           }
           for (String subStep : queryStep.getSubsteps()) {
-            return StringUtils.containsIgnoreCase(subStep, "FROM")
-                    && StringUtils.containsIgnoreCase(subStep, "mvm_");
+            if(StringUtils.containsIgnoreCase(subStep, "FROM")
+                    && StringUtils.containsIgnoreCase(subStep, "mvm_")) {
+              return true;
+            }
           }
         }
       }
