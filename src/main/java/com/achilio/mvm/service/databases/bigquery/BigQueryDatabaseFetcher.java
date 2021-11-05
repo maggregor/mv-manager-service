@@ -16,7 +16,6 @@ import com.google.cloud.bigquery.*;
 import com.google.cloud.resourcemanager.Project;
 import com.google.cloud.resourcemanager.ResourceManager;
 import com.google.cloud.resourcemanager.ResourceManagerOptions;
-import com.google.common.collect.Lists;
 import com.google.zetasql.ZetaSQLType;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -67,7 +66,7 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
   @Override
   public List<FetchedQuery> fetchAllQueriesFrom(Date start) {
     List<BigQuery.JobListOption> options = defaultJobListOptions();
-    options.add(BigQuery.JobListOption.allUsers());
+    options.add(JobListOption.allUsers());
     if (start != null) {
       options.add(BigQuery.JobListOption.minCreationTime(start.getTime()));
     }
@@ -84,53 +83,42 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
         // Should we optimize query sent like SQL script ?
         // TODO: Split hard by ; really sure?
         String[] queries = jobQuery.split(";");
-
-          for (String query : queries) {
-            if (!jobQuery.toUpperCase().startsWith("SELECT")
-                    || jobQuery.toUpperCase().contains("INFORMATION_SCHEMA")) {
-              continue;
-            }
+        for (String query : queries) {
+          if (!jobQuery.toUpperCase().startsWith("SELECT")
+              || jobQuery.toUpperCase().contains("INFORMATION_SCHEMA")) {
+            continue;
+          }
+          //
+          try {
             JobStatistics.QueryStatistics queryStatistics = job.getStatistics();
             Long billed = queryStatistics.getTotalBytesBilled();
             long cost = billed == null ? -1 : billed;
-            boolean usingManagedMV = containsMVMUsageInQueryStages(queryStatistics.getQueryPlan());
+            boolean usingManagedMV =
+                containsMVManagedUsageInQueryStages(queryStatistics.getQueryPlan());
             FetchedQuery fetchedQuery = FetchedQueryFactory.createFetchedQuery(query, cost);
             fetchedQuery.setProjectId(projectId);
             fetchedQuery.setUsingManagedMV(usingManagedMV);
             fetchedQueries.add(fetchedQuery);
-           //Lists.transform(queryStatistics.getQueryPlan(), QueryStage.);
+          } catch (Exception e) {
+            LOGGER.error("Error fetching query: {}", query, e);
           }
+        }
       }
     }
     return fetchedQueries;
   }
 
-  private boolean containsMVMUsageInQueryStages(List<QueryStage> stages) {
-    try {
-      if (stages == null) {
-        LOGGER.error("Skipped plan analysis: no stages");
-        return false;
-      }
-      for (QueryStage queryStage : stages) {
-        if (queryStage == null || queryStage.getSteps() == null) {
-          LOGGER.error("Skipped plan analysis: no steps");
-          return false;
-        }
-        for (QueryStage.QueryStep queryStep : queryStage.getSteps()) {
-          if (queryStep.getSubsteps() == null) {
-            LOGGER.error("Skipped plan analysis: no substeps");
-            return false;
-          }
-          for (String subStep : queryStep.getSubsteps()) {
-            if(StringUtils.containsIgnoreCase(subStep, "FROM")
-                    && StringUtils.containsIgnoreCase(subStep, "mvm_")) {
-              return true;
-            }
-          }
+  private boolean containsMVManagedUsageInQueryStages(List<QueryStage> stages) {
+    if (stages == null) {
+      LOGGER.debug("Skipped plan analysis: stage null");
+      return false;
+    }
+    for (QueryStage queryStage : stages) {
+      for (QueryStage.QueryStep queryStep : queryStage.getSteps()) {
+        if (containsSubStepUsingMVM(queryStep)) {
+          return true;
         }
       }
-    } catch (Exception e) {
-      e.printStackTrace();
     }
     return false;
   }
@@ -180,19 +168,21 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
             });
     return tables;
   }
+
   public List<FetchedTable> fetchTableNamesInDataset(String datasetName) {
     List<FetchedTable> tables = new LinkedList<>();
     bigquery
-            .listTables(datasetName)
-            .getValues()
-            .forEach(
-                    tableName -> {
-                        tables.add(new DefaultFetchedTable(projectId, datasetName, tableName.getFriendlyName()));
-                    });
+        .listTables(datasetName)
+        .getValues()
+        .forEach(
+            tableName -> {
+              tables.add(
+                  new DefaultFetchedTable(projectId, datasetName, tableName.getFriendlyName()));
+            });
     return tables;
   }
 
-    public List<FetchedTable> fetchTablesInDataset(String datasetName) {
+  public List<FetchedTable> fetchTablesInDataset(String datasetName) {
     List<FetchedTable> tables = new LinkedList<>();
     bigquery
         .listTables(datasetName)
