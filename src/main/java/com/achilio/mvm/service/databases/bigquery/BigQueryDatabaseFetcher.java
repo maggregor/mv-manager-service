@@ -13,6 +13,7 @@ import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import com.google.api.gax.paging.Page;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.bigquery.BigQuery;
+import com.google.cloud.bigquery.BigQuery.JobListOption;
 import com.google.cloud.bigquery.BigQueryException;
 import com.google.cloud.bigquery.BigQueryOptions;
 import com.google.cloud.bigquery.Dataset;
@@ -22,6 +23,7 @@ import com.google.cloud.bigquery.Job;
 import com.google.cloud.bigquery.JobStatistics;
 import com.google.cloud.bigquery.QueryJobConfiguration;
 import com.google.cloud.bigquery.QueryStage;
+import com.google.cloud.bigquery.QueryStage.QueryStep;
 import com.google.cloud.bigquery.Schema;
 import com.google.cloud.bigquery.StandardTableDefinition;
 import com.google.cloud.bigquery.Table;
@@ -80,7 +82,7 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
   @Override
   public List<FetchedQuery> fetchAllQueriesFrom(Date start) {
     List<BigQuery.JobListOption> options = defaultJobListOptions();
-    options.add(BigQuery.JobListOption.allUsers());
+    options.add(JobListOption.allUsers());
     if (start != null) {
       options.add(BigQuery.JobListOption.minCreationTime(start.getTime()));
     }
@@ -107,7 +109,8 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
           }
           try {
             JobStatistics.QueryStatistics queryStatistics = job.getStatistics();
-            boolean usingManagedMV = containsMVMUsageInQueryStages(queryStatistics.getQueryPlan());
+            boolean usingManagedMV = containsMVManagedUsageInQueryStages(
+                queryStatistics.getQueryPlan());
             FetchedQuery fetchedQuery = FetchedQueryFactory.createFetchedQuery(query);
             fetchedQuery.setProjectId(projectId);
             fetchedQuery.setUsingManagedMV(usingManagedMV);
@@ -116,7 +119,7 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
             fetchedQuery.setUseCache(BooleanUtils.isTrue(queryStatistics.getCacheHit()));
             fetchedQueries.add(fetchedQuery);
           } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error("Error fetching query: {}", query, e);
           }
         }
       }
@@ -124,34 +127,31 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     return fetchedQueries;
   }
 
-  private boolean containsMVMUsageInQueryStages(List<QueryStage> stages) {
-    try {
-      if (stages == null) {
-        LOGGER.error("Skipped plan analysis: no stages");
-        return false;
-      }
-      for (QueryStage queryStage : stages) {
-        if (queryStage == null || queryStage.getSteps() == null) {
-          LOGGER.error("Skipped plan analysis: no steps");
-          return false;
-        }
-        for (QueryStage.QueryStep queryStep : queryStage.getSteps()) {
-          if (queryStep.getSubsteps() == null) {
-            LOGGER.error("Skipped plan analysis: no substeps");
-            return false;
-          }
-          for (String subStep : queryStep.getSubsteps()) {
-            if (StringUtils.containsIgnoreCase(subStep, "FROM")
-                && StringUtils.containsIgnoreCase(subStep, "mvm_")) {
-              return true;
-            }
-          }
+
+  private boolean containsMVManagedUsageInQueryStages(List<QueryStage> stages) {
+    if (stages == null) {
+      LOGGER.debug("Skipped plan analysis: stage null");
+      return false;
+    }
+    for (QueryStage queryStage : stages) {
+      for (QueryStage.QueryStep queryStep : queryStage.getSteps()) {
+        if (containsSubStepUsingMVM(queryStep)) {
+          return true;
         }
       }
-    } catch (Exception e) {
-      e.printStackTrace();
     }
     return false;
+  }
+
+  /**
+   * In the query substeps, filter only the steps that hit a managed materialized view (mmv)
+   *
+   * @param steps - A list of QueryStage#QueryStep from fetched BigQuery history.
+   * @return boolean - True if the query plan used a MVM.
+   */
+  private boolean containsSubStepUsingMVM(QueryStep steps) {
+    return steps.getSubsteps().stream()
+        .anyMatch(step -> step.contains("FROM") && step.contains("mvm_"));
   }
 
   private List<BigQuery.JobListOption> defaultJobListOptions() {
@@ -208,7 +208,8 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
         .forEach(
             tableName -> {
               tables.add(
-                  new DefaultFetchedTable(projectId, datasetName, tableName.getFriendlyName()));
+                  new DefaultFetchedTable(projectId, datasetName,
+                      tableName.getFriendlyName()));
             });
     return tables;
   }
