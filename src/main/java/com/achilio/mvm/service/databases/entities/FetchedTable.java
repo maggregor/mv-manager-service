@@ -15,7 +15,7 @@ public interface FetchedTable {
   String getProjectId();
 
   /**
-   * The schema dataset of the table on which metadata was retrieved. Example: {@code default}
+   * The dataset of the table on which metadata was retrieved. Example: {@code default}
    *
    * @return the dataset name of the table on which metadata was retrieved.
    */

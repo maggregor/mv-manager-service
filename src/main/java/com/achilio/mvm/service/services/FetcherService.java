@@ -15,6 +15,7 @@ import com.achilio.mvm.service.entities.statistics.QueryStatistics;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -62,15 +63,14 @@ public class FetcherService {
 
   public FetchedTable fetchTable(String projectId, String datasetName, String tableName)
       throws Exception {
-    return fetcher(projectId).fetchTable(projectId, datasetName, tableName);
+    return fetcher(projectId).fetchTable(datasetName, tableName);
   }
 
-  public List<FetchedTable> fetchAllTables(String projectId) throws Exception {
+  public Set<FetchedTable> fetchAllTables(String projectId) {
     return fetcher(projectId).fetchAllTables();
   }
 
-  public List<FetchedTable> fetchTableNamesInDataset(String projectId, String datasetName)
-      throws Exception {
+  public Set<FetchedTable> fetchTableNamesInDataset(String projectId, String datasetName) {
     return fetcher(projectId).fetchTableNamesInDataset(datasetName);
   }
 
@@ -78,15 +78,15 @@ public class FetcherService {
     List<FetchedQuery> allSelect = fetcher(projectId).fetchAllQueriesFrom(getPastDate(lastDays));
     // Select using materialized view
     List<FetchedQuery> selectIn = allSelect.stream()
-        .filter(FetchedQuery::isUsingManagedMV)
+        .filter(FetchedQuery::isUsingMaterializedView)
         .collect(Collectors.toList());
     // Select using cache
     List<FetchedQuery> selectCached = allSelect.stream()
-        .filter(FetchedQuery::isCached)
+        .filter(FetchedQuery::isUsingCache)
         .collect(Collectors.toList());
     // Select using table source
     List<FetchedQuery> selectOut = allSelect.stream()
-        .filter(q -> !q.isUsingManagedMV() && !q.isCached())
+        .filter(q -> !q.isUsingMaterializedView() && !q.isUsingCache())
         .collect(Collectors.toList());
     //
     GlobalQueryStatistics global = new GlobalQueryStatistics();
@@ -97,7 +97,7 @@ public class FetcherService {
   }
 
   public int fetchMMVCount(String projectId) throws Exception {
-    return fetcher(projectId).fetchMMVCount(projectId);
+    return fetcher(projectId).fetchMMVCount();
   }
 
   private DatabaseFetcher fetcher() throws Exception {

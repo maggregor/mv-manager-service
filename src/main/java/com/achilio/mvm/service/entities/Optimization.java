@@ -1,6 +1,7 @@
 package com.achilio.mvm.service.entities;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -8,6 +9,7 @@ import javax.persistence.EntityListeners;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -19,10 +21,11 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 @EntityListeners(AuditingEntityListener.class)
 public class Optimization {
 
+  @OneToMany
+  List<OptimizationResult> results;
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Long id;
-
   @CreatedDate
   @Column(name = "created_date", nullable = false)
   private Date createdDate;
@@ -30,48 +33,32 @@ public class Optimization {
   @Column(name = "project_id", nullable = false)
   private String projectId;
 
-  @Column(name = "region_id", nullable = false)
-  private String regionId;
-
-  @Column(name = "dataset_name", nullable = false)
-  private String datasetName;
-
   @Column(name = "approval_required", nullable = false)
   private boolean approvalRequired;
 
-  public Optimization(
-      String projectId, String regionId, String datasetName, boolean approvalRequired) {
-    this.projectId = projectId;
-    this.regionId = regionId;
-    this.datasetName = datasetName;
-    this.approvalRequired = approvalRequired;
-  }
-
   public Optimization() {
+
+  }
+  
+  public Optimization(
+      final String projectId) {
+    this.projectId = projectId;
   }
 
   public Long getId() {
     return id;
   }
 
+  public String getProjectId() {
+    return this.projectId;
+  }
+
   public Date getCreatedDate() {
     return createdDate;
   }
 
-  public String getProjectId() {
-    return projectId;
-  }
-
-  public String getRegionId() {
-    return projectId;
-  }
-
-  public String getDatasetName() {
-    return datasetName;
-  }
-
-  public boolean isApprovalRequired() {
-    return approvalRequired;
+  public void setOptimizationResults(final List<OptimizationResult> results) {
+    this.results = results;
   }
 
   @Override
@@ -84,13 +71,12 @@ public class Optimization {
     }
     Optimization that = (Optimization) o;
     return createdDate == that.createdDate
-        && approvalRequired == that.approvalRequired
         && id.equals(that.id)
         && projectId.equals(that.projectId);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, createdDate, projectId, approvalRequired);
+    return Objects.hash(id, createdDate, projectId);
   }
 }

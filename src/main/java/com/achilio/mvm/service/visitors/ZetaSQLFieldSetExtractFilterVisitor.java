@@ -1,14 +1,9 @@
-package com.achilio.mvm.service.extract;
+package com.achilio.mvm.service.visitors;
 
-import com.achilio.mvm.service.extract.fields.ReferenceField;
-import com.google.zetasql.SimpleCatalog;
+import com.achilio.mvm.service.visitors.fields.ReferenceField;
 import com.google.zetasql.resolvedast.ResolvedNodes;
 
 public class ZetaSQLFieldSetExtractFilterVisitor extends ZetaSQLFieldSetExtractVisitor {
-
-  public ZetaSQLFieldSetExtractFilterVisitor(SimpleCatalog catalog) {
-    super(catalog);
-  }
 
   @Override
   public void visit(ResolvedNodes.ResolvedColumnRef node) {

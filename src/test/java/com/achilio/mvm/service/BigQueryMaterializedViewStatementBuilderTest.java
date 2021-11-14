@@ -5,11 +5,15 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.achilio.mvm.service.databases.MaterializedViewStatementBuilder;
 import com.achilio.mvm.service.databases.bigquery.BigQueryMaterializedViewStatementBuilder;
-import com.achilio.mvm.service.extract.fields.AggregateField;
-import com.achilio.mvm.service.extract.fields.DefaultFieldSet;
-import com.achilio.mvm.service.extract.fields.FieldSet;
-import com.achilio.mvm.service.extract.fields.FunctionField;
-import com.achilio.mvm.service.extract.fields.ReferenceField;
+import com.achilio.mvm.service.databases.entities.DefaultFetchedTable;
+import com.achilio.mvm.service.databases.entities.FetchedTable;
+import com.achilio.mvm.service.visitors.fields.AggregateField;
+import com.achilio.mvm.service.visitors.fields.DefaultFieldSet;
+import com.achilio.mvm.service.visitors.fields.FieldSet;
+import com.achilio.mvm.service.visitors.fields.FunctionField;
+import com.achilio.mvm.service.visitors.fields.ReferenceField;
+import java.util.HashSet;
+import java.util.Set;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -28,9 +32,9 @@ public class BigQueryMaterializedViewStatementBuilderTest {
   @Before
   public void setup() {
     fieldSet = new DefaultFieldSet();
-    fieldSet.setProjectId("myproject");
-    fieldSet.setDataset("mydataset");
-    fieldSet.setTable("mytable");
+    Set<FetchedTable> tables = new HashSet<>();
+    tables.add(new DefaultFetchedTable("myproject", "mydataset", "mytable"));
+    fieldSet.setReferenceTables(tables);
   }
 
   @Test

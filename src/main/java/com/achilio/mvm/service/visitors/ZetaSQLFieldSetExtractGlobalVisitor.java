@@ -1,8 +1,8 @@
-package com.achilio.mvm.service.extract;
+package com.achilio.mvm.service.visitors;
 
-import com.achilio.mvm.service.extract.fields.AggregateField;
-import com.achilio.mvm.service.extract.fields.FunctionField;
-import com.achilio.mvm.service.extract.fields.ReferenceField;
+import com.achilio.mvm.service.visitors.fields.AggregateField;
+import com.achilio.mvm.service.visitors.fields.FunctionField;
+import com.achilio.mvm.service.visitors.fields.ReferenceField;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.zetasql.Analyzer;
@@ -21,8 +21,13 @@ import org.apache.commons.lang3.StringUtils;
 
 public class ZetaSQLFieldSetExtractGlobalVisitor extends ZetaSQLFieldSetExtractVisitor {
 
+  private final static String NOT_REGULAR_TABLE_PREFIX = "$";
+
+  // Useful to build SQL expression from ResolvedNode.
+  private final SimpleCatalog catalog;
+
   ZetaSQLFieldSetExtractGlobalVisitor(SimpleCatalog catalog) {
-    super(catalog);
+    this.catalog = catalog;
   }
 
   /**
@@ -42,8 +47,7 @@ public class ZetaSQLFieldSetExtractGlobalVisitor extends ZetaSQLFieldSetExtractV
    */
   @Override
   public void visit(ResolvedFilterScan node) {
-    ZetaSQLFieldSetExtractFilterVisitor visitor =
-        new ZetaSQLFieldSetExtractFilterVisitor(this.getCatalog());
+    FieldSetExtractVisitor visitor = new ZetaSQLFieldSetExtractFilterVisitor();
     node.getFilterExpr().accept(visitor);
     this.merge(visitor.fieldSet());
     super.visit(node);
@@ -51,8 +55,6 @@ public class ZetaSQLFieldSetExtractGlobalVisitor extends ZetaSQLFieldSetExtractV
 
   /**
    * Visit the computed columns. A computed columns may be an alias on function or on ref column.
-   *
-   * @param node
    */
   @Override
   public void visit(ResolvedComputedColumn node) {
@@ -69,8 +71,6 @@ public class ZetaSQLFieldSetExtractGlobalVisitor extends ZetaSQLFieldSetExtractV
 
   /**
    * Add a ResolvedColumn as ReferenceField. Checks if the ResolvedColumn isn't an alias.
-   *
-   * @param column
    */
   private void addReference(ResolvedColumn column) {
     Preconditions.checkNotNull(column, "Reference is null.");
@@ -82,8 +82,6 @@ public class ZetaSQLFieldSetExtractGlobalVisitor extends ZetaSQLFieldSetExtractV
 
   /**
    * Add ResolvedExpr as reference Simple cast method.
-   *
-   * @param expr
    */
   private void addReference(ResolvedExpr expr) {
     final ResolvedColumnRef ref = (ResolvedColumnRef) expr;
@@ -102,7 +100,7 @@ public class ZetaSQLFieldSetExtractGlobalVisitor extends ZetaSQLFieldSetExtractV
   }
 
   private String buildSQLFunction(ResolvedFunctionCallBase func) {
-    String expression = Analyzer.buildExpression(func, this.getCatalog());
+    String expression = Analyzer.buildExpression(func, catalog);
     return hackMappingColumnsInFunction(expression, func);
   }
 
@@ -115,7 +113,7 @@ public class ZetaSQLFieldSetExtractGlobalVisitor extends ZetaSQLFieldSetExtractV
   private boolean isColumnFromRegularTable(final ResolvedColumn column) {
     Preconditions.checkNotNull(column, "ResolvedColumn is null");
     final String tableName = column.getTableName();
-    return StringUtils.isNotEmpty(tableName) && !tableName.startsWith("$");
+    return StringUtils.isNotEmpty(tableName) && !tableName.startsWith(NOT_REGULAR_TABLE_PREFIX);
   }
 
   private String hackMappingColumnsInFunction(String expression, ResolvedFunctionCallBase expr) {
@@ -129,8 +127,8 @@ public class ZetaSQLFieldSetExtractGlobalVisitor extends ZetaSQLFieldSetExtractV
     return expression;
   }
 
-  private void hackFindColumnsRefInNode(
-      ImmutableList<ResolvedExpr> exprs, List<ResolvedColumnRef> refs) {
+  private void hackFindColumnsRefInNode(ImmutableList<ResolvedExpr> exprs,
+      List<ResolvedColumnRef> refs) {
     for (ResolvedExpr expr : exprs) {
       if (expr instanceof ResolvedFunctionCallBase) {
         hackFindColumnsRefInNode(((ResolvedFunctionCallBase) expr).getArgumentList(), refs);

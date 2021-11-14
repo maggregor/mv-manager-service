@@ -82,12 +82,21 @@ public class OptimizationEvent {
   }
 
   public enum Type {
-    IN_PROGRESS,
-    APPROVAL_PENDING,
-    FINISHED,
-    DECLINED,
-    SENT,
-    DEPLOYED,
-    ERROR,
+    // Retrieve queries from history
+    FETCHING_QUERIES,
+    // Retrieve datasets and tables structures
+    FETCHING_MODELS,
+    // Keep the eligible queries
+    FILTER_ELIGIBLE_QUERIES,
+    // Extract columns, functions and expression from queries
+    EXTRACTING_FIELDS,
+    // Optimizing
+    OPTIMIZING_FIELDS,
+    // Materialized view statements building
+    BUILDING_OPTIMIZATION,
+    // Publishing on pub/sub system
+    PUBLISHING,
+    // Publishing done
+    PUBLISHED,
   }
 }

@@ -1,5 +1,7 @@
-package com.achilio.mvm.service.extract.fields;
+package com.achilio.mvm.service.visitors.fields;
 
+import com.achilio.mvm.service.databases.entities.FetchedTable;
+import com.achilio.mvm.service.entities.statistics.QueryStatistics;
 import java.util.Set;
 
 /**
@@ -9,18 +11,6 @@ import java.util.Set;
  */
 public interface FieldSet {
 
-  String getProjectId();
-
-  void setProjectId(String projectName);
-
-  String getDataset();
-
-  void setDataset(String datasetName);
-
-  String getTable();
-
-  void setTable(String tableName);
-
   /**
    * The fields which this set of fields handle.
    *
@@ -28,19 +18,13 @@ public interface FieldSet {
    */
   Set<Field> fields();
 
-  /**
-   * The potential total of scanned bytes coverable by this set of field.
-   *
-   * @return the potential total of scanned bytes coverable by this set of field.
-   */
-  long scannedBytesMb();
+  Set<FetchedTable> getReferenceTables();
 
-  /**
-   * The potential number of usage this set of field has received.
-   *
-   * @return the potential number of usage this set of field has received.
-   */
-  int hits();
+  void setReferenceTables(Set<FetchedTable> referenceTables);
+
+  QueryStatistics getStatistics();
+
+  void setStatistics(QueryStatistics statistics);
 
   /**
    * Add new Field to the field set.

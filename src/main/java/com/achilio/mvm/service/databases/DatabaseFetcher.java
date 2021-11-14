@@ -5,14 +5,14 @@ import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
-import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Database fetcher interface
  */
-public interface DatabaseFetcher {
+public interface DatabaseFetcher<T> {
 
   /**
    * Returns history queries for a given table.
@@ -32,12 +32,11 @@ public interface DatabaseFetcher {
   /**
    * Returns metadata for a given table.
    *
-   * @param projectId
    * @param datasetName
    * @param tableName
    * @return - FetchedTable of targeted table
    */
-  FetchedTable fetchTable(String projectId, String datasetName, String tableName);
+  FetchedTable fetchTable(String datasetName, String tableName);
 
   /**
    * Returns all projects id.
@@ -68,13 +67,12 @@ public interface DatabaseFetcher {
    */
   FetchedDataset fetchDataset(String datasetName);
 
-  List<FetchedTable> fetchAllTables();
+  Set<FetchedTable> fetchAllTables();
 
-  List<FetchedTable> fetchTablesInDataset(String datasetName);
+  Set<FetchedTable> fetchTablesInDataset(String datasetName);
 
-  List<FetchedTable> fetchTableNamesInDataset(String datasetName);
+  Set<FetchedTable> fetchTableNamesInDataset(String datasetName);
 
-  int fetchMMVCount(String projectId);
+  int fetchMMVCount();
 
-  long totalScannedBytesSince(String projectId, ZonedDateTime time);
 }

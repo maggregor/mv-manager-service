@@ -1,10 +1,10 @@
 package com.achilio.mvm.service;
 
-import com.achilio.mvm.service.extract.fields.AggregateField;
-import com.achilio.mvm.service.extract.fields.DefaultFieldSet;
-import com.achilio.mvm.service.extract.fields.FieldSet;
-import com.achilio.mvm.service.extract.fields.FunctionField;
-import com.achilio.mvm.service.extract.fields.ReferenceField;
+import com.achilio.mvm.service.visitors.fields.AggregateField;
+import com.achilio.mvm.service.visitors.fields.DefaultFieldSet;
+import com.achilio.mvm.service.visitors.fields.FieldSet;
+import com.achilio.mvm.service.visitors.fields.FunctionField;
+import com.achilio.mvm.service.visitors.fields.ReferenceField;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -14,21 +14,18 @@ import org.springframework.test.context.junit4.SpringRunner;
 public class DefaultFieldSetTest {
 
   private static final FieldSet FIELD_SET_1 =
-      FieldSetHelper.createFieldSet(
-          10, 100, new AggregateField("SUM(col1)"), new FunctionField("CONCAT(col1, col2)"));
+      FieldSetHelper.createFieldSet(new AggregateField("SUM(col1)"),
+          new FunctionField("CONCAT(col1, col2)"));
   private static final FieldSet FIELD_SET_SAME_AS_1 =
-      FieldSetHelper.createFieldSet(
-          10, 100, new AggregateField("SUM(col1)"), new FunctionField("CONCAT(col1, col2)"));
+      FieldSetHelper.createFieldSet(new AggregateField("SUM(col1)"),
+          new FunctionField("CONCAT(col1, col2)"));
   private static final FieldSet FIELD_SET_SAME_AS_1_DIFF_SORT =
-      FieldSetHelper.createFieldSet(
-          10, 100, new FunctionField("CONCAT(col1, col2)"), new AggregateField("SUM(col1)"));
+      FieldSetHelper.createFieldSet(new FunctionField("CONCAT(col1, col2)"),
+          new AggregateField("SUM(col1)"));
   private static final FieldSet FIELD_SET_2 =
-      FieldSetHelper.createFieldSet(
-          20, 1000, new ReferenceField("col1"), new ReferenceField("col2"));
+      FieldSetHelper.createFieldSet(new ReferenceField("col1"), new ReferenceField("col2"));
   private static final FieldSet FIELD_SET_3 =
       FieldSetHelper.createFieldSet(
-          40,
-          4000,
           new ReferenceField("col1"),
           new AggregateField("MAX(col2)"),
           new ReferenceField("col3"));

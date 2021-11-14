@@ -1,6 +1,6 @@
 package com.achilio.mvm.service.databases;
 
-import com.achilio.mvm.service.extract.fields.FieldSet;
+import com.achilio.mvm.service.visitors.fields.FieldSet;
 
 public interface MaterializedViewStatementBuilder {
 

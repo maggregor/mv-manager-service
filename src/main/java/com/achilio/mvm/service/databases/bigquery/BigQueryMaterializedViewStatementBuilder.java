@@ -1,8 +1,9 @@
 package com.achilio.mvm.service.databases.bigquery;
 
 import com.achilio.mvm.service.databases.MaterializedViewStatementBuilder;
-import com.achilio.mvm.service.extract.fields.Field;
-import com.achilio.mvm.service.extract.fields.FieldSet;
+import com.achilio.mvm.service.databases.entities.FetchedTable;
+import com.achilio.mvm.service.visitors.fields.Field;
+import com.achilio.mvm.service.visitors.fields.FieldSet;
 import com.google.common.base.Preconditions;
 import java.util.StringJoiner;
 
@@ -72,10 +73,14 @@ public class BigQueryMaterializedViewStatementBuilder implements MaterializedVie
   }
 
   public String buildTableReference(FieldSet fieldSet) {
-    Preconditions.checkNotNull(fieldSet.getProjectId(), "Project ID is required");
-    Preconditions.checkNotNull(fieldSet.getDataset(), "Dataset name is required");
-    Preconditions.checkNotNull(fieldSet.getTable(), "Table name is required.");
-    return String.format(
-        "`%s`.`%s`.`%s`", fieldSet.getProjectId(), fieldSet.getDataset(), fieldSet.getTable());
+    final FetchedTable table = fieldSet.getReferenceTables().iterator().next();
+    final String projectId = table.getProjectId();
+    final String datasetName = table.getDatasetName();
+    final String tableName = table.getTableName();
+    Preconditions.checkNotNull(table, "Table is required");
+    Preconditions.checkNotNull(projectId, "Project ID is required");
+    Preconditions.checkNotNull(datasetName, "Dataset name is required");
+    Preconditions.checkNotNull(tableName, "Table name is required.");
+    return String.format("`%s`.`%s`.`%s`", projectId, datasetName, tableName);
   }
 }

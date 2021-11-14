@@ -2,22 +2,20 @@ package com.achilio.mvm.service;
 
 import static com.achilio.mvm.service.databases.entities.FetchedTableHelper.createFetchedTable;
 
-import com.achilio.mvm.service.databases.entities.DefaultFetchedTable;
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedQueryFactory;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
-import com.achilio.mvm.service.extract.FieldSetExtract;
-import com.achilio.mvm.service.extract.fields.AggregateField;
-import com.achilio.mvm.service.extract.fields.Field;
-import com.achilio.mvm.service.extract.fields.FieldSet;
-import com.achilio.mvm.service.extract.fields.FieldSetFactory;
-import com.achilio.mvm.service.extract.fields.FunctionField;
-import com.achilio.mvm.service.extract.fields.ReferenceField;
+import com.achilio.mvm.service.visitors.FieldSetAnalyzer;
+import com.achilio.mvm.service.visitors.fields.AggregateField;
+import com.achilio.mvm.service.visitors.fields.Field;
+import com.achilio.mvm.service.visitors.fields.FieldSet;
+import com.achilio.mvm.service.visitors.fields.FieldSetFactory;
+import com.achilio.mvm.service.visitors.fields.FunctionField;
+import com.achilio.mvm.service.visitors.fields.ReferenceField;
 import com.google.zetasql.ZetaSQLType;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -37,14 +35,14 @@ public abstract class FieldSetExtractTest {
           {"ts", ZetaSQLType.TypeKind.TYPE_TIMESTAMP.name()}
       };
 
-  private FieldSetExtract extractor;
+  private FieldSetAnalyzer extractor;
 
-  protected abstract FieldSetExtract createFieldSetExtract(
-      String projectName, List<FetchedTable> metadata);
+  protected abstract FieldSetAnalyzer createFieldSetExtract(String projectId,
+      Set<FetchedTable> metadata);
 
   @Before
   public void before() {
-    List<FetchedTable> tables = new ArrayList<>();
+    Set<FetchedTable> tables = new HashSet<>();
     tables.add(createFetchedTable("myproject.mydataset.mytable", SIMPLE_TABLE_COLUMNS));
     this.extractor = createFieldSetExtract("myproject", tables);
   }
@@ -83,19 +81,27 @@ public abstract class FieldSetExtractTest {
   @Test
   public void discoverTablePaths() {
     FetchedQuery fetchedQuery;
+    FetchedTable table;
+    Iterator<FetchedTable> tableIterator;
     String statement;
     // Simple dataset and table name
     statement = "SELECT 'xxx' FROM mydataset.mytable";
     fetchedQuery = FetchedQueryFactory.createFetchedQuery(statement);
-    extractor.discoverTablePath(fetchedQuery);
-    Assert.assertEquals("mydataset", fetchedQuery.getDatasetName());
-    Assert.assertEquals("mytable", fetchedQuery.getTableName());
+    extractor.discoverFetchedTable(fetchedQuery);
+    tableIterator = fetchedQuery.getReferenceTables().iterator();
+    Assert.assertTrue(tableIterator.hasNext());
+    table = tableIterator.next();
+    Assert.assertEquals("mydataset", table.getDatasetName());
+    Assert.assertEquals("mytable", table.getTableName());
     // With back quotes
-    statement = "SELECT COUNT(*) FROM `achilio-dev.nyc_trips.mvm_123456`";
+    statement = "SELECT COUNT(*) FROM `mydataset.mytable`";
     fetchedQuery = FetchedQueryFactory.createFetchedQuery(statement);
-    extractor.discoverTablePath(fetchedQuery);
-    Assert.assertEquals("nyc_trips", fetchedQuery.getDatasetName());
-    Assert.assertEquals("mvm_123456", fetchedQuery.getTableName());
+    extractor.discoverFetchedTable(fetchedQuery);
+    tableIterator = fetchedQuery.getReferenceTables().iterator();
+    Assert.assertTrue(tableIterator.hasNext());
+    table = tableIterator.next();
+    Assert.assertEquals("mydataset", table.getDatasetName());
+    Assert.assertEquals("mytable", table.getTableName());
   }
 
   @Test
@@ -185,17 +191,6 @@ public abstract class FieldSetExtractTest {
   public void extractTablesWithProject() {
     final String query = "SELECT col1 FROM mydataset.mytable GROUP BY " + "col1";
     assertExpectedFieldSet(query, new ReferenceField("col1"));
-  }
-
-  @Test
-  public void registerFetchedTable() {
-    Map<String, String> columns = new HashMap<>();
-    columns.put("col", "TYPE_STRING");
-    final FetchedTable fetchedTable =
-        new DefaultFetchedTable("myproject", "myotherdataset", "mytable", columns);
-    extractor.registerTable(fetchedTable);
-    Assert.assertTrue(
-        extractor.isTableRegistered(fetchedTable.getDatasetName(), fetchedTable.getTableName()));
   }
 
   @Test

@@ -94,8 +94,7 @@ public class ExplorerController {
   @ApiOperation("Get all dataset for a given projectId")
   public List<TableResponse> getTables(
       @PathVariable final String projectId,
-      @PathVariable final String datasetName)
-      throws Exception {
+      @PathVariable final String datasetName) {
     return fetcherService.fetchTableNamesInDataset(projectId, datasetName).stream()
         .map(this::toTableResponse)
         .collect(Collectors.toList());

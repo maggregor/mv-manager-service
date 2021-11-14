@@ -6,14 +6,10 @@ public class OptimizationResponse {
 
   private Long id;
   private String projectId;
-  private String datasetName;
-  private String regionId;
 
   public OptimizationResponse(Optimization optimization) {
     this.id = optimization.getId();
     this.projectId = optimization.getProjectId();
-    this.datasetName = optimization.getDatasetName();
-    this.regionId = optimization.getRegionId();
   }
 
   public Long getId() {
@@ -30,21 +26,5 @@ public class OptimizationResponse {
 
   public void setProjectId(String projectId) {
     this.projectId = projectId;
-  }
-
-  public String getDatasetName() {
-    return datasetName;
-  }
-
-  public void setDatasetName(String datasetName) {
-    this.datasetName = datasetName;
-  }
-
-  public String getRegionId() {
-    return regionId;
-  }
-
-  public void setRegionId(String regionId) {
-    this.regionId = regionId;
   }
 }

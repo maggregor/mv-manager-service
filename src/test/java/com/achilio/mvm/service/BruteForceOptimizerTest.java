@@ -1,8 +1,8 @@
 package com.achilio.mvm.service;
 
-import com.achilio.mvm.service.extract.fields.FieldSet;
-import com.achilio.mvm.service.extract.fields.FunctionField;
-import com.achilio.mvm.service.extract.fields.ReferenceField;
+import com.achilio.mvm.service.visitors.fields.FieldSet;
+import com.achilio.mvm.service.visitors.fields.FunctionField;
+import com.achilio.mvm.service.visitors.fields.ReferenceField;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import org.junit.Assert;

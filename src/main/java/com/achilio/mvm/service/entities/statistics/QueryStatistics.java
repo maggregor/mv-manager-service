@@ -18,8 +18,14 @@ public class QueryStatistics {
 
   private void addQuery(FetchedQuery query) {
     incrementQueries();
-    addBilledBytes(query.getBilledBytes());
-    addProcessedBytes(query.getProcessedBytes());
+    addBilledBytes(query.getStatistics().getBilledBytes());
+    addProcessedBytes(query.getStatistics().getProcessedBytes());
+  }
+
+  private void addStatistics(QueryStatistics statistics) {
+    addQueries(statistics.getQueries());
+    addBilledBytes(statistics.getBilledBytes());
+    addProcessedBytes(statistics.getProcessedBytes());
   }
 
   public int getQueries() {

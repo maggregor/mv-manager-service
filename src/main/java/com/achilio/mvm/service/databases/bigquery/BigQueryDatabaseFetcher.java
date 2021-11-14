@@ -9,11 +9,11 @@ import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedQueryFactory;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
+import com.achilio.mvm.service.entities.statistics.QueryStatistics;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import com.google.api.gax.paging.Page;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.bigquery.BigQuery;
-import com.google.cloud.bigquery.BigQuery.JobListOption;
 import com.google.cloud.bigquery.BigQueryException;
 import com.google.cloud.bigquery.BigQueryOptions;
 import com.google.cloud.bigquery.Dataset;
@@ -27,18 +27,24 @@ import com.google.cloud.bigquery.QueryStage.QueryStep;
 import com.google.cloud.bigquery.Schema;
 import com.google.cloud.bigquery.StandardTableDefinition;
 import com.google.cloud.bigquery.Table;
+import com.google.cloud.bigquery.TableDefinition;
 import com.google.cloud.bigquery.TableId;
 import com.google.cloud.resourcemanager.Project;
 import com.google.cloud.resourcemanager.ResourceManager;
 import com.google.cloud.resourcemanager.ResourceManagerOptions;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.zetasql.ZetaSQLType;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.Spliterator;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -49,25 +55,38 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(BigQueryDatabaseFetcher.class);
 
-  private static final int LIST_JOB_PAGE_SIZE = 25000;
+  private static final String UNSUPPORTED_TABLE_TOKEN = "INFORMATION_SCHEMA";
+  private static final String SQL_FROM_WORD = "FROM";
+  private static final String SQL_SELECT_WORD = "SELECT";
+  private static final int LIST_JOB_PAGE_SIZE = 1000;
   private final BigQuery bigquery;
   private final ResourceManager resourceManager;
   private final String projectId;
 
-  public BigQueryDatabaseFetcher(GoogleCredentials googleCredentials, String projectId)
-      throws ProjectNotFoundException {
-    BigQueryOptions.Builder bqOptBuilder =
-        BigQueryOptions.newBuilder().setCredentials(googleCredentials);
-    ResourceManagerOptions.Builder rmOptBuilder =
-        ResourceManagerOptions.newBuilder().setCredentials(googleCredentials);
-    if (StringUtils.isNotEmpty(projectId)) {
+  @VisibleForTesting
+  public BigQueryDatabaseFetcher(BigQuery bigquery, ResourceManager rm, String projectId) {
+    this.bigquery = bigquery;
+    this.resourceManager = rm;
+    this.projectId = projectId;
+  }
+
+  public BigQueryDatabaseFetcher(
+      final GoogleCredentials credentials,
+      final String defaultProjectId) throws ProjectNotFoundException {
+    BigQueryOptions.Builder bqOptBuilder = BigQueryOptions
+        .newBuilder()
+        .setCredentials(credentials);
+    ResourceManagerOptions.Builder rmOptBuilder = ResourceManagerOptions
+        .newBuilder()
+        .setCredentials(credentials);
+    if (StringUtils.isNotEmpty(defaultProjectId)) {
       // Change default project of BigQuery instance
-      bqOptBuilder.setProjectId(projectId);
-      rmOptBuilder.setProjectId(projectId);
+      bqOptBuilder.setProjectId(defaultProjectId);
+      rmOptBuilder.setProjectId(defaultProjectId);
     }
     this.bigquery = bqOptBuilder.build().getService();
     this.resourceManager = rmOptBuilder.build().getService();
-    this.projectId = projectId;
+    this.projectId = defaultProjectId;
     // Checks if the Google credentials have access.
     if (StringUtils.isNotEmpty(projectId)) {
       fetchProject(projectId);
@@ -81,56 +100,98 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
 
   @Override
   public List<FetchedQuery> fetchAllQueriesFrom(Date start) {
-    List<BigQuery.JobListOption> options = defaultJobListOptions();
-    options.add(JobListOption.allUsers());
-    if (start != null) {
-      options.add(BigQuery.JobListOption.minCreationTime(start.getTime()));
-    }
-    return fetchQueries(options);
+    long fromCreationTime = start == null ? 0 : start.getTime();
+    List<BigQuery.JobListOption> options = getJobListOptions(fromCreationTime);
+    final Page<Job> jobPages = bigquery.listJobs(options.toArray(new BigQuery.JobListOption[0]));
+    return StreamSupport
+        .stream(jobPages.iterateAll().spliterator(), false)
+        .filter(this::fetchQueryFilter)
+        .map(this::toFetchedQuery)
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
   }
 
-  private List<FetchedQuery> fetchQueries(List<BigQuery.JobListOption> options) {
-    Page<Job> jobs = bigquery.listJobs(options.toArray(new BigQuery.JobListOption[0]));
-    List<FetchedQuery> fetchedQueries = new ArrayList<>();
-    for (Job job : jobs.getValues()) {
-      if (job.getConfiguration() instanceof QueryJobConfiguration) {
-        if (job.getStatus().getError() != null) {
-          continue;
-        }
-        QueryJobConfiguration queryJobConfiguration = job.getConfiguration();
-        String jobQuery = queryJobConfiguration.getQuery();
-        // Should we optimize query sent like SQL script ?
-        // TODO: Split hard by ; really sure?
-        String[] queries = jobQuery.split(";");
-        for (String query : queries) {
-          if (!query.toUpperCase().startsWith("SELECT")
-              || query.toUpperCase().contains("INFORMATION_SCHEMA")) {
-            continue;
-          }
-          try {
-            JobStatistics.QueryStatistics queryStatistics = job.getStatistics();
-            boolean usingManagedMV = containsMVManagedUsageInQueryStages(
-                queryStatistics.getQueryPlan());
-            FetchedQuery fetchedQuery = FetchedQueryFactory.createFetchedQuery(query);
-            fetchedQuery.setProjectId(projectId);
-            fetchedQuery.setUsingManagedMV(usingManagedMV);
-            fetchedQuery.setBilledBytes(queryStatistics.getTotalBytesBilled());
-            fetchedQuery.setProcessedBytes(queryStatistics.getTotalBytesProcessed());
-            fetchedQuery.setUseCache(BooleanUtils.isTrue(queryStatistics.getCacheHit()));
-            fetchedQueries.add(fetchedQuery);
-          } catch (Exception e) {
-            LOGGER.error("Error fetching query: {}", query, e);
-          }
-        }
-      }
+  /**
+   * Returns true if a job is a query job. Only SELECT finished queries on regular tables.
+   *
+   * @param job - A Job from BigQuery job history
+   * @return
+   */
+  public boolean fetchQueryFilter(Job job) {
+    if (Objects.nonNull(job) && isQueryJob(job)) {
+      QueryJobConfiguration configuration = job.getConfiguration();
+      final String query = configuration.getQuery();
+      // Keep only SELECT queries
+      return isRegularSelectQuery(query)
+          // Exclude SQL script
+          && !isSQLScript(query)
+          // Exclude not finished queries
+          && job.isDone()
+          // Exclude errors
+          && notInError(job);
     }
-    return fetchedQueries;
+    return false;
   }
 
+  public boolean notInError(Job job) {
+    return job.getStatus().getError() == null;
+  }
+
+  public boolean isQueryJob(Job job) {
+    return job.getConfiguration() instanceof QueryJobConfiguration;
+  }
+
+  public boolean isRegularSelectQuery(String query) {
+    return StringUtils.startsWithIgnoreCase(query, SQL_SELECT_WORD)
+        && StringUtils.containsIgnoreCase(query, SQL_FROM_WORD)
+        && !StringUtils.containsIgnoreCase(query, UNSUPPORTED_TABLE_TOKEN);
+  }
+
+  /**
+   * Returns true if the query job contains more than one query
+   *
+   * @return
+   */
+  public boolean isSQLScript(final String query) {
+    return StringUtils.isNotEmpty(query) && query.trim().split(";").length > 1;
+  }
+
+  /**
+   * Convert a QueryJob (Google) to a FetchedQuery. Retrieve some metrics google side (processed
+   * bytes, cache using...)
+   *
+   * @param job
+   * @return
+   */
+  private FetchedQuery toFetchedQuery(Job job) {
+    String query = null;
+    try {
+      final QueryJobConfiguration configuration = job.getConfiguration();
+      query = StringUtils.trim(configuration.getQuery());
+      final JobStatistics.QueryStatistics stats = job.getStatistics();
+      final boolean useCache = BooleanUtils.isTrue(stats.getCacheHit());
+      final boolean usingManagedMV = containsMVManagedUsageInQueryStages(stats.getQueryPlan());
+      FetchedQuery fetchedQuery = FetchedQueryFactory.createFetchedQuery(StringUtils.trim(query));
+      fetchedQuery.setStatistics(toQueryStatistics(stats));
+      fetchedQuery.setUseMaterializedView(usingManagedMV);
+      fetchedQuery.setUseCache(useCache);
+      return fetchedQuery;
+    } catch (Exception e) {
+      LOGGER.error("Error converting query to FetchedQuery: {}", query, e);
+    }
+    return null;
+  }
+
+  public QueryStatistics toQueryStatistics(JobStatistics.QueryStatistics queryStatistics) {
+    QueryStatistics statistics = new QueryStatistics();
+    statistics.addProcessedBytes(queryStatistics.getTotalBytesProcessed());
+    statistics.addBilledBytes(queryStatistics.getTotalBytesBilled());
+    return statistics;
+  }
 
   private boolean containsMVManagedUsageInQueryStages(List<QueryStage> stages) {
     if (stages == null) {
-      LOGGER.debug("Skipped plan analysis: stage null");
+      LOGGER.debug("Skipped plan analysis: the stage is null");
       return false;
     }
     for (QueryStage queryStage : stages) {
@@ -146,27 +207,30 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
   /**
    * In the query substeps, filter only the steps that hit a managed materialized view (mmv)
    *
-   * @param steps - A list of QueryStage#QueryStep from fetched BigQuery history.
+   * @param step - QueryStage#QueryStep from fetched BigQuery history which contains subSteps.
    * @return boolean - True if the query plan used a MVM.
    */
-  private boolean containsSubStepUsingMVM(QueryStep steps) {
-    return steps.getSubsteps().stream()
-        .anyMatch(step -> step.contains("FROM") && step.contains("mvm_"));
+  public boolean containsSubStepUsingMVM(QueryStep step) {
+    return step.getSubsteps()
+        .stream().anyMatch(subStep -> subStep.contains(SQL_FROM_WORD) && subStep.contains("mvm_"));
   }
 
-  private List<BigQuery.JobListOption> defaultJobListOptions() {
+  private List<BigQuery.JobListOption> getJobListOptions(long fromCreationTime) {
     List<BigQuery.JobListOption> options = new ArrayList<>();
     options.add(BigQuery.JobListOption.pageSize(LIST_JOB_PAGE_SIZE));
+    options.add(BigQuery.JobListOption.allUsers());
+    options.add(BigQuery.JobListOption.minCreationTime(fromCreationTime));
     return options;
   }
 
   @Override
-  public FetchedTable fetchTable(String projectId, String datasetName, String tableName)
+  public FetchedTable fetchTable(String datasetName, String tableName)
       throws IllegalArgumentException {
     try {
       TableId tableId = TableId.of(datasetName, tableName);
       Table table = bigquery.getTable(tableId);
       if (!isValidTable(table)) {
+        LOGGER.warn("Fetched table is not valid: {}", table);
         return null;
       }
       return toFetchedTable(table);
@@ -177,45 +241,40 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
 
   private FetchedTable toFetchedTable(Table table) {
     StandardTableDefinition tableDefinition = table.getDefinition();
-    Schema tableSchema = tableDefinition.getSchema();
-    assert tableSchema != null;
-    Map<String, String> tableColumns = mapColumns(tableSchema.getFields());
+    Map<String, String> tableColumns = mapColumnsOrEmptyIfSchemaIsNull(tableDefinition);
     TableId tableId = table.getTableId();
-    return new DefaultFetchedTable(
-        tableId.getProject(), tableId.getDataset(), tableId.getTable(), tableColumns);
+    String projectId = tableId.getProject();
+    String datasetName = tableId.getDataset();
+    String tableName = tableId.getTable();
+    return new DefaultFetchedTable(projectId, datasetName, tableName, tableColumns);
   }
 
   @Override
-  public List<FetchedTable> fetchAllTables() {
-    List<FetchedTable> tables = new ArrayList<>();
+  public Set<FetchedTable> fetchAllTables() {
+    Set<FetchedTable> tables = new HashSet<>();
     bigquery
         .listDatasets()
         .getValues()
         .forEach(
             dataset -> {
               final String datasetName = dataset.getDatasetId().getDataset();
-              List<FetchedTable> fetchedTables = fetchTablesInDataset(datasetName);
+              Set<FetchedTable> fetchedTables = fetchTablesInDataset(datasetName);
               tables.addAll(fetchedTables);
             });
     return tables;
   }
 
-  public List<FetchedTable> fetchTableNamesInDataset(String datasetName) {
-    List<FetchedTable> tables = new LinkedList<>();
-    bigquery
-        .listTables(datasetName)
-        .getValues()
-        .forEach(
-            tableName -> {
-              tables.add(
-                  new DefaultFetchedTable(projectId, datasetName,
-                      tableName.getFriendlyName()));
-            });
-    return tables;
+  @Override
+  public Set<FetchedTable> fetchTableNamesInDataset(String datasetName) {
+    Spliterator<Table> spliterator = bigquery.listTables(datasetName).getValues().spliterator();
+    return StreamSupport.stream(spliterator, true)
+        .map(this::toFetchedTable)
+        .collect(Collectors.toSet());
   }
 
-  public List<FetchedTable> fetchTablesInDataset(String datasetName) {
-    List<FetchedTable> tables = new LinkedList<>();
+  @Override
+  public Set<FetchedTable> fetchTablesInDataset(String datasetName) {
+    Set<FetchedTable> tables = new HashSet<>();
     bigquery
         .listTables(datasetName)
         .getValues()
@@ -231,15 +290,9 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
   }
 
   @Override
-  public int fetchMMVCount(String projectId) {
+  public int fetchMMVCount() {
     // TODO: Temporary
     return RandomUtils.nextInt(0, 20);
-  }
-
-  @Override
-  public long totalScannedBytesSince(String projectId, ZonedDateTime time) {
-    // TODO: Temporary
-    return RandomUtils.nextLong(10_000_000_000L, 1_000_000_000_000L);
   }
 
   /*
@@ -247,40 +300,35 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
    * - should exists.
    * - should be a StandardTableDefinition (and not a View or Materialized View).
    */
-  private boolean isValidTable(Table table) {
+  public boolean isValidTable(Table table) {
     return table != null
         && table.exists()
         && table.getDefinition() instanceof StandardTableDefinition;
   }
 
-  private Map<String, String> mapColumns(List<Field> googleFields) {
-    Map<String, String> tableColumns = new HashMap<>();
-    for (Field field : googleFields) {
-      String fetchedType = field.getType().toString();
-      String type = convertToZetaSQLType(fetchedType);
-      tableColumns.put(field.getName(), type);
+  private Map<String, String> mapColumnsOrEmptyIfSchemaIsNull(TableDefinition definition) {
+    final Schema schema = definition.getSchema();
+    if (schema == null) {
+      LOGGER.warn("Can't retrieve columns: schema is null");
+      return new HashMap<>();
     }
-    return tableColumns;
+    List<Field> fields = schema.getFields();
+    return fields.stream().collect(Collectors.toMap(Field::getName, this::toZetaSQLStringType));
   }
 
-  private String convertToZetaSQLType(String fetchedType) {
-    fetchedType = fetchedType.toUpperCase();
-    switch (fetchedType) {
+  private String toZetaSQLStringType(Field field) {
+    final String type = field.getType().toString();
+    switch (type) {
       case "DOUBLE":
       case "FLOAT":
-        fetchedType = ZetaSQLType.TypeKind.TYPE_NUMERIC.name();
-        break;
+        return ZetaSQLType.TypeKind.TYPE_NUMERIC.name();
       case "INTEGER":
-        fetchedType = ZetaSQLType.TypeKind.TYPE_INT64.name();
-        break;
+        return ZetaSQLType.TypeKind.TYPE_INT64.name();
       case "BOOLEAN":
-        fetchedType = ZetaSQLType.TypeKind.TYPE_BOOL.name();
-        break;
+        return ZetaSQLType.TypeKind.TYPE_BOOL.name();
       default:
-        fetchedType = "TYPE_" + fetchedType;
-        break;
+        return "TYPE_" + type;
     }
-    return fetchedType;
   }
 
   @Override

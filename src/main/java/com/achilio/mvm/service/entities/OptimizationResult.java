@@ -1,5 +1,6 @@
 package com.achilio.mvm.service.entities;
 
+import com.achilio.mvm.service.databases.entities.FetchedTable;
 import java.util.Objects;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -25,20 +26,26 @@ public class OptimizationResult {
   @ManyToOne
   private Optimization optimization;
 
+  @Column(name = "project_id", nullable = false)
+  private String projectId;
+
   @Column(name = "dataset_name", nullable = false)
-  private String dataset;
+  private String datasetName;
 
   @Column(name = "table_name", nullable = false)
-  private String table;
+  private String tableName;
 
   @Column(name = "statement", nullable = false, length = 65536)
   private String statement;
 
   public OptimizationResult(
-      String dataset, String table, Optimization optimization, String statement) {
-    this.dataset = dataset;
-    this.table = table;
+      final Optimization optimization,
+      final FetchedTable referenceTable,
+      final String statement) {
     this.optimization = optimization;
+    this.projectId = referenceTable.getProjectId();
+    this.datasetName = referenceTable.getDatasetName();
+    this.tableName = referenceTable.getTableName();
     this.statement = statement;
   }
 
@@ -50,20 +57,25 @@ public class OptimizationResult {
   }
 
   public String getStatement() {
-    return statement;
+    return this.statement;
   }
 
   public Optimization getOptimization() {
-    return optimization;
+    return this.optimization;
   }
 
-  public String getDataset() {
-    return dataset;
+  public String getProjectId() {
+    return this.datasetName;
   }
 
-  public String getTable() {
-    return table;
+  public String getDatasetName() {
+    return this.datasetName;
   }
+
+  public String getTableName() {
+    return this.tableName;
+  }
+
 
   @Override
   public boolean equals(Object o) {
@@ -76,13 +88,14 @@ public class OptimizationResult {
     OptimizationResult that = (OptimizationResult) o;
     return id.equals(that.id)
         && optimization.equals(that.optimization)
-        && dataset.equals(that.dataset)
-        && table.equals(that.table)
+        && projectId.equals(that.projectId)
+        && datasetName.equals(that.datasetName)
+        && tableName.equals(that.tableName)
         && statement.equals(that.statement);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, optimization, dataset, table, statement);
+    return Objects.hash(id, optimization, projectId, datasetName, tableName, statement);
   }
 }

@@ -1,4 +1,4 @@
-package com.achilio.mvm.service.extract.fields;
+package com.achilio.mvm.service.visitors.fields;
 
 /**
  * Represents a reference field.

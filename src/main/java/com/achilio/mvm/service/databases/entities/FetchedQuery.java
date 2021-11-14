@@ -1,51 +1,84 @@
 package com.achilio.mvm.service.databases.entities;
 
 import com.achilio.mvm.service.databases.DatabaseFetcher;
+import com.achilio.mvm.service.databases.QueryEligible;
+import com.achilio.mvm.service.entities.statistics.QueryStatistics;
+import com.achilio.mvm.service.visitors.QueryIneligibilityReason;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Represent a fetched query from data warehouse fetching process.
  *
  * @see DatabaseFetcher
  */
-public interface FetchedQuery {
+public class FetchedQuery implements QueryEligible {
 
-  String getProjectId();
+  private final Set<QueryIneligibilityReason> reasons = new HashSet<>();
+  private final String query;
+  private boolean useMaterializedView;
+  private boolean useCache;
+  // Discovered tables in the SQL query
+  private Set<FetchedTable> refTables;
+  private QueryStatistics statistics;
 
-  void setProjectId(String projectId);
+  public FetchedQuery(String query) {
+    this.query = query;
+  }
 
-  String getDatasetName();
+  public void setUseMaterializedView(boolean useMaterializedView) {
+    this.useMaterializedView = useMaterializedView;
+  }
 
-  void setDatasetName(String datasetName);
+  public boolean isUsingMaterializedView() {
+    return this.useMaterializedView;
+  }
 
-  String getTableName();
+  public Set<FetchedTable> getReferenceTables() {
+    return this.refTables;
+  }
 
-  void setTableName(String tableName);
+  public void setReferenceTables(Set<FetchedTable> refTables) {
+    this.refTables = refTables;
+  }
 
-  boolean isUsingManagedMV();
+  public QueryStatistics getStatistics() {
+    return this.statistics;
+  }
 
-  void setUsingManagedMV(boolean usingManagedMV);
+  public void setStatistics(QueryStatistics statistics) {
+    this.statistics = statistics;
+  }
 
   /**
    * The SQL statement of the fetched query.
    *
    * @return the SQL statement of the fetched query.
    */
-  String statement();
+  public String getQuery() {
+    return this.query;
+  }
 
-  /**
-   * The query cost weight estimation on the underlying database.
-   *
-   * @return the query cost on the underlying database.
-   */
-  long getBilledBytes();
+  public void setUseCache(boolean useCache) {
+    this.useCache = useCache;
+  }
 
-  void setBilledBytes(long billedBytes);
+  public boolean isUsingCache() {
+    return this.useCache;
+  }
 
-  long getProcessedBytes();
+  public void addQueryIneligibilityReason(QueryIneligibilityReason reason) {
+    this.reasons.add(reason);
+  }
 
-  void setProcessedBytes(long processedBytes);
+  @Override
+  public void removeQueryIneligibilityReason(QueryIneligibilityReason reason) {
+    this.reasons.remove(reason);
+  }
 
-  void setUseCache(boolean useCache);
+  @Override
+  public Set<QueryIneligibilityReason> getQueryIneligibilityReasons() {
+    return this.reasons;
+  }
 
-  boolean isCached();
 }
