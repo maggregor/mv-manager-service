@@ -1,8 +1,13 @@
 package com.achilio.mvm.service.visitors;
 
+import static com.achilio.mvm.service.visitors.QueryIneligibilityReason.DOES_NOT_FILTER_OR_AGGREGATE;
+
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
+import com.google.zetasql.resolvedast.ResolvedNode;
 import com.google.zetasql.resolvedast.ResolvedNodes;
+import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedAggregateScan;
 import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedFilterScan;
+import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedQueryStmt;
 
 public class ZetaSQLFetchedQueryElectorVisitor extends ResolvedNodes.Visitor {
 
@@ -10,24 +15,27 @@ public class ZetaSQLFetchedQueryElectorVisitor extends ResolvedNodes.Visitor {
 
   public ZetaSQLFetchedQueryElectorVisitor(FetchedQuery query) {
     this.query = query;
-    addDefaultNotEligibleReasons();
   }
 
-  /**
-   * At this step we don't know if the query includes the minimum required to be catch in a MV on
-   * BigQuery. At first, we assume that the query is not eligible. Depending on what we find about
-   * this, we will remove theses basic reasons of ineligibility.
-   *
-   * @return
-   */
-  void addDefaultNotEligibleReasons() {
-    //query.addQueryIneligibilityReason(MULTIPLE_TABLES_WITHOUT_SUPPORTED_JOIN);
-    //query.addQueryIneligibilityReason(DOES_NOT_FILTER_OR_AGGREGATE);
+  @Override
+  protected void defaultVisit(ResolvedNode node) {
+    super.defaultVisit(node);
+  }
+
+  @Override
+  public void visit(ResolvedQueryStmt node) {
+    super.visit(node);
+  }
+
+  @Override
+  public void visit(ResolvedAggregateScan node) {
+    query.removeQueryIneligibilityReason(DOES_NOT_FILTER_OR_AGGREGATE);
+    super.visit(node);
   }
 
   @Override
   public void visit(ResolvedFilterScan node) {
-    //query.removeQueryIneligibilityReason(DOES_NOT_FILTER_OR_AGGREGATE);
+    query.removeQueryIneligibilityReason(DOES_NOT_FILTER_OR_AGGREGATE);
     super.visit(node);
   }
 

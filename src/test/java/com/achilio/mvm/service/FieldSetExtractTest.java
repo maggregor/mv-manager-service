@@ -1,6 +1,8 @@
 package com.achilio.mvm.service;
 
 import static com.achilio.mvm.service.databases.entities.FetchedTableHelper.createFetchedTable;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedQueryFactory;
@@ -228,6 +230,51 @@ public abstract class FieldSetExtractTest {
         new ReferenceField("col1"),
         new FunctionField("TIMESTAMP_TRUNC(ts, DAY)"),
         new AggregateField("SUM(col3)"));
+  }
+
+  @Test
+  public void testEligibleQueryAggregate() {
+    assertEligibleQuery("SELECT col1 FROM mydataset.mytable GROUP BY col1");
+    assertEligibleQuery("SELECT col1, SUM(col3) FROM mydataset.mytable GROUP BY col1");
+    assertEligibleQuery("SELECT MAX(col3) FROM mydataset.mytable");
+    assertEligibleQuery("SELECT MAX(col3), AVG(col4) FROM mydataset.mytable");
+  }
+
+  @Test
+  public void testNotEligibleQueryWithoutAggregate() {
+    assertNotEligibleQuery("SELECT col3 FROM mydataset.mytable");
+    assertNotEligibleQuery("SELECT * FROM mydataset.mytable");
+    assertNotEligibleQuery("SELECT 1 FROM mydataset.mytable");
+    assertNotEligibleQuery("SELECT * FROM (SELECT * FROM mydataset.mytable) AS query");
+  }
+
+  @Test
+  public void testEligibleQueryWithFilter() {
+    assertEligibleQuery("SELECT * FROM mydataset.mytable WHERE col1 = 'a'");
+    assertEligibleQuery("SELECT col1 AS myCol1, SUM(col3) "
+        + "FROM mydataset.mytable "
+        + "WHERE col1 = 'a' GROUP BY myCol1");
+  }
+
+  private void assertEligibleQuery(String query) {
+    FetchedQuery fetchedQuery = FetchedQueryFactory.createFetchedQuery(query);
+    extractor.analyzeIneligibleReasons(fetchedQuery);
+    assertTrue(fetchedQuery.isEligible());
+  }
+
+  private void assertNotEligibleQuery(String query) {
+    FetchedQuery fetchedQuery = FetchedQueryFactory.createFetchedQuery(query);
+    extractor.analyzeIneligibleReasons(fetchedQuery);
+    assertFalse(fetchedQuery.isEligible());
+  }
+
+  @Test
+  public void testFilter() {
+    FetchedQuery query = FetchedQueryFactory.createFetchedQuery(
+        "SELECT col1 FROM mydataset.mytable WHERE col1 = 'aze'");
+    assertFalse(query.isEligible());
+    extractor.analyzeIneligibleReasons(query);
+    assertTrue(query.isEligible());
   }
 
   public void assertZeroFields(String query) {

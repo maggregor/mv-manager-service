@@ -207,10 +207,6 @@ public class BigQueryDatabaseFetchedTest {
     when(mockJob.getConfiguration()).thenReturn(DEFAULT_QUERY_JOB_CONFIGURATION);
     when(mockJob.getStatus()).thenReturn(status);
     when(mockJob.isDone()).thenReturn(true);
-    // Default
-    /*when(mockQueryStatistics.getCacheHit()).thenReturn(false);
-    when(mockQueryStatistics.getTotalBytesProcessed()).thenReturn(10L);
-    when(mockQueryStatistics.getTotalBytesBilled()).thenReturn(10L);*/
   }
 
 }
