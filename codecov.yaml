@@ -1,3 +1,6 @@
 ---
 coverage:
   range: "40...100"
+  ignore:
+    - "src/main/java/OptimizerApplication.java"
+    - "src/main/java/ServletInitializer.java"
