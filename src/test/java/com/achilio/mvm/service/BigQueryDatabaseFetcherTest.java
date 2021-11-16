@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 import com.achilio.mvm.service.databases.bigquery.BigQueryDatabaseFetcher;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.entities.statistics.QueryStatistics;
+import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
 import com.google.api.gax.paging.Page;
 import com.google.cloud.bigquery.BigQuery;
 import com.google.cloud.bigquery.BigQuery.TableField;
@@ -45,14 +46,14 @@ public class BigQueryDatabaseFetcherTest {
 
   private static final QueryJobConfiguration DEFAULT_QUERY_JOB_CONFIGURATION =
       QueryJobConfiguration.of("SELECT * FROM toto");
-  private static final TableId DEFAULT_TABLE_ID = TableId.of("test-project", "test-dataset",
-      "test-table");
-  private static final TableId DEFAULT_TABLE_ID_2 = TableId.of("test-project", "test-dataset",
-      "test-table-2");
-  private static final JobConfiguration DEFAULT_LOAD_JOB_CONFIGURATION = LoadJobConfiguration.newBuilder(
-      DEFAULT_TABLE_ID, "gs://").build();
-  private static final JobConfiguration DEFAULT_COPY_JOB_CONFIGURATION = CopyJobConfiguration.newBuilder(
-      DEFAULT_TABLE_ID, DEFAULT_TABLE_ID_2).build();
+  private static final TableId DEFAULT_TABLE_ID =
+      TableId.of("test-project", "test-dataset", "test-table");
+  private static final TableId DEFAULT_TABLE_ID_2 =
+      TableId.of("test-project", "test-dataset", "test-table-2");
+  private static final JobConfiguration DEFAULT_LOAD_JOB_CONFIGURATION =
+      LoadJobConfiguration.newBuilder(DEFAULT_TABLE_ID, "gs://").build();
+  private static final JobConfiguration DEFAULT_COPY_JOB_CONFIGURATION =
+      CopyJobConfiguration.newBuilder(DEFAULT_TABLE_ID, DEFAULT_TABLE_ID_2).build();
   private BigQueryDatabaseFetcher fetcher;
   private Job mockJob;
   private BigQuery mockBigquery;
@@ -96,8 +97,8 @@ public class BigQueryDatabaseFetcherTest {
 
   @Test
   public void fetchingMetadataSelectQuery() {
-    when(mockJob.getConfiguration()).thenReturn(
-        QueryJobConfiguration.of("SELECT a FROM INFORMATION_SCHEMA"));
+    when(mockJob.getConfiguration())
+        .thenReturn(QueryJobConfiguration.of("SELECT a FROM INFORMATION_SCHEMA"));
     assertDoNotPassTheFetchingFilter(mockJob);
   }
 
@@ -115,8 +116,9 @@ public class BigQueryDatabaseFetcherTest {
 
   @Test
   public void fetchingRefuseScriptSelectQuery() {
-    when(mockJob.getConfiguration()).thenReturn(
-        QueryJobConfiguration.of("SELECT * FROM myTest; SELECT COUNT(*) FROM besancon"));
+    when(mockJob.getConfiguration())
+        .thenReturn(
+            QueryJobConfiguration.of("SELECT * FROM myTest; SELECT COUNT(*) FROM besancon"));
     assertDoNotPassTheFetchingFilter(mockJob);
   }
 
@@ -160,7 +162,7 @@ public class BigQueryDatabaseFetcherTest {
   }
 
   @Test
-  public void isRegularSelectQuery() {
+  public void testIsRegularSelectQuery() {
     assertFalse(fetcher.isRegularSelectQuery("SELECT 1"));
     assertFalse(fetcher.isRegularSelectQuery("CALL.BQ...."));
     assertFalse(fetcher.isRegularSelectQuery("SELECT * FROM INFORMATION_SCHEMA"));
@@ -168,18 +170,21 @@ public class BigQueryDatabaseFetcherTest {
   }
 
   @Test
-  public void fetchStatisticsFromJob() {
+  public void testJobStatisticsToQueryStatistics() {
+    final QueryStatistics expected = new QueryStatistics();
+    expected.addBilledBytes(100L);
+    expected.addProcessedBytes(10L);
     JobStatistics.QueryStatistics mockJobStats = mock(JobStatistics.QueryStatistics.class);
     when(mockJobStats.getTotalBytesBilled()).thenReturn(100L);
     when(mockJobStats.getTotalBytesProcessed()).thenReturn(10L);
-    QueryStatistics actual = fetcher.toQueryStatistics(mockJobStats);
+    QueryUsageStatistics actual = fetcher.toQueryUsageStatistics(mockJobStats);
     assertNotNull(actual);
-    assertEquals(100L, actual.getBilledBytes());
-    assertEquals(10L, actual.getProcessedBytes());
+    assertEquals(expected.getTotalBilledBytes(), actual.getBilledBytes());
+    assertEquals(expected.getTotalProcessedBytes(), actual.getProcessedBytes());
   }
 
   @Test
-  public void containsSubStepUsingMVM() {
+  public void testContainsSubStepUsingMVM() {
     QueryStep step = mock(QueryStep.class);
     when(step.getSubsteps()).thenReturn(createSubSteps("sub1", "sub2", "sub3"));
     assertFalse(fetcher.containsSubStepUsingMVM(step));
@@ -190,7 +195,7 @@ public class BigQueryDatabaseFetcherTest {
   }
 
   @Test
-  public void containsManagedMVUsageInQueryStages() {
+  public void testContainsManagedMVUsageInQueryStages() {
     assertFalse(fetcher.containsManagedMVUsageInQueryStages(null));
     QueryStage stage1 = mock(QueryStage.class);
     QueryStage stage2 = mock(QueryStage.class);
@@ -205,7 +210,7 @@ public class BigQueryDatabaseFetcherTest {
   }
 
   @Test
-  public void isValidTable() {
+  public void testIsValidTable() {
     assertFalse(fetcher.isValidTable(null));
     Table mockTable = mock(Table.class);
     StandardTableDefinition mockStandardDefinition = mock(StandardTableDefinition.class);
@@ -220,7 +225,7 @@ public class BigQueryDatabaseFetcherTest {
   }
 
   @Test
-  public void fetchTablesInDataset() {
+  public void testFetchTablesInDataset() {
     final String PROJECT = "myProject";
     final String DATASET = "myDataset";
     final String TABLE = "myTable";
@@ -259,5 +264,4 @@ public class BigQueryDatabaseFetcherTest {
     when(mockJob.getStatus()).thenReturn(status);
     when(mockJob.isDone()).thenReturn(true);
   }
-
 }

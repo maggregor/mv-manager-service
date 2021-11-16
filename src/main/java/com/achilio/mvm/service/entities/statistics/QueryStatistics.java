@@ -12,11 +12,12 @@ import org.apache.commons.lang3.mutable.MutableInt;
 public class QueryStatistics {
 
   private final boolean enableComputeIneligibilityReasons;
-  private int queries = 0;
-  private long billedBytes = 0;
-  private long processedBytes = 0;
-  private MutableInt eligibles = new MutableInt();
-  private MutableInt ineligibles = new MutableInt();
+  private int totalQueries = 0;
+  private long totalBilledBytes = 0;
+  private long totalProcessedBytes = 0;
+  private MutableInt eligible;
+  private MutableInt ineligibles;
+
   @JsonProperty("ineligibleReasons")
   private Map<QueryIneligibilityReason, MutableInt> ineligibleReasons = new HashMap<>();
 
@@ -36,6 +37,8 @@ public class QueryStatistics {
     this.enableComputeIneligibilityReasons = enableComputeIneligibilityReasons;
     if (enableComputeIneligibilityReasons) {
       ineligibleReasons = defaultReasonStatistics();
+      eligible = new MutableInt();
+      ineligibles = new MutableInt();
     }
     queries.forEach(this::addQuery);
   }
@@ -55,7 +58,7 @@ public class QueryStatistics {
     if (enableComputeIneligibilityReasons) {
       incrementQueryIneligibilityReasonIfEnabled(query);
       if (query.isEligible()) {
-        incrementEligibles();
+        incrementEligible();
       } else {
         incrementIneligibles();
       }
@@ -66,8 +69,8 @@ public class QueryStatistics {
     this.ineligibles.increment();
   }
 
-  private void incrementEligibles() {
-    this.eligibles.increment();
+  private void incrementEligible() {
+    this.eligible.increment();
   }
 
   public void incrementQueryIneligibilityReasonIfEnabled(FetchedQuery query) {
@@ -81,48 +84,48 @@ public class QueryStatistics {
   }
 
   public void addIneligibleReasons(Map<QueryIneligibilityReason, MutableInt> ineligibleReasons) {
-    ineligibleReasons.forEach((k, v) ->
-        this.ineligibleReasons.merge(k, v, (v1, v2) -> new MutableInt(v1.addAndGet(v2))));
+    ineligibleReasons.forEach(
+        (k, v) -> this.ineligibleReasons.merge(k, v, (v1, v2) -> new MutableInt(v1.addAndGet(v2))));
   }
 
-  public int getQueries() {
-    return queries;
+  public int getTotalQueries() {
+    return totalQueries;
   }
 
-  public long getBilledBytes() {
-    return billedBytes;
+  public long getTotalBilledBytes() {
+    return totalBilledBytes;
   }
 
-  public long getProcessedBytes() {
-    return processedBytes;
+  public long getTotalProcessedBytes() {
+    return totalProcessedBytes;
   }
 
   public void incrementQueries() {
-    this.queries += 1;
+    this.totalQueries += 1;
   }
 
-  public int getEligibles() {
-    return this.eligibles.getValue();
+  public int getEligible() {
+    return this.eligible == null ? -1 : this.eligible.getValue();
   }
 
   public int getIneligibles() {
-    return this.ineligibles.getValue();
+    return this.ineligibles == null ? -1 : this.ineligibles.getValue();
   }
 
   public void addProcessedBytes(long processedBytes) {
-    this.processedBytes += processedBytes;
+    this.totalProcessedBytes += processedBytes;
   }
 
   public void addBilledBytes(long billedBytes) {
-    this.billedBytes += billedBytes;
+    this.totalBilledBytes += billedBytes;
   }
 
   public void addQueries(int queries) {
-    this.queries += queries;
+    this.totalQueries += queries;
   }
 
-  public void addEligibles(int eligibles) {
-    this.eligibles.add(eligibles);
+  public void addEligible(int eligible) {
+    this.eligible.add(eligible);
   }
 
   public void addIneligibles(int ineligibles) {

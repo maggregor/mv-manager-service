@@ -3,6 +3,7 @@ package com.achilio.mvm.service.databases.entities;
 import com.achilio.mvm.service.databases.DatabaseFetcher;
 import com.achilio.mvm.service.databases.QueryEligible;
 import com.achilio.mvm.service.entities.statistics.QueryStatistics;
+import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
 import com.achilio.mvm.service.visitors.QueryIneligibilityReason;
 import java.util.HashSet;
 import java.util.Set;
@@ -20,7 +21,7 @@ public class FetchedQuery implements QueryEligible {
   private boolean useCache;
   // Discovered tables in the SQL query
   private Set<FetchedTable> refTables;
-  private QueryStatistics statistics;
+  private QueryUsageStatistics statistics;
 
   public FetchedQuery(String query) {
     this.query = query;
@@ -42,11 +43,11 @@ public class FetchedQuery implements QueryEligible {
     this.refTables = refTables;
   }
 
-  public QueryStatistics getStatistics() {
+  public QueryUsageStatistics getStatistics() {
     return this.statistics;
   }
 
-  public void setStatistics(QueryStatistics statistics) {
+  public void setStatistics(QueryUsageStatistics statistics) {
     this.statistics = statistics;
   }
 
@@ -85,5 +86,4 @@ public class FetchedQuery implements QueryEligible {
   public Set<QueryIneligibilityReason> getQueryIneligibilityReasons() {
     return this.reasons;
   }
-
 }

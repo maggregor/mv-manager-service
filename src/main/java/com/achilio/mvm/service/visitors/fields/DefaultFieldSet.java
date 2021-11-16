@@ -3,6 +3,7 @@ package com.achilio.mvm.service.visitors.fields;
 import com.achilio.mvm.service.OptimizerApplication;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.entities.statistics.QueryStatistics;
+import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -17,7 +18,7 @@ public class DefaultFieldSet implements FieldSet, Cloneable {
 
   private final Set<Field> fields;
   private Set<FetchedTable> referenceTables;
-  private QueryStatistics statistics;
+  private QueryUsageStatistics statistics;
 
   public DefaultFieldSet() {
     this(new LinkedHashSet<>());
@@ -43,12 +44,12 @@ public class DefaultFieldSet implements FieldSet, Cloneable {
   }
 
   @Override
-  public QueryStatistics getStatistics() {
+  public QueryUsageStatistics getStatistics() {
     return this.statistics;
   }
 
   @Override
-  public void setStatistics(QueryStatistics statistics) {
+  public void setStatistics(QueryUsageStatistics statistics) {
     this.statistics = statistics;
   }
 
@@ -104,15 +105,11 @@ public class DefaultFieldSet implements FieldSet, Cloneable {
       return false;
     }
     DefaultFieldSet that = (DefaultFieldSet) o;
-    return new EqualsBuilder()
-        .append(fields, that.fields)
-        .isEquals();
+    return new EqualsBuilder().append(fields, that.fields).isEquals();
   }
 
   @Override
   public int hashCode() {
-    return new HashCodeBuilder(17, 37)
-        .append(fields)
-        .toHashCode();
+    return new HashCodeBuilder(17, 37).append(fields).toHashCode();
   }
 }
