@@ -24,6 +24,7 @@ public class ZetaSQLFetchedQueryElectorVisitor extends ResolvedNodes.Visitor {
 
   @Override
   public void visit(ResolvedQueryStmt node) {
+    query.addQueryIneligibilityReason(DOES_NOT_FILTER_OR_AGGREGATE);
     super.visit(node);
   }
 

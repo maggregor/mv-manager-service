@@ -233,7 +233,7 @@ public abstract class FieldSetExtractTest {
   }
 
   @Test
-  public void testEligibleQueryAggregate() {
+  public void testAnalyzeEligibleQueryAggregate() {
     assertEligibleQuery("SELECT col1 FROM mydataset.mytable GROUP BY col1");
     assertEligibleQuery("SELECT col1, SUM(col3) FROM mydataset.mytable GROUP BY col1");
     assertEligibleQuery("SELECT MAX(col3) FROM mydataset.mytable");
@@ -241,7 +241,7 @@ public abstract class FieldSetExtractTest {
   }
 
   @Test
-  public void testNotEligibleQueryWithoutAggregate() {
+  public void testAnalyzeNotEligibleQueryWithoutAggregate() {
     assertNotEligibleQuery("SELECT col3 FROM mydataset.mytable");
     assertNotEligibleQuery("SELECT * FROM mydataset.mytable");
     assertNotEligibleQuery("SELECT 1 FROM mydataset.mytable");
@@ -249,7 +249,7 @@ public abstract class FieldSetExtractTest {
   }
 
   @Test
-  public void testEligibleQueryWithFilter() {
+  public void testAnalyzeEligibleQueryWithFilter() {
     assertEligibleQuery("SELECT * FROM mydataset.mytable WHERE col1 = 'a'");
     assertEligibleQuery("SELECT col1 AS myCol1, SUM(col3) "
         + "FROM mydataset.mytable "
@@ -272,7 +272,7 @@ public abstract class FieldSetExtractTest {
   public void testFilter() {
     FetchedQuery query = FetchedQueryFactory.createFetchedQuery(
         "SELECT col1 FROM mydataset.mytable WHERE col1 = 'aze'");
-    assertFalse(query.isEligible());
+    assertTrue(query.isEligible());
     extractor.analyzeIneligibleReasons(query);
     assertTrue(query.isEligible());
   }

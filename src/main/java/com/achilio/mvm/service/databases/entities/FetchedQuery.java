@@ -1,7 +1,5 @@
 package com.achilio.mvm.service.databases.entities;
 
-import static com.achilio.mvm.service.visitors.QueryIneligibilityReason.DOES_NOT_FILTER_OR_AGGREGATE;
-
 import com.achilio.mvm.service.databases.DatabaseFetcher;
 import com.achilio.mvm.service.databases.QueryEligible;
 import com.achilio.mvm.service.entities.statistics.QueryStatistics;
@@ -26,17 +24,6 @@ public class FetchedQuery implements QueryEligible {
 
   public FetchedQuery(String query) {
     this.query = query;
-    addDefaultNotEligibleReasons(this);
-  }
-
-  /**
-   * At this step we don't know if the query includes the minimum required to be catch in a MV on
-   * BigQuery. At first, we assume that the query is not eligible. Depending on what we find about
-   * this, we will remove theses basic reasons of ineligibility.
-   */
-  private static void addDefaultNotEligibleReasons(FetchedQuery query) {
-    //query.addQueryIneligibilityReason(MULTIPLE_TABLES_WITHOUT_SUPPORTED_JOIN);
-    query.addQueryIneligibilityReason(DOES_NOT_FILTER_OR_AGGREGATE);
   }
 
   public void setUseMaterializedView(boolean useMaterializedView) {
@@ -87,6 +74,11 @@ public class FetchedQuery implements QueryEligible {
   @Override
   public void removeQueryIneligibilityReason(QueryIneligibilityReason reason) {
     this.reasons.remove(reason);
+  }
+
+  @Override
+  public void clearQueryIneligibilityReasons() {
+    this.reasons.clear();
   }
 
   @Override

@@ -50,7 +50,8 @@ public class ZetaSQLExtract extends ZetaSQLAnalyzedContext implements FieldSetAn
       ResolvedStatement resolvedStatement = Analyzer.analyzeStatement(statement, options, catalog);
       resolvedStatement.accept(new ZetaSQLFetchedQueryElectorVisitor(fetchedQuery));
     } catch (Exception e) {
-      LOGGER.error("Query resolving has failed", e);
+      //LOGGER.error("Query resolving has failed", e);
+      fetchedQuery.clearQueryIneligibilityReasons();
       fetchedQuery.addQueryIneligibilityReason(QueryIneligibilityReason.PARSING_FAILED);
     }
   }
@@ -69,7 +70,8 @@ public class ZetaSQLExtract extends ZetaSQLAnalyzedContext implements FieldSetAn
       fieldSet.setStatistics(fetchedQuery.getStatistics());
       return fieldSet;
     } catch (Exception e) {
-      LOGGER.error("Query resolving has failed", e);
+      //LOGGER.error("Query resolving has failed", e);
+      fetchedQuery.clearQueryIneligibilityReasons();
       fetchedQuery.addQueryIneligibilityReason(QueryIneligibilityReason.PARSING_FAILED);
       return FieldSetFactory.EMPTY_FIELD_SET;
     }

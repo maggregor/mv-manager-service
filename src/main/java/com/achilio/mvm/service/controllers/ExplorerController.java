@@ -1,13 +1,19 @@
 package com.achilio.mvm.service.controllers;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+
 import com.achilio.mvm.service.databases.entities.FetchedDataset;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
+import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics;
 import com.achilio.mvm.service.services.FetcherService;
 import com.achilio.mvm.service.services.MetadataService;
+import com.achilio.mvm.service.visitors.FieldSetAnalyzer;
+import com.achilio.mvm.service.visitors.FieldSetExtractFactory;
 import io.swagger.annotations.ApiOperation;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -101,10 +107,40 @@ public class ExplorerController {
   }
 
   @GetMapping(path = "/project/{projectId}/queries/{days}/statistics", produces = "application/json")
-  @ApiOperation("Get number of queries ")
+  @ApiOperation("Get statistics of queries ")
   public GlobalQueryStatisticsResponse getQueryStatistics(@PathVariable final String projectId,
-      @PathVariable final int days) {
+      @PathVariable final int days) throws Exception {
     GlobalQueryStatistics statistics = fetcherService.getStatistics(projectId, days);
+    return toGlobalQueryStatisticsResponse(statistics);
+  }
+
+  @GetMapping(path = "/project/{projectId}/queries/{days}/statistics/eligible", produces = "application/json")
+  @ApiOperation("Get statistics of ineligible queries")
+  public GlobalQueryStatisticsResponse getEligibleQueryStatistics(
+      @PathVariable final String projectId,
+      @PathVariable final int days) throws Exception {
+    long start, end;
+    start = System.currentTimeMillis();
+    List<FetchedQuery> queries = fetcherService.fetchQueriesSince(projectId, days);
+    end = System.currentTimeMillis();
+    System.err.println("Query fetching: " + MILLISECONDS.toSeconds(end - start) + "s.");
+    start = System.currentTimeMillis();
+    Set<FetchedTable> tables = fetcherService.fetchAllTables(projectId);
+    end = System.currentTimeMillis();
+    System.err.println("Table fetching: " + MILLISECONDS.toSeconds(end - start) + "s.");
+    start = System.currentTimeMillis();
+    FieldSetAnalyzer extractor = FieldSetExtractFactory.createFieldSetExtract(projectId, tables);
+    end = System.currentTimeMillis();
+    System.err.println("Extract: " + MILLISECONDS.toSeconds(end - start) + "s.");
+    start = System.currentTimeMillis();
+    extractor.analyzeIneligibleReasons(queries);
+    end = System.currentTimeMillis();
+    System.err.println("Ineligibility: " + MILLISECONDS.toSeconds(end - start) + "s.");
+    start = System.currentTimeMillis();
+    GlobalQueryStatistics statistics = fetcherService.getStatistics(queries, true);
+    end = System.currentTimeMillis();
+    System.err.println("Statistics: " + MILLISECONDS.toSeconds(end - start) + "s.");
+
     return toGlobalQueryStatisticsResponse(statistics);
   }
 

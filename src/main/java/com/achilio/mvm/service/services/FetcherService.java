@@ -1,5 +1,8 @@
 package com.achilio.mvm.service.services;
 
+import static com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics.SCOPE_CACHED;
+import static com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics.SCOPE_IN;
+import static com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics.SCOPE_OUT;
 import static com.achilio.mvm.service.utils.DateUtils.getPastDate;
 
 import com.achilio.mvm.service.configuration.SimpleGoogleCredentialsAuthentication;
@@ -57,6 +60,10 @@ public class FetcherService {
     return fetcher(projectId).fetchAllQueries();
   }
 
+  public List<FetchedQuery> fetchQueriesSince(String projectId, int lastDays) throws Exception {
+    return fetchQueriesSince(projectId, getPastDate(lastDays));
+  }
+
   public List<FetchedQuery> fetchQueriesSince(String projectId, Date date) throws Exception {
     return fetcher(projectId).fetchAllQueriesFrom(date);
   }
@@ -74,33 +81,42 @@ public class FetcherService {
     return fetcher(projectId).fetchTableNamesInDataset(datasetName);
   }
 
-  public GlobalQueryStatistics getStatistics(String projectId, int lastDays) {
-    List<FetchedQuery> allSelect = fetcher(projectId).fetchAllQueriesFrom(getPastDate(lastDays));
+  public GlobalQueryStatistics getStatistics(String projectId, int lastDays) throws Exception {
+    return getStatistics(projectId, lastDays, false);
+  }
+
+  public GlobalQueryStatistics getStatistics(String projectId, int lastDays,
+      boolean enableIneligibilityStats) throws Exception {
+    return getStatistics(fetchQueriesSince(projectId, lastDays), enableIneligibilityStats);
+  }
+
+  public GlobalQueryStatistics getStatistics(
+      List<FetchedQuery> queries,
+      boolean enableIneligibilityStats) {
     // Select using materialized view
-    List<FetchedQuery> selectIn = allSelect.stream()
+    List<FetchedQuery> selectIn = queries.stream()
         .filter(FetchedQuery::isUsingMaterializedView)
         .collect(Collectors.toList());
     // Select using cache
-    List<FetchedQuery> selectCached = allSelect.stream()
+    List<FetchedQuery> selectCached = queries.stream()
         .filter(FetchedQuery::isUsingCache)
         .collect(Collectors.toList());
     // Select using table source
-    List<FetchedQuery> selectOut = allSelect.stream()
+    List<FetchedQuery> selectOut = queries.stream()
         .filter(q -> !q.isUsingMaterializedView() && !q.isUsingCache())
         .collect(Collectors.toList());
-    //
     GlobalQueryStatistics global = new GlobalQueryStatistics();
-    global.addStatistic(GlobalQueryStatistics.SCOPE_IN, new QueryStatistics(selectIn));
-    global.addStatistic(GlobalQueryStatistics.SCOPE_OUT, new QueryStatistics(selectOut));
-    global.addStatistic(GlobalQueryStatistics.SCOPE_CACHED, new QueryStatistics(selectCached));
+    global.addStatistic(SCOPE_IN, new QueryStatistics(selectIn, enableIneligibilityStats));
+    global.addStatistic(SCOPE_OUT, new QueryStatistics(selectOut, enableIneligibilityStats));
+    global.addStatistic(SCOPE_CACHED, new QueryStatistics(selectCached, enableIneligibilityStats));
     return global;
   }
 
-  public int fetchMMVCount(String projectId) throws Exception {
+  public int fetchMMVCount(String projectId) {
     return fetcher(projectId).fetchMMVCount();
   }
 
-  private DatabaseFetcher fetcher() throws Exception {
+  private DatabaseFetcher fetcher() {
     return fetcher(null);
   }
 

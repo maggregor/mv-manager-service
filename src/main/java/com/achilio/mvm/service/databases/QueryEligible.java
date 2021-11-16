@@ -17,6 +17,8 @@ public interface QueryEligible {
   void addQueryIneligibilityReason(QueryIneligibilityReason reason);
 
   void removeQueryIneligibilityReason(QueryIneligibilityReason reason);
-  
+
+  void clearQueryIneligibilityReasons();
+
   Set<QueryIneligibilityReason> getQueryIneligibilityReasons();
 }

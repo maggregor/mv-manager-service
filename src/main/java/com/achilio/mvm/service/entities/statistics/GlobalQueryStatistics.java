@@ -21,6 +21,9 @@ public class GlobalQueryStatistics {
     total.addQueries(statistics.getQueries());
     total.addProcessedBytes(statistics.getProcessedBytes());
     total.addBilledBytes(statistics.getBilledBytes());
+    total.addEligibles(statistics.getEligibles());
+    total.addIneligibles(statistics.getIneligibles());
+    total.addIneligibleReasons(statistics.getIneligibleReasons());
     // Add children statistics
     this.details.put(name, statistics);
   }

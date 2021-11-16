@@ -4,12 +4,15 @@ import com.achilio.mvm.service.OptimizerApplication;
 import com.achilio.mvm.service.configuration.SimpleGoogleCredentialsAuthentication;
 import com.achilio.mvm.service.entities.Optimization;
 import com.achilio.mvm.service.entities.OptimizationResult;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.cloud.pubsub.v1.Publisher;
 import com.google.protobuf.ByteString;
 import com.google.pubsub.v1.PubsubMessage;
 import com.google.pubsub.v1.TopicName;
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -80,7 +83,7 @@ public class GooglePublisherService {
         .setData(data)
         .build();
   }
-  
+
   public void publishMessage(PubsubMessage pubsubMessage)
       throws IOException, ExecutionException, InterruptedException {
     Publisher publisher = null;
@@ -95,7 +98,18 @@ public class GooglePublisherService {
     }
   }
 
-  // TODO: Format to JSON
+  public String toJSONArrayOfResultStatements(List<OptimizationResult> results)
+      throws JsonProcessingException {
+    return new ObjectMapper()
+        .writeValueAsString(
+            results.stream()
+                .map(OptimizationResult::getStatement)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList())
+        );
+
+  }
+
   public String getFormattedMessage(List<OptimizationResult> results) {
     final StringJoiner messageStringJoiner = new StringJoiner(";");
     results.stream().map(OptimizationResult::getStatement).forEach(messageStringJoiner::add);

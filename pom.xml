@@ -150,12 +150,6 @@
       <optional>true</optional>
     </dependency>
 
-    <!-- Enabling support to send and get XML format in RequestBody and Response -->
-    <dependency>
-      <artifactId>jackson-dataformat-xml</artifactId>
-      <groupId>com.fasterxml.jackson.dataformat</groupId>
-    </dependency>
-
     <dependency>
       <artifactId>spring-boot-starter-actuator</artifactId>
       <groupId>org.springframework.boot</groupId>

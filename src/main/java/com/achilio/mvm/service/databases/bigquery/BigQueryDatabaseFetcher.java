@@ -37,7 +37,6 @@ import com.google.zetasql.ZetaSQLType;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -58,7 +57,7 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
   private static final String UNSUPPORTED_TABLE_TOKEN = "INFORMATION_SCHEMA";
   private static final String SQL_FROM_WORD = "FROM";
   private static final String SQL_SELECT_WORD = "SELECT";
-  private static final int LIST_JOB_PAGE_SIZE = 1000;
+  private static final int LIST_JOB_PAGE_SIZE = 10000;
   private final BigQuery bigquery;
   private final ResourceManager resourceManager;
   private final String projectId;
@@ -99,12 +98,12 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
   }
 
   @Override
-  public List<FetchedQuery> fetchAllQueriesFrom(Date start) {
-    long fromCreationTime = start == null ? 0 : start.getTime();
+  public List<FetchedQuery> fetchAllQueriesFrom(Date startDate) {
+    long fromCreationTime = startDate == null ? 0 : startDate.getTime();
     List<BigQuery.JobListOption> options = getJobListOptions(fromCreationTime);
     final Page<Job> jobPages = bigquery.listJobs(options.toArray(new BigQuery.JobListOption[0]));
     return StreamSupport
-        .stream(jobPages.iterateAll().spliterator(), false)
+        .stream(jobPages.getValues().spliterator(), true)
         .filter(this::fetchQueryFilter)
         .map(this::toFetchedQuery)
         .filter(Objects::nonNull)
@@ -251,17 +250,12 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
 
   @Override
   public Set<FetchedTable> fetchAllTables() {
-    Set<FetchedTable> tables = new HashSet<>();
-    bigquery
-        .listDatasets()
-        .getValues()
-        .forEach(
-            dataset -> {
-              final String datasetName = dataset.getDatasetId().getDataset();
-              Set<FetchedTable> fetchedTables = fetchTablesInDataset(datasetName);
-              tables.addAll(fetchedTables);
-            });
-    return tables;
+    Spliterator<Dataset> spliterator = bigquery.listDatasets().getValues().spliterator();
+    return StreamSupport.stream(spliterator, true)
+        .map(dataset -> dataset.getDatasetId().getDataset())
+        .map(this::fetchTablesInDataset)
+        .flatMap(Set::stream)
+        .collect(Collectors.toSet());
   }
 
   @Override
@@ -274,19 +268,12 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
 
   @Override
   public Set<FetchedTable> fetchTablesInDataset(String datasetName) {
-    Set<FetchedTable> tables = new HashSet<>();
-    bigquery
-        .listTables(datasetName)
-        .getValues()
-        .forEach(
-            table -> {
-              // Force in order to retrieve metadata (ie: schema)
-              table = bigquery.getTable(table.getTableId());
-              if (isValidTable(table)) {
-                tables.add(toFetchedTable(table));
-              }
-            });
-    return tables;
+    Spliterator<Table> spliterator = bigquery.listTables(datasetName).getValues().spliterator();
+    return StreamSupport.stream(spliterator, true)
+        .map(table -> bigquery.getTable(table.getTableId()))
+        .filter(this::isValidTable)
+        .map(this::toFetchedTable)
+        .collect(Collectors.toSet());
   }
 
   @Override
