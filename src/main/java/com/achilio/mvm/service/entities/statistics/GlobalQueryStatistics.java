@@ -1,5 +1,6 @@
 package com.achilio.mvm.service.entities.statistics;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -16,13 +17,17 @@ public class GlobalQueryStatistics {
     total = new QueryStatistics();
   }
 
+  public GlobalQueryStatistics(boolean computeIneligibilityReasons) {
+    total = new QueryStatistics(computeIneligibilityReasons);
+  }
+
   public void addStatistic(String name, QueryStatistics statistics) {
     // Global metrics
     total.addQueries(statistics.getTotalQueries());
     total.addProcessedBytes(statistics.getTotalProcessedBytes());
     total.addBilledBytes(statistics.getTotalBilledBytes());
     total.addEligible(statistics.getEligible());
-    total.addIneligibles(statistics.getIneligibles());
+    total.addIneligibles(statistics.getIneligible());
     total.addIneligibleReasons(statistics.getIneligibleReasons());
     // Add children statistics
     this.details.put(name, statistics);

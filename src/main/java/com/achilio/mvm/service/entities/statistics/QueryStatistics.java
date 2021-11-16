@@ -15,8 +15,8 @@ public class QueryStatistics {
   private int totalQueries = 0;
   private long totalBilledBytes = 0;
   private long totalProcessedBytes = 0;
-  private MutableInt eligible;
-  private MutableInt ineligibles;
+  private MutableInt eligible = new MutableInt();
+  private MutableInt ineligible = new MutableInt();
 
   @JsonProperty("ineligibleReasons")
   private Map<QueryIneligibilityReason, MutableInt> ineligibleReasons = new HashMap<>();
@@ -37,8 +37,6 @@ public class QueryStatistics {
     this.enableComputeIneligibilityReasons = enableComputeIneligibilityReasons;
     if (enableComputeIneligibilityReasons) {
       ineligibleReasons = defaultReasonStatistics();
-      eligible = new MutableInt();
-      ineligibles = new MutableInt();
     }
     queries.forEach(this::addQuery);
   }
@@ -66,7 +64,7 @@ public class QueryStatistics {
   }
 
   private void incrementIneligibles() {
-    this.ineligibles.increment();
+    this.ineligible.increment();
   }
 
   private void incrementEligible() {
@@ -105,11 +103,11 @@ public class QueryStatistics {
   }
 
   public int getEligible() {
-    return this.eligible == null ? -1 : this.eligible.getValue();
+    return this.enableComputeIneligibilityReasons == false ? -1 : this.eligible.getValue();
   }
 
-  public int getIneligibles() {
-    return this.ineligibles == null ? -1 : this.ineligibles.getValue();
+  public int getIneligible() {
+    return this.enableComputeIneligibilityReasons == false ? -1 : this.ineligible.getValue();
   }
 
   public void addProcessedBytes(long processedBytes) {
@@ -129,6 +127,6 @@ public class QueryStatistics {
   }
 
   public void addIneligibles(int ineligibles) {
-    this.ineligibles.add(ineligibles);
+    this.ineligible.add(ineligibles);
   }
 }
