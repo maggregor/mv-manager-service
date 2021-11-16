@@ -4,7 +4,7 @@ import com.achilio.mvm.service.visitors.fields.Field;
 
 public class ZetaSQLFieldSetExtractVisitor extends FieldSetExtractVisitor {
 
-  private static final String NOT_REGULAR_COLUMN_PREFIX_TO_SKIP = "$";
+  public static final String NOT_REGULAR_COLUMN_PREFIX_TO_SKIP = "$";
 
   @Override
   public boolean filterAllowAddField(Field field) {
