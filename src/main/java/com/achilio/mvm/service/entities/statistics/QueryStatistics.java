@@ -72,9 +72,7 @@ public class QueryStatistics {
   }
 
   public void incrementQueryIneligibilityReasonIfEnabled(FetchedQuery query) {
-    if (this.enableComputeIneligibilityReasons) {
-      query.getQueryIneligibilityReasons().forEach(r -> ineligibleReasons.get(r).increment());
-    }
+    query.getQueryIneligibilityReasons().forEach(r -> ineligibleReasons.get(r).increment());
   }
 
   public Map<QueryIneligibilityReason, MutableInt> getIneligibleReasons() {
