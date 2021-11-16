@@ -73,6 +73,4 @@ public interface DatabaseFetcher {
 
   Set<FetchedTable> fetchTableNamesInDataset(String datasetName);
 
-  int fetchMMVCount();
-
 }

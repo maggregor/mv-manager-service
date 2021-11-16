@@ -1,7 +1,5 @@
 package com.achilio.mvm.service.controllers;
 
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-
 import com.achilio.mvm.service.databases.entities.FetchedDataset;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
@@ -86,14 +84,6 @@ public class ExplorerController {
     return toDatasetResponse(fetchedDataset);
   }
 
-  @GetMapping(path = "/project/{projectId}/dataset/{datasetName}/mmv/count", produces = "application/json")
-  @ApiOperation("Get number of materialized view for given dataset")
-  public int getMaterializedViewCount(
-      @PathVariable final String projectId, @PathVariable final String datasetName)
-      throws Exception {
-    return fetcherService.fetchMMVCount(projectId);
-  }
-
   @GetMapping(
       path = "/project/{projectId}/dataset/{datasetName}/table",
       produces = "application/json")
@@ -119,28 +109,11 @@ public class ExplorerController {
   public GlobalQueryStatisticsResponse getEligibleQueryStatistics(
       @PathVariable final String projectId,
       @PathVariable final int days) throws Exception {
-    long start, end;
-    start = System.currentTimeMillis();
     List<FetchedQuery> queries = fetcherService.fetchQueriesSince(projectId, days);
-    end = System.currentTimeMillis();
-    System.err.println("Query fetching: " + MILLISECONDS.toSeconds(end - start) + "s.");
-    start = System.currentTimeMillis();
     Set<FetchedTable> tables = fetcherService.fetchAllTables(projectId);
-    end = System.currentTimeMillis();
-    System.err.println("Table fetching: " + MILLISECONDS.toSeconds(end - start) + "s.");
-    start = System.currentTimeMillis();
     FieldSetAnalyzer extractor = FieldSetExtractFactory.createFieldSetExtract(projectId, tables);
-    end = System.currentTimeMillis();
-    System.err.println("Extract: " + MILLISECONDS.toSeconds(end - start) + "s.");
-    start = System.currentTimeMillis();
     extractor.analyzeIneligibleReasons(queries);
-    end = System.currentTimeMillis();
-    System.err.println("Ineligibility: " + MILLISECONDS.toSeconds(end - start) + "s.");
-    start = System.currentTimeMillis();
     GlobalQueryStatistics statistics = fetcherService.getStatistics(queries, true);
-    end = System.currentTimeMillis();
-    System.err.println("Statistics: " + MILLISECONDS.toSeconds(end - start) + "s.");
-
     return toGlobalQueryStatisticsResponse(statistics);
   }
 

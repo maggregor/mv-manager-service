@@ -14,6 +14,8 @@ import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import com.google.api.gax.paging.Page;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.bigquery.BigQuery;
+import com.google.cloud.bigquery.BigQuery.TableField;
+import com.google.cloud.bigquery.BigQuery.TableOption;
 import com.google.cloud.bigquery.BigQueryException;
 import com.google.cloud.bigquery.BigQueryOptions;
 import com.google.cloud.bigquery.Dataset;
@@ -45,7 +47,6 @@ import java.util.Spliterator;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -169,7 +170,7 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
       query = StringUtils.trim(configuration.getQuery());
       final JobStatistics.QueryStatistics stats = job.getStatistics();
       final boolean useCache = BooleanUtils.isTrue(stats.getCacheHit());
-      final boolean usingManagedMV = containsMVManagedUsageInQueryStages(stats.getQueryPlan());
+      final boolean usingManagedMV = containsManagedMVUsageInQueryStages(stats.getQueryPlan());
       FetchedQuery fetchedQuery = FetchedQueryFactory.createFetchedQuery(StringUtils.trim(query));
       fetchedQuery.setStatistics(toQueryStatistics(stats));
       fetchedQuery.setUseMaterializedView(usingManagedMV);
@@ -188,7 +189,7 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     return statistics;
   }
 
-  private boolean containsMVManagedUsageInQueryStages(List<QueryStage> stages) {
+  public boolean containsManagedMVUsageInQueryStages(List<QueryStage> stages) {
     if (stages == null) {
       LOGGER.debug("Skipped plan analysis: the stage is null");
       return false;
@@ -262,6 +263,7 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
   public Set<FetchedTable> fetchTableNamesInDataset(String datasetName) {
     Spliterator<Table> spliterator = bigquery.listTables(datasetName).getValues().spliterator();
     return StreamSupport.stream(spliterator, true)
+        .filter(this::isValidTable)
         .map(this::toFetchedTable)
         .collect(Collectors.toSet());
   }
@@ -270,16 +272,10 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
   public Set<FetchedTable> fetchTablesInDataset(String datasetName) {
     Spliterator<Table> spliterator = bigquery.listTables(datasetName).getValues().spliterator();
     return StreamSupport.stream(spliterator, true)
-        .map(table -> bigquery.getTable(table.getTableId()))
+        .map(table -> bigquery.getTable(table.getTableId(), TableOption.fields(TableField.SCHEMA)))
         .filter(this::isValidTable)
         .map(this::toFetchedTable)
         .collect(Collectors.toSet());
-  }
-
-  @Override
-  public int fetchMMVCount() {
-    // TODO: Temporary
-    return RandomUtils.nextInt(0, 20);
   }
 
   /*
