@@ -29,4 +29,30 @@ public class TableMetadata {
 
   @Column(name = "enabled", nullable = false)
   private boolean enabled;
+
+  public TableMetadata() {
+  }
+
+  public TableMetadata(ProjectMetadata projectMetadata, DatasetMetadata datasetMetadata,
+      boolean enabled) {
+    this.projectMetadata = projectMetadata;
+    this.datasetMetadata = datasetMetadata;
+    this.enabled = enabled;
+  }
+
+  public Long getId() {
+    return id;
+  }
+
+  public ProjectMetadata getProjectMetadata() {
+    return projectMetadata;
+  }
+
+  public DatasetMetadata getDatasetMetadata() {
+    return datasetMetadata;
+  }
+
+  public boolean isEnabled() {
+    return enabled;
+  }
 }
