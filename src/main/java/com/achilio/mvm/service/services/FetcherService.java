@@ -112,10 +112,6 @@ public class FetcherService {
     return global;
   }
 
-  public int fetchMMVCount(String projectId) {
-    return fetcher(projectId).fetchMMVCount();
-  }
-
   private DatabaseFetcher fetcher() {
     return fetcher(null);
   }

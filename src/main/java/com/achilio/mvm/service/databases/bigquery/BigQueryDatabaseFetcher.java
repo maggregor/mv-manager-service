@@ -47,7 +47,6 @@ import java.util.Spliterator;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -277,12 +276,6 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
         .filter(this::isValidTable)
         .map(this::toFetchedTable)
         .collect(Collectors.toSet());
-  }
-
-  @Override
-  public int fetchMMVCount() {
-    // TODO: Temporary
-    return RandomUtils.nextInt(0, 20);
   }
 
   /*
