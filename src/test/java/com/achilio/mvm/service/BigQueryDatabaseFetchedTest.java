@@ -26,6 +26,7 @@ import com.google.cloud.bigquery.TableId;
 import com.google.cloud.resourcemanager.ResourceManager;
 import java.util.Arrays;
 import java.util.List;
+import org.apache.logging.log4j.util.Strings;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.BeforeEach;
@@ -59,6 +60,12 @@ public class BigQueryDatabaseFetchedTest {
   @BeforeEach
   public void beforeEach() {
     initializeJobMockDefault();
+  }
+
+  @Test
+  public void fetchingRefuseNullJob() {
+    Job nullJob = null;
+    assertDoNotPassTheFetchingFilter(nullJob);
   }
 
   @Test
@@ -119,6 +126,7 @@ public class BigQueryDatabaseFetchedTest {
 
   @Test
   public void testSQLScript() {
+    assertFalse(fetcher.isSQLScript(Strings.EMPTY));
     assertTrue(fetcher.isSQLScript("SELECT 1; SELECT 2;"));
     assertTrue(fetcher.isSQLScript("SELECT COUNT(*) FROM myTable; SELECT 2"));
     assertFalse(fetcher.isSQLScript("SELECT COUNT(*) FROM myTable"));
