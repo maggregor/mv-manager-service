@@ -21,7 +21,7 @@ public class BruteForceOptimizerTest {
     fieldSets.add(FieldSetHelper.createFieldSet(new ReferenceField("col1")));
     fieldSets.add(FieldSetHelper.createFieldSet(new FunctionField("col2")));
     // Remove exceeded
-    optimizer = new BruteForceOptimizer(1);
+    optimizer = OptimizerFactory.createOptimizer();
     Assert.assertEquals(1, optimizer.optimize(fieldSets).size());
   }
 }
