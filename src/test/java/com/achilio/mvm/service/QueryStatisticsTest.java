@@ -48,10 +48,10 @@ public class QueryStatisticsTest {
     QueryStatistics stats;
     stats = new QueryStatistics(Lists.newArrayList(query1));
     assertEquals(-1, stats.getEligible());
-    assertEquals(-1, stats.getIneligibles());
+    assertEquals(-1, stats.getIneligible());
     stats = new QueryStatistics(Lists.newArrayList(query1), false);
     assertEquals(-1, stats.getEligible());
-    assertEquals(-1, stats.getIneligibles());
+    assertEquals(-1, stats.getIneligible());
   }
 
   @Test
@@ -61,17 +61,17 @@ public class QueryStatisticsTest {
     when(query1.isEligible()).thenReturn(true);
     totalStatistics = new QueryStatistics(Lists.newArrayList(query1), true);
     assertEquals(1, totalStatistics.getEligible());
-    assertEquals(0, totalStatistics.getIneligibles());
+    assertEquals(0, totalStatistics.getIneligible());
 
     when(query2.isEligible()).thenReturn(false);
     totalStatistics = new QueryStatistics(Lists.newArrayList(query1, query2), true);
     assertEquals(1, totalStatistics.getEligible());
-    assertEquals(1, totalStatistics.getIneligibles());
+    assertEquals(1, totalStatistics.getIneligible());
 
     when(query2.isEligible()).thenReturn(true);
     totalStatistics = new QueryStatistics(Lists.newArrayList(query1, query2), true);
     assertEquals(2, totalStatistics.getEligible());
-    assertEquals(0, totalStatistics.getIneligibles());
+    assertEquals(0, totalStatistics.getIneligible());
   }
 
   @Test

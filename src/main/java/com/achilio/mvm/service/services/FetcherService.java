@@ -23,16 +23,13 @@ import javax.persistence.PersistenceContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-/**
- * All the useful services to generate relevant Materialized Views.
- */
+/** All the useful services to generate relevant Materialized Views. */
 @Service
 public class FetcherService {
 
   BigQueryMaterializedViewStatementBuilder statementBuilder;
 
-  @PersistenceContext
-  private EntityManager entityManager;
+  @PersistenceContext private EntityManager entityManager;
 
   public FetcherService() {
     this.statementBuilder = new BigQueryMaterializedViewStatementBuilder();
@@ -84,27 +81,25 @@ public class FetcherService {
     return getStatistics(projectId, lastDays, false);
   }
 
-  public GlobalQueryStatistics getStatistics(String projectId, int lastDays,
-      boolean enableIneligibilityStats) throws Exception {
+  public GlobalQueryStatistics getStatistics(
+      String projectId, int lastDays, boolean enableIneligibilityStats) throws Exception {
     return getStatistics(fetchQueriesSince(projectId, lastDays), enableIneligibilityStats);
   }
 
   public GlobalQueryStatistics getStatistics(
-      List<FetchedQuery> queries,
-      boolean enableIneligibilityStats) {
+      List<FetchedQuery> queries, boolean enableIneligibilityStats) {
     // Select using materialized view
-    List<FetchedQuery> selectIn = queries.stream()
-        .filter(FetchedQuery::isUsingMaterializedView)
-        .collect(Collectors.toList());
+    List<FetchedQuery> selectIn =
+        queries.stream().filter(FetchedQuery::isUsingMaterializedView).collect(Collectors.toList());
     // Select using cache
-    List<FetchedQuery> selectCached = queries.stream()
-        .filter(FetchedQuery::isUsingCache)
-        .collect(Collectors.toList());
+    List<FetchedQuery> selectCached =
+        queries.stream().filter(FetchedQuery::isUsingCache).collect(Collectors.toList());
     // Select using table source
-    List<FetchedQuery> selectOut = queries.stream()
-        .filter(q -> !q.isUsingMaterializedView() && !q.isUsingCache())
-        .collect(Collectors.toList());
-    GlobalQueryStatistics global = new GlobalQueryStatistics();
+    List<FetchedQuery> selectOut =
+        queries.stream()
+            .filter(q -> !q.isUsingMaterializedView() && !q.isUsingCache())
+            .collect(Collectors.toList());
+    GlobalQueryStatistics global = new GlobalQueryStatistics(enableIneligibilityStats);
     global.addStatistic(SCOPE_IN, new QueryStatistics(selectIn, enableIneligibilityStats));
     global.addStatistic(SCOPE_OUT, new QueryStatistics(selectOut, enableIneligibilityStats));
     global.addStatistic(SCOPE_CACHED, new QueryStatistics(selectCached, enableIneligibilityStats));
