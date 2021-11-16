@@ -39,19 +39,19 @@ public class BigQueryMaterializedViewStatementBuilderTest {
 
   @Test
   @Ignore
-  public void testTableReferenceSerializationWithoutProject() {
+  public void tableReferenceSerializationWithoutProject() {
     Throwable exception =
         assertThrows(IllegalArgumentException.class, () -> builder.buildTableReference(fieldSet));
     assertEquals("Project name is empty or null", exception.getMessage());
   }
 
   @Test
-  public void testTableReferenceSerialization() {
+  public void tableReferenceSerialization() {
     Assert.assertEquals("`myproject`.`mydataset`.`mytable`", builder.buildTableReference(fieldSet));
   }
 
   @Test
-  public void testSimpleSelectColumnFunctionGroupBy() {
+  public void simpleSelectColumnFunctionGroupBy() {
     fieldSet.add(new ReferenceField("col1", "a"));
     fieldSet.add(new FunctionField("TIMESTAMP_TRUNC(ts, DAY)", "b"));
     assertStatementFromFieldSet(
@@ -60,14 +60,14 @@ public class BigQueryMaterializedViewStatementBuilderTest {
   }
 
   @Test
-  public void testSimpleSelectAggregate() {
+  public void simpleSelectAggregate() {
     fieldSet.add(new AggregateField("COUNT(*)", "count"));
     assertStatementFromFieldSet(
         fieldSet, "SELECT COUNT(*) AS count FROM `myproject`.`mydataset`.`mytable`");
   }
 
   @Test
-  public void testSelectFunctionOnly() {
+  public void selectFunctionOnly() {
     fieldSet.add(new FunctionField("CONCAT(col1, col2)", "a"));
     assertStatementFromFieldSet(
         fieldSet,
@@ -75,7 +75,7 @@ public class BigQueryMaterializedViewStatementBuilderTest {
   }
 
   @Test
-  public void testSimpleSelectColumnFunctionAggregateGroupBy() {
+  public void simpleSelectColumnFunctionAggregateGroupBy() {
     fieldSet.add(new ReferenceField("col1", "col1"));
     fieldSet.add(new FunctionField("TIMESTAMP_TRUNC(ts, DAY)", "col2"));
     fieldSet.add(new AggregateField("MAX(ts)", "col3"));

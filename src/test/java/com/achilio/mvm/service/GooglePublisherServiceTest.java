@@ -4,15 +4,12 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.achilio.mvm.service.entities.Optimization;
 import com.achilio.mvm.service.entities.OptimizationResult;
 import com.achilio.mvm.service.services.GooglePublisherService;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import java.util.ArrayList;
 import java.util.List;
 import org.assertj.core.util.Lists;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -58,14 +55,6 @@ public class GooglePublisherServiceTest {
     mockResults = Lists.newArrayList(result1, result2, result3, mockResultNullStatement);
     jsonResults = service.toJSONArrayOfResultStatements(mockResults);
     assertEquals("[\"query 1\",\"query 2\",\"query 3\"]", jsonResults);
-  }
-
-  @Test
-  @Ignore
-  public void testPublisher() {
-    Optimization optimization = new Optimization("achilio-dev");
-    GooglePublisherService publisherService = new GooglePublisherService();
-    publisherService.publishOptimization(optimization, new ArrayList<>());
   }
 
 }

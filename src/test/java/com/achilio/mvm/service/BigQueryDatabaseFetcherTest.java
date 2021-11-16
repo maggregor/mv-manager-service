@@ -135,7 +135,7 @@ public class BigQueryDatabaseFetcherTest {
   }
 
   @Test
-  public void testSQLScript() {
+  public void isSQLScript() {
     assertFalse(fetcher.isSQLScript(Strings.EMPTY));
     assertTrue(fetcher.isSQLScript("SELECT 1; SELECT 2;"));
     assertTrue(fetcher.isSQLScript("SELECT COUNT(*) FROM myTable; SELECT 2"));
@@ -144,7 +144,7 @@ public class BigQueryDatabaseFetcherTest {
   }
 
   @Test
-  public void testIsQueryJob() {
+  public void isQueryJob() {
     when(mockJob.getConfiguration()).thenReturn(DEFAULT_LOAD_JOB_CONFIGURATION);
     assertFalse(fetcher.isQueryJob(mockJob));
     when(mockJob.getConfiguration()).thenReturn(DEFAULT_COPY_JOB_CONFIGURATION);
@@ -154,7 +154,7 @@ public class BigQueryDatabaseFetcherTest {
   }
 
   @Test
-  public void testNotInError() {
+  public void notInError() {
     when(mockJob.getStatus().getError()).thenReturn(new BigQueryError("a", "b", "c"));
     assertFalse(fetcher.notInError(mockJob));
     when(mockJob.getStatus().getError()).thenReturn(null);
@@ -162,7 +162,7 @@ public class BigQueryDatabaseFetcherTest {
   }
 
   @Test
-  public void testIsRegularSelectQuery() {
+  public void isRegularSelectQuery() {
     assertFalse(fetcher.isRegularSelectQuery("SELECT 1"));
     assertFalse(fetcher.isRegularSelectQuery("CALL.BQ...."));
     assertFalse(fetcher.isRegularSelectQuery("SELECT * FROM INFORMATION_SCHEMA"));
@@ -170,7 +170,7 @@ public class BigQueryDatabaseFetcherTest {
   }
 
   @Test
-  public void testJobStatisticsToQueryStatistics() {
+  public void jobStatisticsToQueryStatistics() {
     final QueryStatistics expected = new QueryStatistics();
     expected.addBilledBytes(100L);
     expected.addProcessedBytes(10L);
@@ -184,7 +184,7 @@ public class BigQueryDatabaseFetcherTest {
   }
 
   @Test
-  public void testContainsSubStepUsingMVM() {
+  public void containsSubStepUsingMVM() {
     QueryStep step = mock(QueryStep.class);
     when(step.getSubsteps()).thenReturn(createSubSteps("sub1", "sub2", "sub3"));
     assertFalse(fetcher.containsSubStepUsingMVM(step));
@@ -195,7 +195,7 @@ public class BigQueryDatabaseFetcherTest {
   }
 
   @Test
-  public void testContainsManagedMVUsageInQueryStages() {
+  public void containsManagedMVUsageInQueryStages() {
     assertFalse(fetcher.containsManagedMVUsageInQueryStages(null));
     QueryStage stage1 = mock(QueryStage.class);
     QueryStage stage2 = mock(QueryStage.class);
@@ -210,7 +210,7 @@ public class BigQueryDatabaseFetcherTest {
   }
 
   @Test
-  public void testIsValidTable() {
+  public void isValidTable() {
     assertFalse(fetcher.isValidTable(null));
     Table mockTable = mock(Table.class);
     StandardTableDefinition mockStandardDefinition = mock(StandardTableDefinition.class);
@@ -225,7 +225,7 @@ public class BigQueryDatabaseFetcherTest {
   }
 
   @Test
-  public void testFetchTablesInDataset() {
+  public void fetchTablesInDataset() {
     final String PROJECT = "myProject";
     final String DATASET = "myDataset";
     final String TABLE = "myTable";

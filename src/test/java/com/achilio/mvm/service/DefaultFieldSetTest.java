@@ -31,7 +31,7 @@ public class DefaultFieldSetTest {
           new ReferenceField("col3"));
 
   @Test
-  public void testEquals() {
+  public void equals() {
     Assert.assertEquals(FIELD_SET_1, FIELD_SET_SAME_AS_1);
     Assert.assertEquals(FIELD_SET_1, FIELD_SET_1.clone());
     Assert.assertEquals(FIELD_SET_1, FIELD_SET_SAME_AS_1_DIFF_SORT);
@@ -40,7 +40,7 @@ public class DefaultFieldSetTest {
   }
 
   @Test
-  public void testFields() {
+  public void fields() {
     Assert.assertEquals(2, FIELD_SET_1.fields().size());
     Assert.assertEquals(1, FIELD_SET_1.aggregates().size());
     Assert.assertEquals(1, FIELD_SET_1.functions().size());
@@ -53,7 +53,7 @@ public class DefaultFieldSetTest {
   }
 
   @Test
-  public void testAdd() {
+  public void add() {
     final FieldSet expected =
         FieldSetHelper.createFieldSet(new ReferenceField("a"), new FunctionField("b"));
     FieldSet actual = new DefaultFieldSet();
