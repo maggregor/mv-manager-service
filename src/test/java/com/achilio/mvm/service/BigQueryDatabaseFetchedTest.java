@@ -19,6 +19,7 @@ import com.google.cloud.bigquery.JobStatus;
 import com.google.cloud.bigquery.LoadJobConfiguration;
 import com.google.cloud.bigquery.MaterializedViewDefinition;
 import com.google.cloud.bigquery.QueryJobConfiguration;
+import com.google.cloud.bigquery.QueryStage;
 import com.google.cloud.bigquery.QueryStage.QueryStep;
 import com.google.cloud.bigquery.StandardTableDefinition;
 import com.google.cloud.bigquery.Table;
@@ -27,6 +28,7 @@ import com.google.cloud.resourcemanager.ResourceManager;
 import java.util.Arrays;
 import java.util.List;
 import org.apache.logging.log4j.util.Strings;
+import org.assertj.core.util.Lists;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.BeforeEach;
@@ -182,6 +184,21 @@ public class BigQueryDatabaseFetchedTest {
     assertFalse(fetcher.containsSubStepUsingMVM(step));
     when(step.getSubsteps()).thenReturn(createSubSteps("sub1", "FROM mvm_", "sub3"));
     assertTrue(fetcher.containsSubStepUsingMVM(step));
+  }
+
+  @Test
+  public void testContainsManagedMVUsageInQueryStages() {
+    assertFalse(fetcher.containsManagedMVUsageInQueryStages(null));
+    QueryStage stage1 = mock(QueryStage.class);
+    QueryStage stage2 = mock(QueryStage.class);
+    QueryStep steps1 = mock(QueryStep.class);
+    QueryStep steps2 = mock(QueryStep.class);
+    when(stage1.getSteps()).thenReturn(Lists.newArrayList(steps1));
+    when(stage2.getSteps()).thenReturn(Lists.newArrayList(steps2));
+    when(steps1.getSubsteps()).thenReturn(createSubSteps("st1", "st2"));
+    when(steps2.getSubsteps()).thenReturn(createSubSteps("FROM mvm_", "st2"));
+    assertFalse(fetcher.containsManagedMVUsageInQueryStages(Lists.newArrayList(stage1)));
+    assertTrue(fetcher.containsManagedMVUsageInQueryStages(Lists.newArrayList(stage2)));
   }
 
   @Test

@@ -169,7 +169,7 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
       query = StringUtils.trim(configuration.getQuery());
       final JobStatistics.QueryStatistics stats = job.getStatistics();
       final boolean useCache = BooleanUtils.isTrue(stats.getCacheHit());
-      final boolean usingManagedMV = containsMVManagedUsageInQueryStages(stats.getQueryPlan());
+      final boolean usingManagedMV = containsManagedMVUsageInQueryStages(stats.getQueryPlan());
       FetchedQuery fetchedQuery = FetchedQueryFactory.createFetchedQuery(StringUtils.trim(query));
       fetchedQuery.setStatistics(toQueryStatistics(stats));
       fetchedQuery.setUseMaterializedView(usingManagedMV);
@@ -188,7 +188,7 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     return statistics;
   }
 
-  private boolean containsMVManagedUsageInQueryStages(List<QueryStage> stages) {
+  public boolean containsManagedMVUsageInQueryStages(List<QueryStage> stages) {
     if (stages == null) {
       LOGGER.debug("Skipped plan analysis: the stage is null");
       return false;
