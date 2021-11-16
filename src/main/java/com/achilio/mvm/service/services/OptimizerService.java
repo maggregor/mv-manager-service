@@ -33,8 +33,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class OptimizerService {
 
+  private static final int DEFAULT_MAX_MV_GENERATED = 20;
   private static Logger LOGGER = LoggerFactory.getLogger(OptimizerService.class);
-
   BigQueryMaterializedViewStatementBuilder statementBuilder;
   @Autowired
   private FetcherService fetcherService;
@@ -101,7 +101,7 @@ public class OptimizerService {
   }
 
   private Set<FieldSet> optimizeFieldSets(Set<FieldSet> fieldSets) {
-    Optimizer optimizer = OptimizerFactory.createOptimizer();
+    Optimizer optimizer = OptimizerFactory.createOptimizer(DEFAULT_MAX_MV_GENERATED);
     return optimizer.optimize(fieldSets);
   }
 
