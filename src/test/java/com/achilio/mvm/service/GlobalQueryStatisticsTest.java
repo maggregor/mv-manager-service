@@ -1,10 +1,10 @@
 package com.achilio.mvm.service;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics;
 import com.achilio.mvm.service.entities.statistics.QueryStatistics;
 import com.achilio.mvm.service.visitors.QueryIneligibilityReason;
@@ -20,9 +20,9 @@ import org.mockito.junit.MockitoJUnitRunner;
 public class GlobalQueryStatisticsTest {
 
   GlobalQueryStatistics totalStatistics = new GlobalQueryStatistics(true);
-  private QueryStatistics inStatistics = mock(QueryStatistics.class);
-  private QueryStatistics outStatistics = mock(QueryStatistics.class);
-  private QueryStatistics cachedStatistics = mock(QueryStatistics.class);
+  private final QueryStatistics inStatistics = mock(QueryStatistics.class);
+  private final QueryStatistics outStatistics = mock(QueryStatistics.class);
+  private final QueryStatistics cachedStatistics = mock(QueryStatistics.class);
 
   @Before
   public void setUp() {
@@ -55,6 +55,83 @@ public class GlobalQueryStatisticsTest {
     when(cachedStatistics.getTotalQueries()).thenReturn(700);
     when(cachedStatistics.getTotalProcessedBytes()).thenReturn(600L);
     when(cachedStatistics.getIneligibleReasons()).thenReturn(ineligibility);
+  }
+
+  @Test
+  public void noEligibilityStats() {
+    GlobalQueryStatistics noEligibilityStats = new GlobalQueryStatistics();
+    noEligibilityStats.addStatistic(GlobalQueryStatistics.SCOPE_IN, inStatistics);
+    // Assert Global
+    assertEquals(-1, noEligibilityStats.getTotalStatistics().getEligible());
+    assertEquals(-1, noEligibilityStats.getTotalStatistics().getIneligible());
+    assertEquals(8L, noEligibilityStats.getTotalStatistics().getTotalBilledBytes());
+    assertEquals(7, noEligibilityStats.getTotalStatistics().getTotalQueries());
+    assertEquals(6L, noEligibilityStats.getTotalStatistics().getTotalProcessedBytes());
+    assertNull(
+        noEligibilityStats
+            .getTotalStatistics()
+            .getIneligibleReasons()
+            .get(QueryIneligibilityReason.DOES_NOT_FILTER_OR_AGGREGATE));
+    assertNull(
+        noEligibilityStats
+            .getTotalStatistics()
+            .getIneligibleReasons()
+            .get(QueryIneligibilityReason.PARSING_FAILED));
+    assertNull(
+        noEligibilityStats
+            .getTotalStatistics()
+            .getIneligibleReasons()
+            .get(QueryIneligibilityReason.CONTAINS_UNSUPPORTED_JOIN_TYPE));
+    assertNull(
+        noEligibilityStats
+            .getTotalStatistics()
+            .getIneligibleReasons()
+            .get(QueryIneligibilityReason.MULTIPLE_TABLES_WITHOUT_SUPPORTED_JOIN));
+
+    // Assert Scope In
+    assertEquals(
+        10, noEligibilityStats.getDetails().get(GlobalQueryStatistics.SCOPE_IN).getEligible());
+    assertEquals(
+        9, noEligibilityStats.getDetails().get(GlobalQueryStatistics.SCOPE_IN).getIneligible());
+    assertEquals(
+        8L,
+        noEligibilityStats.getDetails().get(GlobalQueryStatistics.SCOPE_IN).getTotalBilledBytes());
+    assertEquals(
+        7, noEligibilityStats.getDetails().get(GlobalQueryStatistics.SCOPE_IN).getTotalQueries());
+    assertEquals(
+        6L,
+        noEligibilityStats
+            .getDetails()
+            .get(GlobalQueryStatistics.SCOPE_IN)
+            .getTotalProcessedBytes());
+    assertEquals(
+        new MutableInt(1),
+        noEligibilityStats
+            .getDetails()
+            .get(GlobalQueryStatistics.SCOPE_IN)
+            .getIneligibleReasons()
+            .get(QueryIneligibilityReason.DOES_NOT_FILTER_OR_AGGREGATE));
+    assertEquals(
+        new MutableInt(2),
+        noEligibilityStats
+            .getDetails()
+            .get(GlobalQueryStatistics.SCOPE_IN)
+            .getIneligibleReasons()
+            .get(QueryIneligibilityReason.PARSING_FAILED));
+    assertEquals(
+        new MutableInt(3),
+        noEligibilityStats
+            .getDetails()
+            .get(GlobalQueryStatistics.SCOPE_IN)
+            .getIneligibleReasons()
+            .get(QueryIneligibilityReason.CONTAINS_UNSUPPORTED_JOIN_TYPE));
+    assertEquals(
+        new MutableInt(4),
+        noEligibilityStats
+            .getDetails()
+            .get(GlobalQueryStatistics.SCOPE_IN)
+            .getIneligibleReasons()
+            .get(QueryIneligibilityReason.MULTIPLE_TABLES_WITHOUT_SUPPORTED_JOIN));
   }
 
   @Test

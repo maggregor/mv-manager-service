@@ -72,7 +72,7 @@ public class QueryStatistics {
   }
 
   public void incrementQueryIneligibilityReasonIfEnabled(FetchedQuery query) {
-    if (ineligibleReasons != null) {
+    if (this.enableComputeIneligibilityReasons) {
       query.getQueryIneligibilityReasons().forEach(r -> ineligibleReasons.get(r).increment());
     }
   }
@@ -82,8 +82,11 @@ public class QueryStatistics {
   }
 
   public void addIneligibleReasons(Map<QueryIneligibilityReason, MutableInt> ineligibleReasons) {
-    ineligibleReasons.forEach(
-        (k, v) -> this.ineligibleReasons.merge(k, v, (v1, v2) -> new MutableInt(v1.addAndGet(v2))));
+    if (this.enableComputeIneligibilityReasons) {
+      ineligibleReasons.forEach(
+          (k, v) ->
+              this.ineligibleReasons.merge(k, v, (v1, v2) -> new MutableInt(v1.addAndGet(v2))));
+    }
   }
 
   public int getTotalQueries() {
@@ -103,11 +106,11 @@ public class QueryStatistics {
   }
 
   public int getEligible() {
-    return this.enableComputeIneligibilityReasons == false ? -1 : this.eligible.getValue();
+    return !this.enableComputeIneligibilityReasons ? -1 : this.eligible.getValue();
   }
 
   public int getIneligible() {
-    return this.enableComputeIneligibilityReasons == false ? -1 : this.ineligible.getValue();
+    return !this.enableComputeIneligibilityReasons ? -1 : this.ineligible.getValue();
   }
 
   public void addProcessedBytes(long processedBytes) {
