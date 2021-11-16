@@ -13,7 +13,7 @@ public class BruteForceOptimizer implements Optimizer {
 
   private final int maxFieldSet;
 
-  public BruteForceOptimizer(int maxFieldSet) {
+  BruteForceOptimizer(int maxFieldSet) {
     this.maxFieldSet = maxFieldSet;
   }
 
@@ -22,5 +22,5 @@ public class BruteForceOptimizer implements Optimizer {
     fieldSet.remove(FieldSetFactory.EMPTY_FIELD_SET);
     return fieldSet.stream().limit(maxFieldSet).collect(Collectors.toSet());
   }
-  
+
 }
