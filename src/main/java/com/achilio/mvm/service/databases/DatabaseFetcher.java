@@ -5,7 +5,6 @@ import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -24,10 +23,11 @@ public interface DatabaseFetcher {
   /**
    * Returns history queries for a given table and date range.
    *
-   * @param start - the start range date
+   * @param fromTimestamp - timestamp start
    * @return - a list of queries as string
    */
-  List<FetchedQuery> fetchAllQueriesFrom(Date start);
+
+  List<FetchedQuery> fetchAllQueriesFrom(long fromTimestamp);
 
   /**
    * Returns metadata for a given table.

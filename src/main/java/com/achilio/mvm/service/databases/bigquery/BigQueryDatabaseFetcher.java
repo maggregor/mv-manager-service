@@ -37,7 +37,6 @@ import com.google.cloud.resourcemanager.ResourceManagerOptions;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.zetasql.ZetaSQLType;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -95,12 +94,11 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
 
   @Override
   public List<FetchedQuery> fetchAllQueries() {
-    return fetchAllQueriesFrom(null);
+    return fetchAllQueriesFrom(0);
   }
 
   @Override
-  public List<FetchedQuery> fetchAllQueriesFrom(Date startDate) {
-    long fromCreationTime = startDate == null ? 0 : startDate.getTime();
+  public List<FetchedQuery> fetchAllQueriesFrom(long fromCreationTime) {
     List<BigQuery.JobListOption> options = getJobListOptions(fromCreationTime);
     final Page<Job> jobPages = bigquery.listJobs(options.toArray(new BigQuery.JobListOption[0]));
     return StreamSupport

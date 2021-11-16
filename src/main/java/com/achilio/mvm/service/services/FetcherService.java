@@ -3,7 +3,6 @@ package com.achilio.mvm.service.services;
 import static com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics.SCOPE_CACHED;
 import static com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics.SCOPE_IN;
 import static com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics.SCOPE_OUT;
-import static com.achilio.mvm.service.utils.DateUtils.getPastDate;
 
 import com.achilio.mvm.service.configuration.SimpleGoogleCredentialsAuthentication;
 import com.achilio.mvm.service.databases.DatabaseFetcher;
@@ -16,7 +15,6 @@ import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics;
 import com.achilio.mvm.service.entities.statistics.QueryStatistics;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -61,11 +59,12 @@ public class FetcherService {
   }
 
   public List<FetchedQuery> fetchQueriesSince(String projectId, int lastDays) throws Exception {
-    return fetchQueriesSince(projectId, getPastDate(lastDays));
+    long fromTime = System.currentTimeMillis() - (long) lastDays * 24 * 60 * 60 * 1000;
+    return fetchQueriesSince(projectId, fromTime);
   }
 
-  public List<FetchedQuery> fetchQueriesSince(String projectId, Date date) throws Exception {
-    return fetcher(projectId).fetchAllQueriesFrom(date);
+  public List<FetchedQuery> fetchQueriesSince(String projectId, long fromTimestamp) {
+    return fetcher(projectId).fetchAllQueriesFrom(fromTimestamp);
   }
 
   public FetchedTable fetchTable(String projectId, String datasetName, String tableName)

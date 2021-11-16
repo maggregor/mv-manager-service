@@ -160,7 +160,7 @@ public class BigQueryDatabaseFetcherTest {
   }
 
   @Test
-  public void testIsRegularSelectQuery() {
+  public void isRegularSelectQuery() {
     assertFalse(fetcher.isRegularSelectQuery("SELECT 1"));
     assertFalse(fetcher.isRegularSelectQuery("CALL.BQ...."));
     assertFalse(fetcher.isRegularSelectQuery("SELECT * FROM INFORMATION_SCHEMA"));
@@ -168,21 +168,18 @@ public class BigQueryDatabaseFetcherTest {
   }
 
   @Test
-  public void testJobStatisticsToQueryStatistics() {
-    final QueryStatistics expected = new QueryStatistics();
-    expected.addBilledBytes(100L);
-    expected.addProcessedBytes(10L);
+  public void fetchStatisticsFromJob() {
     JobStatistics.QueryStatistics mockJobStats = mock(JobStatistics.QueryStatistics.class);
     when(mockJobStats.getTotalBytesBilled()).thenReturn(100L);
     when(mockJobStats.getTotalBytesProcessed()).thenReturn(10L);
     QueryStatistics actual = fetcher.toQueryStatistics(mockJobStats);
     assertNotNull(actual);
-    assertEquals(expected.getBilledBytes(), actual.getBilledBytes());
-    assertEquals(expected.getProcessedBytes(), actual.getProcessedBytes());
+    assertEquals(100L, actual.getBilledBytes());
+    assertEquals(10L, actual.getProcessedBytes());
   }
 
   @Test
-  public void testContainsSubStepUsingMVM() {
+  public void containsSubStepUsingMVM() {
     QueryStep step = mock(QueryStep.class);
     when(step.getSubsteps()).thenReturn(createSubSteps("sub1", "sub2", "sub3"));
     assertFalse(fetcher.containsSubStepUsingMVM(step));
@@ -193,7 +190,7 @@ public class BigQueryDatabaseFetcherTest {
   }
 
   @Test
-  public void testContainsManagedMVUsageInQueryStages() {
+  public void containsManagedMVUsageInQueryStages() {
     assertFalse(fetcher.containsManagedMVUsageInQueryStages(null));
     QueryStage stage1 = mock(QueryStage.class);
     QueryStage stage2 = mock(QueryStage.class);
@@ -208,7 +205,7 @@ public class BigQueryDatabaseFetcherTest {
   }
 
   @Test
-  public void testIsValidTable() {
+  public void isValidTable() {
     assertFalse(fetcher.isValidTable(null));
     Table mockTable = mock(Table.class);
     StandardTableDefinition mockStandardDefinition = mock(StandardTableDefinition.class);
@@ -223,7 +220,7 @@ public class BigQueryDatabaseFetcherTest {
   }
 
   @Test
-  public void testFetchTablesInDataset() {
+  public void fetchTablesInDataset() {
     final String PROJECT = "myProject";
     final String DATASET = "myDataset";
     final String TABLE = "myTable";

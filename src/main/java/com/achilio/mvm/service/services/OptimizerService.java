@@ -13,7 +13,6 @@ import com.achilio.mvm.service.entities.OptimizationResult;
 import com.achilio.mvm.service.visitors.FieldSetAnalyzer;
 import com.achilio.mvm.service.visitors.FieldSetExtractFactory;
 import com.achilio.mvm.service.visitors.fields.FieldSet;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -49,15 +48,15 @@ public class OptimizerService {
   }
 
   public Optimization optimizeProject(final String projectId) throws Exception {
-    return optimizeProject(projectId, null);
+    return optimizeProject(projectId, 30);
   }
 
-  public Optimization optimizeProject(final String projectId, Date fromDate) throws Exception {
+  public Optimization optimizeProject(final String projectId, int days) throws Exception {
     LOGGER.info("Run a new optimization");
     FetchedProject project = fetcherService.fetchProject(projectId);
     Optimization o = createNewOptimization(project.getProjectId());
     addOptimizationEvent(o, Type.FETCHING_QUERIES);
-    List<FetchedQuery> queries = fetcherService.fetchQueriesSince(projectId, fromDate);
+    List<FetchedQuery> queries = fetcherService.fetchQueriesSince(projectId, days);
     addOptimizationEvent(o, Type.FETCHING_MODELS);
     Set<FetchedTable> tables = fetcherService.fetchAllTables(projectId);
     addOptimizationEvent(o, Type.FILTER_ELIGIBLE_QUERIES);

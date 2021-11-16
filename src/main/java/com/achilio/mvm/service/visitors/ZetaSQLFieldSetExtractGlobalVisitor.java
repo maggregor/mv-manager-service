@@ -17,7 +17,6 @@ import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedFunctionCallBase;
 import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedOutputColumn;
 import java.util.ArrayList;
 import java.util.List;
-import org.apache.commons.lang3.StringUtils;
 
 public class ZetaSQLFieldSetExtractGlobalVisitor extends ZetaSQLFieldSetExtractVisitor {
 
@@ -113,7 +112,7 @@ public class ZetaSQLFieldSetExtractGlobalVisitor extends ZetaSQLFieldSetExtractV
   private boolean isColumnFromRegularTable(final ResolvedColumn column) {
     Preconditions.checkNotNull(column, "ResolvedColumn is null");
     final String tableName = column.getTableName();
-    return StringUtils.isNotEmpty(tableName) && !tableName.startsWith(NOT_REGULAR_TABLE_PREFIX);
+    return !tableName.startsWith(NOT_REGULAR_TABLE_PREFIX);
   }
 
   private String hackMappingColumnsInFunction(String expression, ResolvedFunctionCallBase expr) {
