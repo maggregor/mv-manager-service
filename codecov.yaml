@@ -2,5 +2,5 @@
 coverage:
   range: "40...100"
   ignore:
-    - "src/main/java/OptimizerApplication.java"
-    - "src/main/java/ServletInitializer.java"
+    - "src/main/java/com/achilio/mvm/service/OptimizerApplication.java"
+    - "src/main/java/com/achilio/mvm/service/ServletInitializer.java"
