@@ -107,7 +107,6 @@ public class GooglePublisherService {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList())
         );
-
   }
 
   public String getFormattedMessage(List<OptimizationResult> results) {

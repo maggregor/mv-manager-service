@@ -14,6 +14,8 @@ import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import com.google.api.gax.paging.Page;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.bigquery.BigQuery;
+import com.google.cloud.bigquery.BigQuery.TableField;
+import com.google.cloud.bigquery.BigQuery.TableOption;
 import com.google.cloud.bigquery.BigQueryException;
 import com.google.cloud.bigquery.BigQueryOptions;
 import com.google.cloud.bigquery.Dataset;
@@ -262,6 +264,7 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
   public Set<FetchedTable> fetchTableNamesInDataset(String datasetName) {
     Spliterator<Table> spliterator = bigquery.listTables(datasetName).getValues().spliterator();
     return StreamSupport.stream(spliterator, true)
+        .filter(this::isValidTable)
         .map(this::toFetchedTable)
         .collect(Collectors.toSet());
   }
@@ -270,7 +273,7 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
   public Set<FetchedTable> fetchTablesInDataset(String datasetName) {
     Spliterator<Table> spliterator = bigquery.listTables(datasetName).getValues().spliterator();
     return StreamSupport.stream(spliterator, true)
-        .map(table -> bigquery.getTable(table.getTableId()))
+        .map(table -> bigquery.getTable(table.getTableId(), TableOption.fields(TableField.SCHEMA)))
         .filter(this::isValidTable)
         .map(this::toFetchedTable)
         .collect(Collectors.toSet());

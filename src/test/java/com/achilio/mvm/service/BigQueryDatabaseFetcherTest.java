@@ -12,6 +12,8 @@ import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.entities.statistics.QueryStatistics;
 import com.google.api.gax.paging.Page;
 import com.google.cloud.bigquery.BigQuery;
+import com.google.cloud.bigquery.BigQuery.TableField;
+import com.google.cloud.bigquery.BigQuery.TableOption;
 import com.google.cloud.bigquery.BigQueryError;
 import com.google.cloud.bigquery.CopyJobConfiguration;
 import com.google.cloud.bigquery.Job;
@@ -39,7 +41,7 @@ import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
-public class BigQueryDatabaseFetchedTest {
+public class BigQueryDatabaseFetcherTest {
 
   private static final QueryJobConfiguration DEFAULT_QUERY_JOB_CONFIGURATION =
       QueryJobConfiguration.of("SELECT * FROM toto");
@@ -234,7 +236,7 @@ public class BigQueryDatabaseFetchedTest {
     when(tables.getValues()).thenReturn(Lists.newArrayList(table));
     when(mockBigquery.listTables(DATASET)).thenReturn(tables);
     when(table.getDefinition()).thenReturn(definition);
-    when(mockBigquery.getTable(tableId)).thenReturn(table);
+    when(mockBigquery.getTable(tableId, TableOption.fields(TableField.SCHEMA))).thenReturn(table);
     FetchedTable fetchedTable = fetcher.fetchTablesInDataset(DATASET).iterator().next();
     assertEquals(PROJECT, fetchedTable.getProjectId());
     assertEquals(DATASET, fetchedTable.getDatasetName());
