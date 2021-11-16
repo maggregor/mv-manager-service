@@ -10,6 +10,7 @@ import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedQueryFactory;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.entities.statistics.QueryStatistics;
+import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import com.google.api.gax.paging.Page;
 import com.google.auth.oauth2.GoogleCredentials;
@@ -69,15 +70,11 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     this.projectId = projectId;
   }
 
-  public BigQueryDatabaseFetcher(
-      final GoogleCredentials credentials,
-      final String defaultProjectId) throws ProjectNotFoundException {
-    BigQueryOptions.Builder bqOptBuilder = BigQueryOptions
-        .newBuilder()
-        .setCredentials(credentials);
-    ResourceManagerOptions.Builder rmOptBuilder = ResourceManagerOptions
-        .newBuilder()
-        .setCredentials(credentials);
+  public BigQueryDatabaseFetcher(final GoogleCredentials credentials, final String defaultProjectId)
+      throws ProjectNotFoundException {
+    BigQueryOptions.Builder bqOptBuilder = BigQueryOptions.newBuilder().setCredentials(credentials);
+    ResourceManagerOptions.Builder rmOptBuilder =
+        ResourceManagerOptions.newBuilder().setCredentials(credentials);
     if (StringUtils.isNotEmpty(defaultProjectId)) {
       // Change default project of BigQuery instance
       bqOptBuilder.setProjectId(defaultProjectId);
@@ -101,8 +98,7 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
   public List<FetchedQuery> fetchAllQueriesFrom(long fromCreationTime) {
     List<BigQuery.JobListOption> options = getJobListOptions(fromCreationTime);
     final Page<Job> jobPages = bigquery.listJobs(options.toArray(new BigQuery.JobListOption[0]));
-    return StreamSupport
-        .stream(jobPages.getValues().spliterator(), true)
+    return StreamSupport.stream(jobPages.getValues().spliterator(), true)
         .filter(this::fetchQueryFilter)
         .map(this::toFetchedQuery)
         .filter(Objects::nonNull)
@@ -170,7 +166,7 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
       final boolean useCache = BooleanUtils.isTrue(stats.getCacheHit());
       final boolean usingManagedMV = containsManagedMVUsageInQueryStages(stats.getQueryPlan());
       FetchedQuery fetchedQuery = FetchedQueryFactory.createFetchedQuery(StringUtils.trim(query));
-      fetchedQuery.setStatistics(toQueryStatistics(stats));
+      fetchedQuery.setStatistics(toQueryUsageStatistics(stats));
       fetchedQuery.setUseMaterializedView(usingManagedMV);
       fetchedQuery.setUseCache(useCache);
       return fetchedQuery;
@@ -180,10 +176,11 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     return null;
   }
 
-  public QueryStatistics toQueryStatistics(JobStatistics.QueryStatistics queryStatistics) {
-    QueryStatistics statistics = new QueryStatistics();
-    statistics.addProcessedBytes(queryStatistics.getTotalBytesProcessed());
-    statistics.addBilledBytes(queryStatistics.getTotalBytesBilled());
+  public QueryUsageStatistics toQueryUsageStatistics(
+      JobStatistics.QueryStatistics queryStatistics) {
+    QueryUsageStatistics statistics = new QueryUsageStatistics();
+    statistics.setProcessedBytes(queryStatistics.getTotalBytesProcessed());
+    statistics.setBilledBytes(queryStatistics.getTotalBytesBilled());
     return statistics;
   }
 
@@ -209,8 +206,8 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
    * @return boolean - True if the query plan used a MVM.
    */
   public boolean containsSubStepUsingMVM(QueryStep step) {
-    return step.getSubsteps()
-        .stream().anyMatch(subStep -> subStep.contains(SQL_FROM_WORD) && subStep.contains("mvm_"));
+    return step.getSubsteps().stream()
+        .anyMatch(subStep -> subStep.contains(SQL_FROM_WORD) && subStep.contains("mvm_"));
   }
 
   private List<BigQuery.JobListOption> getJobListOptions(long fromCreationTime) {

@@ -18,10 +18,10 @@ public class GlobalQueryStatistics {
 
   public void addStatistic(String name, QueryStatistics statistics) {
     // Global metrics
-    total.addQueries(statistics.getQueries());
-    total.addProcessedBytes(statistics.getProcessedBytes());
-    total.addBilledBytes(statistics.getBilledBytes());
-    total.addEligibles(statistics.getEligibles());
+    total.addQueries(statistics.getTotalQueries());
+    total.addProcessedBytes(statistics.getTotalProcessedBytes());
+    total.addBilledBytes(statistics.getTotalBilledBytes());
+    total.addEligible(statistics.getEligible());
     total.addIneligibles(statistics.getIneligibles());
     total.addIneligibleReasons(statistics.getIneligibleReasons());
     // Add children statistics

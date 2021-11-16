@@ -2,6 +2,7 @@ package com.achilio.mvm.service.visitors.fields;
 
 import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.entities.statistics.QueryStatistics;
+import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
 import java.util.Set;
 
 /**
@@ -22,9 +23,9 @@ public interface FieldSet {
 
   void setReferenceTables(Set<FetchedTable> referenceTables);
 
-  QueryStatistics getStatistics();
+  QueryUsageStatistics getStatistics();
 
-  void setStatistics(QueryStatistics statistics);
+  void setStatistics(QueryUsageStatistics statistics);
 
   /**
    * Add new Field to the field set.
@@ -40,23 +41,15 @@ public interface FieldSet {
    */
   void merge(FieldSet fieldSet);
 
-  /**
-   * Returns aggregate fields in the field set
-   */
+  /** Returns aggregate fields in the field set */
   Set<Field> aggregates();
 
-  /**
-   * Returns references fields in the field set
-   */
+  /** Returns references fields in the field set */
   Set<Field> references();
 
-  /**
-   * Returns functions fields in the field set
-   */
+  /** Returns functions fields in the field set */
   Set<Field> functions();
 
-  /**
-   * Create a FieldSet clone
-   */
+  /** Create a FieldSet clone */
   FieldSet clone();
 }
