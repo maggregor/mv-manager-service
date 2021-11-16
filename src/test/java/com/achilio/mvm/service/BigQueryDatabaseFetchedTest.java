@@ -8,7 +8,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.achilio.mvm.service.databases.bigquery.BigQueryDatabaseFetcher;
+import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.entities.statistics.QueryStatistics;
+import com.google.api.gax.paging.Page;
 import com.google.cloud.bigquery.BigQuery;
 import com.google.cloud.bigquery.BigQueryError;
 import com.google.cloud.bigquery.CopyJobConfiguration;
@@ -23,6 +25,7 @@ import com.google.cloud.bigquery.QueryStage;
 import com.google.cloud.bigquery.QueryStage.QueryStep;
 import com.google.cloud.bigquery.StandardTableDefinition;
 import com.google.cloud.bigquery.Table;
+import com.google.cloud.bigquery.TableDefinition;
 import com.google.cloud.bigquery.TableId;
 import com.google.cloud.resourcemanager.ResourceManager;
 import java.util.Arrays;
@@ -50,10 +53,11 @@ public class BigQueryDatabaseFetchedTest {
       DEFAULT_TABLE_ID, DEFAULT_TABLE_ID_2).build();
   private BigQueryDatabaseFetcher fetcher;
   private Job mockJob;
+  private BigQuery mockBigquery;
 
   @Before
   public void setUp() {
-    BigQuery mockBigquery = mock(BigQuery.class);
+    mockBigquery = mock(BigQuery.class);
     ResourceManager resourceManager = mock(ResourceManager.class);
     fetcher = new BigQueryDatabaseFetcher(mockBigquery, resourceManager, "test-project");
     initializeJobMockDefault();
@@ -212,6 +216,29 @@ public class BigQueryDatabaseFetchedTest {
     assertTrue(fetcher.isValidTable(mockTable));
     when(mockTable.getDefinition()).thenReturn(mockMVDefinition);
     assertFalse(fetcher.isValidTable(mockTable));
+    when(mockTable.exists()).thenReturn(false);
+    assertFalse(fetcher.isValidTable(mockTable));
+  }
+
+  @Test
+  public void testFetchTablesInDataset() {
+    final String PROJECT = "myProject";
+    final String DATASET = "myDataset";
+    final String TABLE = "myTable";
+    Page<Table> tables = mock(Page.class);
+    Table table = mock(Table.class);
+    TableDefinition definition = mock(StandardTableDefinition.class);
+    TableId tableId = TableId.of(PROJECT, DATASET, TABLE);
+    when(table.getTableId()).thenReturn(tableId);
+    when(table.exists()).thenReturn(true);
+    when(tables.getValues()).thenReturn(Lists.newArrayList(table));
+    when(mockBigquery.listTables(DATASET)).thenReturn(tables);
+    when(table.getDefinition()).thenReturn(definition);
+    when(mockBigquery.getTable(tableId)).thenReturn(table);
+    FetchedTable fetchedTable = fetcher.fetchTablesInDataset(DATASET).iterator().next();
+    assertEquals(PROJECT, fetchedTable.getProjectId());
+    assertEquals(DATASET, fetchedTable.getDatasetName());
+    assertEquals(TABLE, fetchedTable.getTableName());
   }
 
   private void assertPassTheFetchingFilter(Job job) {
