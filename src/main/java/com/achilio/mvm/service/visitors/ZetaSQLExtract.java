@@ -11,6 +11,7 @@ import com.google.zetasql.AnalyzerOptions;
 import com.google.zetasql.LanguageOptions;
 import com.google.zetasql.SimpleCatalog;
 import com.google.zetasql.ZetaSQLOptions.LanguageFeature;
+import com.google.zetasql.resolvedast.ResolvedNodes;
 import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedStatement;
 import java.util.Arrays;
 import java.util.Collections;
@@ -43,37 +44,30 @@ public class ZetaSQLExtract extends ZetaSQLAnalyzedContext implements FieldSetAn
 
   @Override
   public void analyzeIneligibleReasons(FetchedQuery fetchedQuery) {
-    final String statement = fetchedQuery.getQuery();
-    final SimpleCatalog catalog = this.getCatalog();
-    discoverFetchedTable(fetchedQuery);
-    try {
-      ResolvedStatement resolvedStatement = Analyzer.analyzeStatement(statement, options, catalog);
-      resolvedStatement.accept(new ZetaSQLFetchedQueryElectorVisitor(fetchedQuery));
-    } catch (Exception e) {
-      //LOGGER.error("Query resolving has failed", e);
-      fetchedQuery.clearQueryIneligibilityReasons();
-      fetchedQuery.addQueryIneligibilityReason(QueryIneligibilityReason.PARSING_FAILED);
-    }
+    analyzeStatementAndVisit(fetchedQuery, new ZetaSQLFetchedQueryElectorVisitor(fetchedQuery));
   }
 
   @Override
   public FieldSet extract(FetchedQuery fetchedQuery) {
+    ZetaSQLFieldSetExtractGlobalVisitor v = new ZetaSQLFieldSetExtractGlobalVisitor(getCatalog());
+    analyzeStatementAndVisit(fetchedQuery, v);
+    FieldSet fieldSet = v.fieldSet() == null ? FieldSetFactory.EMPTY_FIELD_SET : v.fieldSet();
+    fieldSet.setReferenceTables(fetchedQuery.getReferenceTables());
+    fieldSet.setStatistics(fetchedQuery.getStatistics());
+    return fieldSet;
+  }
+
+  private void analyzeStatementAndVisit(FetchedQuery fetchedQuery, ResolvedNodes.Visitor visitor) {
     final String statement = fetchedQuery.getQuery();
     final SimpleCatalog catalog = this.getCatalog();
     try {
       discoverFetchedTable(fetchedQuery);
       ResolvedStatement resolvedStatement = Analyzer.analyzeStatement(statement, options, catalog);
-      FieldSetExtractVisitor extractVisitor = new ZetaSQLFieldSetExtractGlobalVisitor(catalog);
-      resolvedStatement.accept(extractVisitor);
-      FieldSet fieldSet = extractVisitor.fieldSet();
-      fieldSet.setReferenceTables(fetchedQuery.getReferenceTables());
-      fieldSet.setStatistics(fetchedQuery.getStatistics());
-      return fieldSet;
+      resolvedStatement.accept(visitor);
     } catch (Exception e) {
-      //LOGGER.error("Query resolving has failed", e);
+      LOGGER.error("Query resolving has failed", e);
       fetchedQuery.clearQueryIneligibilityReasons();
       fetchedQuery.addQueryIneligibilityReason(QueryIneligibilityReason.PARSING_FAILED);
-      return FieldSetFactory.EMPTY_FIELD_SET;
     }
   }
 

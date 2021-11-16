@@ -1,6 +1,7 @@
 package com.achilio.mvm.service;
 
 import static com.achilio.mvm.service.databases.entities.FetchedTableHelper.createFetchedTable;
+import static com.achilio.mvm.service.visitors.QueryIneligibilityReason.PARSING_FAILED;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -23,9 +24,9 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
-@RunWith(SpringRunner.class)
+@RunWith(MockitoJUnitRunner.class)
 public abstract class FieldSetExtractTest {
 
   private static final String[][] SIMPLE_TABLE_COLUMNS =
@@ -36,14 +37,13 @@ public abstract class FieldSetExtractTest {
           {"col4", ZetaSQLType.TypeKind.TYPE_INT64.name()},
           {"ts", ZetaSQLType.TypeKind.TYPE_TIMESTAMP.name()}
       };
-
   private FieldSetAnalyzer extractor;
 
   protected abstract FieldSetAnalyzer createFieldSetExtract(String projectId,
       Set<FetchedTable> metadata);
 
   @Before
-  public void before() {
+  public void setUp() {
     Set<FetchedTable> tables = new HashSet<>();
     tables.add(createFetchedTable("myproject.mydataset.mytable", SIMPLE_TABLE_COLUMNS));
     this.extractor = createFieldSetExtract("myproject", tables);
@@ -233,7 +233,7 @@ public abstract class FieldSetExtractTest {
   }
 
   @Test
-  public void testAnalyzeEligibleQueryAggregate() {
+  public void analyzeEligibleQueryAggregate() {
     assertEligibleQuery("SELECT col1 FROM mydataset.mytable GROUP BY col1");
     assertEligibleQuery("SELECT col1, SUM(col3) FROM mydataset.mytable GROUP BY col1");
     assertEligibleQuery("SELECT MAX(col3) FROM mydataset.mytable");
@@ -241,7 +241,7 @@ public abstract class FieldSetExtractTest {
   }
 
   @Test
-  public void testAnalyzeNotEligibleQueryWithoutAggregate() {
+  public void analyzeNotEligibleQueryWithoutAggregate() {
     assertNotEligibleQuery("SELECT col3 FROM mydataset.mytable");
     assertNotEligibleQuery("SELECT * FROM mydataset.mytable");
     assertNotEligibleQuery("SELECT 1 FROM mydataset.mytable");
@@ -249,11 +249,20 @@ public abstract class FieldSetExtractTest {
   }
 
   @Test
-  public void testAnalyzeEligibleQueryWithFilter() {
+  public void analyzeEligibleQueryWithFilter() {
     assertEligibleQuery("SELECT * FROM mydataset.mytable WHERE col1 = 'a'");
     assertEligibleQuery("SELECT col1 AS myCol1, SUM(col3) "
         + "FROM mydataset.mytable "
         + "WHERE col1 = 'a' GROUP BY myCol1");
+  }
+
+  @Test
+  public void parseFailReason() {
+    FetchedQuery query = new FetchedQuery("SELECT doesn't works");
+    assertTrue(query.isEligible());
+    extractor.analyzeIneligibleReasons(query);
+    assertFalse(query.isEligible());
+    assertTrue(query.getQueryIneligibilityReasons().contains(PARSING_FAILED));
   }
 
   private void assertEligibleQuery(String query) {
