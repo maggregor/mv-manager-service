@@ -1,5 +1,10 @@
 package com.achilio.mvm.service;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
 import com.achilio.mvm.service.visitors.fields.AggregateField;
 import com.achilio.mvm.service.visitors.fields.DefaultFieldSet;
 import com.achilio.mvm.service.visitors.fields.FieldSet;
@@ -32,24 +37,24 @@ public class DefaultFieldSetTest {
 
   @Test
   public void equals() {
-    Assert.assertEquals(FIELD_SET_1, FIELD_SET_SAME_AS_1);
-    Assert.assertEquals(FIELD_SET_1, FIELD_SET_1.clone());
-    Assert.assertEquals(FIELD_SET_1, FIELD_SET_SAME_AS_1_DIFF_SORT);
+    assertEquals(FIELD_SET_1, FIELD_SET_SAME_AS_1);
+    assertEquals(FIELD_SET_1, FIELD_SET_1.clone());
+    assertEquals(FIELD_SET_1, FIELD_SET_SAME_AS_1_DIFF_SORT);
     Assert.assertNotEquals(FIELD_SET_1, FIELD_SET_2);
     Assert.assertNotEquals(FIELD_SET_1, FIELD_SET_3);
   }
 
   @Test
   public void fields() {
-    Assert.assertEquals(2, FIELD_SET_1.fields().size());
-    Assert.assertEquals(1, FIELD_SET_1.aggregates().size());
-    Assert.assertEquals(1, FIELD_SET_1.functions().size());
-    Assert.assertEquals(2, FIELD_SET_2.fields().size());
-    Assert.assertEquals(2, FIELD_SET_2.references().size());
-    Assert.assertEquals(0, FIELD_SET_2.aggregates().size());
-    Assert.assertEquals(3, FIELD_SET_3.fields().size());
-    Assert.assertEquals(1, FIELD_SET_3.aggregates().size());
-    Assert.assertEquals(2, FIELD_SET_3.references().size());
+    assertEquals(2, FIELD_SET_1.fields().size());
+    assertEquals(1, FIELD_SET_1.aggregates().size());
+    assertEquals(1, FIELD_SET_1.functions().size());
+    assertEquals(2, FIELD_SET_2.fields().size());
+    assertEquals(2, FIELD_SET_2.references().size());
+    assertEquals(0, FIELD_SET_2.aggregates().size());
+    assertEquals(3, FIELD_SET_3.fields().size());
+    assertEquals(1, FIELD_SET_3.aggregates().size());
+    assertEquals(2, FIELD_SET_3.references().size());
   }
 
   @Test
@@ -60,6 +65,18 @@ public class DefaultFieldSetTest {
     Assert.assertNotEquals(expected, actual);
     actual.add(new ReferenceField("a"));
     actual.add(new FunctionField("b"));
-    Assert.assertEquals(expected, actual);
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  public void statistics() {
+    QueryUsageStatistics mockStatistics = mock(QueryUsageStatistics.class);
+    when(mockStatistics.getBilledBytes()).thenReturn(10L);
+    when(mockStatistics.getProcessedBytes()).thenReturn(20L);
+    FieldSet fieldSet = FieldSetHelper.createFieldSet(new ReferenceField("a"));
+    fieldSet.setStatistics(mockStatistics);
+    assertEquals(mockStatistics, fieldSet.getStatistics());
+    assertEquals(10L, fieldSet.getStatistics().getBilledBytes());
+    assertEquals(20L, fieldSet.getStatistics().getProcessedBytes());
   }
 }

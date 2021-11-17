@@ -2,7 +2,6 @@ package com.achilio.mvm.service.visitors.fields;
 
 import com.achilio.mvm.service.OptimizerApplication;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
-import com.achilio.mvm.service.entities.statistics.QueryStatistics;
 import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -91,7 +90,6 @@ public class DefaultFieldSet implements FieldSet, Cloneable {
       return (FieldSet) super.clone();
     } catch (CloneNotSupportedException e) {
       LOGGER.error("Error while FieldSet cloning: {}", e.getMessage());
-      e.printStackTrace();
       return null;
     }
   }
