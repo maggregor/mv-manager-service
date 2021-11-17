@@ -59,21 +59,6 @@ public class DefaultFetchedTable implements FetchedTable {
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    DefaultFetchedTable that = (DefaultFetchedTable) o;
-    return Objects.equals(project, that.project)
-        && Objects.equals(dataset, that.dataset)
-        && Objects.equals(table, that.table)
-        && Objects.equals(columns, that.columns);
-  }
-
-  @Override
   public int hashCode() {
     return Objects.hash(project, dataset, table, columns);
   }
