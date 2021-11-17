@@ -1,7 +1,6 @@
 package com.achilio.mvm.service.visitors;
 
 import com.achilio.mvm.service.databases.entities.FetchedTable;
-import com.google.zetasql.NotFoundException;
 import com.google.zetasql.SimpleCatalog;
 import com.google.zetasql.SimpleTable;
 import com.google.zetasql.Type;
@@ -60,7 +59,7 @@ public abstract class ZetaSQLModelBuilder implements ModelBuilder {
       paths.add(table.getTableName());
       this.catalog.findTable(paths);
       return true;
-    } catch (NotFoundException e) {
+    } catch (Exception e) {
       return false;
     }
   }
