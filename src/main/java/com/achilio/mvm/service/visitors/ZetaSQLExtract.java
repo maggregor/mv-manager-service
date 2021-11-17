@@ -28,9 +28,14 @@ public class ZetaSQLExtract extends ZetaSQLModelBuilder implements FieldSetAnaly
   private static final Logger LOGGER = LoggerFactory.getLogger(ZetaSQLExtract.class);
   private final AnalyzerOptions options = defaultAnalyzerOptions();
 
+  public ZetaSQLExtract(String projectName) {
+    super(projectName, Collections.emptySet());
+  }
+
   public ZetaSQLExtract(String projectName, Set<FetchedTable> tables) {
     super(projectName, tables);
   }
+
 
   private AnalyzerOptions defaultAnalyzerOptions() {
     AnalyzerOptions options = new AnalyzerOptions();
