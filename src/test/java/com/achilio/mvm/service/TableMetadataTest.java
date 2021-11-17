@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
-import com.achilio.mvm.service.entities.DatasetMetadata;
 import com.achilio.mvm.service.entities.ProjectMetadata;
 import com.achilio.mvm.service.entities.TableMetadata;
 import org.junit.Test;
@@ -17,22 +16,20 @@ import org.mockito.junit.MockitoJUnitRunner;
 public class TableMetadataTest {
 
   @Test
-  public void constructorEmpty() {
+  public void simpleValidation() {
+    final ProjectMetadata projectMetadata = mock(ProjectMetadata.class);
+    final boolean enabled = true;
+    TableMetadata tableMetadata = new TableMetadata(projectMetadata, enabled);
+    assertEquals(projectMetadata, tableMetadata.getProjectMetadata());
+    assertTrue(tableMetadata.isEnabled());
+  }
+
+  @Test
+  public void simpleValidationNull() {
     TableMetadata tableMetadata = new TableMetadata();
     assertNull(tableMetadata.getProjectMetadata());
-    assertNull(tableMetadata.getDatasetMetadata());
     assertNull(tableMetadata.getId());
     assertFalse(tableMetadata.isEnabled());
   }
 
-  @Test
-  public void constructorWithArguments() {
-    final ProjectMetadata projectMetadata = mock(ProjectMetadata.class);
-    final DatasetMetadata datasetMetadata = mock(DatasetMetadata.class);
-    final boolean enabled = true;
-    TableMetadata tableMetadata = new TableMetadata(projectMetadata, datasetMetadata, enabled);
-    assertEquals(projectMetadata, tableMetadata.getProjectMetadata());
-    assertEquals(datasetMetadata, tableMetadata.getDatasetMetadata());
-    assertTrue(tableMetadata.isEnabled());
-  }
 }

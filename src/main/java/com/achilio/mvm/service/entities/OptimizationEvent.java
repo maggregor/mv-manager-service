@@ -1,7 +1,6 @@
 package com.achilio.mvm.service.entities;
 
 import java.util.Date;
-import java.util.Objects;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
@@ -55,26 +54,6 @@ public class OptimizationEvent {
 
   public Optimization getOptimization() {
     return this.optimization;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    OptimizationEvent that = (OptimizationEvent) o;
-    return createdDate == that.createdDate
-        && id.equals(that.id)
-        && optimization.equals(that.optimization)
-        && status == that.status;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(id, optimization, createdDate, status);
   }
 
   public enum StatusType {

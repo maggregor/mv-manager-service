@@ -1,7 +1,6 @@
 package com.achilio.mvm.service.entities;
 
 import com.achilio.mvm.service.databases.entities.FetchedTable;
-import java.util.Objects;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
@@ -76,26 +75,4 @@ public class OptimizationResult {
     return this.tableName;
   }
 
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    OptimizationResult that = (OptimizationResult) o;
-    return id.equals(that.id)
-        && optimization.equals(that.optimization)
-        && projectId.equals(that.projectId)
-        && datasetName.equals(that.datasetName)
-        && tableName.equals(that.tableName)
-        && statement.equals(that.statement);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(id, optimization, projectId, datasetName, tableName, statement);
-  }
 }

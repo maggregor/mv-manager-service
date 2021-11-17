@@ -24,19 +24,15 @@ public class TableMetadata {
   @ManyToOne
   private ProjectMetadata projectMetadata;
 
-  @ManyToOne
-  private DatasetMetadata datasetMetadata;
-
   @Column(name = "enabled", nullable = false)
   private boolean enabled;
 
   public TableMetadata() {
   }
 
-  public TableMetadata(ProjectMetadata projectMetadata, DatasetMetadata datasetMetadata,
+  public TableMetadata(ProjectMetadata projectMetadata,
       boolean enabled) {
     this.projectMetadata = projectMetadata;
-    this.datasetMetadata = datasetMetadata;
     this.enabled = enabled;
   }
 
@@ -46,10 +42,6 @@ public class TableMetadata {
 
   public ProjectMetadata getProjectMetadata() {
     return projectMetadata;
-  }
-
-  public DatasetMetadata getDatasetMetadata() {
-    return datasetMetadata;
   }
 
   public boolean isEnabled() {
