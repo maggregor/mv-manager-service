@@ -8,10 +8,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.achilio.mvm.service.databases.bigquery.BigQueryDatabaseFetcher;
+import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.entities.statistics.QueryStatistics;
 import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
 import com.google.api.gax.paging.Page;
+import com.google.api.gax.paging.Pages;
 import com.google.cloud.bigquery.BigQuery;
 import com.google.cloud.bigquery.BigQuery.TableField;
 import com.google.cloud.bigquery.BigQuery.TableOption;
@@ -31,6 +33,7 @@ import com.google.cloud.bigquery.Table;
 import com.google.cloud.bigquery.TableDefinition;
 import com.google.cloud.bigquery.TableId;
 import com.google.cloud.resourcemanager.ResourceManager;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import org.apache.logging.log4j.util.Strings;
@@ -46,6 +49,12 @@ public class BigQueryDatabaseFetcherTest {
 
   private static final QueryJobConfiguration DEFAULT_QUERY_JOB_CONFIGURATION =
       QueryJobConfiguration.of("SELECT * FROM toto");
+  private static final QueryJobConfiguration COUNT_QUERY_JOB_CONFIGURATION =
+      QueryJobConfiguration.of("SELECT COUNT(*) FROM toto");
+  private static final QueryJobConfiguration SUM_QUERY_JOB_CONFIGURATION =
+      QueryJobConfiguration.of("SELECT SUM(a) FROM toto GROUP BY a");
+  private static final QueryJobConfiguration INFO_QUERY_JOB_CONFIGURATION =
+      QueryJobConfiguration.of("SELECT a FROM INFORMATION_SCHEMA");
   private static final TableId DEFAULT_TABLE_ID =
       TableId.of("test-project", "test-dataset", "test-table");
   private static final TableId DEFAULT_TABLE_ID_2 =
@@ -55,7 +64,10 @@ public class BigQueryDatabaseFetcherTest {
   private static final JobConfiguration DEFAULT_COPY_JOB_CONFIGURATION =
       CopyJobConfiguration.newBuilder(DEFAULT_TABLE_ID, DEFAULT_TABLE_ID_2).build();
   private BigQueryDatabaseFetcher fetcher;
+  private JobStatus status;
   private Job mockJob;
+  private Page<Job> jobs;
+  private JobStatistics.QueryStatistics mockJobStats;
   private BigQuery mockBigquery;
 
   @Before
@@ -245,6 +257,68 @@ public class BigQueryDatabaseFetcherTest {
     assertEquals(TABLE, fetchedTable.getTableName());
   }
 
+  @Test
+  public void fetchNoQuery() {
+    Page<Job> jobs = Pages.empty();
+    List<BigQuery.JobListOption> options = new ArrayList<>();
+    options.add(BigQuery.JobListOption.pageSize(10000));
+    options.add(BigQuery.JobListOption.allUsers());
+    options.add(BigQuery.JobListOption.minCreationTime(0));
+    when(mockBigquery.listJobs(options.toArray(new BigQuery.JobListOption[0]))).thenReturn(jobs);
+    List<FetchedQuery> queries = fetcher.fetchAllQueries();
+    assertEmptyQueries(queries);
+  }
+
+  @Test
+  public void fetchOneQuery() {
+    QueryStage stage1 = mock(QueryStage.class);
+    QueryStep steps1 = mock(QueryStep.class);
+    when(stage1.getSteps()).thenReturn(Lists.newArrayList(steps1));
+    when(steps1.getSubsteps()).thenReturn(createSubSteps("st1", "st2"));
+    when(mockJobStats.getQueryPlan()).thenReturn(Lists.newArrayList(stage1));
+    List<BigQuery.JobListOption> options = new ArrayList<>();
+    options.add(BigQuery.JobListOption.pageSize(10000));
+    options.add(BigQuery.JobListOption.allUsers());
+    options.add(BigQuery.JobListOption.minCreationTime(0));
+    when(mockBigquery.listJobs(options.toArray(new BigQuery.JobListOption[0]))).thenReturn(jobs);
+    List<FetchedQuery> queries = fetcher.fetchAllQueries();
+    assertListSize(1, queries);
+  }
+
+  @Test
+  public void fetchTwoQueries() {
+    QueryStage stage1 = mock(QueryStage.class);
+    QueryStep steps1 = mock(QueryStep.class);
+    Job mockJob1 = mock(Job.class);
+    when(mockJob1.getConfiguration()).thenReturn(COUNT_QUERY_JOB_CONFIGURATION);
+    when(mockJob1.getStatus()).thenReturn(status);
+    when(mockJob1.isDone()).thenReturn(true);
+    when(mockJob1.getStatus().getError()).thenReturn(null);
+    when(mockJob1.getStatistics()).thenReturn(mockJobStats);
+    when(stage1.getSteps()).thenReturn(Lists.newArrayList(steps1));
+    when(steps1.getSubsteps()).thenReturn(createSubSteps("st1", "st2"));
+    when(mockJobStats.getQueryPlan()).thenReturn(Lists.newArrayList(stage1));
+    List<BigQuery.JobListOption> options = new ArrayList<>();
+    options.add(BigQuery.JobListOption.pageSize(10000));
+    options.add(BigQuery.JobListOption.allUsers());
+    options.add(BigQuery.JobListOption.minCreationTime(0));
+    when(jobs.getValues()).thenReturn(Lists.newArrayList(mockJob, mockJob1));
+    when(mockBigquery.listJobs(options.toArray(new BigQuery.JobListOption[0]))).thenReturn(jobs);
+    List<FetchedQuery> queries = fetcher.fetchAllQueries();
+    assertListSize(2, queries);
+    when(mockJob1.getConfiguration()).thenReturn(INFO_QUERY_JOB_CONFIGURATION);
+    queries = fetcher.fetchAllQueries();
+    assertListSize(1, queries);
+  }
+
+  private void assertListSize(long listSize, List<FetchedQuery> queries) {
+    assertEquals(listSize, queries.size());
+  }
+
+  private void assertEmptyQueries(List<FetchedQuery> queries) {
+    assertTrue(queries.isEmpty());
+  }
+
   private void assertPassTheFetchingFilter(Job job) {
     assertTrue("This job does not pass the filter", fetcher.fetchQueryFilter(job));
   }
@@ -258,10 +332,16 @@ public class BigQueryDatabaseFetcherTest {
   }
 
   private void initializeJobMockDefault() {
-    JobStatus status = mock(JobStatus.class);
+    status = mock(JobStatus.class);
+    mockJobStats = mock(JobStatistics.QueryStatistics.class);
     mockJob = mock(Job.class);
     when(mockJob.getConfiguration()).thenReturn(DEFAULT_QUERY_JOB_CONFIGURATION);
     when(mockJob.getStatus()).thenReturn(status);
     when(mockJob.isDone()).thenReturn(true);
+    when(mockJob.getStatus().getError()).thenReturn(null);
+    when(mockJob.getStatistics()).thenReturn(mockJobStats);
+    when(mockJobStats.getCacheHit()).thenReturn(false);
+    jobs = mock(Page.class);
+    when(jobs.getValues()).thenReturn(Lists.newArrayList(mockJob));
   }
 }
