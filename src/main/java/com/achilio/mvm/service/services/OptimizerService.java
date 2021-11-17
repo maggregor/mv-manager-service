@@ -8,7 +8,7 @@ import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.entities.Optimization;
 import com.achilio.mvm.service.entities.OptimizationEvent;
-import com.achilio.mvm.service.entities.OptimizationEvent.Type;
+import com.achilio.mvm.service.entities.OptimizationEvent.StatusType;
 import com.achilio.mvm.service.entities.OptimizationResult;
 import com.achilio.mvm.service.visitors.FieldSetAnalyzer;
 import com.achilio.mvm.service.visitors.FieldSetExtractFactory;
@@ -55,21 +55,21 @@ public class OptimizerService {
     LOGGER.info("Run a new optimization");
     FetchedProject project = fetcherService.fetchProject(projectId);
     Optimization o = createNewOptimization(project.getProjectId());
-    addOptimizationEvent(o, Type.FETCHING_QUERIES);
+    addOptimizationEvent(o, StatusType.FETCHING_QUERIES);
     List<FetchedQuery> queries = fetcherService.fetchQueriesSince(projectId, days);
-    addOptimizationEvent(o, Type.FETCHING_MODELS);
+    addOptimizationEvent(o, StatusType.FETCHING_MODELS);
     Set<FetchedTable> tables = fetcherService.fetchAllTables(projectId);
-    addOptimizationEvent(o, Type.FILTER_ELIGIBLE_QUERIES);
+    addOptimizationEvent(o, StatusType.FILTER_ELIGIBLE_QUERIES);
     List<FetchedQuery> eligibleQueries = getEligibleQueries(projectId, tables, queries);
-    addOptimizationEvent(o, Type.EXTRACTING_FIELDS);
+    addOptimizationEvent(o, StatusType.EXTRACTING_FIELDS);
     Set<FieldSet> fieldSets = extractFields(projectId, tables, eligibleQueries);
-    addOptimizationEvent(o, Type.OPTIMIZING_FIELDS);
+    addOptimizationEvent(o, StatusType.OPTIMIZING_FIELDS);
     Set<FieldSet> optimized = optimizeFieldSets(fieldSets);
-    addOptimizationEvent(o, Type.BUILDING_OPTIMIZATION);
+    addOptimizationEvent(o, StatusType.BUILDING_OPTIMIZATION);
     List<OptimizationResult> results = buildOptimizationsResults(o, optimized);
-    addOptimizationEvent(o, Type.PUBLISHING);
+    addOptimizationEvent(o, StatusType.PUBLISHING);
     publish(o, results);
-    addOptimizationEvent(o, Type.PUBLISHED);
+    addOptimizationEvent(o, StatusType.PUBLISHED);
     LOGGER.info("Optimization {} published with {} MV as proposals.", o.getId(), results.size());
     return o;
   }
@@ -120,10 +120,10 @@ public class OptimizerService {
     return optimization;
   }
 
-  public void addOptimizationEvent(Optimization optimization, Type type) {
-    OptimizationEvent event = new OptimizationEvent(optimization, type);
+  public void addOptimizationEvent(Optimization optimization, StatusType statusType) {
+    OptimizationEvent event = new OptimizationEvent(optimization, statusType);
     entityManager.persist(event);
-    LOGGER.info("New event on optimization {}: {}", optimization.getId(), type);
+    LOGGER.info("New event on optimization {}: {}", optimization.getId(), statusType);
   }
 
 }

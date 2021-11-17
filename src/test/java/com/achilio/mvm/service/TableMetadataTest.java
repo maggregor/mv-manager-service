@@ -1,6 +1,7 @@
 package com.achilio.mvm.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -21,6 +22,7 @@ public class TableMetadataTest {
     assertNull(tableMetadata.getProjectMetadata());
     assertNull(tableMetadata.getDatasetMetadata());
     assertNull(tableMetadata.getId());
+    assertFalse(tableMetadata.isEnabled());
   }
 
   @Test
@@ -31,6 +33,6 @@ public class TableMetadataTest {
     TableMetadata tableMetadata = new TableMetadata(projectMetadata, datasetMetadata, enabled);
     assertEquals(projectMetadata, tableMetadata.getProjectMetadata());
     assertEquals(datasetMetadata, tableMetadata.getDatasetMetadata());
-    assertTrue(enabled);
+    assertTrue(tableMetadata.isEnabled());
   }
 }

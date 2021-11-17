@@ -35,30 +35,26 @@ public class OptimizationEvent {
 
   @Enumerated(EnumType.STRING)
   @Column(name = "status", nullable = false)
-  private Type status;
+  private StatusType status;
 
   public OptimizationEvent() {
   }
 
-  public OptimizationEvent(Optimization optimization, Type type) {
+  public OptimizationEvent(Optimization optimization, StatusType statusType) {
     this.optimization = optimization;
-    this.status = type;
-  }
-
-  public Optimization getOptimization() {
-    return optimization;
-  }
-
-  public Date getCreatedDate() {
-    return createdDate;
-  }
-
-  public Type getStatus() {
-    return status;
+    this.status = statusType;
   }
 
   public Long getId() {
     return id;
+  }
+
+  public StatusType getStatusType() {
+    return this.status;
+  }
+
+  public Optimization getOptimization() {
+    return this.optimization;
   }
 
   @Override
@@ -81,7 +77,7 @@ public class OptimizationEvent {
     return Objects.hash(id, optimization, createdDate, status);
   }
 
-  public enum Type {
+  public enum StatusType {
     // Retrieve queries from history
     FETCHING_QUERIES,
     // Retrieve datasets and tables structures

@@ -1,7 +1,6 @@
 package com.achilio.mvm.service.entities;
 
 import java.util.Date;
-import java.util.List;
 import java.util.Objects;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -9,7 +8,6 @@ import javax.persistence.EntityListeners;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -21,8 +19,6 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 @EntityListeners(AuditingEntityListener.class)
 public class Optimization {
 
-  @OneToMany
-  List<OptimizationResult> results;
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Long id;
@@ -33,13 +29,10 @@ public class Optimization {
   @Column(name = "project_id", nullable = false)
   private String projectId;
 
-  @Column(name = "approval_required", nullable = false)
-  private boolean approvalRequired;
-
   public Optimization() {
 
   }
-  
+
   public Optimization(
       final String projectId) {
     this.projectId = projectId;
@@ -55,10 +48,6 @@ public class Optimization {
 
   public Date getCreatedDate() {
     return createdDate;
-  }
-
-  public void setOptimizationResults(final List<OptimizationResult> results) {
-    this.results = results;
   }
 
   @Override

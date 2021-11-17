@@ -9,7 +9,6 @@ import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedQueryFactory;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
-import com.achilio.mvm.service.entities.statistics.QueryStatistics;
 import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import com.google.api.gax.paging.Page;
@@ -295,8 +294,8 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
   }
 
   private String toZetaSQLStringType(Field field) {
-    final String type = field.getType().toString();
-    switch (type) {
+    final String statusType = field.getType().toString();
+    switch (statusType) {
       case "DOUBLE":
       case "FLOAT":
         return ZetaSQLType.TypeKind.TYPE_NUMERIC.name();
@@ -305,7 +304,7 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
       case "BOOLEAN":
         return ZetaSQLType.TypeKind.TYPE_BOOL.name();
       default:
-        return "TYPE_" + type;
+        return "TYPE_" + statusType;
     }
   }
 

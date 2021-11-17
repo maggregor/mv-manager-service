@@ -16,9 +16,9 @@ import com.achilio.mvm.service.visitors.fields.FieldSetFactory;
 import com.achilio.mvm.service.visitors.fields.FunctionField;
 import com.achilio.mvm.service.visitors.fields.ReferenceField;
 import com.google.zetasql.ZetaSQLType;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import org.assertj.core.util.Sets;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -27,7 +27,7 @@ import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
-public abstract class FieldSetExtractTest {
+public abstract class FieldSetAnalyzerTest {
 
   private static final String[][] SIMPLE_TABLE_COLUMNS =
       new String[][]{
@@ -37,6 +37,8 @@ public abstract class FieldSetExtractTest {
           {"col4", ZetaSQLType.TypeKind.TYPE_INT64.name()},
           {"ts", ZetaSQLType.TypeKind.TYPE_TIMESTAMP.name()}
       };
+  private final FetchedTable MAIN_TABLE =
+      createFetchedTable("myproject.mydataset.mytable", SIMPLE_TABLE_COLUMNS);
   private FieldSetAnalyzer extractor;
 
   protected abstract FieldSetAnalyzer createFieldSetExtract(String projectId,
@@ -44,9 +46,7 @@ public abstract class FieldSetExtractTest {
 
   @Before
   public void setUp() {
-    Set<FetchedTable> tables = new HashSet<>();
-    tables.add(createFetchedTable("myproject.mydataset.mytable", SIMPLE_TABLE_COLUMNS));
-    this.extractor = createFieldSetExtract("myproject", tables);
+    this.extractor = createFieldSetExtract("myproject", Sets.newLinkedHashSet(MAIN_TABLE));
   }
 
   @Test
@@ -278,7 +278,7 @@ public abstract class FieldSetExtractTest {
   }
 
   @Test
-  public void testFilter() {
+  public void filter() {
     FetchedQuery query = FetchedQueryFactory.createFetchedQuery(
         "SELECT col1 FROM mydataset.mytable WHERE col1 = 'aze'");
     assertTrue(query.isEligible());

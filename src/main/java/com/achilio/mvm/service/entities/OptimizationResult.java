@@ -65,7 +65,7 @@ public class OptimizationResult {
   }
 
   public String getProjectId() {
-    return this.datasetName;
+    return this.projectId;
   }
 
   public String getDatasetName() {

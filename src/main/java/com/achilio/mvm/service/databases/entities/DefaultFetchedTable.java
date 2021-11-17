@@ -10,7 +10,7 @@ public class DefaultFetchedTable implements FetchedTable {
    *
    * @attribute datasetName - the targeted dataset
    * @attribute tableName - the targeted table
-   * @attribute colums - map of the columns: key is the column name, value is the data type
+   * @attribute colums - map of the columns: key is the column name, value is the data statusType
    */
   private final String project;
 

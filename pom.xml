@@ -66,7 +66,7 @@
     <dependency>
       <artifactId>maven-war-plugin</artifactId>
       <groupId>org.apache.maven.plugins</groupId>
-      <type>maven-plugin</type>
+      <statusType>maven-plugin</statusType>
       <version>3.3.2</version>
     </dependency>
     <dependency>
@@ -240,7 +240,7 @@
         <artifactId>libraries-bom</artifactId>
         <groupId>com.google.cloud</groupId>
         <scope>import</scope>
-        <type>pom</type>
+        <statusType>pom</statusType>
         <version>23.1.0</version>
       </dependency>
     </dependencies>

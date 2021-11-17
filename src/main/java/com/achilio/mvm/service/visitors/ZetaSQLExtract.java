@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ZetaSQLExtract extends ZetaSQLAnalyzedContext implements FieldSetAnalyzer {
+public class ZetaSQLExtract extends ZetaSQLModelBuilder implements FieldSetAnalyzer {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ZetaSQLExtract.class);
   private final AnalyzerOptions options = defaultAnalyzerOptions();

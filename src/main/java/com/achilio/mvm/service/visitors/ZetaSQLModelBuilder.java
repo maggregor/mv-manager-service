@@ -13,12 +13,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public abstract class ZetaSQLAnalyzedContext implements TableModelBuilder {
+public abstract class ZetaSQLModelBuilder implements ModelBuilder {
 
   private final SimpleCatalog catalog;
   private final Set<FetchedTable> tables;
 
-  public ZetaSQLAnalyzedContext(String projectName, Set<FetchedTable> tables) {
+  public ZetaSQLModelBuilder(String projectName, Set<FetchedTable> tables) {
     this.catalog = new SimpleCatalog(projectName);
     this.catalog.addZetaSQLFunctions(new ZetaSQLBuiltinFunctionOptions());
     this.tables = tables;
@@ -46,8 +46,8 @@ public abstract class ZetaSQLAnalyzedContext implements TableModelBuilder {
       final String name = column.getKey();
       final String typeName = column.getValue();
       final ZetaSQLType.TypeKind typeKind = ZetaSQLType.TypeKind.valueOf(typeName);
-      final Type type = TypeFactory.createSimpleType(typeKind);
-      simpleTable.addSimpleColumn(name, type);
+      final Type statusType = TypeFactory.createSimpleType(typeKind);
+      simpleTable.addSimpleColumn(name, statusType);
     }
     dataset.addSimpleTable(tableName, simpleTable);
   }
