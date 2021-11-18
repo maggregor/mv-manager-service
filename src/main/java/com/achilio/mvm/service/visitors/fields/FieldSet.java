@@ -59,4 +59,11 @@ public interface FieldSet {
    * Create a FieldSet clone
    */
   FieldSet clone();
+
+  /**
+   * Returns true if the fieldset doesn't contains any field.
+   *
+   * @return
+   */
+  boolean isEmpty();
 }

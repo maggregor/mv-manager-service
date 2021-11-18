@@ -56,7 +56,7 @@ public class ZetaSQLExtract extends ZetaSQLModelBuilder implements FieldSetAnaly
   public FieldSet extract(FetchedQuery fetchedQuery) {
     ZetaSQLFieldSetExtractGlobalVisitor v = new ZetaSQLFieldSetExtractGlobalVisitor(getCatalog());
     analyzeStatementAndVisit(fetchedQuery, v);
-    FieldSet fieldSet = v.fieldSet() == null ? FieldSetFactory.EMPTY_FIELD_SET : v.fieldSet();
+    FieldSet fieldSet = v.fieldSet().isEmpty() ? FieldSetFactory.EMPTY_FIELD_SET : v.fieldSet();
     fieldSet.setReferenceTables(fetchedQuery.getReferenceTables());
     fieldSet.setStatistics(fetchedQuery.getStatistics());
     return fieldSet;

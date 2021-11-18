@@ -95,6 +95,11 @@ public class DefaultFieldSet implements FieldSet, Cloneable {
   }
 
   @Override
+  public boolean isEmpty() {
+    return fields.isEmpty();
+  }
+
+  @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;
