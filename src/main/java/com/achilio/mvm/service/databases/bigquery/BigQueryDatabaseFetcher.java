@@ -158,21 +158,16 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
    */
   private FetchedQuery toFetchedQuery(Job job) {
     String query = null;
-    try {
-      final QueryJobConfiguration configuration = job.getConfiguration();
-      query = StringUtils.trim(configuration.getQuery());
-      final JobStatistics.QueryStatistics stats = job.getStatistics();
-      final boolean useCache = BooleanUtils.isTrue(stats.getCacheHit());
-      final boolean usingManagedMV = containsManagedMVUsageInQueryStages(stats.getQueryPlan());
-      FetchedQuery fetchedQuery = FetchedQueryFactory.createFetchedQuery(StringUtils.trim(query));
-      fetchedQuery.setStatistics(toQueryUsageStatistics(stats));
-      fetchedQuery.setUseMaterializedView(usingManagedMV);
-      fetchedQuery.setUseCache(useCache);
-      return fetchedQuery;
-    } catch (Exception e) {
-      LOGGER.error("Error converting query to FetchedQuery: {}", query, e);
-    }
-    return null;
+    final QueryJobConfiguration configuration = job.getConfiguration();
+    query = StringUtils.trim(configuration.getQuery());
+    final JobStatistics.QueryStatistics stats = job.getStatistics();
+    final boolean useCache = BooleanUtils.isTrue(stats.getCacheHit());
+    final boolean usingManagedMV = containsManagedMVUsageInQueryStages(stats.getQueryPlan());
+    FetchedQuery fetchedQuery = FetchedQueryFactory.createFetchedQuery(StringUtils.trim(query));
+    fetchedQuery.setStatistics(toQueryUsageStatistics(stats));
+    fetchedQuery.setUseMaterializedView(usingManagedMV);
+    fetchedQuery.setUseCache(useCache);
+    return fetchedQuery;
   }
 
   public QueryUsageStatistics toQueryUsageStatistics(
