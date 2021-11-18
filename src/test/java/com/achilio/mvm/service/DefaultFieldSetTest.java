@@ -1,6 +1,7 @@
 package com.achilio.mvm.service;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -10,7 +11,6 @@ import com.achilio.mvm.service.visitors.fields.DefaultFieldSet;
 import com.achilio.mvm.service.visitors.fields.FieldSet;
 import com.achilio.mvm.service.visitors.fields.FunctionField;
 import com.achilio.mvm.service.visitors.fields.ReferenceField;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -40,8 +40,10 @@ public class DefaultFieldSetTest {
     assertEquals(FIELD_SET_1, FIELD_SET_SAME_AS_1);
     assertEquals(FIELD_SET_1, FIELD_SET_1.clone());
     assertEquals(FIELD_SET_1, FIELD_SET_SAME_AS_1_DIFF_SORT);
-    Assert.assertNotEquals(FIELD_SET_1, FIELD_SET_2);
-    Assert.assertNotEquals(FIELD_SET_1, FIELD_SET_3);
+    assertNotEquals(FIELD_SET_1, FIELD_SET_2);
+    assertNotEquals(FIELD_SET_1, FIELD_SET_3);
+    assertNotEquals(FIELD_SET_1, null);
+    assertEquals(FIELD_SET_1, FIELD_SET_1);
   }
 
   @Test
@@ -62,7 +64,7 @@ public class DefaultFieldSetTest {
     final FieldSet expected =
         FieldSetHelper.createFieldSet(new ReferenceField("a"), new FunctionField("b"));
     FieldSet actual = new DefaultFieldSet();
-    Assert.assertNotEquals(expected, actual);
+    assertNotEquals(expected, actual);
     actual.add(new ReferenceField("a"));
     actual.add(new FunctionField("b"));
     assertEquals(expected, actual);

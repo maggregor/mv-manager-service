@@ -19,10 +19,10 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class GlobalQueryStatisticsTest {
 
-  GlobalQueryStatistics totalStatistics = new GlobalQueryStatistics(true);
   private final QueryStatistics inStatistics = mock(QueryStatistics.class);
   private final QueryStatistics outStatistics = mock(QueryStatistics.class);
   private final QueryStatistics cachedStatistics = mock(QueryStatistics.class);
+  GlobalQueryStatistics totalStatistics = new GlobalQueryStatistics(true);
 
   @Before
   public void setUp() {

@@ -2,7 +2,6 @@ package com.achilio.mvm.service.databases.entities;
 
 import com.achilio.mvm.service.databases.DatabaseFetcher;
 import com.achilio.mvm.service.databases.QueryEligible;
-import com.achilio.mvm.service.entities.statistics.QueryStatistics;
 import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
 import com.achilio.mvm.service.visitors.QueryIneligibilityReason;
 import java.util.HashSet;
