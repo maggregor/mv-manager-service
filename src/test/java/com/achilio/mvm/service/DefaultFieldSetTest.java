@@ -34,6 +34,8 @@ public class DefaultFieldSetTest {
           new ReferenceField("col1"),
           new AggregateField("MAX(col2)"),
           new ReferenceField("col3"));
+  private static final FieldSet FIELD_SET_4 =
+      FieldSetHelper.createFieldSet(new AggregateField("SUM(col10000)"));
 
   @Test
   public void equals() {
@@ -44,6 +46,7 @@ public class DefaultFieldSetTest {
     assertNotEquals(FIELD_SET_1, FIELD_SET_3);
     assertNotEquals(FIELD_SET_1, null);
     assertEquals(FIELD_SET_1, FIELD_SET_1);
+    assertNotEquals(FIELD_SET_1, FIELD_SET_4);
   }
 
   @Test
