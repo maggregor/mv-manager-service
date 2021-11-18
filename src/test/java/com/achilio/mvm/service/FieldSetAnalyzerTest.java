@@ -21,7 +21,6 @@ import java.util.Set;
 import org.assertj.core.util.Sets;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -156,22 +155,8 @@ public abstract class FieldSetAnalyzerTest {
   }
 
   @Test
-  @Ignore
-  // In column with small column count, we (maybe) want extract and optimize.
-  public void notExtractAStarSelect() {
-    String query = "SELECT * FROM mydataset.mytable";
-    assertZeroFields(query);
-    query = "SELECT col1, col2, col3, col4 FROM mydataset.mytable";
-    assertZeroFields(query);
-    query =
-        "SELECT col3, col4 FROM mydataset.mytable WHERE col1 = 'xxx'"
-            + " AND col2 = 'xxx' GROUP BY col3, col4";
-    assertZeroFields(query);
-    query = "SELECT col1, col2, col3, col4 FROM mydataset.mytable GROUP BY col1, col2, col3, col4";
-    assertZeroFields(query);
-    query = "SELECT * FROM (SELECT * FROM mydataset.mytable)";
-    assertZeroFields(query);
-    query = "SELECT * FROM (SELECT * FROM (SELECT col1, col2, col3, col4 FROM mydataset.mytable))";
+  public void zeroFieldsAfterExtract() {
+    String query = "SELECT 1";
     assertZeroFields(query);
   }
 
