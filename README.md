@@ -14,18 +14,6 @@ Run Postgres and Adminer
 docker-compose up db adminer
 ```
 
-Run Postgres, Adminer, and the web app locally
-
-```shell script
-docker-compose up
-```
-
-## With AppEngine (local mode)
-
-```shell script
-mvn package appengine:run
-```
-
 # Tomcat
 
 Maven dependency must have the provided scope in order to run the service as a Spring standalone
@@ -37,12 +25,8 @@ application (for development and debug) and let AppEngine provide his own servle
 mvn spring-boot:run
 ```
 
-# Deploy on AppEngine
+Run Postgres, Adminer, and the web app locally
 
 ```shell script
-# Set the your gcloud project id
-gcloud config set project <project-id>
-# Package with maven and deploy in appengine
-mvn package appengine:deploy
+docker-compose up
 ```
-
