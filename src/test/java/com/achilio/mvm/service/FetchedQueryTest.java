@@ -9,7 +9,6 @@ import static org.mockito.Mockito.mock;
 
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
-import com.achilio.mvm.service.entities.statistics.QueryStatistics;
 import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
 import java.util.Set;
 import org.apache.logging.log4j.util.Strings;
