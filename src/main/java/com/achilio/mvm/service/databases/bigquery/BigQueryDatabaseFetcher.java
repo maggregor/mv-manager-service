@@ -100,7 +100,6 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     return StreamSupport.stream(jobPages.getValues().spliterator(), true)
         .filter(this::fetchQueryFilter)
         .map(this::toFetchedQuery)
-        .filter(Objects::nonNull)
         .collect(Collectors.toList());
   }
 
