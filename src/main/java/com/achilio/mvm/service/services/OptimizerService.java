@@ -101,8 +101,8 @@ public class OptimizerService {
   }
 
   private Set<FieldSet> optimizeFieldSets(Set<FieldSet> fieldSets) {
-    Optimizer optimizer = OptimizerFactory.createOptimizer(DEFAULT_MAX_MV_GENERATED);
-    return optimizer.optimize(fieldSets);
+    Optimizer o = OptimizerFactory.createOptimizerWithDefaultStrategy(DEFAULT_MAX_MV_GENERATED);
+    return o.optimize(fieldSets);
   }
 
   private Set<FieldSet> extractFields(
