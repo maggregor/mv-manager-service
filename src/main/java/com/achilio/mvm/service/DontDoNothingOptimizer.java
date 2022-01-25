@@ -7,13 +7,13 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class BruteForceOptimizer implements Optimizer {
+public class DontDoNothingOptimizer implements Optimizer {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(BruteForceOptimizer.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(DontDoNothingOptimizer.class);
 
   private final int maxFieldSet;
 
-  BruteForceOptimizer(int maxFieldSet) {
+  DontDoNothingOptimizer(int maxFieldSet) {
     this.maxFieldSet = maxFieldSet;
   }
 

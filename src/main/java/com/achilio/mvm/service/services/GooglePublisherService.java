@@ -63,7 +63,13 @@ public class GooglePublisherService {
       return;
     }
     final String projectId = results.get(0).getProjectId();
-    final String formattedMessage = getFormattedMessage(results);
+    final String formattedMessage;
+    try {
+      formattedMessage = toJSONArrayOfResultStatements(results);
+    } catch (JsonProcessingException e) {
+      LOGGER.error("Error during results JSON formatting", e);
+      return;
+    }
     PubsubMessage pubsubMessage = buildPubsubMessage(projectId, datasetName, formattedMessage);
     try {
       publishMessage(pubsubMessage);

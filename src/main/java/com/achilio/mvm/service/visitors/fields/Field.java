@@ -14,18 +14,25 @@ public abstract class Field {
   private final String expression;
   private final String alias;
 
+  private final float distinctValuePercent;
+
   public Field(String expression) {
     this(expression, ALIAS_PREFIX + Math.abs(expression.hashCode()));
   }
 
   @VisibleForTesting
   public Field(String expression, String alias) {
-    this(expression, alias, 1);
+    this(expression, alias, 0);
   }
 
-  public Field(String expression, String alias, int cardinality) {
+  public Field(String expression, String alias, float distinctValuePercent) {
     this.expression = expression;
     this.alias = alias;
+    this.distinctValuePercent = distinctValuePercent;
+  }
+
+  public float getDistinctValuePercent() {
+    return distinctValuePercent;
   }
 
   public String alias() {

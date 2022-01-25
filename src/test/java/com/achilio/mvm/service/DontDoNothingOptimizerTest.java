@@ -11,7 +11,7 @@ import org.junit.runner.RunWith;
 import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
-public class BruteForceOptimizerTest {
+public class DontDoNothingOptimizerTest {
 
   @Test
   public void simpleReachLimitFieldSet() {
@@ -21,7 +21,7 @@ public class BruteForceOptimizerTest {
     fieldSets.add(FieldSetHelper.createFieldSet(new ReferenceField("col1")));
     fieldSets.add(FieldSetHelper.createFieldSet(new FunctionField("col2")));
     // Remove exceeded
-    optimizer = OptimizerFactory.createOptimizer(OptimizerStrategyType.BRUTE_FORCE, 1);
+    optimizer = OptimizerFactory.createOptimizer(OptimizerStrategyType.DONT_DO_NOTHING, 1);
     Assert.assertEquals(1, optimizer.optimize(fieldSets).size());
   }
 }

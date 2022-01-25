@@ -1,10 +1,10 @@
 package com.achilio.mvm.service;
 
-import static com.achilio.mvm.service.OptimizerStrategyType.BRUTE_FORCE;
+import static com.achilio.mvm.service.OptimizerStrategyType.DONT_DO_NOTHING;
 
 public class OptimizerFactory {
 
-  private static final OptimizerStrategyType DEFAULT_STRATEGY_TYPE = BRUTE_FORCE;
+  private static final OptimizerStrategyType DEFAULT_STRATEGY_TYPE = DONT_DO_NOTHING;
 
   private OptimizerFactory() {
   }
@@ -15,12 +15,12 @@ public class OptimizerFactory {
 
   public static Optimizer createOptimizer(OptimizerStrategyType strategyType, int maxFieldSet) {
     switch (strategyType) {
-      case SIMPLE_MERGE_BY_CARDINALITY:
-        return new SimpleCardinalityMergeOptimizer(maxFieldSet);
-      case BRUTE_FORCE:
-        return new BruteForceOptimizer(maxFieldSet);
+      case MERGING_BY_COUNT_DISTINCT:
+        return new CountDistinctMergingOptimizer();
+      case DONT_DO_NOTHING:
+        return new DontDoNothingOptimizer(maxFieldSet);
     }
     throw new IllegalArgumentException("Factory doesn't support this strategy: " + strategyType);
   }
-  
+
 }

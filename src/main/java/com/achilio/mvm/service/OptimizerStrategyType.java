@@ -5,10 +5,10 @@ public enum OptimizerStrategyType {
   /**
    * Returns the extracted fieldset from the query.
    */
-  BRUTE_FORCE,
+  DONT_DO_NOTHING,
   /**
-   * Merge fieldset by cardinality.
+   * Merge fieldset by count distinct.
    */
-  SIMPLE_MERGE_BY_CARDINALITY;
+  MERGING_BY_COUNT_DISTINCT;
 
 }
