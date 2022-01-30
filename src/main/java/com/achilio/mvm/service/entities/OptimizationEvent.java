@@ -63,6 +63,8 @@ public class OptimizationEvent {
     FETCHING_MODELS,
     // Keep the eligible queries
     FILTER_ELIGIBLE_QUERIES,
+    // Keep fields from dataset
+    FILTER_FIELDS_FROM_DATASET,
     // Extract columns, functions and expression from queries
     EXTRACTING_FIELDS,
     // Optimizing
@@ -73,5 +75,6 @@ public class OptimizationEvent {
     PUBLISHING,
     // Publishing done
     PUBLISHED,
+    ;
   }
 }
