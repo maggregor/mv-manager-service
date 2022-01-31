@@ -1,5 +1,6 @@
 package com.achilio.mvm.service.controllers;
 
+import com.achilio.mvm.service.controllers.responses.OptimizationResponse;
 import com.achilio.mvm.service.entities.Optimization;
 import com.achilio.mvm.service.services.OptimizerService;
 import io.swagger.annotations.ApiOperation;

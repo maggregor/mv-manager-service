@@ -1,4 +1,4 @@
-package com.achilio.mvm.service.controllers;
+package com.achilio.mvm.service.controllers.responses;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

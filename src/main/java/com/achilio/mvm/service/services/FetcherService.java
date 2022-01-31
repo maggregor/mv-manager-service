@@ -9,6 +9,7 @@ import com.achilio.mvm.service.databases.DatabaseFetcher;
 import com.achilio.mvm.service.databases.bigquery.BigQueryDatabaseFetcher;
 import com.achilio.mvm.service.databases.bigquery.BigQueryMaterializedViewStatementBuilder;
 import com.achilio.mvm.service.databases.entities.FetchedDataset;
+import com.achilio.mvm.service.databases.entities.FetchedMaterializedViewEvent;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
@@ -50,17 +51,16 @@ public class FetcherService {
     return fetcher(projectId).fetchAllDatasets();
   }
 
-  public FetchedDataset fetchDataset(String projectId, String datasetName) throws Exception {
+  public FetchedDataset fetchDataset(String projectId, String datasetName) {
     return fetcher(projectId).fetchDataset(datasetName);
   }
 
-  public List<FetchedQuery> fetchQueries(String projectId) throws Exception {
+  public List<FetchedQuery> fetchQueries(String projectId) {
     return fetcher(projectId).fetchAllQueries();
   }
 
-  public List<FetchedQuery> fetchQueriesSince(String projectId, int lastDays) throws Exception {
-    long fromTime = System.currentTimeMillis() - (long) lastDays * 24 * 60 * 60 * 1000;
-    return fetchQueriesSince(projectId, fromTime);
+  public List<FetchedQuery> fetchQueriesSince(String projectId, int lastDays) {
+    return fetchQueriesSince(projectId, daysToMillis(lastDays));
   }
 
   public List<FetchedQuery> fetchQueriesSince(String projectId, long fromTimestamp) {
@@ -82,6 +82,11 @@ public class FetcherService {
 
   public GlobalQueryStatistics getStatistics(String projectId, int lastDays) throws Exception {
     return getStatistics(projectId, lastDays, false);
+  }
+
+  public List<FetchedMaterializedViewEvent> getMaterializedViewEvents(String projectId,
+      int lastDays) {
+    return fetcher(projectId).fetchMaterializedViewEvents(daysToMillis(lastDays));
   }
 
   public GlobalQueryStatistics getStatistics(
@@ -118,5 +123,9 @@ public class FetcherService {
         (SimpleGoogleCredentialsAuthentication)
             SecurityContextHolder.getContext().getAuthentication();
     return new BigQueryDatabaseFetcher(authentication.getCredentials(), projectId);
+  }
+
+  private long daysToMillis(int days) {
+    return System.currentTimeMillis() - (long) days * 24 * 60 * 60 * 1000;
   }
 }

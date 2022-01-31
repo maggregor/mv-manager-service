@@ -1,4 +1,4 @@
-package com.achilio.mvm.service.controllers;
+package com.achilio.mvm.service.controllers.responses;
 
 import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics;
 import com.achilio.mvm.service.entities.statistics.QueryStatistics;

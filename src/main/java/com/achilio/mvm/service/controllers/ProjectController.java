@@ -1,17 +1,26 @@
 package com.achilio.mvm.service.controllers;
 
+import com.achilio.mvm.service.controllers.responses.DatasetResponse;
+import com.achilio.mvm.service.controllers.responses.GlobalQueryStatisticsResponse;
+import com.achilio.mvm.service.controllers.responses.ProjectResponse;
+import com.achilio.mvm.service.controllers.responses.TableResponse;
+import com.achilio.mvm.service.controllers.responses.UpdateMetadataProjectRequestResponse;
 import com.achilio.mvm.service.databases.entities.FetchedDataset;
+import com.achilio.mvm.service.databases.entities.FetchedMaterializedViewEvent;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics;
 import com.achilio.mvm.service.services.FetcherService;
+import com.achilio.mvm.service.services.GooglePublisherService;
 import com.achilio.mvm.service.services.MetadataService;
 import com.achilio.mvm.service.visitors.FieldSetAnalyzer;
 import com.achilio.mvm.service.visitors.FieldSetExtractFactory;
 import io.swagger.annotations.ApiOperation;
+import java.io.IOException;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,14 +36,16 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping(path = "${v1API}")
 @Validated
-public class ExplorerController {
+public class ProjectController {
 
-  private static Logger LOGGER = LoggerFactory.getLogger(ExplorerController.class);
+  private static Logger LOGGER = LoggerFactory.getLogger(ProjectController.class);
 
   @Autowired
   private MetadataService metadataService;
   @Autowired
   private FetcherService fetcherService;
+  @Autowired
+  private GooglePublisherService googlePublisherService;
 
   @GetMapping(path = "/project", produces = "application/json")
   @ApiOperation("List the project")
@@ -59,11 +70,15 @@ public class ExplorerController {
     return new UpdateMetadataProjectRequestResponse(planName, activated);
   }
 
-  @PutMapping(path = "/project/{projectId}/metadata", produces = "application/json")
+  @PostMapping(path = "/project/{projectId}/metadata", produces = "application/json")
   @ApiOperation("Update metadata of a project")
   public void updateProject(
       @PathVariable final String projectId,
-      @RequestBody final UpdateMetadataProjectRequestResponse request) {
+      @RequestBody final UpdateMetadataProjectRequestResponse request)
+      throws IOException, ExecutionException, InterruptedException {
+    if (request.isActivated()) {
+      googlePublisherService.publishProjectActivation(projectId);
+    }
     metadataService.updateProject(projectId, request.isActivated());
   }
 
@@ -77,9 +92,8 @@ public class ExplorerController {
 
   @GetMapping(path = "/project/{projectId}/dataset/{datasetName}", produces = "application/json")
   @ApiOperation("Get all dataset for a given projectId")
-  public DatasetResponse getDataset(
-      @PathVariable final String projectId, @PathVariable final String datasetName)
-      throws Exception {
+  public DatasetResponse getDataset(@PathVariable final String projectId,
+      @PathVariable final String datasetName) {
     FetchedDataset fetchedDataset = fetcherService.fetchDataset(projectId, datasetName);
     return toDatasetResponse(fetchedDataset);
   }
@@ -102,6 +116,16 @@ public class ExplorerController {
       @PathVariable final int days) throws Exception {
     GlobalQueryStatistics statistics = fetcherService.getStatistics(projectId, days);
     return toGlobalQueryStatisticsResponse(statistics);
+  }
+
+  @GetMapping(path = "/project/{projectId}/events/{days}", produces = "application/json")
+  @ApiOperation("Get events ")
+  public List<FetchedMaterializedViewEvent> getMaterializedViewEvents(
+      @PathVariable final String projectId,
+      @PathVariable final int days) {
+    List<FetchedMaterializedViewEvent> events =
+        fetcherService.getMaterializedViewEvents(projectId, days);
+    return events;
   }
 
   @GetMapping(path = "/project/{projectId}/queries/{days}/statistics/eligible", produces = "application/json")

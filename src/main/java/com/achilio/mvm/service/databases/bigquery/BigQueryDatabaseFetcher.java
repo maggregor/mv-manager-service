@@ -5,6 +5,7 @@ import com.achilio.mvm.service.databases.entities.DefaultFetchedDataset;
 import com.achilio.mvm.service.databases.entities.DefaultFetchedProject;
 import com.achilio.mvm.service.databases.entities.DefaultFetchedTable;
 import com.achilio.mvm.service.databases.entities.FetchedDataset;
+import com.achilio.mvm.service.databases.entities.FetchedMaterializedViewEvent;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedQueryFactory;
@@ -44,6 +45,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.Spliterator;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -93,11 +95,15 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     return fetchAllQueriesFrom(0);
   }
 
-  @Override
-  public List<FetchedQuery> fetchAllQueriesFrom(long fromCreationTime) {
+  private Stream<Job> fetchJobs(long fromCreationTime) {
     List<BigQuery.JobListOption> options = getJobListOptions(fromCreationTime);
     final Page<Job> jobPages = bigquery.listJobs(options.toArray(new BigQuery.JobListOption[0]));
-    return StreamSupport.stream(jobPages.getValues().spliterator(), true)
+    return StreamSupport.stream(jobPages.getValues().spliterator(), true);
+  }
+
+  @Override
+  public List<FetchedQuery> fetchAllQueriesFrom(long fromCreationTime) {
+    return fetchJobs(fromCreationTime)
         .filter(this::fetchQueryFilter)
         .map(this::toFetchedQuery)
         .collect(Collectors.toList());
@@ -113,14 +119,14 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     if (Objects.nonNull(job) && isQueryJob(job)) {
       QueryJobConfiguration configuration = job.getConfiguration();
       final String query = configuration.getQuery();
-      // Keep only SELECT queries
-      return isRegularSelectQuery(query)
-          // Exclude SQL script
-          && !isSQLScript(query)
+      // Exclude SQL script
+      return !isSQLScript(query)
           // Exclude not finished queries
           && job.isDone()
           // Exclude errors
-          && notInError(job);
+          && notInError(job)
+          // Keep only SELECT queries
+          && isRegularSelectQuery(query);
     }
     return false;
   }
@@ -156,7 +162,7 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
    * @return
    */
   private FetchedQuery toFetchedQuery(Job job) {
-    String query = null;
+    String query;
     final QueryJobConfiguration configuration = job.getConfiguration();
     query = StringUtils.trim(configuration.getQuery());
     final JobStatistics.QueryStatistics stats = job.getStatistics();
@@ -254,6 +260,30 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
         .filter(this::isValidTable)
         .map(this::toFetchedTable)
         .collect(Collectors.toSet());
+  }
+
+  @Override
+  public List<FetchedMaterializedViewEvent> fetchMaterializedViewEvents(long fromDate) {
+    return fetchJobs(fromDate)
+        .filter(this::filterMaterializedViewCreation)
+        .map(this::toFetchedMaterializedViewEvent)
+        .collect(Collectors.toList());
+  }
+
+  private FetchedMaterializedViewEvent toFetchedMaterializedViewEvent(Job job) {
+    final QueryJobConfiguration configuration = job.getConfiguration();
+    final String query = configuration.getQuery();
+    final String operationType = query.split("\\s+")[0];
+    return new FetchedMaterializedViewEvent("unknown_name",
+        "unknown_dataset", "unknown_table", 0, operationType);
+  }
+
+  private boolean filterMaterializedViewCreation(Job job) {
+    final QueryJobConfiguration configuration = job.getConfiguration();
+    final String query = configuration.getQuery();
+
+    return StringUtils.containsIgnoreCase(query, "MATERIALIZED VIEW")
+        && !StringUtils.startsWithIgnoreCase(query, "CALL");
   }
 
   @Override

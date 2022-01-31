@@ -11,12 +11,14 @@ import com.google.protobuf.ByteString;
 import com.google.pubsub.v1.PubsubMessage;
 import com.google.pubsub.v1.TopicName;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,8 +34,9 @@ public class GooglePublisherService {
   private static final String ATTRIBUTE_PROJECT_ID = "projectId";
   private static final String ATTRIBUTE_ACCESS_TOKEN = "accessToken";
   private static final String ATTRIBUTE_DATASET_NAME = "datasetName";
+  private static final String CMD_TYPE_APPLY = "apply";
+  private static final String CMD_TYPE_WORKSPACE = "workspace";
   private final static Logger LOGGER = LoggerFactory.getLogger(OptimizerApplication.class);
-
   @Value("${publisher.google-project-id}")
   private String PUBLISHER_GOOGLE_PROJECT_ID = "achilio-dev";
   @Value("${publisher.google-topic-id}")
@@ -57,11 +60,22 @@ public class GooglePublisherService {
         .forEach(this::publishDatasetResults);
   }
 
+  public void publishProjectActivation(String projectId)
+      throws IOException, ExecutionException, InterruptedException {
+    List<String> l = new ArrayList<>();
+    l.add("a");
+    publishMessage(
+        buildPubsubMessage(projectId, new ObjectMapper()
+                .writeValueAsString(l), CMD_TYPE_WORKSPACE,
+            false));
+  }
+
   private void publishDatasetResults(String datasetName, List<OptimizationResult> results) {
     if (results.isEmpty()) {
       LOGGER.info("Empty results for  the dataset {}: publishing skipped", datasetName);
       return;
     }
+    // TODO: Get the project ID differently
     final String projectId = results.get(0).getProjectId();
     final String formattedMessage;
     try {
@@ -70,7 +84,12 @@ public class GooglePublisherService {
       LOGGER.error("Error during results JSON formatting", e);
       return;
     }
-    PubsubMessage pubsubMessage = buildPubsubMessage(projectId, datasetName, formattedMessage);
+    PubsubMessage pubsubMessage = buildPubsubMessage(
+        projectId,
+        datasetName,
+        formattedMessage,
+        CMD_TYPE_APPLY,
+        true);
     try {
       publishMessage(pubsubMessage);
       LOGGER.info("{} results published for the dataset {}", results.size(), datasetName);
@@ -79,15 +98,27 @@ public class GooglePublisherService {
     }
   }
 
-  public PubsubMessage buildPubsubMessage(String projectId, String datasetName, String message) {
-    ByteString data = ByteString.copyFromUtf8(message);
-    return PubsubMessage.newBuilder()
-        .putAttributes(ATTRIBUTE_CMD_TYPE, "apply")
-        .putAttributes(ATTRIBUTE_PROJECT_ID, projectId)
-        .putAttributes(ATTRIBUTE_ACCESS_TOKEN, getAccessToken())
-        .putAttributes(ATTRIBUTE_DATASET_NAME, datasetName)
-        .setData(data)
-        .build();
+  public PubsubMessage buildPubsubMessage(String projectId, String message, String cmdType,
+      boolean requireAccessToken) {
+    return buildPubsubMessage(projectId, null, message, cmdType, requireAccessToken);
+  }
+
+  public PubsubMessage buildPubsubMessage(String projectId, String datasetName, String message,
+      String cmdType, boolean requireAccessToken) {
+    PubsubMessage.Builder builder = PubsubMessage.newBuilder()
+        .putAttributes(ATTRIBUTE_CMD_TYPE, cmdType)
+        .putAttributes(ATTRIBUTE_PROJECT_ID, projectId);
+    if (requireAccessToken) {
+      builder.putAttributes(ATTRIBUTE_ACCESS_TOKEN, getAccessToken());
+    }
+    if (StringUtils.isNotEmpty(datasetName)) {
+      builder.putAttributes(ATTRIBUTE_DATASET_NAME, datasetName);
+    }
+    if (StringUtils.isNotEmpty(message)) {
+      ByteString data = ByteString.copyFromUtf8(message);
+      builder.setData(data);
+    }
+    return builder.build();
   }
 
   public void publishMessage(PubsubMessage pubsubMessage)
