@@ -1,4 +1,4 @@
-FROM maven:3-jdk-8-alpine
+FROM maven:3-openjdk-8
 
 RUN mkdir -p /build
 WORKDIR /build
