@@ -48,7 +48,7 @@
           </execution>
         </executions>
         <groupId>org.jacoco</groupId>
-        <version>0.8.2</version>
+        <version>0.8.4</version>
       </plugin>
     </plugins>
 
@@ -165,32 +165,33 @@
     <dependency>
       <artifactId>zetasql-client</artifactId>
       <groupId>com.google.zetasql</groupId>
-      <version>2021.03.2</version>
+      <version>2021.09.1</version>
     </dependency>
+
 
     <!-- https://mvnrepository.com/artifact/com.google.zetasql/zetasql-types -->
     <dependency>
       <artifactId>zetasql-types</artifactId>
       <groupId>com.google.zetasql</groupId>
-      <version>2021.03.2</version>
+      <version>2021.09.1</version>
     </dependency>
     <!-- https://mvnrepository.com/artifact/com.google.zetasql/zetasql-jni-channel -->
     <dependency>
       <artifactId>zetasql-jni-channel</artifactId>
       <groupId>com.google.zetasql</groupId>
-      <version>2021.03.2</version>
+      <version>2021.09.1</version>
     </dependency>
     <!-- https://mvnrepository.com/artifact/com.google.zetasql/zetasql-jni-channel-darwin -->
     <dependency>
       <artifactId>zetasql-jni-channel-darwin</artifactId>
       <groupId>com.google.zetasql</groupId>
-      <version>2021.03.2</version>
+      <version>2021.09.1</version>
     </dependency>
     <!-- https://mvnrepository.com/artifact/com.google.zetasql/zetasql-jni-channel-linux -->
     <dependency>
       <artifactId>zetasql-jni-channel-linux</artifactId>
       <groupId>com.google.zetasql</groupId>
-      <version>2021.03.2</version>
+      <version>2021.09.1</version>
     </dependency>
     <!-- https://mvnrepository.com/artifact/junit/junit -->
     <dependency>
