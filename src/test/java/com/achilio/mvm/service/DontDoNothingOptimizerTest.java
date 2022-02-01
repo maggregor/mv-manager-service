@@ -3,8 +3,8 @@ package com.achilio.mvm.service;
 import com.achilio.mvm.service.visitors.fields.FieldSet;
 import com.achilio.mvm.service.visitors.fields.FunctionField;
 import com.achilio.mvm.service.visitors.fields.ReferenceField;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -17,7 +17,7 @@ public class DontDoNothingOptimizerTest {
   public void simpleReachLimitFieldSet() {
     Optimizer optimizer;
     // Initialize field sets
-    Set<FieldSet> fieldSets = new LinkedHashSet<>();
+    List<FieldSet> fieldSets = new ArrayList<>();
     fieldSets.add(FieldSetHelper.createFieldSet(new ReferenceField("col1")));
     fieldSets.add(FieldSetHelper.createFieldSet(new FunctionField("col2")));
     // Remove exceeded

@@ -1,7 +1,7 @@
 package com.achilio.mvm.service;
 
 import com.achilio.mvm.service.visitors.fields.FieldSet;
-import java.util.Set;
+import java.util.List;
 
 /**
  * Optimizer service
@@ -18,5 +18,5 @@ public interface Optimizer {
    * @param fieldSet - Row field set
    * @return -
    */
-  Set<FieldSet> optimize(Set<FieldSet> fieldSet);
+  List<FieldSet> optimize(List<FieldSet> fieldSet);
 }

@@ -64,9 +64,9 @@ public class OptimizerService {
     addOptimizationEvent(o, StatusType.FILTER_ELIGIBLE_QUERIES);
     List<FetchedQuery> eligibleQueries = getEligibleQueries(projectId, tables, queries);
     addOptimizationEvent(o, StatusType.EXTRACTING_FIELDS);
-    Set<FieldSet> fieldSets = extractFields(projectId, tables, eligibleQueries);
+    List<FieldSet> fieldSets = extractFields(projectId, tables, eligibleQueries);
     addOptimizationEvent(o, StatusType.OPTIMIZING_FIELDS);
-    Set<FieldSet> optimized = optimizeFieldSets(fieldSets);
+    List<FieldSet> optimized = optimizeFieldSets(fieldSets);
     addOptimizationEvent(o, StatusType.BUILDING_OPTIMIZATION);
     List<OptimizationResult> results = buildOptimizationsResults(o, optimized);
     addOptimizationEvent(o, StatusType.PUBLISHING);
@@ -91,12 +91,12 @@ public class OptimizerService {
     Set<FetchedTable> tables = fetcherService.fetchAllTables(projectId);
     List<FetchedQuery> eligibleQueries = getEligibleQueries(projectId, tables, queries);
     addOptimizationEvent(o, StatusType.EXTRACTING_FIELDS);
-    Set<FieldSet> fieldSets = extractFields(projectId, tables, eligibleQueries);
+    List<FieldSet> fieldSets = extractFields(projectId, tables, eligibleQueries);
     addOptimizationEvent(o, StatusType.FILTER_FIELDS_FROM_DATASET);
     fieldSets.removeIf(fieldSet -> fieldSet.getReferenceTables().stream()
         .anyMatch(table -> !table.getDatasetName().equalsIgnoreCase(datasetName)));
     addOptimizationEvent(o, StatusType.OPTIMIZING_FIELDS);
-    Set<FieldSet> optimized = optimizeFieldSets(fieldSets);
+    List<FieldSet> optimized = optimizeFieldSets(fieldSets);
     addOptimizationEvent(o, StatusType.BUILDING_OPTIMIZATION);
     List<OptimizationResult> results = buildOptimizationsResults(o, optimized);
     addOptimizationEvent(o, StatusType.PUBLISHING);
@@ -118,7 +118,8 @@ public class OptimizerService {
     LOGGER.info("Optimization done with {} results.", results.size());
   }
 
-  private List<OptimizationResult> buildOptimizationsResults(Optimization o, Set<FieldSet> fields) {
+  private List<OptimizationResult> buildOptimizationsResults(Optimization o,
+      List<FieldSet> fields) {
     return fields.stream().map(f -> buildOptimizationResult(o, f)).collect(Collectors.toList());
   }
 
@@ -132,12 +133,12 @@ public class OptimizerService {
     return result;
   }
 
-  private Set<FieldSet> optimizeFieldSets(Set<FieldSet> fieldSets) {
+  private List<FieldSet> optimizeFieldSets(List<FieldSet> fieldSets) {
     Optimizer o = OptimizerFactory.createOptimizerWithDefaultStrategy(DEFAULT_MAX_MV_GENERATED);
     return o.optimize(fieldSets);
   }
 
-  private Set<FieldSet> extractFields(
+  private List<FieldSet> extractFields(
       String project,
       Set<FetchedTable> tables,
       List<FetchedQuery> queries) {

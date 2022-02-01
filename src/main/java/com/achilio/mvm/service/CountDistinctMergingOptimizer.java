@@ -1,7 +1,7 @@
 package com.achilio.mvm.service;
 
 import com.achilio.mvm.service.visitors.fields.FieldSet;
-import java.util.Set;
+import java.util.List;
 
 public class CountDistinctMergingOptimizer implements Optimizer {
 
@@ -9,7 +9,7 @@ public class CountDistinctMergingOptimizer implements Optimizer {
   }
 
   @Override
-  public Set<FieldSet> optimize(Set<FieldSet> fieldSet) {
+  public List<FieldSet> optimize(List<FieldSet> fieldSet) {
     // TODO: Implement simple cardinality merge.
     return fieldSet;
   }

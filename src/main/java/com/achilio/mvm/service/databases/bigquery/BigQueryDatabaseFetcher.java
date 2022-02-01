@@ -140,6 +140,9 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
   }
 
   public boolean isRegularSelectQuery(String query) {
+    // Remove comments
+    query = query.replaceAll("--[^\\r\\n]*", "");
+    query = query.trim();
     return StringUtils.startsWithIgnoreCase(query, SQL_SELECT_WORD)
         && StringUtils.containsIgnoreCase(query, SQL_FROM_WORD)
         && !StringUtils.containsIgnoreCase(query, UNSUPPORTED_TABLE_TOKEN);

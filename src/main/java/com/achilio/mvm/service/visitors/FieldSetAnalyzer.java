@@ -3,7 +3,6 @@ package com.achilio.mvm.service.visitors;
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.visitors.fields.FieldSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -20,10 +19,10 @@ public interface FieldSetAnalyzer {
    * @param fetchedQueries - the queries
    * @return
    */
-  default Set<FieldSet> extract(List<FetchedQuery> fetchedQueries) {
+  default List<FieldSet> extract(List<FetchedQuery> fetchedQueries) {
     return fetchedQueries.stream()
         .map(this::extract)
-        .collect(Collectors.toSet());
+        .collect(Collectors.toList());
   }
 
   /**
