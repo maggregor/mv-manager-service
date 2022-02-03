@@ -2,6 +2,7 @@ package com.achilio.mvm.service.services;
 
 import com.achilio.mvm.service.Optimizer;
 import com.achilio.mvm.service.OptimizerFactory;
+import com.achilio.mvm.service.controllers.responses.OptimizationResponse;
 import com.achilio.mvm.service.databases.bigquery.BigQueryMaterializedViewStatementBuilder;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
@@ -10,6 +11,8 @@ import com.achilio.mvm.service.entities.Optimization;
 import com.achilio.mvm.service.entities.OptimizationEvent;
 import com.achilio.mvm.service.entities.OptimizationEvent.StatusType;
 import com.achilio.mvm.service.entities.OptimizationResult;
+import com.achilio.mvm.service.repositories.OptimizerRepository;
+import com.achilio.mvm.service.repositories.ProjectMetadataRepository;
 import com.achilio.mvm.service.visitors.FieldSetAnalyzer;
 import com.achilio.mvm.service.visitors.FieldSetExtractFactory;
 import com.achilio.mvm.service.visitors.fields.FieldSet;
@@ -26,9 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.stereotype.Service;
 
-/**
- * All the useful services to generate relevant Materialized Views.
- */
+/** All the useful services to generate relevant Materialized Views. */
 @EnableJpaAuditing
 @Service
 public class OptimizerService {
@@ -36,10 +37,9 @@ public class OptimizerService {
   private static final int DEFAULT_MAX_MV_GENERATED = 20;
   private static Logger LOGGER = LoggerFactory.getLogger(OptimizerService.class);
   BigQueryMaterializedViewStatementBuilder statementBuilder;
-  @Autowired
-  private FetcherService fetcherService;
-  @Autowired
-  private GooglePublisherService publisherService;
+  @Autowired private FetcherService fetcherService;
+  @Autowired private GooglePublisherService publisherService;
+
   @PersistenceContext(type = PersistenceContextType.EXTENDED)
   private EntityManager entityManager;
 
@@ -93,8 +93,10 @@ public class OptimizerService {
     addOptimizationEvent(o, StatusType.EXTRACTING_FIELDS);
     List<FieldSet> fieldSets = extractFields(projectId, tables, eligibleQueries);
     addOptimizationEvent(o, StatusType.FILTER_FIELDS_FROM_DATASET);
-    fieldSets.removeIf(fieldSet -> fieldSet.getReferenceTables().stream()
-        .anyMatch(table -> !table.getDatasetName().equalsIgnoreCase(datasetName)));
+    fieldSets.removeIf(
+        fieldSet ->
+            fieldSet.getReferenceTables().stream()
+                .anyMatch(table -> !table.getDatasetName().equalsIgnoreCase(datasetName)));
     addOptimizationEvent(o, StatusType.OPTIMIZING_FIELDS);
     List<FieldSet> optimized = optimizeFieldSets(fieldSets);
     addOptimizationEvent(o, StatusType.BUILDING_OPTIMIZATION);
@@ -106,8 +108,8 @@ public class OptimizerService {
     return o;
   }
 
-  private List<FetchedQuery> getEligibleQueries(String projectId, Set<FetchedTable> tables,
-      List<FetchedQuery> queries) {
+  private List<FetchedQuery> getEligibleQueries(
+      String projectId, Set<FetchedTable> tables, List<FetchedQuery> queries) {
     FieldSetAnalyzer extractor = FieldSetExtractFactory.createFieldSetExtract(projectId, tables);
     extractor.analyzeIneligibleReasons(queries);
     return queries.stream().filter(FetchedQuery::isEligible).collect(Collectors.toList());
@@ -118,8 +120,8 @@ public class OptimizerService {
     LOGGER.info("Optimization done with {} results.", results.size());
   }
 
-  private List<OptimizationResult> buildOptimizationsResults(Optimization o,
-      List<FieldSet> fields) {
+  private List<OptimizationResult> buildOptimizationsResults(
+      Optimization o, List<FieldSet> fields) {
     return fields.stream().map(f -> buildOptimizationResult(o, f)).collect(Collectors.toList());
   }
 
@@ -139,9 +141,7 @@ public class OptimizerService {
   }
 
   private List<FieldSet> extractFields(
-      String project,
-      Set<FetchedTable> tables,
-      List<FetchedQuery> queries) {
+      String project, Set<FetchedTable> tables, List<FetchedQuery> queries) {
     FieldSetAnalyzer extractor = FieldSetExtractFactory.createFieldSetExtract(project, tables);
     return extractor.extract(queries);
   }
@@ -153,10 +153,15 @@ public class OptimizerService {
     return optimization;
   }
 
+  public Optimization getOptimization(final Long optimizationId) {
+    Optimization optimization = entityManager.find(Optimization.class, optimizationId);
+    LOGGER.info("Getting optimization id: {}", optimization.getId());
+    return optimization;
+  }
+
   public void addOptimizationEvent(Optimization optimization, StatusType statusType) {
     OptimizationEvent event = new OptimizationEvent(optimization, statusType);
     entityManager.persist(event);
     LOGGER.info("New event on optimization {}: {}", optimization.getId(), statusType);
   }
-
 }

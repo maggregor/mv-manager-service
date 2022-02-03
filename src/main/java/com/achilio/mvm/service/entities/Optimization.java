@@ -1,6 +1,7 @@
 package com.achilio.mvm.service.entities;
 
 import java.util.Date;
+import javax.annotation.Nullable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
@@ -21,6 +22,7 @@ public class Optimization {
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Long id;
+
   @CreatedDate
   @Column(name = "created_date", nullable = false)
   private Date createdDate;
@@ -28,12 +30,13 @@ public class Optimization {
   @Column(name = "project_id", nullable = false)
   private String projectId;
 
-  public Optimization() {
+  // TODO: How to do a migration when adding a non-nullable column without setting a default ?
+  @Column(name = "dataset_name", nullable = false, columnDefinition = "varchar(255) default ''")
+  private String datasetName;
 
-  }
+  public Optimization() {}
 
-  public Optimization(
-      final String projectId) {
+  public Optimization(final String projectId) {
     this.projectId = projectId;
   }
 
@@ -45,8 +48,11 @@ public class Optimization {
     return this.projectId;
   }
 
+  public String getDatasetName() {
+    return datasetName;
+  }
+
   public Date getCreatedDate() {
     return createdDate;
   }
-
 }
