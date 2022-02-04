@@ -31,6 +31,7 @@ import org.springframework.stereotype.Service;
 /** All the useful services to generate relevant Materialized Views. */
 @EnableJpaAuditing
 @Service
+@Transactional
 public class OptimizerService {
 
   private static final int DEFAULT_MAX_MV_GENERATED = 5;
@@ -42,8 +43,7 @@ public class OptimizerService {
   @Autowired private FetcherService fetcherService;
   @Autowired private GooglePublisherService publisherService;
 
-  @PersistenceContext(type = PersistenceContextType.EXTENDED)
-  private EntityManager entityManager;
+  @PersistenceContext private EntityManager entityManager;
 
   public OptimizerService() {
     this.statementBuilder = new BigQueryMaterializedViewStatementBuilder();
@@ -57,27 +57,27 @@ public class OptimizerService {
     LOGGER.info("Run a new optimization on {}", datasetName);
     FetchedProject project = fetcherService.fetchProject(projectId);
     Optimization o = createNewOptimization(project.getProjectId(), datasetName);
-    addOptimizationEvent(o, StatusType.FETCHING_QUERIES);
+    //    addOptimizationEvent(o, StatusType.FETCHING_QUERIES);
     List<FetchedQuery> queries = fetcherService.fetchQueriesSince(projectId, days);
-    addOptimizationEvent(o, StatusType.FETCHING_MODELS);
+    //    addOptimizationEvent(o, StatusType.FETCHING_MODELS);
     Set<FetchedTable> tables = fetcherService.fetchAllTables(projectId);
     List<FetchedQuery> eligibleQueries = getEligibleQueries(projectId, tables, queries);
-    addOptimizationEvent(o, StatusType.EXTRACTING_FIELD_SETS);
+    //    addOptimizationEvent(o, StatusType.EXTRACTING_FIELD_SETS);
     List<FieldSet> fieldSets = extractFields(projectId, tables, eligibleQueries);
-    addOptimizationEvent(o, StatusType.FILTER_FIELD_SETS_FROM_DATASET);
+    //    addOptimizationEvent(o, StatusType.FILTER_FIELD_SETS_FROM_DATASET);
     fieldSets.removeIf(
         fieldSet ->
             fieldSet.getReferenceTables().stream()
                 .anyMatch(table -> !table.getDatasetName().equalsIgnoreCase(datasetName)));
-    addOptimizationEvent(o, StatusType.MERGING_FIELD_SETS);
+    //    addOptimizationEvent(o, StatusType.MERGING_FIELD_SETS);
     FieldSetMerger.merge(fieldSets);
-    addOptimizationEvent(o, StatusType.OPTIMIZING_FIELD_SETS);
+    //    addOptimizationEvent(o, StatusType.OPTIMIZING_FIELD_SETS);
     List<FieldSet> optimized = optimizeFieldSets(fieldSets);
-    addOptimizationEvent(o, StatusType.BUILDING_OPTIMIZATION);
+    //    addOptimizationEvent(o, StatusType.BUILDING_OPTIMIZATION);
     List<OptimizationResult> results = buildOptimizationsResults(o, optimized);
-    addOptimizationEvent(o, StatusType.PUBLISHING);
+    //    addOptimizationEvent(o, StatusType.PUBLISHING);
     publish(o, results);
-    addOptimizationEvent(o, StatusType.PUBLISHED);
+    //    addOptimizationEvent(o, StatusType.PUBLISHED);
     LOGGER.info("Optimization {} published with {} MV as proposals.", o.getId(), results.size());
     return o;
   }
@@ -99,7 +99,6 @@ public class OptimizerService {
     return fields.stream().map(f -> buildOptimizationResult(o, f)).collect(Collectors.toList());
   }
 
-  @Transactional
   public OptimizationResult buildOptimizationResult(Optimization o, FieldSet fieldSet) {
     String statement = statementBuilder.build(fieldSet);
     // To date, get first Table in the set iterator.
@@ -120,6 +119,7 @@ public class OptimizerService {
     return extractor.extract(queries);
   }
 
+  @Transactional
   public Optimization createNewOptimization(final String projectId, final String datasetName) {
     Optimization optimization = new Optimization(projectId, datasetName);
     entityManager.persist(optimization);
@@ -130,9 +130,12 @@ public class OptimizerService {
     return optimization;
   }
 
+  @Transactional
   public Optimization getOptimization(final Long optimizationId) {
     Optimization optimization = entityManager.find(Optimization.class, optimizationId);
-    LOGGER.info("Getting optimization id: {}", optimization.getId());
+    if (optimization != null) {
+      LOGGER.info("Getting optimization id: {}", optimization.getId());
+    }
     return optimization;
   }
 
@@ -143,9 +146,9 @@ public class OptimizerService {
     return optimizationResults;
   }
 
-  public void addOptimizationEvent(Optimization optimization, StatusType statusType) {
-    OptimizationEvent event = new OptimizationEvent(optimization, statusType);
-    entityManager.persist(event);
-    LOGGER.info("New event on optimization {}: {}", optimization.getId(), statusType);
-  }
+  //  public void addOptimizationEvent(Optimization optimization, StatusType statusType) {
+  //    OptimizationEvent event = new OptimizationEvent(optimization, statusType);
+  //    entityManager.persist(event);
+  //    LOGGER.info("New event on optimization {}: {}", optimization.getId(), statusType);
+  //  }
 }

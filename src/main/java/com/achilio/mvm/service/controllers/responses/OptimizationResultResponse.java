@@ -7,8 +7,8 @@ public class OptimizationResultResponse {
   private Long id;
   private String projectId;
   private String datasetName;
-  private final String tableName;
-  private final String statement;
+  private String tableName;
+  private String statement;
 
   public OptimizationResultResponse(OptimizationResult optimizationResult) {
     this.id = optimizationResult.getId();
@@ -41,4 +41,12 @@ public class OptimizationResultResponse {
   public void setDatasetName(String datasetName) {
     this.datasetName = datasetName;
   }
+
+  public String getTableName() { return tableName; }
+
+  public void setTableName(String tableName) { this.tableName = tableName; }
+
+  public String getStatement() { return statement; }
+
+  public void setStatement(String statement) { this.statement = statement; }
 }
