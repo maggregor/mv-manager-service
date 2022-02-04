@@ -30,7 +30,9 @@ steps:
           "4",
           "--memory",
           "2Gi",
-          "--allow-unauthenticated"
+          "--allow-unauthenticated",
+          "--min-instances=1",
+          "--max-instances=1"
       ]
   - name: 'gcr.io/cloud-builders/curl'
     id: 'codecov-report'
