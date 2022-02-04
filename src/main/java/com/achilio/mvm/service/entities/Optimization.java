@@ -36,8 +36,9 @@ public class Optimization {
 
   public Optimization() {}
 
-  public Optimization(final String projectId) {
+  public Optimization(String projectId, String datasetName) {
     this.projectId = projectId;
+    this.datasetName = datasetName;
   }
 
   public Long getId() {

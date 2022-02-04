@@ -14,10 +14,12 @@ public class OptimizationTest {
 
   @Test
   public void simpleValidation() {
-    Optimization optimization = new Optimization("myProject");
+    Optimization optimization = new Optimization("myProject", "myDataset");
     assertNull(optimization.getId());
     assertNotNull(optimization.getProjectId());
     assertEquals("myProject", optimization.getProjectId());
+    assertNotNull(optimization.getDatasetName());
+    assertEquals("myDataset", optimization.getDatasetName());
   }
 
   @Test
