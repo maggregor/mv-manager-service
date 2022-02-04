@@ -10,6 +10,7 @@ import com.achilio.mvm.service.entities.Optimization;
 import com.achilio.mvm.service.entities.OptimizationEvent;
 import com.achilio.mvm.service.entities.OptimizationEvent.StatusType;
 import com.achilio.mvm.service.entities.OptimizationResult;
+import com.achilio.mvm.service.repositories.OptimizerResultRepository;
 import com.achilio.mvm.service.visitors.FieldSetAnalyzer;
 import com.achilio.mvm.service.visitors.FieldSetExtractFactory;
 import com.achilio.mvm.service.visitors.FieldSetMerger;
@@ -37,6 +38,10 @@ public class OptimizerService {
   private static final int DEFAULT_MAX_MV_GENERATED = 5;
   private static Logger LOGGER = LoggerFactory.getLogger(OptimizerService.class);
   BigQueryMaterializedViewStatementBuilder statementBuilder;
+
+  @Autowired
+  private OptimizerResultRepository optimizerResultRepository;
+
   @Autowired
   private FetcherService fetcherService;
   @Autowired
@@ -124,6 +129,19 @@ public class OptimizerService {
     entityManager.persist(optimization);
     LOGGER.info("New optimization created: {}", optimization.getId());
     return optimization;
+  }
+
+  public Optimization getOptimization(final Long optimizationId) {
+    Optimization optimization = entityManager.find(Optimization.class, optimizationId);
+    LOGGER.info("Getting optimization id: {}", optimization.getId());
+    return optimization;
+  }
+
+  public List<OptimizationResult> getOptimizationResults(final Long optimizationId) {
+    List<OptimizationResult> optimizationResults =
+        optimizerResultRepository.findAllByOptimizationId(optimizationId);
+    LOGGER.info("Getting all results of optimization {}", optimizationId);
+    return optimizationResults;
   }
 
   public void addOptimizationEvent(Optimization optimization, StatusType statusType) {
