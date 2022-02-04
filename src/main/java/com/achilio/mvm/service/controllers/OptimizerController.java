@@ -40,15 +40,6 @@ public class OptimizerController {
     return o;
   }
 
-  @PostMapping(path = "/optimize/{projectId}", produces = "application/json")
-  @ApiOperation("Trigger an optimization on a projectId")
-  @Deprecated
-  public OptimizationResponse optimizeProject(@PathVariable("projectId") String projectId)
-      throws Exception {
-    Optimization optimization = service.optimizeProject(projectId);
-    return new OptimizationResponse(optimization);
-  }
-
   @PostMapping(path = "/optimize/{projectId}/dataset/{datasetName}", produces = "application/json")
   @ApiOperation("Trigger an optimization on a projectId")
   public OptimizationResponse optimizeProject(

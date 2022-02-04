@@ -21,8 +21,8 @@ public class OptimizationEventTest {
     OptimizationEvent event;
     event = new OptimizationEvent();
     assertNull(event.getId());
-    event = new OptimizationEvent(mockOptimization, StatusType.OPTIMIZING_FIELDS);
-    assertEquals(StatusType.OPTIMIZING_FIELDS, event.getStatusType());
+    event = new OptimizationEvent(mockOptimization, StatusType.OPTIMIZING_FIELD_SETS);
+    assertEquals(StatusType.OPTIMIZING_FIELD_SETS, event.getStatusType());
     assertEquals(mockOptimization, event.getOptimization());
   }
 

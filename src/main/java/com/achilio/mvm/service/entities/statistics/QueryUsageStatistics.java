@@ -2,6 +2,7 @@ package com.achilio.mvm.service.entities.statistics;
 
 public class QueryUsageStatistics {
 
+  private int query = 1;
   private long billedBytes = 0;
   private long processedBytes = 0;
 
@@ -19,5 +20,15 @@ public class QueryUsageStatistics {
 
   public void setProcessedBytes(long processedBytes) {
     this.processedBytes = processedBytes;
+  }
+
+  public int getQueryCount() {
+    return this.query;
+  }
+
+  public void addQueryUsageStatistics(QueryUsageStatistics statistics) {
+    this.billedBytes += statistics.getBilledBytes();
+    this.processedBytes += statistics.getProcessedBytes();
+    this.query++;
   }
 }

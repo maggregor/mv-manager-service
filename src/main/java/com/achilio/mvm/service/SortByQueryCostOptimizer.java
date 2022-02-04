@@ -2,14 +2,11 @@ package com.achilio.mvm.service;
 
 import com.achilio.mvm.service.visitors.fields.FieldSet;
 import com.achilio.mvm.service.visitors.fields.FieldSetFactory;
-import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.stream.Collectors;
 
 public class SortByQueryCostOptimizer implements Optimizer {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(SortByQueryCostOptimizer.class);
 
   private final int maxFieldSet;
 
@@ -20,7 +17,10 @@ public class SortByQueryCostOptimizer implements Optimizer {
   @Override
   public List<FieldSet> optimize(List<FieldSet> fieldSet) {
     fieldSet.remove(FieldSetFactory.EMPTY_FIELD_SET);
-    return new ArrayList<>();
+    return fieldSet.stream()
+        .sorted(Comparator.comparingLong(FieldSet::cost).reversed())
+        .limit(maxFieldSet)
+        .collect(Collectors.toList());
   }
 
 }

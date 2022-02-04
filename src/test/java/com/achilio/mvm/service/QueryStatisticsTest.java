@@ -18,15 +18,16 @@ public class QueryStatisticsTest {
 
   private final FetchedQuery query1 = mock(FetchedQuery.class);
   private final FetchedQuery query2 = mock(FetchedQuery.class);
+  private final QueryUsageStatistics statistics1 = mock(QueryUsageStatistics.class);
+  private final QueryUsageStatistics statistics2 = mock(QueryUsageStatistics.class);
+  ;
 
   @Before
   public void setUp() {
-    QueryUsageStatistics statistics1 = mock(QueryUsageStatistics.class);
     when(statistics1.getProcessedBytes()).thenReturn(10L);
     when(statistics1.getBilledBytes()).thenReturn(100L);
     when(query1.getStatistics()).thenReturn(statistics1);
 
-    QueryUsageStatistics statistics2 = mock(QueryUsageStatistics.class);
     when(statistics2.getProcessedBytes()).thenReturn(2L);
     when(statistics2.getBilledBytes()).thenReturn(20L);
     when(query2.getStatistics()).thenReturn(statistics2);
@@ -81,5 +82,26 @@ public class QueryStatisticsTest {
     assertEquals(1, totalStatistics.getTotalQueries());
     totalStatistics = new QueryStatistics(Lists.newArrayList(query1, query2));
     assertEquals(2, totalStatistics.getTotalQueries());
+  }
+
+  @Test
+  public void addQueryUsageStatistics() {
+    QueryUsageStatistics statistics = new QueryUsageStatistics();
+    statistics.setProcessedBytes(10L);
+    statistics.setBilledBytes(20L);
+    assertEquals(10L, statistics.getProcessedBytes());
+    assertEquals(20L, statistics.getBilledBytes());
+    //
+    when(statistics1.getProcessedBytes()).thenReturn(100L);
+    when(statistics1.getBilledBytes()).thenReturn(300L);
+    statistics.addQueryUsageStatistics(statistics1);
+    assertEquals(110L, statistics.getProcessedBytes());
+    assertEquals(320L, statistics.getBilledBytes());
+    //
+    when(statistics2.getProcessedBytes()).thenReturn(300L);
+    when(statistics2.getBilledBytes()).thenReturn(1000L);
+    statistics.addQueryUsageStatistics(statistics2);
+    assertEquals(410L, statistics.getProcessedBytes());
+    assertEquals(1320L, statistics.getBilledBytes());
   }
 }
