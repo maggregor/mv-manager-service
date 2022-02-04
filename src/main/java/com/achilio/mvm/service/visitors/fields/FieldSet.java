@@ -12,6 +12,11 @@ import java.util.Set;
 public interface FieldSet {
 
   /**
+   * Returns query cost
+   */
+  long cost();
+
+  /**
    * The fields which this set of fields handle.
    *
    * @return the fields this set of fields handle.

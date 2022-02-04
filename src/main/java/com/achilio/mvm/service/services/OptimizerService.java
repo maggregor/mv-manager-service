@@ -12,6 +12,7 @@ import com.achilio.mvm.service.entities.OptimizationEvent.StatusType;
 import com.achilio.mvm.service.entities.OptimizationResult;
 import com.achilio.mvm.service.visitors.FieldSetAnalyzer;
 import com.achilio.mvm.service.visitors.FieldSetExtractFactory;
+import com.achilio.mvm.service.visitors.FieldSetMerger;
 import com.achilio.mvm.service.visitors.fields.FieldSet;
 import java.util.List;
 import java.util.Set;
@@ -33,7 +34,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class OptimizerService {
 
-  private static final int DEFAULT_MAX_MV_GENERATED = 20;
+  private static final int DEFAULT_MAX_MV_GENERATED = 5;
   private static Logger LOGGER = LoggerFactory.getLogger(OptimizerService.class);
   BigQueryMaterializedViewStatementBuilder statementBuilder;
   @Autowired
@@ -47,41 +48,11 @@ public class OptimizerService {
     this.statementBuilder = new BigQueryMaterializedViewStatementBuilder();
   }
 
-  @Deprecated
-  public Optimization optimizeProject(final String projectId) throws Exception {
-    return optimizeProject(projectId, 30);
-  }
-
-  @Deprecated
-  public Optimization optimizeProject(final String projectId, int days) throws Exception {
-    LOGGER.info("Run a new optimization");
-    FetchedProject project = fetcherService.fetchProject(projectId);
-    Optimization o = createNewOptimization(project.getProjectId());
-    addOptimizationEvent(o, StatusType.FETCHING_QUERIES);
-    List<FetchedQuery> queries = fetcherService.fetchQueriesSince(projectId, days);
-    addOptimizationEvent(o, StatusType.FETCHING_MODELS);
-    Set<FetchedTable> tables = fetcherService.fetchAllTables(projectId);
-    addOptimizationEvent(o, StatusType.FILTER_ELIGIBLE_QUERIES);
-    List<FetchedQuery> eligibleQueries = getEligibleQueries(projectId, tables, queries);
-    addOptimizationEvent(o, StatusType.EXTRACTING_FIELDS);
-    List<FieldSet> fieldSets = extractFields(projectId, tables, eligibleQueries);
-    addOptimizationEvent(o, StatusType.OPTIMIZING_FIELDS);
-    List<FieldSet> optimized = optimizeFieldSets(fieldSets);
-    addOptimizationEvent(o, StatusType.BUILDING_OPTIMIZATION);
-    List<OptimizationResult> results = buildOptimizationsResults(o, optimized);
-    addOptimizationEvent(o, StatusType.PUBLISHING);
-    publish(o, results);
-    addOptimizationEvent(o, StatusType.PUBLISHED);
-    LOGGER.info("Optimization {} published with {} MV as proposals.", o.getId(), results.size());
-    return o;
-  }
-
   public Optimization optimizeDataset(String projectId, String datasetName) throws Exception {
     return optimizeDataset(projectId, datasetName, 30);
   }
 
-  public Optimization optimizeDataset(String projectId, String datasetName, int days)
-      throws Exception {
+  public Optimization optimizeDataset(String projectId, String datasetName, int days) {
     LOGGER.info("Run a new optimization on {}", datasetName);
     FetchedProject project = fetcherService.fetchProject(projectId);
     Optimization o = createNewOptimization(project.getProjectId());
@@ -90,12 +61,14 @@ public class OptimizerService {
     addOptimizationEvent(o, StatusType.FETCHING_MODELS);
     Set<FetchedTable> tables = fetcherService.fetchAllTables(projectId);
     List<FetchedQuery> eligibleQueries = getEligibleQueries(projectId, tables, queries);
-    addOptimizationEvent(o, StatusType.EXTRACTING_FIELDS);
+    addOptimizationEvent(o, StatusType.EXTRACTING_FIELD_SETS);
     List<FieldSet> fieldSets = extractFields(projectId, tables, eligibleQueries);
-    addOptimizationEvent(o, StatusType.FILTER_FIELDS_FROM_DATASET);
+    addOptimizationEvent(o, StatusType.FILTER_FIELD_SETS_FROM_DATASET);
     fieldSets.removeIf(fieldSet -> fieldSet.getReferenceTables().stream()
         .anyMatch(table -> !table.getDatasetName().equalsIgnoreCase(datasetName)));
-    addOptimizationEvent(o, StatusType.OPTIMIZING_FIELDS);
+    addOptimizationEvent(o, StatusType.MERGING_FIELD_SETS);
+    FieldSetMerger.merge(fieldSets);
+    addOptimizationEvent(o, StatusType.OPTIMIZING_FIELD_SETS);
     List<FieldSet> optimized = optimizeFieldSets(fieldSets);
     addOptimizationEvent(o, StatusType.BUILDING_OPTIMIZATION);
     List<OptimizationResult> results = buildOptimizationsResults(o, optimized);

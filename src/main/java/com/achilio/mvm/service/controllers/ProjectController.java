@@ -132,7 +132,7 @@ public class ProjectController {
   @ApiOperation("Get statistics of ineligible queries")
   public GlobalQueryStatisticsResponse getEligibleQueryStatistics(
       @PathVariable final String projectId,
-      @PathVariable final int days) throws Exception {
+      @PathVariable final int days) {
     List<FetchedQuery> queries = fetcherService.fetchQueriesSince(projectId, days);
     Set<FetchedTable> tables = fetcherService.fetchAllTables(projectId);
     FieldSetAnalyzer extractor = FieldSetExtractFactory.createFieldSetExtract(projectId, tables);

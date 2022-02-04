@@ -85,6 +85,11 @@ public class DefaultFieldSet implements FieldSet, Cloneable {
   }
 
   @Override
+  public long cost() {
+    return this.statistics == null ? 0 : this.statistics.getProcessedBytes();
+  }
+
+  @Override
   public FieldSet clone() {
     try {
       return (FieldSet) super.clone();
@@ -113,6 +118,6 @@ public class DefaultFieldSet implements FieldSet, Cloneable {
 
   @Override
   public int hashCode() {
-    return new HashCodeBuilder(17, 37).append(fields).toHashCode();
+    return new HashCodeBuilder(17, 37).append(fields()).toHashCode();
   }
 }

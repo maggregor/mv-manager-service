@@ -84,4 +84,16 @@ public class DefaultFieldSetTest {
     assertEquals(10L, fieldSet.getStatistics().getBilledBytes());
     assertEquals(20L, fieldSet.getStatistics().getProcessedBytes());
   }
+
+  @Test
+  public void cost() {
+    FieldSet fieldSet = FieldSetHelper.createFieldSet(new ReferenceField("a"));
+    QueryUsageStatistics mockStatistics = mock(QueryUsageStatistics.class);
+    fieldSet.setStatistics(mockStatistics);
+    assertEquals(0, fieldSet.cost());
+    when(mockStatistics.getProcessedBytes()).thenReturn(20L);
+    assertEquals(20L, fieldSet.cost());
+    when(mockStatistics.getProcessedBytes()).thenReturn(100L);
+    assertEquals(100L, fieldSet.cost());
+  }
 }

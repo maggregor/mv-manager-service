@@ -64,11 +64,13 @@ public class OptimizationEvent {
     // Keep the eligible queries
     FILTER_ELIGIBLE_QUERIES,
     // Keep fields from dataset
-    FILTER_FIELDS_FROM_DATASET,
+    FILTER_FIELD_SETS_FROM_DATASET,
     // Extract columns, functions and expression from queries
-    EXTRACTING_FIELDS,
+    EXTRACTING_FIELD_SETS,
+    // Merging field sets statistics
+    MERGING_FIELD_SETS,
     // Optimizing
-    OPTIMIZING_FIELDS,
+    OPTIMIZING_FIELD_SETS,
     // Materialized view statements building
     BUILDING_OPTIMIZATION,
     // Publishing on pub/sub system
