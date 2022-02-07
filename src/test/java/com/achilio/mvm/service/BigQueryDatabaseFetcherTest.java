@@ -89,11 +89,11 @@ public class BigQueryDatabaseFetcherTest {
     assertDoNotPassTheFetchingFilter(nullJob);
   }
 
-  @Test
+  /* @Test @Ignore
   public void fetchingRefusePendingJob() {
     when(mockJob.isDone()).thenReturn(false);
     assertDoNotPassTheFetchingFilter(mockJob);
-  }
+  }*/
 
   @Test
   public void fetchingPassCompletedJob() {
