@@ -122,7 +122,7 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
       // Exclude SQL script
       return !isSQLScript(query)
           // Exclude not finished queries
-          && job.isDone()
+          //  && job.isDone()
           // Exclude errors
           && notInError(job)
           // Keep only SELECT queries
