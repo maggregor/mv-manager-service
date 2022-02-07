@@ -89,18 +89,6 @@ public class BigQueryDatabaseFetcherTest {
     assertDoNotPassTheFetchingFilter(nullJob);
   }
 
-  /* @Test @Ignore
-  public void fetchingRefusePendingJob() {
-    when(mockJob.isDone()).thenReturn(false);
-    assertDoNotPassTheFetchingFilter(mockJob);
-  }*/
-
-  @Test
-  public void fetchingPassCompletedJob() {
-    when(mockJob.isDone()).thenReturn(true);
-    assertPassTheFetchingFilter(mockJob);
-  }
-
   @Test
   public void fetchingRefuseErrorJob() {
     when(mockJob.getStatus().getError()).thenReturn(new BigQueryError("Im", "in", "error"));
@@ -318,7 +306,6 @@ public class BigQueryDatabaseFetcherTest {
     Job mockJob1 = mock(Job.class);
     when(mockJob1.getConfiguration()).thenReturn(COUNT_QUERY_JOB_CONFIGURATION);
     when(mockJob1.getStatus()).thenReturn(status);
-    when(mockJob1.isDone()).thenReturn(true);
     when(mockJob1.getStatus().getError()).thenReturn(null);
     when(mockJob1.getStatistics()).thenReturn(mockJobStats);
     when(stage1.getSteps()).thenReturn(Lists.newArrayList(steps1));
@@ -363,7 +350,6 @@ public class BigQueryDatabaseFetcherTest {
     mockJob = mock(Job.class);
     when(mockJob.getConfiguration()).thenReturn(DEFAULT_QUERY_JOB_CONFIGURATION);
     when(mockJob.getStatus()).thenReturn(status);
-    when(mockJob.isDone()).thenReturn(true);
     when(mockJob.getStatus().getError()).thenReturn(null);
     when(mockJob.getStatistics()).thenReturn(mockJobStats);
     when(mockJobStats.getCacheHit()).thenReturn(false);
