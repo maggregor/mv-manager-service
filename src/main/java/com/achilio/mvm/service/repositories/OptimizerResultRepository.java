@@ -7,5 +7,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface OptimizerResultRepository extends JpaRepository<OptimizationResult, Integer> {
-  List<OptimizationResult> findAllByOptimizationId(Long optimizationId);
+  List<OptimizationResult> findAllByProjectIdAndOptimizationId(
+      String projectId, Long optimizationId);
 }

@@ -33,8 +33,8 @@ public class Optimization {
   @Column(name = "dataset_name", nullable = false, columnDefinition = "varchar(255) default ''")
   private String datasetName;
 
-  @Column(name = "query_eligible_percentage")
-  private double queryEligiblePercentage;
+  @Column(name = "query_eligible_percentage", nullable = true)
+  private Float queryEligiblePercentage;
 
   public Optimization() {
   }
@@ -64,7 +64,7 @@ public class Optimization {
     return queryEligiblePercentage;
   }
 
-  public void setQueryEligiblePercentage(double queryEligiblePercentage) {
+  public void setQueryEligiblePercentage(Float queryEligiblePercentage) {
     this.queryEligiblePercentage = queryEligiblePercentage;
   }
 }

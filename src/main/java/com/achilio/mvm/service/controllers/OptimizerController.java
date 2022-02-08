@@ -24,31 +24,37 @@ public class OptimizerController {
   @Autowired
   private OptimizerService service;
 
-  @GetMapping(path = "/optimize/{optimizationId}", produces = "application/json")
-  @ApiOperation("Get the details of an optimizeId")
-  public OptimizationResponse getOptimization(@PathVariable final Long optimizationId) {
-    Optimization optimization = service.getOptimization(optimizationId);
-    return new OptimizationResponse(optimization);
-  }
-
-  @GetMapping(path = "/optimize/project/{projectId}", produces = "application/json")
-  @ApiOperation("Get the details of an optimizeId")
-  public List<OptimizationResponse> getOptimizations(@PathVariable final String projectId) {
-    return service.getAllOptimizations(projectId)
-        .stream()
+  @GetMapping(path = "/optimize/{projectId}", produces = "application/json")
+  @ApiOperation("Get all optimizations by projectId")
+  public List<OptimizationResponse> getAllOptimizationByProject(
+      @PathVariable final String projectId) {
+    return service.getAllOptimizationByProject(projectId).stream()
         .map(OptimizationResponse::new)
         .collect(Collectors.toList());
   }
 
-  @GetMapping(path = "/optimize/{optimizationId}/results", produces = "application/json")
-  @ApiOperation("Get all the results of an optimizeId")
+  @GetMapping(path = "/optimize/{projectId}/{datasetName}", produces = "application/json")
+  @ApiOperation("Get all optimizations by datasetName")
+  public List<OptimizationResponse> getAllOptimizationByProjectAndDatasetName(
+      @PathVariable final String projectId, @PathVariable final String datasetName) {
+    return service.getAllOptimizationByProjectAndDataset(projectId, datasetName).stream()
+        .map(OptimizationResponse::new)
+        .collect(Collectors.toList());
+  }
+
+
+  @GetMapping(
+      path = "/optimize/{projectId}/{datasetName}/{optimizationId}",
+      produces = "application/json")
+  @ApiOperation("Get a single optimization from a project and dataset with its results")
   public OptimizationResultsResponse getOptimizationResults(
+      @PathVariable final String projectId,
+      @PathVariable final String datasetName,
       @PathVariable final Long optimizationId) {
-    Optimization optimization = service.getOptimization(optimizationId);
-    List<OptimizationResult> optimizationResults = service.getOptimizationResults(optimizationId);
-    OptimizationResultsResponse o =
-        new OptimizationResultsResponse(optimization, optimizationResults);
-    return o;
+    Optimization optimization = service.getOptimization(projectId, optimizationId);
+    List<OptimizationResult> optimizationResults =
+        service.getOptimizationResults(projectId, optimizationId);
+    return new OptimizationResultsResponse(optimization, optimizationResults);
   }
 
   @PostMapping(path = "/optimize/{projectId}/dataset/{datasetName}", produces = "application/json")
