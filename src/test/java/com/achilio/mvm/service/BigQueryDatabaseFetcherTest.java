@@ -275,7 +275,7 @@ public class BigQueryDatabaseFetcherTest {
   public void fetchNoQuery() {
     Page<Job> jobs = Pages.empty();
     List<BigQuery.JobListOption> options = new ArrayList<>();
-    options.add(BigQuery.JobListOption.pageSize(10000));
+    options.add(BigQuery.JobListOption.pageSize(BigQueryDatabaseFetcher.LIST_JOB_PAGE_SIZE));
     options.add(BigQuery.JobListOption.allUsers());
     options.add(BigQuery.JobListOption.minCreationTime(0));
     when(mockBigquery.listJobs(options.toArray(new BigQuery.JobListOption[0]))).thenReturn(jobs);
@@ -291,7 +291,7 @@ public class BigQueryDatabaseFetcherTest {
     when(steps1.getSubsteps()).thenReturn(createSubSteps("st1", "st2"));
     when(mockJobStats.getQueryPlan()).thenReturn(Lists.newArrayList(stage1));
     List<BigQuery.JobListOption> options = new ArrayList<>();
-    options.add(BigQuery.JobListOption.pageSize(10000));
+    options.add(BigQuery.JobListOption.pageSize(BigQueryDatabaseFetcher.LIST_JOB_PAGE_SIZE));
     options.add(BigQuery.JobListOption.allUsers());
     options.add(BigQuery.JobListOption.minCreationTime(0));
     when(mockBigquery.listJobs(options.toArray(new BigQuery.JobListOption[0]))).thenReturn(jobs);
@@ -312,10 +312,10 @@ public class BigQueryDatabaseFetcherTest {
     when(steps1.getSubsteps()).thenReturn(createSubSteps("st1", "st2"));
     when(mockJobStats.getQueryPlan()).thenReturn(Lists.newArrayList(stage1));
     List<BigQuery.JobListOption> options = new ArrayList<>();
-    options.add(BigQuery.JobListOption.pageSize(10000));
+    options.add(BigQuery.JobListOption.pageSize(BigQueryDatabaseFetcher.LIST_JOB_PAGE_SIZE));
     options.add(BigQuery.JobListOption.allUsers());
     options.add(BigQuery.JobListOption.minCreationTime(0));
-    when(jobs.getValues()).thenReturn(Lists.newArrayList(mockJob, mockJob1));
+    when(jobs.iterateAll()).thenReturn(Lists.newArrayList(mockJob, mockJob1));
     when(mockBigquery.listJobs(options.toArray(new BigQuery.JobListOption[0]))).thenReturn(jobs);
     List<FetchedQuery> queries = fetcher.fetchAllQueries();
     assertListSize(2, queries);
@@ -354,6 +354,6 @@ public class BigQueryDatabaseFetcherTest {
     when(mockJob.getStatistics()).thenReturn(mockJobStats);
     when(mockJobStats.getCacheHit()).thenReturn(false);
     jobs = mock(Page.class);
-    when(jobs.getValues()).thenReturn(Lists.newArrayList(mockJob));
+    when(jobs.iterateAll()).thenReturn(Lists.newArrayList(mockJob));
   }
 }

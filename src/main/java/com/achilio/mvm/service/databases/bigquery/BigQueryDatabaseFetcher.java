@@ -54,12 +54,11 @@ import org.slf4j.LoggerFactory;
 
 public class BigQueryDatabaseFetcher implements DatabaseFetcher {
 
+  public static final int LIST_JOB_PAGE_SIZE = 1000;
   private static final Logger LOGGER = LoggerFactory.getLogger(BigQueryDatabaseFetcher.class);
-
   private static final String UNSUPPORTED_TABLE_TOKEN = "INFORMATION_SCHEMA";
   private static final String SQL_FROM_WORD = "FROM";
   private static final String SQL_SELECT_WORD = "SELECT";
-  private static final int LIST_JOB_PAGE_SIZE = 1000;
   private final BigQuery bigquery;
   private final ResourceManager resourceManager;
   private final String projectId;
