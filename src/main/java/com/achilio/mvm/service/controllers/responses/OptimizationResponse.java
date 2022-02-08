@@ -9,12 +9,14 @@ public class OptimizationResponse {
   private Date createdDate;
   private String projectId;
   private String datasetName;
+  private double eligiblePercent;
 
   public OptimizationResponse(Optimization optimization) {
     this.id = optimization.getId();
     this.createdDate = optimization.getCreatedDate();
     this.projectId = optimization.getProjectId();
     this.datasetName = optimization.getDatasetName();
+    this.eligiblePercent = optimization.getQueryEligiblePercentage();
   }
 
   public Long getId() {
@@ -41,7 +43,15 @@ public class OptimizationResponse {
     this.datasetName = datasetName;
   }
 
-  public Date getCreatedDate() { return createdDate; }
+  public double getEligiblePercent() {
+    return this.eligiblePercent;
+  }
 
-  public void setCreatedDate(Date createdDate) { this.createdDate = createdDate; }
+  public Date getCreatedDate() {
+    return createdDate;
+  }
+
+  public void setCreatedDate(Date createdDate) {
+    this.createdDate = createdDate;
+  }
 }

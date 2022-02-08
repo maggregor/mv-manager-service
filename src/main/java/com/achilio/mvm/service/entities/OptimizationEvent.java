@@ -60,11 +60,11 @@ public class OptimizationEvent {
     // Retrieve queries from history
     FETCHING_QUERIES,
     // Retrieve datasets and tables structures
-    FETCHING_MODELS,
+    FETCHING_MODEL,
     // Keep the eligible queries
     FILTER_ELIGIBLE_QUERIES,
-    // Keep fields from dataset
-    FILTER_FIELD_SETS_FROM_DATASET,
+    // Keep queries from dataset
+    FILTER_QUERIES_FROM_DATASET,
     // Extract columns, functions and expression from queries
     EXTRACTING_FIELD_SETS,
     // Merging field sets statistics
@@ -72,7 +72,7 @@ public class OptimizationEvent {
     // Optimizing
     OPTIMIZING_FIELD_SETS,
     // Materialized view statements building
-    BUILDING_OPTIMIZATION,
+    BUILD_MATERIALIZED_VIEWS_STATEMENT,
     // Publishing on pub/sub system
     PUBLISHING,
     // Publishing done
