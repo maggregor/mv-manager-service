@@ -42,7 +42,6 @@ public class OptimizerController {
         .collect(Collectors.toList());
   }
 
-
   @GetMapping(
       path = "/optimize/{projectId}/{datasetName}/{optimizationId}",
       produces = "application/json")
