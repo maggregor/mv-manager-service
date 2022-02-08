@@ -23,12 +23,11 @@ import org.springframework.web.util.UrlPathHelper;
 @EnableAutoConfiguration
 public class WebConfig implements WebMvcConfigurer {
 
-  @Autowired
-  MyHandlerInterceptor myHandlerInterceptor;
+  @Autowired GoogleProjectInterceptor googleProjectInterceptor;
 
   @Override
   public void addInterceptors(InterceptorRegistry registry) {
-    registry.addInterceptor(myHandlerInterceptor);
+    registry.addInterceptor(googleProjectInterceptor);
   }
 
   @Override

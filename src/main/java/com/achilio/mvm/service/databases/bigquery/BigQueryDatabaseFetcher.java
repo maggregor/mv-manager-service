@@ -71,19 +71,19 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     this.projectId = projectId;
   }
 
-  public BigQueryDatabaseFetcher(final GoogleCredentials credentials, final String defaultProjectId)
+  public BigQueryDatabaseFetcher(final GoogleCredentials credentials, final String projectId)
       throws ProjectNotFoundException {
     BigQueryOptions.Builder bqOptBuilder = BigQueryOptions.newBuilder().setCredentials(credentials);
     ResourceManagerOptions.Builder rmOptBuilder =
         ResourceManagerOptions.newBuilder().setCredentials(credentials);
-    if (StringUtils.isNotEmpty(defaultProjectId)) {
+    if (StringUtils.isNotEmpty(projectId)) {
       // Change default project of BigQuery instance
-      bqOptBuilder.setProjectId(defaultProjectId);
-      rmOptBuilder.setProjectId(defaultProjectId);
+      bqOptBuilder.setProjectId(projectId);
+      rmOptBuilder.setProjectId(projectId);
     }
     this.bigquery = bqOptBuilder.build().getService();
     this.resourceManager = rmOptBuilder.build().getService();
-    this.projectId = defaultProjectId;
+    this.projectId = projectId;
     // Checks if the Google credentials have access.
     if (StringUtils.isNotEmpty(projectId)) {
       fetchProject(projectId);
@@ -277,8 +277,8 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     final QueryJobConfiguration configuration = job.getConfiguration();
     final String query = configuration.getQuery();
     final String operationType = query.split("\\s+")[0];
-    return new FetchedMaterializedViewEvent("unknown_name",
-        "unknown_dataset", "unknown_table", 0, operationType);
+    return new FetchedMaterializedViewEvent(
+        "unknown_name", "unknown_dataset", "unknown_table", 0, operationType);
   }
 
   private boolean filterMaterializedViewCreation(Job job) {
