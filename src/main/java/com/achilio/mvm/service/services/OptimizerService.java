@@ -10,6 +10,7 @@ import com.achilio.mvm.service.entities.Optimization;
 import com.achilio.mvm.service.entities.OptimizationEvent;
 import com.achilio.mvm.service.entities.OptimizationEvent.StatusType;
 import com.achilio.mvm.service.entities.OptimizationResult;
+import com.achilio.mvm.service.repositories.OptimizerRepository;
 import com.achilio.mvm.service.repositories.OptimizerResultRepository;
 import com.achilio.mvm.service.visitors.FieldSetAnalyzer;
 import com.achilio.mvm.service.visitors.FieldSetExtractFactory;
@@ -20,7 +21,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.persistence.PersistenceContextType;
 import javax.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,6 +39,7 @@ public class OptimizerService {
   BigQueryMaterializedViewStatementBuilder statementBuilder;
 
   @Autowired private OptimizerResultRepository optimizerResultRepository;
+  @Autowired private OptimizerRepository optimizerRepository;
 
   @Autowired private FetcherService fetcherService;
   @Autowired private GooglePublisherService publisherService;
@@ -130,18 +131,30 @@ public class OptimizerService {
     return optimization;
   }
 
-  @Transactional
-  public Optimization getOptimization(final Long optimizationId) {
-    Optimization optimization = entityManager.find(Optimization.class, optimizationId);
-    if (optimization != null) {
-      LOGGER.info("Getting optimization id: {}", optimization.getId());
-    }
+  public List<Optimization> getAllOptimizationByProject(final String projectId) {
+    List<Optimization> optimizations = optimizerRepository.findAllByProjectId(projectId);
+    LOGGER.info("Getting all optimizations from project {}", projectId);
+    return optimizations;
+  }
+
+  public List<Optimization> getAllOptimizationByProjectAndDataset(
+      final String projectId, final String datasetName) {
+    List<Optimization> optimizations =
+        optimizerRepository.findAllByProjectIdAndDatasetName(projectId, datasetName);
+    LOGGER.info("Getting all optimizations from project {} and dataset {}", projectId, datasetName);
+    return optimizations;
+  }
+
+  public Optimization getOptimization(final String projectId, final Long optimizationId) {
+    Optimization optimization = optimizerRepository.findByProjectIdAndId(projectId, optimizationId);
+    LOGGER.info("Getting optimization id: {} from project {}", optimization.getId(), projectId);
     return optimization;
   }
 
-  public List<OptimizationResult> getOptimizationResults(final Long optimizationId) {
+  public List<OptimizationResult> getOptimizationResults(
+      final String projectId, final Long optimizationId) {
     List<OptimizationResult> optimizationResults =
-        optimizerResultRepository.findAllByOptimizationId(optimizationId);
+        optimizerResultRepository.findAllByProjectIdAndOptimizationId(projectId, optimizationId);
     LOGGER.info("Getting all results of optimization {}", optimizationId);
     return optimizationResults;
   }

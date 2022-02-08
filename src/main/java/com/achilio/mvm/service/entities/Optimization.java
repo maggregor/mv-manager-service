@@ -32,12 +32,11 @@ public class Optimization {
   // TODO: How to do a migration when adding a non-nullable column without setting a default ?
   @Column(name = "dataset_name", nullable = false, columnDefinition = "varchar(255) default ''")
   private String datasetName;
-  
-  @Column(name = "query_coverage", nullable = true)
-  private float queryCoverage;
 
-  public Optimization() {
-  }
+  @Column(name = "query_coverage", nullable = true)
+  private Float queryCoverage;
+
+  public Optimization() {}
 
   public Optimization(String projectId, String datasetName) {
     this.projectId = projectId;
@@ -60,7 +59,7 @@ public class Optimization {
     return createdDate;
   }
 
-  public void setQueryCoverage(float queryCoverage) {
+  public void setQueryCoverage(Float queryCoverage) {
     this.queryCoverage = queryCoverage;
   }
 }
