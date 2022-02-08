@@ -59,7 +59,7 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
   private static final String UNSUPPORTED_TABLE_TOKEN = "INFORMATION_SCHEMA";
   private static final String SQL_FROM_WORD = "FROM";
   private static final String SQL_SELECT_WORD = "SELECT";
-  private static final int LIST_JOB_PAGE_SIZE = 10000;
+  private static final int LIST_JOB_PAGE_SIZE = 1000;
   private final BigQuery bigquery;
   private final ResourceManager resourceManager;
   private final String projectId;
@@ -98,7 +98,7 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
   private Stream<Job> fetchJobs(long fromCreationTime) {
     List<BigQuery.JobListOption> options = getJobListOptions(fromCreationTime);
     final Page<Job> jobPages = bigquery.listJobs(options.toArray(new BigQuery.JobListOption[0]));
-    return StreamSupport.stream(jobPages.getValues().spliterator(), true);
+    return StreamSupport.stream(jobPages.iterateAll().spliterator(), true);
   }
 
   @Override
