@@ -69,8 +69,8 @@ public class OptimizerService {
     // STEP 1 - Fetch all queries of targeted project
     addOptimizationEvent(o, StatusType.FETCHING_QUERIES);
     List<FetchedQuery> allQueries = fetcherService.fetchQueriesSince(projectId, days);
-    // STEP 2 - Fetch dataset model
-    addOptimizationEvent(o, StatusType.FETCHING_MODEL);
+    // STEP 2 - Fetch all tables
+    addOptimizationEvent(o, StatusType.FETCHING_TABLES);
     Set<FetchedTable> tables = fetcherService.fetchAllTables(projectId);
     // STEP 3 - Filter queries from targeted dataset
     addOptimizationEvent(o, StatusType.FILTER_QUERIES_FROM_DATASET);
@@ -80,10 +80,11 @@ public class OptimizerService {
         .filter(query -> isOnDataset(query, datasetName)).collect(Collectors.toList());
     // STEP 4 - Filter eligible queries
     addOptimizationEvent(o, StatusType.FILTER_ELIGIBLE_QUERIES);
-    List<FetchedQuery> eligibleQueries = getEligibleQueries(projectId, tables, allQueriesOnDataset);
+    List<FetchedQuery> eligibleQueriesOnDataset = getEligibleQueries(projectId, tables,
+        allQueriesOnDataset);
     // STEP 5 - Extract field from queries
     addOptimizationEvent(o, StatusType.EXTRACTING_FIELD_SETS);
-    List<FieldSet> fieldSets = extractFields(projectId, tables, eligibleQueries);
+    List<FieldSet> fieldSets = extractFields(projectId, tables, eligibleQueriesOnDataset);
     // STEP 6 - Merging same field sets
     addOptimizationEvent(o, StatusType.MERGING_FIELD_SETS);
     FieldSetMerger.merge(fieldSets);
@@ -94,7 +95,8 @@ public class OptimizerService {
     addOptimizationEvent(o, StatusType.BUILD_MATERIALIZED_VIEWS_STATEMENT);
     List<OptimizationResult> results = buildOptimizationsResults(o, optimized);
     // STEP 9 - Publishing optimization
-    o.setQueryEligiblePercentage((float) eligibleQueries.size() / allQueriesOnDataset.size());
+    Float percent = (float) eligibleQueriesOnDataset.size() / allQueriesOnDataset.size();
+    o.setQueryEligiblePercentage(percent);
     addOptimizationEvent(o, StatusType.PUBLISHING);
     publish(o, results);
     addOptimizationEvent(o, StatusType.PUBLISHED);

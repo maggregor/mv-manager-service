@@ -59,8 +59,8 @@ public class OptimizationEvent {
   public enum StatusType {
     // Retrieve queries from history
     FETCHING_QUERIES,
-    // Retrieve datasets and tables structures
-    FETCHING_MODEL,
+    // Retrieve tables
+    FETCHING_TABLES,
     // Keep the eligible queries
     FILTER_ELIGIBLE_QUERIES,
     // Keep queries from dataset

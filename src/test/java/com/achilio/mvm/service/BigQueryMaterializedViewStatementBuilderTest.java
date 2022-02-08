@@ -1,8 +1,5 @@
 package com.achilio.mvm.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
 import com.achilio.mvm.service.databases.MaterializedViewStatementBuilder;
 import com.achilio.mvm.service.databases.bigquery.BigQueryMaterializedViewStatementBuilder;
 import com.achilio.mvm.service.databases.entities.DefaultFetchedTable;
@@ -16,7 +13,6 @@ import java.util.HashSet;
 import java.util.Set;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -35,14 +31,6 @@ public class BigQueryMaterializedViewStatementBuilderTest {
     Set<FetchedTable> tables = new HashSet<>();
     tables.add(new DefaultFetchedTable("myproject", "mydataset", "mytable"));
     fieldSet.setReferenceTables(tables);
-  }
-
-  @Test
-  @Ignore
-  public void tableReferenceSerializationWithoutProject() {
-    Throwable exception =
-        assertThrows(IllegalArgumentException.class, () -> builder.buildTableReference(fieldSet));
-    assertEquals("Project name is empty or null", exception.getMessage());
   }
 
   @Test

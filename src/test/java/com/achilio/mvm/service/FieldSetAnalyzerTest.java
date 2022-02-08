@@ -21,6 +21,7 @@ import java.util.Set;
 import org.assertj.core.util.Sets;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -103,6 +104,16 @@ public abstract class FieldSetAnalyzerTest {
     table = tableIterator.next();
     Assert.assertEquals("mydataset", table.getDatasetName());
     Assert.assertEquals("mytable", table.getTableName());
+    // With projectid back quotes
+    statement = "SELECT COUNT(*) FROM `myproject.mydataset.mytable`";
+    fetchedQuery = FetchedQueryFactory.createFetchedQuery(statement);
+    extractor.discoverFetchedTable(fetchedQuery);
+    tableIterator = fetchedQuery.getReferenceTables().iterator();
+    Assert.assertTrue(tableIterator.hasNext());
+    table = tableIterator.next();
+    Assert.assertEquals("myproject", table.getProjectId());
+    Assert.assertEquals("mydataset", table.getDatasetName());
+    Assert.assertEquals("mytable", table.getTableName());
   }
 
   @Test
@@ -174,9 +185,22 @@ public abstract class FieldSetAnalyzerTest {
         query, new FunctionField("CASE WHEN (col1 = (\"x\")) THEN (\"a\") ELSE (\"b\") END"));
   }
 
-  @Test // TODO: Support my-project.mydataset.mytable
-  public void extractTablesWithProject() {
+  @Test
+  public void extractTablesWithoutProject() {
     final String query = "SELECT col1 FROM mydataset.mytable GROUP BY " + "col1";
+    assertExpectedFieldSet(query, new ReferenceField("col1"));
+  }
+
+  @Test
+  public void extractTablesWithProject() {
+    final String query = "SELECT col1 FROM myproject.mydataset.mytable GROUP BY " + "col1";
+    assertExpectedFieldSet(query, new ReferenceField("col1"));
+  }
+
+  @Test
+  @Ignore
+  public void extractTablesWithFullQuotedPath() {
+    final String query = "SELECT col1 FROM `myproject.mydataset.mytable` GROUP BY " + "col1";
     assertExpectedFieldSet(query, new ReferenceField("col1"));
   }
 
