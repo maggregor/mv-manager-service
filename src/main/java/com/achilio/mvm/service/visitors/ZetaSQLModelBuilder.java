@@ -10,15 +10,19 @@ import com.google.zetasql.ZetaSQLType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import org.apache.commons.lang3.StringUtils;
 
 public abstract class ZetaSQLModelBuilder implements ModelBuilder {
 
   private final SimpleCatalog catalog;
+  private final SimpleCatalog catalogProject;
   private final Set<FetchedTable> tables;
 
   public ZetaSQLModelBuilder(String projectName, Set<FetchedTable> tables) {
-    this.catalog = new SimpleCatalog(projectName);
+    this.catalog = new SimpleCatalog("root");
+    catalogProject = this.catalog.addNewSimpleCatalog(projectName);
     this.catalog.addZetaSQLFunctions(new ZetaSQLBuiltinFunctionOptions());
     this.tables = tables;
     this.registerTables(tables);
@@ -35,11 +39,10 @@ public abstract class ZetaSQLModelBuilder implements ModelBuilder {
 
   @Override
   public void registerTable(FetchedTable table) {
-    final String datasetName = table.getDatasetName();
-    ensureDatasetExists(datasetName);
+    SimpleCatalog dataset = createDatasetAndGet(catalog, table.getDatasetName());
+    SimpleCatalog datasetInProject = createDatasetAndGet(catalogProject, table.getDatasetName());
     final String tableName = table.getTableName();
-    final SimpleCatalog dataset = getDatasetCatalog(datasetName);
-    final String fullTableName = datasetName + "." + tableName;
+    final String fullTableName = table.getDatasetName() + "." + tableName;
     final SimpleTable simpleTable = new SimpleTable(fullTableName);
     for (Map.Entry<String, String> column : table.getColumns().entrySet()) {
       final String name = column.getKey();
@@ -49,12 +52,16 @@ public abstract class ZetaSQLModelBuilder implements ModelBuilder {
       simpleTable.addSimpleColumn(name, statusType);
     }
     dataset.addSimpleTable(tableName, simpleTable);
+    datasetInProject.addSimpleTable(tableName, simpleTable);
   }
 
   @Override
   public boolean isTableRegistered(FetchedTable table) {
     try {
       List<String> paths = new ArrayList<>();
+      if (StringUtils.isNotEmpty(table.getProjectId())) {
+        paths.add(table.getProjectId());
+      }
       paths.add(table.getDatasetName());
       paths.add(table.getTableName());
       this.catalog.findTable(paths);
@@ -64,24 +71,15 @@ public abstract class ZetaSQLModelBuilder implements ModelBuilder {
     }
   }
 
-  private void ensureDatasetExists(final String datasetName) {
-    if (!containsDataset(datasetName)) {
-      this.catalog.addNewSimpleCatalog(datasetName);
-    }
+  private SimpleCatalog createDatasetAndGet(SimpleCatalog simpleCatalog, final String datasetName) {
+    Optional<SimpleCatalog> optionalCatalog = getDataset(simpleCatalog, datasetName);
+    return optionalCatalog.orElseGet(() -> simpleCatalog.addNewSimpleCatalog(datasetName));
   }
 
-  private boolean containsDataset(String datasetName) {
-    return this.catalog.getCatalogList().stream()
-        .anyMatch(simpleCatalog -> simpleCatalog.getFullName().equalsIgnoreCase(datasetName));
-  }
-
-  private SimpleCatalog getDatasetCatalog(String datasetName) {
-    for (SimpleCatalog catalog : this.catalog.getCatalogList()) {
-      if (catalog.getFullName().equalsIgnoreCase(datasetName)) {
-        return catalog;
-      }
-    }
-    return null;
+  private Optional<SimpleCatalog> getDataset(SimpleCatalog catalog, String datasetName) {
+    return catalog.getCatalogList().stream()
+        .filter(simpleCatalog -> simpleCatalog.getFullName().equalsIgnoreCase(datasetName))
+        .findFirst();
   }
 
   public SimpleCatalog getCatalog() {
