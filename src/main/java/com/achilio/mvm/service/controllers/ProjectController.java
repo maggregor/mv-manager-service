@@ -19,6 +19,7 @@ import com.achilio.mvm.service.visitors.FieldSetExtractFactory;
 import io.swagger.annotations.ApiOperation;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
@@ -116,6 +117,15 @@ public class ProjectController {
       @PathVariable final int days) throws Exception {
     GlobalQueryStatistics statistics = fetcherService.getStatistics(projectId, days);
     return toGlobalQueryStatisticsResponse(statistics);
+  }
+
+  @GetMapping(path = "/project/{projectId}/queries/{days}/statistics/series", produces = "application/json")
+  @ApiOperation("Get statistics of queries grouped per days for charts")
+  public Map<String, Long> getDailyStatistics(
+      @PathVariable final String projectId,
+      @PathVariable final int days) {
+    return fetcherService.getDailyStatistics(projectId, days);
+
   }
 
   @GetMapping(path = "/project/{projectId}/events/{days}", produces = "application/json")

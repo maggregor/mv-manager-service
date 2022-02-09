@@ -11,10 +11,11 @@ import com.google.protobuf.ByteString;
 import com.google.pubsub.v1.PubsubMessage;
 import com.google.pubsub.v1.TopicName;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.AbstractMap.SimpleEntry;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Objects;
-import java.util.StringJoiner;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -33,7 +34,6 @@ public class GooglePublisherService {
   private static final String ATTRIBUTE_CMD_TYPE = "cmdType";
   private static final String ATTRIBUTE_PROJECT_ID = "projectId";
   private static final String ATTRIBUTE_ACCESS_TOKEN = "accessToken";
-  private static final String ATTRIBUTE_DATASET_NAME = "datasetName";
   private static final String CMD_TYPE_APPLY = "apply";
   private static final String CMD_TYPE_WORKSPACE = "workspace";
   private final static Logger LOGGER = LoggerFactory.getLogger(OptimizerApplication.class);
@@ -46,73 +46,62 @@ public class GooglePublisherService {
   @Value("${publisher.enabled}")
   private boolean PUBLISHER_ENABLED = true;
 
-  public void publishOptimization(Optimization o, List<OptimizationResult> results) {
+  public void publishOptimization(Optimization o, List<OptimizationResult> materializedViews) {
+    final String projectId = o.getProjectId();
     if (!PUBLISHER_ENABLED) {
       LOGGER.info("Publisher disabled. The optimization {} will not be published.", o.getId());
       return;
     }
-    if (results.isEmpty()) {
-      LOGGER.info("No optimizations published because no results");
+    if (materializedViews.isEmpty()) {
+      LOGGER.info("No optimizations published:no Materialized Views found on {}", projectId);
       return;
     }
-    results.stream()
-        .collect(Collectors.groupingBy(OptimizationResult::getDatasetName))
-        .forEach(this::publishDatasetResults);
+    publishMaterializedViews(projectId, materializedViews);
+  }
+
+  private Entry<String, String> toEntry(OptimizationResult result) {
+    return new SimpleEntry<>(result.getDatasetName(), result.getStatement());
+  }
+
+  private void publishMaterializedViews(String projectId, List<OptimizationResult> mViews) {
+    if (mViews.isEmpty()) {
+      LOGGER.info("Empty results for the project {}: publishing skipped", projectId);
+      return;
+    }
+    try {
+      String formattedMessage = buildMaterializedViewsMessage(mViews);
+      publishMessage(buildPubsubMessage(projectId, formattedMessage, CMD_TYPE_APPLY, true));
+      LOGGER.info("{} results published for the project {}", mViews.size(), projectId);
+    } catch (JsonProcessingException e) {
+      LOGGER.error("Error during results JSON formatting", e);
+    } catch (IOException | ExecutionException | InterruptedException e) {
+      LOGGER.error("Results publishing failed for the project {}", projectId, e);
+    }
+  }
+
+  public String buildMaterializedViewsMessage(List<OptimizationResult> mViews)
+      throws JsonProcessingException {
+    List<Entry<String, String>> entries = mViews.stream()
+        .filter(Objects::nonNull)
+        .filter(result -> StringUtils.isNotEmpty(result.getStatement()))
+        .map(this::toEntry)
+        .collect(Collectors.toList());
+    return new ObjectMapper().writeValueAsString(entries);
   }
 
   public void publishProjectActivation(String projectId)
       throws IOException, ExecutionException, InterruptedException {
-    List<String> l = new ArrayList<>();
-    l.add("a");
-    publishMessage(
-        buildPubsubMessage(projectId, new ObjectMapper()
-                .writeValueAsString(l), CMD_TYPE_WORKSPACE,
-            false));
+    String message = new ObjectMapper().writeValueAsString(Collections.singletonList("a"));
+    publishMessage(buildPubsubMessage(projectId, message, CMD_TYPE_WORKSPACE, false));
   }
 
-  private void publishDatasetResults(String datasetName, List<OptimizationResult> results) {
-    if (results.isEmpty()) {
-      LOGGER.info("Empty results for  the dataset {}: publishing skipped", datasetName);
-      return;
-    }
-    // TODO: Get the project ID differently
-    final String projectId = results.get(0).getProjectId();
-    final String formattedMessage;
-    try {
-      formattedMessage = toJSONArrayOfResultStatements(results);
-    } catch (JsonProcessingException e) {
-      LOGGER.error("Error during results JSON formatting", e);
-      return;
-    }
-    PubsubMessage pubsubMessage = buildPubsubMessage(
-        projectId,
-        datasetName,
-        formattedMessage,
-        CMD_TYPE_APPLY,
-        true);
-    try {
-      publishMessage(pubsubMessage);
-      LOGGER.info("{} results published for the dataset {}", results.size(), datasetName);
-    } catch (IOException | ExecutionException | InterruptedException e) {
-      LOGGER.error("Results publishing failed for the dataset {}", datasetName, e);
-    }
-  }
-
-  public PubsubMessage buildPubsubMessage(String projectId, String message, String cmdType,
-      boolean requireAccessToken) {
-    return buildPubsubMessage(projectId, null, message, cmdType, requireAccessToken);
-  }
-
-  public PubsubMessage buildPubsubMessage(String projectId, String datasetName, String message,
+  public PubsubMessage buildPubsubMessage(String projectId, String message,
       String cmdType, boolean requireAccessToken) {
     PubsubMessage.Builder builder = PubsubMessage.newBuilder()
         .putAttributes(ATTRIBUTE_CMD_TYPE, cmdType)
         .putAttributes(ATTRIBUTE_PROJECT_ID, projectId);
     if (requireAccessToken) {
       builder.putAttributes(ATTRIBUTE_ACCESS_TOKEN, getAccessToken());
-    }
-    if (StringUtils.isNotEmpty(datasetName)) {
-      builder.putAttributes(ATTRIBUTE_DATASET_NAME, datasetName);
     }
     if (StringUtils.isNotEmpty(message)) {
       ByteString data = ByteString.copyFromUtf8(message);
@@ -133,23 +122,6 @@ public class GooglePublisherService {
         publisher.awaitTermination(1, TimeUnit.MINUTES);
       }
     }
-  }
-
-  public String toJSONArrayOfResultStatements(List<OptimizationResult> results)
-      throws JsonProcessingException {
-    return new ObjectMapper()
-        .writeValueAsString(
-            results.stream()
-                .map(OptimizationResult::getStatement)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList())
-        );
-  }
-
-  public String getFormattedMessage(List<OptimizationResult> results) {
-    final StringJoiner messageStringJoiner = new StringJoiner(";");
-    results.stream().map(OptimizationResult::getStatement).forEach(messageStringJoiner::add);
-    return messageStringJoiner.toString();
   }
 
   private String getAccessToken() {

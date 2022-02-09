@@ -33,14 +33,14 @@ public class OptimizerController {
         .collect(Collectors.toList());
   }
 
-  @GetMapping(path = "/optimize/{projectId}/{datasetName}", produces = "application/json")
+  /*@GetMapping(path = "/optimize/{projectId}/{datasetName}", produces = "application/json")
   @ApiOperation("Get all optimizations by datasetName")
   public List<OptimizationResponse> getAllOptimizationByProjectAndDatasetName(
       @PathVariable final String projectId, @PathVariable final String datasetName) {
     return service.getAllOptimizationByProjectAndDataset(projectId, datasetName).stream()
         .map(OptimizationResponse::new)
         .collect(Collectors.toList());
-  }
+  }*/
 
   @GetMapping(
       path = "/optimize/{projectId}/{datasetName}/{optimizationId}",

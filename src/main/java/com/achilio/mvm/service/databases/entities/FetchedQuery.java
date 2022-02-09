@@ -4,6 +4,9 @@ import com.achilio.mvm.service.databases.DatabaseFetcher;
 import com.achilio.mvm.service.databases.QueryEligible;
 import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
 import com.achilio.mvm.service.visitors.QueryIneligibilityReason;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -18,6 +21,7 @@ public class FetchedQuery implements QueryEligible {
   private final String query;
   private boolean useMaterializedView;
   private boolean useCache;
+  private LocalDate startTime;
   // Discovered tables in the SQL query
   private Set<FetchedTable> refTables;
   private QueryUsageStatistics statistics;
@@ -84,5 +88,13 @@ public class FetchedQuery implements QueryEligible {
   @Override
   public Set<QueryIneligibilityReason> getQueryIneligibilityReasons() {
     return this.reasons;
+  }
+
+  public void setStartTime(Long startTime) {
+    this.startTime = Instant.ofEpochMilli(startTime).atZone(ZoneId.systemDefault()).toLocalDate();
+  }
+
+  public LocalDate getDate() {
+    return this.startTime;
   }
 }

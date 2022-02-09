@@ -164,14 +164,14 @@ public class OptimizerService {
     return optimizations;
   }
 
-  public List<Optimization> getAllOptimizationByProjectAndDataset(
+  /*public List<Optimization> getAllOptimizationByProjectAndDataset(
       final String projectId, final String datasetName) {
     List<Optimization> optimizations =
         optimizerRepository.findAllByProjectIdAndDatasetName(projectId, datasetName);
     LOGGER.info("Getting all optimizations from project {} and dataset {}", projectId,
         datasetName);
     return optimizations;
-  }
+  }*/
 
   public Optimization getOptimization(final String projectId, final Long optimizationId) {
     Optimization optimization = optimizerRepository.findByProjectIdAndId(projectId,
