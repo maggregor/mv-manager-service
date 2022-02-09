@@ -9,7 +9,7 @@ public class OptimizationResponse {
   private Date createdDate;
   private String projectId;
   private String datasetName;
-  private double eligiblePercent;
+  private Double eligiblePercent;
 
   public OptimizationResponse(Optimization optimization) {
     this.id = optimization.getId();
@@ -43,7 +43,7 @@ public class OptimizationResponse {
     this.datasetName = datasetName;
   }
 
-  public double getEligiblePercent() {
+  public Double getEligiblePercent() {
     return this.eligiblePercent;
   }
 

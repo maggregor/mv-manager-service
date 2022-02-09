@@ -34,10 +34,9 @@ public class Optimization {
   private String datasetName;
 
   @Column(name = "query_eligible_percentage", nullable = true)
-  private Float queryEligiblePercentage;
+  private Double queryEligiblePercentage;
 
-  public Optimization() {
-  }
+  public Optimization() {}
 
   public Optimization(String projectId, String datasetName) {
     this.projectId = projectId;
@@ -60,11 +59,11 @@ public class Optimization {
     return createdDate;
   }
 
-  public double getQueryEligiblePercentage() {
+  public Double getQueryEligiblePercentage() {
     return queryEligiblePercentage;
   }
 
-  public void setQueryEligiblePercentage(Float queryEligiblePercentage) {
+  public void setQueryEligiblePercentage(Double queryEligiblePercentage) {
     this.queryEligiblePercentage = queryEligiblePercentage;
   }
 }

@@ -28,16 +28,13 @@ import javax.persistence.PersistenceContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-/**
- * All the useful services to generate relevant Materialized Views.
- */
+/** All the useful services to generate relevant Materialized Views. */
 @Service
 public class FetcherService {
 
   BigQueryMaterializedViewStatementBuilder statementBuilder;
 
-  @PersistenceContext
-  private EntityManager entityManager;
+  @PersistenceContext private EntityManager entityManager;
 
   public FetcherService() {
     this.statementBuilder = new BigQueryMaterializedViewStatementBuilder();
@@ -64,7 +61,7 @@ public class FetcherService {
   }
 
   public List<FetchedDataset> fetchAllDatasets(String projectId) throws Exception {
-    return fetcher(projectId).fetchAllDatasets();
+    return fetcher(projectId).fetchAllDatasets(projectId);
   }
 
   public FetchedDataset fetchDataset(String projectId, String datasetName) {
@@ -100,8 +97,8 @@ public class FetcherService {
     return getStatistics(projectId, lastDays, false);
   }
 
-  public List<FetchedMaterializedViewEvent> getMaterializedViewEvents(String projectId,
-      int lastDays) {
+  public List<FetchedMaterializedViewEvent> getMaterializedViewEvents(
+      String projectId, int lastDays) {
     return fetcher(projectId).fetchMaterializedViewEvents(daysToMillis(lastDays));
   }
 

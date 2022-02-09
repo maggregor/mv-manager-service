@@ -9,9 +9,7 @@ import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import java.util.List;
 import java.util.Set;
 
-/**
- * Database fetcher interface
- */
+/** Database fetcher interface */
 public interface DatabaseFetcher {
 
   /**
@@ -27,7 +25,6 @@ public interface DatabaseFetcher {
    * @param fromTimestamp - timestamp start
    * @return - a list of queries as string
    */
-
   List<FetchedQuery> fetchAllQueriesFrom(long fromTimestamp);
 
   /**
@@ -58,7 +55,7 @@ public interface DatabaseFetcher {
    *
    * @return
    */
-  List<FetchedDataset> fetchAllDatasets();
+  List<FetchedDataset> fetchAllDatasets(String projectId);
 
   /**
    * Returns the dataset metadata in a given projectId.

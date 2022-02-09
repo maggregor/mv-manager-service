@@ -28,9 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.stereotype.Service;
 
-/**
- * All the useful services to generate relevant Materialized Views.
- */
+/** All the useful services to generate relevant Materialized Views. */
 @EnableJpaAuditing
 @Service
 @Transactional
@@ -40,19 +38,14 @@ public class OptimizerService {
   private static Logger LOGGER = LoggerFactory.getLogger(OptimizerService.class);
   BigQueryMaterializedViewStatementBuilder statementBuilder;
 
-  @Autowired
-  private OptimizerRepository optimizerRepository;
+  @Autowired private OptimizerRepository optimizerRepository;
 
-  @Autowired
-  private OptimizerResultRepository optimizerResultRepository;
+  @Autowired private OptimizerResultRepository optimizerResultRepository;
 
-  @Autowired
-  private FetcherService fetcherService;
-  @Autowired
-  private GooglePublisherService publisherService;
+  @Autowired private FetcherService fetcherService;
+  @Autowired private GooglePublisherService publisherService;
 
-  @PersistenceContext
-  private EntityManager entityManager;
+  @PersistenceContext private EntityManager entityManager;
 
   public OptimizerService() {
     this.statementBuilder = new BigQueryMaterializedViewStatementBuilder();
@@ -76,12 +69,14 @@ public class OptimizerService {
     addOptimizationEvent(o, StatusType.FILTER_QUERIES_FROM_DATASET);
     FieldSetAnalyzer analyzer = FieldSetExtractFactory.createFieldSetExtract(projectId, tables);
     allQueries.forEach(analyzer::discoverFetchedTable);
-    List<FetchedQuery> allQueriesOnDataset = allQueries.stream()
-        .filter(query -> isOnDataset(query, datasetName)).collect(Collectors.toList());
+    List<FetchedQuery> allQueriesOnDataset =
+        allQueries.stream()
+            .filter(query -> isOnDataset(query, datasetName))
+            .collect(Collectors.toList());
     // STEP 4 - Filter eligible queries
     addOptimizationEvent(o, StatusType.FILTER_ELIGIBLE_QUERIES);
-    List<FetchedQuery> eligibleQueriesOnDataset = getEligibleQueries(projectId, tables,
-        allQueriesOnDataset);
+    List<FetchedQuery> eligibleQueriesOnDataset =
+        getEligibleQueries(projectId, tables, allQueriesOnDataset);
     // STEP 5 - Extract field from queries
     addOptimizationEvent(o, StatusType.EXTRACTING_FIELD_SETS);
     List<FieldSet> fieldSets = extractFields(projectId, tables, eligibleQueriesOnDataset);
@@ -95,7 +90,7 @@ public class OptimizerService {
     addOptimizationEvent(o, StatusType.BUILD_MATERIALIZED_VIEWS_STATEMENT);
     List<OptimizationResult> results = buildOptimizationsResults(o, optimized);
     // STEP 9 - Publishing optimization
-    Float percent = (float) eligibleQueriesOnDataset.size() / allQueriesOnDataset.size();
+    Double percent = (double) eligibleQueriesOnDataset.size() / allQueriesOnDataset.size();
     o.setQueryEligiblePercentage(percent);
     addOptimizationEvent(o, StatusType.PUBLISHING);
     publish(o, results);
@@ -157,7 +152,6 @@ public class OptimizerService {
     return optimization;
   }
 
-
   public List<Optimization> getAllOptimizationByProject(final String projectId) {
     List<Optimization> optimizations = optimizerRepository.findAllByProjectId(projectId);
     LOGGER.info("Getting all optimizations from project {}", projectId);
@@ -168,14 +162,12 @@ public class OptimizerService {
       final String projectId, final String datasetName) {
     List<Optimization> optimizations =
         optimizerRepository.findAllByProjectIdAndDatasetName(projectId, datasetName);
-    LOGGER.info("Getting all optimizations from project {} and dataset {}", projectId,
-        datasetName);
+    LOGGER.info("Getting all optimizations from project {} and dataset {}", projectId, datasetName);
     return optimizations;
   }*/
 
   public Optimization getOptimization(final String projectId, final Long optimizationId) {
-    Optimization optimization = optimizerRepository.findByProjectIdAndId(projectId,
-        optimizationId);
+    Optimization optimization = optimizerRepository.findByProjectIdAndId(projectId, optimizationId);
     LOGGER.info("Getting optimization id: {} from project {}", optimization.getId(), projectId);
     return optimization;
   }
