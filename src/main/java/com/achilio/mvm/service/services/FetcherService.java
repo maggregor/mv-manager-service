@@ -15,8 +15,12 @@ import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics;
 import com.achilio.mvm.service.entities.statistics.QueryStatistics;
+import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAdjusters;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
@@ -34,6 +38,18 @@ public class FetcherService {
 
   public FetcherService() {
     this.statementBuilder = new BigQueryMaterializedViewStatementBuilder();
+  }
+
+  public static QueryUsageStatistics merge(List<QueryUsageStatistics> statistics) {
+    QueryUsageStatistics root = new QueryUsageStatistics(0, 0, 0);
+    statistics.forEach(root::addQueryUsageStatistics);
+    return root;
+  }
+
+  public static long averageQueryCost(List<QueryUsageStatistics> statistics) {
+    QueryUsageStatistics root = new QueryUsageStatistics(0, 0, 0);
+    statistics.forEach(root::addQueryUsageStatistics);
+    return root.getProcessedBytes();
   }
 
   public List<FetchedProject> fetchAllProjects() throws Exception {
@@ -89,6 +105,25 @@ public class FetcherService {
   public GlobalQueryStatistics getStatistics(
       String projectId, int lastDays, boolean enableIneligibilityStats) throws Exception {
     return getStatistics(fetchQueriesSince(projectId, lastDays), enableIneligibilityStats);
+  }
+
+  public Map<String, Long> getDailyStatistics(String projectId, int lastDays) {
+    return fetchQueriesSince(projectId, lastDays)
+        .stream()
+        .collect(
+            Collectors.groupingBy(q -> q.getDate().with(TemporalAdjusters.ofDateAdjuster(d -> d)),
+                Collectors.mapping(FetchedQuery::getStatistics, Collectors.toList())))
+        .entrySet()
+        .stream()
+        .collect(
+            Collectors.toMap(e -> e.getKey().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                e -> averageQueryCost(e.getValue())));
+    // Convert in Array of String Array
+        /*.map(entry -> Arrays.asList(entry.getKey(),
+            String.valueOf(entry.getValue().getProcessedBytes()),
+            String.valueOf(entry.getValue().getBilledBytes())))
+        .collect(Collectors.toList());*/
+
   }
 
   public GlobalQueryStatistics getStatistics(

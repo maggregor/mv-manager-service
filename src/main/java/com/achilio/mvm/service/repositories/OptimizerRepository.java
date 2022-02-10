@@ -10,7 +10,7 @@ public interface OptimizerRepository extends JpaRepository<Optimization, Integer
 
   List<Optimization> findAllByProjectId(String projectId);
 
-  List<Optimization> findAllByProjectIdAndDatasetName(String projectId, String datasetName);
+  //List<Optimization> findAllByProjectIdAndDatasetName(String projectId, String datasetName);
 
   Optimization findByProjectIdAndId(String projectId, Long id);
 }

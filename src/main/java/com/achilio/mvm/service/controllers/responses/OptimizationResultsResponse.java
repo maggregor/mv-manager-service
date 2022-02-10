@@ -5,16 +5,15 @@ import com.achilio.mvm.service.entities.OptimizationResult;
 import java.util.List;
 
 public class OptimizationResultsResponse {
+
   private Long id;
   private String projectId;
-  private String datasetName;
   private List<OptimizationResult> results;
 
   public OptimizationResultsResponse(
       Optimization optimization, List<OptimizationResult> optimizationResults) {
     this.id = optimization.getId();
     this.projectId = optimization.getProjectId();
-    this.datasetName = optimization.getDatasetName();
     this.results = optimizationResults;
   }
 
@@ -34,15 +33,11 @@ public class OptimizationResultsResponse {
     this.projectId = projectId;
   }
 
-  public String getDatasetName() {
-    return datasetName;
+  public List<OptimizationResult> getResults() {
+    return results;
   }
 
-  public void setDatasetName(String datasetName) {
-    this.datasetName = datasetName;
+  public void setResults(List<OptimizationResult> optimizationResults) {
+    this.results = optimizationResults;
   }
-
-  public List<OptimizationResult> getResults() { return results; }
-
-  public void setResults(List<OptimizationResult> optimizationResults) { this.results = optimizationResults; }
 }

@@ -3,6 +3,7 @@ package com.achilio.mvm.service.services;
 import com.achilio.mvm.service.Optimizer;
 import com.achilio.mvm.service.OptimizerFactory;
 import com.achilio.mvm.service.databases.bigquery.BigQueryMaterializedViewStatementBuilder;
+import com.achilio.mvm.service.databases.entities.FetchedDataset;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
@@ -28,7 +29,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.stereotype.Service;
 
-/** All the useful services to generate relevant Materialized Views. */
+/**
+ * All the useful services to generate relevant Materialized Views.
+ */
 @EnableJpaAuditing
 @Service
 @Transactional
@@ -38,27 +41,34 @@ public class OptimizerService {
   private static Logger LOGGER = LoggerFactory.getLogger(OptimizerService.class);
   BigQueryMaterializedViewStatementBuilder statementBuilder;
 
-  @Autowired private OptimizerRepository optimizerRepository;
+  @Autowired
+  private OptimizerRepository optimizerRepository;
 
-  @Autowired private OptimizerResultRepository optimizerResultRepository;
+  @Autowired
+  private OptimizerResultRepository optimizerResultRepository;
 
-  @Autowired private FetcherService fetcherService;
-  @Autowired private GooglePublisherService publisherService;
+  @Autowired
+  private MetadataService metadataService;
 
-  @PersistenceContext private EntityManager entityManager;
+  @Autowired
+  private FetcherService fetcherService;
+  @Autowired
+  private GooglePublisherService publisherService;
+
+  @PersistenceContext
+  private EntityManager entityManager;
 
   public OptimizerService() {
     this.statementBuilder = new BigQueryMaterializedViewStatementBuilder();
   }
 
-  public Optimization optimizeDataset(String projectId, String datasetName) throws Exception {
-    return optimizeDataset(projectId, datasetName, 30);
-  }
-
-  public Optimization optimizeDataset(String projectId, String datasetName, int days) {
-    LOGGER.info("Run a new optimization on {}", datasetName);
+  public Optimization optimizeProject(String projectId, int days) throws Exception {
+    List<FetchedDataset> datasets = fetcherService.fetchAllDatasets(projectId).parallelStream()
+        .filter(dataset -> metadataService.isDatasetActivated(projectId, dataset.getDatasetName()))
+        .collect(Collectors.toList());
+    LOGGER.info("Run a new optimization on {} with activated datasets {}", projectId, datasets);
     FetchedProject project = fetcherService.fetchProject(projectId);
-    Optimization o = createNewOptimization(project.getProjectId(), datasetName);
+    Optimization o = createNewOptimization(project.getProjectId());
     // STEP 1 - Fetch all queries of targeted project
     addOptimizationEvent(o, StatusType.FETCHING_QUERIES);
     List<FetchedQuery> allQueries = fetcherService.fetchQueriesSince(projectId, days);
@@ -71,7 +81,7 @@ public class OptimizerService {
     allQueries.forEach(analyzer::discoverFetchedTable);
     List<FetchedQuery> allQueriesOnDataset =
         allQueries.stream()
-            .filter(query -> isOnDataset(query, datasetName))
+            .filter(query -> isOnDataset(query, datasets))
             .collect(Collectors.toList());
     // STEP 4 - Filter eligible queries
     addOptimizationEvent(o, StatusType.FILTER_ELIGIBLE_QUERIES);
@@ -82,7 +92,7 @@ public class OptimizerService {
     List<FieldSet> fieldSets = extractFields(projectId, tables, eligibleQueriesOnDataset);
     // STEP 6 - Merging same field sets
     addOptimizationEvent(o, StatusType.MERGING_FIELD_SETS);
-    FieldSetMerger.merge(fieldSets);
+    fieldSets = FieldSetMerger.merge(fieldSets);
     // STEP 7 - Optimize field sets
     addOptimizationEvent(o, StatusType.OPTIMIZING_FIELD_SETS);
     List<FieldSet> optimized = optimizeFieldSets(fieldSets);
@@ -99,9 +109,14 @@ public class OptimizerService {
     return o;
   }
 
-  private boolean isOnDataset(FetchedQuery query, String dataset) {
+  private boolean isOnDataset(FetchedQuery query, List<FetchedDataset> datasets) {
+    List<String> datasetNames = datasets
+        .stream()
+        .map(FetchedDataset::getDatasetName)
+        .map(String::toLowerCase)
+        .collect(Collectors.toList());
     return query.getReferenceTables().stream()
-        .anyMatch(fetchedTable -> fetchedTable.getDatasetName().equalsIgnoreCase(dataset));
+        .allMatch(d -> datasetNames.contains(d.getDatasetName().toLowerCase()));
   }
 
   private List<FetchedQuery> getEligibleQueries(
@@ -142,13 +157,12 @@ public class OptimizerService {
   }
 
   @Transactional
-  public Optimization createNewOptimization(final String projectId, final String datasetName) {
-    Optimization optimization = new Optimization(projectId, datasetName);
+  public Optimization createNewOptimization(final String projectId) {
+    Optimization optimization = new Optimization(projectId);
     entityManager.persist(optimization);
     LOGGER.info(
-        "New optimization created: {} on dataset {}",
-        optimization.getId(),
-        optimization.getDatasetName());
+        "New optimization created: {}",
+        optimization.getId());
     return optimization;
   }
 
@@ -158,13 +172,13 @@ public class OptimizerService {
     return optimizations;
   }
 
-  public List<Optimization> getAllOptimizationByProjectAndDataset(
+  /*public List<Optimization> getAllOptimizationByProjectAndDataset(
       final String projectId, final String datasetName) {
     List<Optimization> optimizations =
         optimizerRepository.findAllByProjectIdAndDatasetName(projectId, datasetName);
     LOGGER.info("Getting all optimizations from project {} and dataset {}", projectId, datasetName);
     return optimizations;
-  }
+  }*/
 
   public Optimization getOptimization(final String projectId, final Long optimizationId) {
     Optimization optimization = optimizerRepository.findByProjectIdAndId(projectId, optimizationId);

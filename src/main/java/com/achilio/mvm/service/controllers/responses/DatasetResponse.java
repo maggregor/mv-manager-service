@@ -25,6 +25,9 @@ public class DatasetResponse {
   @JsonProperty("lastModified")
   private final Long lastModified;
 
+  @JsonProperty("activated")
+  private final Boolean activated;
+
   public DatasetResponse(
       String projectId,
       String datasetName,
@@ -32,7 +35,8 @@ public class DatasetResponse {
       String friendlyName,
       String description,
       Long createdAt,
-      Long lastModified) {
+      Long lastModified,
+      Boolean activated) {
     this.projectId = projectId;
     this.datasetName = datasetName;
     this.location = location;
@@ -40,6 +44,7 @@ public class DatasetResponse {
     this.description = description;
     this.createdAt = createdAt;
     this.lastModified = lastModified;
+    this.activated = activated;
   }
 
   public String getProjectId() {
@@ -68,5 +73,9 @@ public class DatasetResponse {
 
   public Long getLastModified() {
     return lastModified;
+  }
+
+  public Boolean isActivated() {
+    return this.activated;
   }
 }

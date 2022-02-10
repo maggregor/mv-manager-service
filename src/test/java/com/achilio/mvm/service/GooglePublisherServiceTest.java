@@ -27,34 +27,28 @@ public class GooglePublisherServiceTest {
     result1 = mock(OptimizationResult.class);
     result2 = mock(OptimizationResult.class);
     result3 = mock(OptimizationResult.class);
-    when(result1.getStatement()).thenReturn("query 1");
-    when(result2.getStatement()).thenReturn("query 2");
-    when(result3.getStatement()).thenReturn("query 3");
+    when(result1.getStatement()).thenReturn("query1");
+    when(result2.getStatement()).thenReturn("query2");
+    when(result3.getStatement()).thenReturn("query3");
+    when(result1.getDatasetName()).thenReturn("dataset1");
+    when(result2.getDatasetName()).thenReturn("dataset2");
+    when(result3.getDatasetName()).thenReturn("dataset3");
   }
 
   @Test
-  public void messageAsStatementSeparatedSemicolon() {
-    List<OptimizationResult> mockResults = Lists.newArrayList(result1, result2, result3);
-    final String EXPECTED = String.format("%s;%s;%s",
-        result1.getStatement(),
-        result2.getStatement(),
-        result3.getStatement());
-    assertEquals(EXPECTED, service.getFormattedMessage(mockResults));
-  }
-
-  @Test
-  public void messageAsStatementJsonArray() throws JsonProcessingException {
+  public void buildPublishMessage() throws JsonProcessingException {
     List<OptimizationResult> mockResults;
     String jsonResults;
+    final String expected = "[{\"dataset1\":\"query1\"},{\"dataset2\":\"query2\"},{\"dataset3\":\"query3\"}]";
     OptimizationResult mockResultNullStatement = mock(OptimizationResult.class);
     when(mockResultNullStatement.getStatement()).thenReturn(null);
     mockResults = Lists.newArrayList(result1, result2, result3);
-    jsonResults = service.toJSONArrayOfResultStatements(mockResults);
-    assertEquals("[\"query 1\",\"query 2\",\"query 3\"]", jsonResults);
-    // mockResultNullStatement is ignored
+    jsonResults = service.buildMaterializedViewsMessage(mockResults);
+    assertEquals(expected, jsonResults);
+    // mockResultNullStatement must be ignored
     mockResults = Lists.newArrayList(result1, result2, result3, mockResultNullStatement);
-    jsonResults = service.toJSONArrayOfResultStatements(mockResults);
-    assertEquals("[\"query 1\",\"query 2\",\"query 3\"]", jsonResults);
+    jsonResults = service.buildMaterializedViewsMessage(mockResults);
+    assertEquals(expected, jsonResults);
   }
 
 }

@@ -4,6 +4,7 @@ import com.achilio.mvm.service.controllers.responses.DatasetResponse;
 import com.achilio.mvm.service.controllers.responses.GlobalQueryStatisticsResponse;
 import com.achilio.mvm.service.controllers.responses.ProjectResponse;
 import com.achilio.mvm.service.controllers.responses.TableResponse;
+import com.achilio.mvm.service.controllers.responses.UpdateMetadataDatasetRequestResponse;
 import com.achilio.mvm.service.controllers.responses.UpdateMetadataProjectRequestResponse;
 import com.achilio.mvm.service.databases.entities.FetchedDataset;
 import com.achilio.mvm.service.databases.entities.FetchedMaterializedViewEvent;
@@ -19,6 +20,7 @@ import com.achilio.mvm.service.visitors.FieldSetExtractFactory;
 import io.swagger.annotations.ApiOperation;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
@@ -82,10 +84,20 @@ public class ProjectController {
     metadataService.updateProject(projectId, request.isActivated());
   }
 
+  @PostMapping(path = "/project/{projectId}/dataset/{datasetName}/metadata", produces = "application/json")
+  @ApiOperation("Update metadata of a dataset")
+  public void updateDataset(
+      @PathVariable final String projectId,
+      @PathVariable final String datasetName,
+      @RequestBody final UpdateMetadataDatasetRequestResponse request) {
+    metadataService.updateDataset(projectId, datasetName, request.isActivated());
+  }
+
   @GetMapping(path = "/project/{projectId}/dataset", produces = "application/json")
   @ApiOperation("Get all dataset for a given projectId")
   public List<DatasetResponse> getDatasets(@PathVariable final String projectId) throws Exception {
     return fetcherService.fetchAllDatasets(projectId).stream()
+        .parallel()
         .map(this::toDatasetResponse)
         .collect(Collectors.toList());
   }
@@ -116,6 +128,15 @@ public class ProjectController {
       @PathVariable final int days) throws Exception {
     GlobalQueryStatistics statistics = fetcherService.getStatistics(projectId, days);
     return toGlobalQueryStatisticsResponse(statistics);
+  }
+
+  @GetMapping(path = "/project/{projectId}/queries/{days}/statistics/series", produces = "application/json")
+  @ApiOperation("Get statistics of queries grouped per days for charts")
+  public Map<String, Long> getDailyStatistics(
+      @PathVariable final String projectId,
+      @PathVariable final int days) {
+    return fetcherService.getDailyStatistics(projectId, days);
+
   }
 
   @GetMapping(path = "/project/{projectId}/events/{days}", produces = "application/json")
@@ -160,8 +181,9 @@ public class ProjectController {
     final String description = dataset.getDescription();
     final Long createdAt = dataset.getCreatedAt();
     final Long lastModified = dataset.getLastModified();
-    return new DatasetResponse(
-        projectId, datasetName, location, friendlyName, description, createdAt, lastModified);
+    final boolean activated = metadataService.isDatasetActivated(projectId, datasetName);
+    return new DatasetResponse(projectId, datasetName, location, friendlyName, description,
+        createdAt, lastModified, activated);
   }
 
   public TableResponse toTableResponse(FetchedTable table) {

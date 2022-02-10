@@ -30,17 +30,17 @@ public class Optimization {
   private String projectId;
 
   // TODO: How to do a migration when adding a non-nullable column without setting a default ?
-  @Column(name = "dataset_name", nullable = false, columnDefinition = "varchar(255) default ''")
-  private String datasetName;
+  /*@Column(name = "dataset_name", nullable = false, columnDefinition = "varchar(255) default ''")
+  private String datasetName;*/
 
   @Column(name = "query_eligible_percentage", nullable = true)
   private Double queryEligiblePercentage;
 
-  public Optimization() {}
+  public Optimization() {
+  }
 
-  public Optimization(String projectId, String datasetName) {
+  public Optimization(String projectId) {
     this.projectId = projectId;
-    this.datasetName = datasetName;
   }
 
   public Long getId() {
@@ -49,10 +49,6 @@ public class Optimization {
 
   public String getProjectId() {
     return this.projectId;
-  }
-
-  public String getDatasetName() {
-    return datasetName;
   }
 
   public Date getCreatedDate() {
