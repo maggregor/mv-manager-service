@@ -28,7 +28,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.stereotype.Service;
 
-/** All the useful services to generate relevant Materialized Views. */
+/**
+ * All the useful services to generate relevant Materialized Views.
+ */
 @EnableJpaAuditing
 @Service
 @Transactional
@@ -38,14 +40,19 @@ public class OptimizerService {
   private static Logger LOGGER = LoggerFactory.getLogger(OptimizerService.class);
   BigQueryMaterializedViewStatementBuilder statementBuilder;
 
-  @Autowired private OptimizerRepository optimizerRepository;
+  @Autowired
+  private OptimizerRepository optimizerRepository;
 
-  @Autowired private OptimizerResultRepository optimizerResultRepository;
+  @Autowired
+  private OptimizerResultRepository optimizerResultRepository;
 
-  @Autowired private FetcherService fetcherService;
-  @Autowired private GooglePublisherService publisherService;
+  @Autowired
+  private FetcherService fetcherService;
+  @Autowired
+  private GooglePublisherService publisherService;
 
-  @PersistenceContext private EntityManager entityManager;
+  @PersistenceContext
+  private EntityManager entityManager;
 
   public OptimizerService() {
     this.statementBuilder = new BigQueryMaterializedViewStatementBuilder();
@@ -82,7 +89,7 @@ public class OptimizerService {
     List<FieldSet> fieldSets = extractFields(projectId, tables, eligibleQueriesOnDataset);
     // STEP 6 - Merging same field sets
     addOptimizationEvent(o, StatusType.MERGING_FIELD_SETS);
-    FieldSetMerger.merge(fieldSets);
+    fieldSets = FieldSetMerger.merge(fieldSets);
     // STEP 7 - Optimize field sets
     addOptimizationEvent(o, StatusType.OPTIMIZING_FIELD_SETS);
     List<FieldSet> optimized = optimizeFieldSets(fieldSets);
