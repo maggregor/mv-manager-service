@@ -6,6 +6,7 @@ import com.achilio.mvm.service.visitors.fields.ReferenceField;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -14,6 +15,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 public class DontDoNothingOptimizerTest {
 
   @Test
+  @Ignore // Not the business of Optimizer to remove limit
   public void simpleReachLimitFieldSet() {
     Optimizer optimizer;
     // Initialize field sets
@@ -21,7 +23,7 @@ public class DontDoNothingOptimizerTest {
     fieldSets.add(FieldSetHelper.createFieldSet(new ReferenceField("col1")));
     fieldSets.add(FieldSetHelper.createFieldSet(new FunctionField("col2")));
     // Remove exceeded
-    optimizer = OptimizerFactory.createOptimizer(OptimizerStrategyType.DONT_DO_NOTHING, 1);
+    optimizer = OptimizerFactory.createOptimizer(OptimizerStrategyType.DONT_DO_NOTHING);
     Assert.assertEquals(1, optimizer.optimize(fieldSets).size());
   }
 }

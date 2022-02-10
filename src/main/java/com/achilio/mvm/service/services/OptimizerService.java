@@ -1,5 +1,7 @@
 package com.achilio.mvm.service.services;
 
+import static java.util.stream.Collectors.toList;
+
 import com.achilio.mvm.service.Optimizer;
 import com.achilio.mvm.service.OptimizerFactory;
 import com.achilio.mvm.service.databases.bigquery.BigQueryMaterializedViewStatementBuilder;
@@ -11,12 +13,14 @@ import com.achilio.mvm.service.entities.Optimization;
 import com.achilio.mvm.service.entities.OptimizationEvent;
 import com.achilio.mvm.service.entities.OptimizationEvent.StatusType;
 import com.achilio.mvm.service.entities.OptimizationResult;
+import com.achilio.mvm.service.entities.OptimizationResult.Status;
 import com.achilio.mvm.service.repositories.OptimizerRepository;
 import com.achilio.mvm.service.repositories.OptimizerResultRepository;
 import com.achilio.mvm.service.visitors.FieldSetAnalyzer;
 import com.achilio.mvm.service.visitors.FieldSetExtractFactory;
 import com.achilio.mvm.service.visitors.FieldSetMerger;
 import com.achilio.mvm.service.visitors.fields.FieldSet;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -37,7 +41,9 @@ import org.springframework.stereotype.Service;
 @Transactional
 public class OptimizerService {
 
-  private static final int DEFAULT_MAX_MV_GENERATED = 20;
+  private static final int DEFAULT_PLAN_MAX_MV = 50;
+  private static final int GOOGLE_MAX_MV_PER_TABLE = 20;
+  private static final int GOOGLE_MAX_MV_PER_PROJECT = 100;
   private static Logger LOGGER = LoggerFactory.getLogger(OptimizerService.class);
   BigQueryMaterializedViewStatementBuilder statementBuilder;
 
@@ -65,7 +71,7 @@ public class OptimizerService {
   public Optimization optimizeProject(String projectId, int days) throws Exception {
     List<FetchedDataset> datasets = fetcherService.fetchAllDatasets(projectId).parallelStream()
         .filter(dataset -> metadataService.isDatasetActivated(projectId, dataset.getDatasetName()))
-        .collect(Collectors.toList());
+        .collect(toList());
     LOGGER.info("Run a new optimization on {} with activated datasets {}", projectId, datasets);
     FetchedProject project = fetcherService.fetchProject(projectId);
     Optimization o = createNewOptimization(project.getProjectId());
@@ -82,7 +88,7 @@ public class OptimizerService {
     List<FetchedQuery> allQueriesOnDataset =
         allQueries.stream()
             .filter(query -> isOnDataset(query, datasets))
-            .collect(Collectors.toList());
+            .collect(toList());
     // STEP 4 - Filter eligible queries
     addOptimizationEvent(o, StatusType.FILTER_ELIGIBLE_QUERIES);
     List<FetchedQuery> eligibleQueriesOnDataset =
@@ -100,13 +106,35 @@ public class OptimizerService {
     addOptimizationEvent(o, StatusType.BUILD_MATERIALIZED_VIEWS_STATEMENT);
     List<OptimizationResult> results = buildOptimizationsResults(o, optimized);
     // STEP 9 - Publishing optimization
+    applyStatus(results);
     Double percent = (double) eligibleQueriesOnDataset.size() / allQueriesOnDataset.size();
     o.setQueryEligiblePercentage(percent);
     addOptimizationEvent(o, StatusType.PUBLISHING);
-    publish(o, results);
+    List<OptimizationResult> resultsToPublish = results.stream()
+        .filter(r -> r.getStatus().equals(Status.APPLY)).collect(toList());
+    publish(o, resultsToPublish);
     addOptimizationEvent(o, StatusType.PUBLISHED);
-    LOGGER.info("Optimization {} published with {} MV as proposals.", o.getId(), results.size());
+    LOGGER.info("Optimization {} published with {} MV applied. And as {} proposals.", o.getId(),
+        resultsToPublish.size(), results.size());
     return o;
+  }
+
+  private void applyStatus(List<OptimizationResult> results) {
+    // Apply status limit by tables
+    results.stream()
+        .collect(Collectors.groupingBy(OptimizationResult::getTableId)).forEach((key, value) -> {
+          value.sort(Comparator.comparingLong(OptimizationResult::getTotalProcessedBytes).reversed());
+          value.subList(Math.min(value.size(), GOOGLE_MAX_MV_PER_TABLE), value.size())
+              .forEach(r -> r.setStatus(Status.LIMIT_REACHED_PER_TABLE));
+        });
+    results.sort(Comparator.comparingLong(OptimizationResult::getTotalProcessedBytes).reversed());
+    // Apply status limit by project
+    results.subList(Math.min(results.size(), GOOGLE_MAX_MV_PER_PROJECT), results.size())
+        .forEach(r -> r.setStatusIfEmpty(Status.LIMIT_REACHED_PER_PROJECT));
+    // Apply status limit by plan
+    results.subList(Math.min(results.size(), DEFAULT_PLAN_MAX_MV), results.size())
+        .forEach(r -> r.setStatus(Status.PLAN_LIMIT_REACHED));
+    results.forEach(r -> r.setStatusIfEmpty(Status.APPLY));
   }
 
   private boolean isOnDataset(FetchedQuery query, List<FetchedDataset> datasets) {
@@ -114,7 +142,7 @@ public class OptimizerService {
         .stream()
         .map(FetchedDataset::getDatasetName)
         .map(String::toLowerCase)
-        .collect(Collectors.toList());
+        .collect(toList());
     return query.getReferenceTables().stream()
         .allMatch(d -> datasetNames.contains(d.getDatasetName().toLowerCase()));
   }
@@ -123,7 +151,7 @@ public class OptimizerService {
       String projectId, Set<FetchedTable> tables, List<FetchedQuery> queries) {
     FieldSetAnalyzer extractor = FieldSetExtractFactory.createFieldSetExtract(projectId, tables);
     extractor.analyzeIneligibleReasons(queries);
-    return queries.stream().filter(FetchedQuery::isEligible).collect(Collectors.toList());
+    return queries.stream().filter(FetchedQuery::isEligible).collect(toList());
   }
 
   private void publish(Optimization o, List<OptimizationResult> results) {
@@ -133,20 +161,21 @@ public class OptimizerService {
 
   private List<OptimizationResult> buildOptimizationsResults(
       Optimization o, List<FieldSet> fields) {
-    return fields.stream().map(f -> buildOptimizationResult(o, f)).collect(Collectors.toList());
+    return fields.stream().map(f -> buildOptimizationResult(o, f)).collect(toList());
   }
 
   public OptimizationResult buildOptimizationResult(Optimization o, FieldSet fieldSet) {
     String statement = statementBuilder.build(fieldSet);
     // To date, get first Table in the set iterator.
     FetchedTable fetchedTable = fieldSet.getReferenceTables().iterator().next();
-    OptimizationResult result = new OptimizationResult(o, fetchedTable, statement);
+    OptimizationResult result = new OptimizationResult(o, fetchedTable, statement,
+        fieldSet.getStatistics());
     entityManager.persist(result);
     return result;
   }
 
   private List<FieldSet> optimizeFieldSets(List<FieldSet> fieldSets) {
-    Optimizer o = OptimizerFactory.createOptimizerWithDefaultStrategy(DEFAULT_MAX_MV_GENERATED);
+    Optimizer o = OptimizerFactory.createOptimizerWithDefaultStrategy();
     return o.optimize(fieldSets);
   }
 
