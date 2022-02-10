@@ -61,4 +61,9 @@ public class DefaultFetchedDataset implements FetchedDataset {
   public Long getLastModified() {
     return lastModified;
   }
+
+  @Override
+  public String toString() {
+    return this.datasetName;
+  }
 }

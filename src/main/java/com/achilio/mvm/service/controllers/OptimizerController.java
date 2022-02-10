@@ -48,7 +48,6 @@ public class OptimizerController {
   @ApiOperation("Get a single optimization from a project and dataset with its results")
   public OptimizationResultsResponse getOptimizationResults(
       @PathVariable final String projectId,
-      @PathVariable final String datasetName,
       @PathVariable final Long optimizationId) {
     Optimization optimization = service.getOptimization(projectId, optimizationId);
     List<OptimizationResult> optimizationResults =
@@ -56,12 +55,12 @@ public class OptimizerController {
     return new OptimizationResultsResponse(optimization, optimizationResults);
   }
 
-  @PostMapping(path = "/optimize/{projectId}/dataset/{datasetName}", produces = "application/json")
+  @PostMapping(path = "/optimize/{projectId}/days/{days}", produces = "application/json")
   @ApiOperation("Trigger an optimization on a projectId")
-  public OptimizationResponse optimizeProject(
-      @PathVariable("projectId") String projectId, @PathVariable("datasetName") String datasetName)
+  public OptimizationResponse optimizeProject(@PathVariable("projectId") String projectId,
+      @PathVariable("days") int days)
       throws Exception {
-    Optimization optimization = service.optimizeDataset(projectId, datasetName);
+    Optimization optimization = service.optimizeProject(projectId, days);
     return new OptimizationResponse(optimization);
   }
 }

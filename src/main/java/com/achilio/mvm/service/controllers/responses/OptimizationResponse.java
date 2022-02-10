@@ -15,7 +15,6 @@ public class OptimizationResponse {
     this.id = optimization.getId();
     this.createdDate = optimization.getCreatedDate();
     this.projectId = optimization.getProjectId();
-    this.datasetName = optimization.getDatasetName();
     this.eligiblePercent = optimization.getQueryEligiblePercentage();
   }
 
