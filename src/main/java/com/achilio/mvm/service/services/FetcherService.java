@@ -17,8 +17,11 @@ import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics;
 import com.achilio.mvm.service.entities.statistics.QueryStatistics;
 import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
-import java.time.format.DateTimeFormatter;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.temporal.TemporalAdjusters;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -28,13 +31,16 @@ import javax.persistence.PersistenceContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-/** All the useful services to generate relevant Materialized Views. */
+/**
+ * All the useful services to generate relevant Materialized Views.
+ */
 @Service
 public class FetcherService {
 
   BigQueryMaterializedViewStatementBuilder statementBuilder;
 
-  @PersistenceContext private EntityManager entityManager;
+  @PersistenceContext
+  private EntityManager entityManager;
 
   public FetcherService() {
     this.statementBuilder = new BigQueryMaterializedViewStatementBuilder();
@@ -49,7 +55,7 @@ public class FetcherService {
   public static long averageQueryCost(List<QueryUsageStatistics> statistics) {
     QueryUsageStatistics root = new QueryUsageStatistics(0, 0, 0);
     statistics.forEach(root::addQueryUsageStatistics);
-    return root.getProcessedBytes();
+    return root.getQueryCount() == 0 ? 0 : root.getProcessedBytes() / root.getQueryCount();
   }
 
   public List<FetchedProject> fetchAllProjects() throws Exception {
@@ -107,23 +113,30 @@ public class FetcherService {
     return getStatistics(fetchQueriesSince(projectId, lastDays), enableIneligibilityStats);
   }
 
-  public Map<String, Long> getDailyStatistics(String projectId, int lastDays) {
-    return fetchQueriesSince(projectId, lastDays)
-        .stream()
+  public List<StatEntry> getDailyStatistics(String projectId, int lastDays) {
+    Map<LocalDate, List<QueryUsageStatistics>> fetched = fetchQueriesSince(projectId, lastDays)
+        .parallelStream()
         .collect(
             Collectors.groupingBy(q -> q.getDate().with(TemporalAdjusters.ofDateAdjuster(d -> d)),
-                Collectors.mapping(FetchedQuery::getStatistics, Collectors.toList())))
+                Collectors.mapping(FetchedQuery::getStatistics, Collectors.toList())));
+    for (int i = 0; i < lastDays; i++) {
+      LocalDate currentDay = LocalDate.now().minusDays(i)
+          .with(TemporalAdjusters.ofDateAdjuster(d -> d));
+      if (!fetched.containsKey(currentDay)) {
+        fetched.put(currentDay, Collections.emptyList());
+      }
+    }
+    return fetched
         .entrySet()
         .stream()
         .collect(
-            Collectors.toMap(e -> e.getKey().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
-                e -> averageQueryCost(e.getValue())));
-    // Convert in Array of String Array
-        /*.map(entry -> Arrays.asList(entry.getKey(),
-            String.valueOf(entry.getValue().getProcessedBytes()),
-            String.valueOf(entry.getValue().getBilledBytes())))
-        .collect(Collectors.toList());*/
-
+            Collectors.toMap(e -> e.getKey().atStartOfDay(ZoneId.systemDefault()).toEpochSecond(),
+                e -> averageQueryCost(e.getValue())))
+        .entrySet()
+        .stream()
+        .map(e -> new StatEntry(e.getKey(), e.getValue()))
+        .sorted(Comparator.comparingLong(StatEntry::getTimestamp))
+        .collect(Collectors.toList());
   }
 
   public GlobalQueryStatistics getStatistics(
@@ -159,5 +172,24 @@ public class FetcherService {
 
   private long daysToMillis(int days) {
     return System.currentTimeMillis() - (long) days * 24 * 60 * 60 * 1000;
+  }
+
+  public class StatEntry {
+
+    long timestamp;
+    long value;
+
+    StatEntry(long timestamp, long value) {
+      this.timestamp = timestamp;
+      this.value = value;
+    }
+
+    public long getTimestamp() {
+      return this.timestamp;
+    }
+
+    public long getValue() {
+      return this.value;
+    }
   }
 }
