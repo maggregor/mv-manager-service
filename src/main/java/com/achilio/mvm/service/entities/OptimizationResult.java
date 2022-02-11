@@ -44,10 +44,10 @@ public class OptimizationResult {
   @Column(name = "status")
   private Status status;
 
-  @Column(name = "totalProcessedBytes", nullable = false)
+  @Column(name = "totalProcessedBytes")
   private long totalProcessedBytes;
 
-  @Column(name = "queries", nullable = false)
+  @Column(name = "queries")
   private int queries;
 
   public OptimizationResult(
