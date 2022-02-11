@@ -121,8 +121,12 @@ public class OptimizationResult {
     this.status = status;
   }
 
-  public void setStatusIfEmpty(Status status) {
-    if (this.status == null) {
+  public boolean hasUndefinedStatus() {
+    return status == null;
+  }
+
+  public void setStatusIfUndefined(Status status) {
+    if (hasUndefinedStatus()) {
       this.status = status;
     }
   }
@@ -130,8 +134,7 @@ public class OptimizationResult {
   public enum Status {
     APPLY,
     LIMIT_REACHED_PER_TABLE,
-    LIMIT_REACHED_PER_PROJECT,
-    PLAN_LIMIT_REACHED
+    PLAN_LIMIT_REACHED,
   }
 
 }
