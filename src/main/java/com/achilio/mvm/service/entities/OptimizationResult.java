@@ -14,6 +14,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
+import org.springframework.lang.NonNull;
 
 @Entity
 @Table(name = "results")
@@ -25,8 +26,7 @@ public class OptimizationResult {
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Long id;
 
-  @ManyToOne
-  private Optimization optimization;
+  @ManyToOne private Optimization optimization;
 
   @Column(name = "project_id", nullable = false)
   private String projectId;
@@ -41,21 +41,21 @@ public class OptimizationResult {
   private String statement;
 
   @Enumerated(EnumType.STRING)
-  @Column(name = "status")
+  @Column(
+      name = "status",
+      nullable = false,
+      columnDefinition = "varchar(255) default 'PLAN_LIMIT_REACHED'")
   private Status status;
 
-  @Column(name = "totalProcessedBytes")
-  private long totalProcessedBytes;
+  @Column(name = "totalProcessedBytes", nullable = false, columnDefinition = "bigint default 0")
+  private Long totalProcessedBytes;
 
-  @Column(name = "queries")
-  private int queries;
+  @Column(name = "queries", nullable = false, columnDefinition = "integer default 0")
+  private Integer queries;
 
   public OptimizationResult(
-      final Optimization optimization,
-      final FetchedTable referenceTable,
-      final String statement) {
+      final Optimization optimization, final FetchedTable referenceTable, final String statement) {
     this(optimization, referenceTable, statement, null);
-
   }
 
   public OptimizationResult(
@@ -67,6 +67,7 @@ public class OptimizationResult {
     this.projectId = referenceTable.getProjectId();
     this.datasetName = referenceTable.getDatasetName();
     this.tableName = referenceTable.getTableName();
+    this.status = Status.UNDEFINED;
     this.statement = statement;
     if (statistics != null) {
       this.totalProcessedBytes = statistics.getProcessedBytes();
@@ -74,8 +75,7 @@ public class OptimizationResult {
     }
   }
 
-  public OptimizationResult() {
-  }
+  public OptimizationResult() {}
 
   public Long getId() {
     return id;
@@ -97,11 +97,11 @@ public class OptimizationResult {
     return this.datasetName + "." + this.tableName;
   }
 
-  public long getTotalProcessedBytes() {
+  public Long getTotalProcessedBytes() {
     return this.totalProcessedBytes;
   }
 
-  public int getQueries() {
+  public Integer getQueries() {
     return this.queries;
   }
 
@@ -122,7 +122,7 @@ public class OptimizationResult {
   }
 
   public void setStatusIfEmpty(Status status) {
-    if (this.status == null) {
+    if (this.status == Status.UNDEFINED) {
       this.status = status;
     }
   }
@@ -131,7 +131,7 @@ public class OptimizationResult {
     APPLY,
     LIMIT_REACHED_PER_TABLE,
     LIMIT_REACHED_PER_PROJECT,
-    PLAN_LIMIT_REACHED
+    PLAN_LIMIT_REACHED,
+    UNDEFINED,
   }
-
 }
