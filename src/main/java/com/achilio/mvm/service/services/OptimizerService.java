@@ -43,7 +43,6 @@ public class OptimizerService {
 
   private static final int DEFAULT_PLAN_MAX_MV = 50;
   private static final int GOOGLE_MAX_MV_PER_TABLE = 20;
-  private static final int GOOGLE_MAX_MV_PER_PROJECT = 100;
   private static Logger LOGGER = LoggerFactory.getLogger(OptimizerService.class);
   BigQueryMaterializedViewStatementBuilder statementBuilder;
 
@@ -127,14 +126,14 @@ public class OptimizerService {
           value.subList(Math.min(value.size(), GOOGLE_MAX_MV_PER_TABLE), value.size())
               .forEach(r -> r.setStatus(Status.LIMIT_REACHED_PER_TABLE));
         });
-    results.sort(Comparator.comparingLong(OptimizationResult::getTotalProcessedBytes).reversed());
-    // Apply status limit by project
-    results.subList(Math.min(results.size(), GOOGLE_MAX_MV_PER_PROJECT), results.size())
-        .forEach(r -> r.setStatusIfEmpty(Status.LIMIT_REACHED_PER_PROJECT));
-    // Apply status limit by plan
-    results.subList(Math.min(results.size(), DEFAULT_PLAN_MAX_MV), results.size())
+    // Apply status for allowed MV.
+    results.stream().filter(OptimizationResult::hasUndefinedStatus).sorted
+            (Comparator.comparingLong(OptimizationResult::getTotalProcessedBytes).reversed())
+        .limit(DEFAULT_PLAN_MAX_MV)
+        .forEach(r -> r.setStatusIfUndefined(Status.APPLY));
+    // Others  MV not allowed: limit plan reached.
+    results.stream().filter(OptimizationResult::hasUndefinedStatus)
         .forEach(r -> r.setStatus(Status.PLAN_LIMIT_REACHED));
-    results.forEach(r -> r.setStatusIfEmpty(Status.APPLY));
   }
 
   private boolean isOnDataset(FetchedQuery query, List<FetchedDataset> datasets) {

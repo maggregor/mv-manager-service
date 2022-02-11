@@ -14,7 +14,6 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
-import org.springframework.lang.NonNull;
 
 @Entity
 @Table(name = "results")
@@ -26,7 +25,8 @@ public class OptimizationResult {
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Long id;
 
-  @ManyToOne private Optimization optimization;
+  @ManyToOne
+  private Optimization optimization;
 
   @Column(name = "project_id", nullable = false)
   private String projectId;
@@ -41,10 +41,7 @@ public class OptimizationResult {
   private String statement;
 
   @Enumerated(EnumType.STRING)
-  @Column(
-      name = "status",
-      nullable = false,
-      columnDefinition = "varchar(255) default 'PLAN_LIMIT_REACHED'")
+  @Column(name = "status", nullable = false, columnDefinition = "varchar(255) default 'PLAN_LIMIT_REACHED'")
   private Status status;
 
   @Column(name = "totalProcessedBytes", nullable = false, columnDefinition = "bigint default 0")
@@ -75,7 +72,8 @@ public class OptimizationResult {
     }
   }
 
-  public OptimizationResult() {}
+  public OptimizationResult() {
+  }
 
   public Long getId() {
     return id;
@@ -121,8 +119,12 @@ public class OptimizationResult {
     this.status = status;
   }
 
-  public void setStatusIfEmpty(Status status) {
-    if (this.status == Status.UNDEFINED) {
+  public boolean hasUndefinedStatus() {
+    return this.status == Status.UNDEFINED;
+  }
+
+  public void setStatusIfUndefined(Status status) {
+    if (hasUndefinedStatus()) {
       this.status = status;
     }
   }
@@ -130,7 +132,6 @@ public class OptimizationResult {
   public enum Status {
     APPLY,
     LIMIT_REACHED_PER_TABLE,
-    LIMIT_REACHED_PER_PROJECT,
     PLAN_LIMIT_REACHED,
     UNDEFINED,
   }

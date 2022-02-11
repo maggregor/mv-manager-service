@@ -43,7 +43,7 @@ public class OptimizerController {
   }*/
 
   @GetMapping(
-      path = "/optimize/{projectId}/{datasetName}/{optimizationId}",
+      path = "/optimize/{projectId}/{optimizationId}",
       produces = "application/json")
   @ApiOperation("Get a single optimization from a project and dataset with its results")
   public OptimizationResultsResponse getOptimizationResults(
