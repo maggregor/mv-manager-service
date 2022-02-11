@@ -41,21 +41,18 @@ public class OptimizationResult {
   private String statement;
 
   @Enumerated(EnumType.STRING)
-  @Column(name = "status")
+  @Column(name = "status", nullable = false, columnDefinition = "varchar(255) default 'PLAN_LIMIT_REACHED'")
   private Status status;
 
-  @Column(name = "totalProcessedBytes")
-  private long totalProcessedBytes;
+  @Column(name = "totalProcessedBytes", nullable = false, columnDefinition = "bigint default 0")
+  private Long totalProcessedBytes;
 
-  @Column(name = "queries")
-  private int queries;
+  @Column(name = "queries", nullable = false, columnDefinition = "integer default 0")
+  private Integer queries;
 
   public OptimizationResult(
-      final Optimization optimization,
-      final FetchedTable referenceTable,
-      final String statement) {
+      final Optimization optimization, final FetchedTable referenceTable, final String statement) {
     this(optimization, referenceTable, statement, null);
-
   }
 
   public OptimizationResult(
@@ -67,6 +64,7 @@ public class OptimizationResult {
     this.projectId = referenceTable.getProjectId();
     this.datasetName = referenceTable.getDatasetName();
     this.tableName = referenceTable.getTableName();
+    this.status = Status.UNDEFINED;
     this.statement = statement;
     if (statistics != null) {
       this.totalProcessedBytes = statistics.getProcessedBytes();
@@ -97,11 +95,11 @@ public class OptimizationResult {
     return this.datasetName + "." + this.tableName;
   }
 
-  public long getTotalProcessedBytes() {
+  public Long getTotalProcessedBytes() {
     return this.totalProcessedBytes;
   }
 
-  public int getQueries() {
+  public Integer getQueries() {
     return this.queries;
   }
 
@@ -122,7 +120,7 @@ public class OptimizationResult {
   }
 
   public boolean hasUndefinedStatus() {
-    return status == null;
+    return this.status == Status.UNDEFINED;
   }
 
   public void setStatusIfUndefined(Status status) {
@@ -135,6 +133,6 @@ public class OptimizationResult {
     APPLY,
     LIMIT_REACHED_PER_TABLE,
     PLAN_LIMIT_REACHED,
+    UNDEFINED,
   }
-
 }
