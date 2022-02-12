@@ -8,18 +8,29 @@ public class UpdateMetadataProjectRequestResponse {
   private final String planName;
 
   @JsonProperty("activated")
-  private final boolean activated;
+  private final Boolean activated;
 
-  public UpdateMetadataProjectRequestResponse(String planName, boolean activated) {
+  @JsonProperty("automatic")
+  private Boolean automatic;
+
+  public UpdateMetadataProjectRequestResponse(
+      String planName, Boolean activated, Boolean automatic) {
     this.planName = planName;
     this.activated = activated;
+    this.automatic = automatic;
   }
 
   public String getPlanName() {
     return planName;
   }
 
-  public boolean isActivated() {
+  public Boolean isActivated() {
     return activated;
   }
+
+  public Boolean isAutomatic() {
+    return automatic;
+  }
+
+  public void setAutomatic(Boolean automatic) { this.automatic = automatic; }
 }

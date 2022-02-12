@@ -26,12 +26,15 @@ public class ProjectMetadata {
   @Column(name = "activated", nullable = false)
   private Boolean activated;
 
-  public ProjectMetadata() {
-  }
+  @Column(name = "automatic", nullable = false, columnDefinition = "boolean default false")
+  private Boolean automatic;
 
-  public ProjectMetadata(String projectId, Boolean activated) {
+  public ProjectMetadata() {}
+
+  public ProjectMetadata(String projectId, Boolean activated, Boolean automatic) {
     this.projectId = projectId;
     this.activated = activated;
+    this.automatic = automatic;
   }
 
   public Long getId() {
@@ -42,11 +45,23 @@ public class ProjectMetadata {
     return projectId;
   }
 
-  public boolean isActivated() {
+  public Boolean isActivated() {
     return activated;
   }
 
+  public Boolean isAutomatic() {
+    return automatic;
+  }
+
+  public void setAutomatic(Boolean automatic) {
+    if (automatic != null) {
+      this.automatic = automatic;
+    }
+  }
+
   public void setActivated(Boolean activated) {
-    this.activated = activated;
+    if (activated != null) {
+      this.activated = activated;
+    }
   }
 }

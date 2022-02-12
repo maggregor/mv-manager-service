@@ -15,11 +15,14 @@ public class ProjectMetadataTest {
 
   @Test
   public void simpleValidation() {
-    ProjectMetadata projectMetadata = new ProjectMetadata("myProject", true);
+    ProjectMetadata projectMetadata = new ProjectMetadata("myProject", true, false);
     assertEquals("myProject", projectMetadata.getProjectId());
     assertTrue(projectMetadata.isActivated());
     projectMetadata.setActivated(false);
     assertFalse(projectMetadata.isActivated());
+    assertFalse(projectMetadata.isAutomatic());
+    projectMetadata.setAutomatic(true);
+    assertTrue(projectMetadata.isAutomatic());
   }
 
   @Test
@@ -28,5 +31,4 @@ public class ProjectMetadataTest {
     assertNull(projectMetadata.getProjectId());
     assertNull(projectMetadata.getId());
   }
-
 }

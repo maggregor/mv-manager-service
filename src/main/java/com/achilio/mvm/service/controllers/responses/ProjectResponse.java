@@ -11,12 +11,17 @@ public class ProjectResponse {
   private final String projectName;
 
   @JsonProperty("activated")
-  private final boolean activated;
+  private final Boolean activated;
 
-  public ProjectResponse(String projectId, String projectName, boolean activated) {
+  @JsonProperty("automatic")
+  private final Boolean automatic;
+
+  public ProjectResponse(
+      String projectId, String projectName, Boolean activated, Boolean automatic) {
     this.projectId = projectId;
     this.projectName = projectName;
     this.activated = activated;
+    this.automatic = automatic;
   }
 
   public String getProjectId() {

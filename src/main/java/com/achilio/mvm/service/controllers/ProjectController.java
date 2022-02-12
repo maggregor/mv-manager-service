@@ -27,12 +27,14 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -42,12 +44,9 @@ public class ProjectController {
 
   private static Logger LOGGER = LoggerFactory.getLogger(ProjectController.class);
 
-  @Autowired
-  private MetadataService metadataService;
-  @Autowired
-  private FetcherService fetcherService;
-  @Autowired
-  private GooglePublisherService googlePublisherService;
+  @Autowired private MetadataService metadataService;
+  @Autowired private FetcherService fetcherService;
+  @Autowired private GooglePublisherService googlePublisherService;
 
   @GetMapping(path = "/project", produces = "application/json")
   @ApiOperation("List the project")
@@ -63,34 +62,51 @@ public class ProjectController {
     return toProjectResponse(fetcherService.fetchProject(projectId));
   }
 
+  @Deprecated
   @GetMapping(path = "/project/{projectId}/metadata", produces = "application/json")
   @ApiOperation("Get a project for a given projectId")
   public UpdateMetadataProjectRequestResponse getProjectMetadata(
       @PathVariable final String projectId) {
-    final boolean activated = metadataService.isProjectActivated(projectId);
+    final Boolean activated = metadataService.isProjectActivated(projectId);
+    final Boolean automatic = metadataService.isProjectAutomatic(projectId);
     final String planName = activated ? "Enterprise plan" : null; // TODO: Get real plan.
-    return new UpdateMetadataProjectRequestResponse(planName, activated);
+    return new UpdateMetadataProjectRequestResponse(planName, activated, automatic);
   }
 
-  @PostMapping(path = "/project/{projectId}/metadata", produces = "application/json")
+  @PostMapping(path = "/project/{projectId}")
   @ApiOperation("Update metadata of a project")
+  @ResponseStatus(HttpStatus.ACCEPTED)
+  // TODO: When (if) next steps are followable somewhere, the response should include a link or
+  // something
+  //  to where the user can follow the steps
   public void updateProject(
       @PathVariable final String projectId,
-      @RequestBody final UpdateMetadataProjectRequestResponse request)
+      @RequestBody final UpdateMetadataProjectRequestResponse payload)
       throws IOException, ExecutionException, InterruptedException {
-    if (request.isActivated()) {
+    if (payload.isActivated() != null && payload.isActivated()) {
+      LOGGER.info("Activating project {}", projectId);
       googlePublisherService.publishProjectActivation(projectId);
     }
-    metadataService.updateProject(projectId, request.isActivated());
+    if (payload.isAutomatic() != null && payload.isAutomatic()) {
+      LOGGER.info("Project {} is starting automatic mode", projectId);
+      // TODO: Send notif to a pubsub to update the schedulers
+    } else if (payload.isActivated() != null && !payload.isActivated()) {
+      LOGGER.info("Project {} is being deactivated. Turning off automatic mode", projectId);
+      payload.setAutomatic(false);
+    }
+    if (payload.isAutomatic() == null) {
+      payload.setAutomatic(false);
+    }
+    metadataService.updateProject(projectId, payload.isActivated(), payload.isAutomatic());
   }
 
-  @PostMapping(path = "/project/{projectId}/dataset/{datasetName}/metadata", produces = "application/json")
+  @PostMapping(path = "/project/{projectId}/dataset/{datasetName}", produces = "application/json")
   @ApiOperation("Update metadata of a dataset")
   public void updateDataset(
       @PathVariable final String projectId,
       @PathVariable final String datasetName,
-      @RequestBody final UpdateMetadataDatasetRequestResponse request) {
-    metadataService.updateDataset(projectId, datasetName, request.isActivated());
+      @RequestBody final UpdateMetadataDatasetRequestResponse payload) {
+    metadataService.updateDataset(projectId, datasetName, payload.isActivated());
   }
 
   @GetMapping(path = "/project/{projectId}/dataset", produces = "application/json")
@@ -103,57 +119,47 @@ public class ProjectController {
   }
 
   @GetMapping(path = "/project/{projectId}/dataset/{datasetName}", produces = "application/json")
-  @ApiOperation("Get all dataset for a given projectId")
-  public DatasetResponse getDataset(@PathVariable final String projectId,
-      @PathVariable final String datasetName) {
+  @ApiOperation("Get a single dataset for a given projectId")
+  public DatasetResponse getDataset(
+      @PathVariable final String projectId, @PathVariable final String datasetName) {
     FetchedDataset fetchedDataset = fetcherService.fetchDataset(projectId, datasetName);
     return toDatasetResponse(fetchedDataset);
   }
 
   @GetMapping(
-      path = "/project/{projectId}/dataset/{datasetName}/table",
+      path = "/project/{projectId}/queries/{days}/statistics",
       produces = "application/json")
-  @ApiOperation("Get all dataset for a given projectId")
-  public List<TableResponse> getTables(
-      @PathVariable final String projectId,
-      @PathVariable final String datasetName) {
-    return fetcherService.fetchTableNamesInDataset(projectId, datasetName).stream()
-        .map(this::toTableResponse)
-        .collect(Collectors.toList());
-  }
-
-  @GetMapping(path = "/project/{projectId}/queries/{days}/statistics", produces = "application/json")
   @ApiOperation("Get statistics of queries ")
-  public GlobalQueryStatisticsResponse getQueryStatistics(@PathVariable final String projectId,
-      @PathVariable final int days) throws Exception {
+  public GlobalQueryStatisticsResponse getQueryStatistics(
+      @PathVariable final String projectId, @PathVariable final int days) throws Exception {
     GlobalQueryStatistics statistics = fetcherService.getStatistics(projectId, days);
     return toGlobalQueryStatisticsResponse(statistics);
   }
 
-  @GetMapping(path = "/project/{projectId}/queries/{days}/statistics/series", produces = "application/json")
+  @GetMapping(
+      path = "/project/{projectId}/queries/{days}/statistics/series",
+      produces = "application/json")
   @ApiOperation("Get statistics of queries grouped per days for charts")
   public List<StatEntry> getDailyStatistics(
-      @PathVariable final String projectId,
-      @PathVariable final int days) {
+      @PathVariable final String projectId, @PathVariable final int days) {
     return fetcherService.getDailyStatistics(projectId, days);
-
   }
 
   @GetMapping(path = "/project/{projectId}/events/{days}", produces = "application/json")
   @ApiOperation("Get events ")
   public List<FetchedMaterializedViewEvent> getMaterializedViewEvents(
-      @PathVariable final String projectId,
-      @PathVariable final int days) {
+      @PathVariable final String projectId, @PathVariable final int days) {
     List<FetchedMaterializedViewEvent> events =
         fetcherService.getMaterializedViewEvents(projectId, days);
     return events;
   }
 
-  @GetMapping(path = "/project/{projectId}/queries/{days}/statistics/eligible", produces = "application/json")
+  @GetMapping(
+      path = "/project/{projectId}/queries/{days}/statistics/eligible",
+      produces = "application/json")
   @ApiOperation("Get statistics of ineligible queries")
   public GlobalQueryStatisticsResponse getEligibleQueryStatistics(
-      @PathVariable final String projectId,
-      @PathVariable final int days) {
+      @PathVariable final String projectId, @PathVariable final int days) {
     List<FetchedQuery> queries = fetcherService.fetchQueriesSince(projectId, days);
     Set<FetchedTable> tables = fetcherService.fetchAllTables(projectId);
     FieldSetAnalyzer extractor = FieldSetExtractFactory.createFieldSetExtract(projectId, tables);
@@ -169,8 +175,9 @@ public class ProjectController {
 
   public ProjectResponse toProjectResponse(FetchedProject project) {
     final String projectId = project.getProjectId();
-    boolean activated = metadataService.isProjectActivated(projectId);
-    return new ProjectResponse(projectId, project.getName(), activated);
+    Boolean activated = metadataService.isProjectActivated(projectId);
+    Boolean automatic = metadataService.isProjectAutomatic(projectId);
+    return new ProjectResponse(projectId, project.getName(), activated, automatic);
   }
 
   public DatasetResponse toDatasetResponse(FetchedDataset dataset) {
@@ -182,8 +189,15 @@ public class ProjectController {
     final Long createdAt = dataset.getCreatedAt();
     final Long lastModified = dataset.getLastModified();
     final boolean activated = metadataService.isDatasetActivated(projectId, datasetName);
-    return new DatasetResponse(projectId, datasetName, location, friendlyName, description,
-        createdAt, lastModified, activated);
+    return new DatasetResponse(
+        projectId,
+        datasetName,
+        location,
+        friendlyName,
+        description,
+        createdAt,
+        lastModified,
+        activated);
   }
 
   public TableResponse toTableResponse(FetchedTable table) {
@@ -196,15 +210,16 @@ public class ProjectController {
 
 /**
  * ZoneId defaultZoneId = ZoneId.systemDefault(); LocalDate localDate =
- * LocalDate.now().minusDays(lastDays); Date date = Date.from(localDate.atStartOfDay(defaultZoneId).toInstant());
- * List<FetchedQuery> queries = fetcherService.fetchQueriesSince(projectId, date);
- * List<FetchedQuery> queriesCaught = queries .stream() .filter(FetchedQuery::isUsingManagedMV)
- * .collect(Collectors.toList()); long totalNumberOfSelect = queries.size(); long numberOfSelectIn =
- * queriesCaught.size(); long numberOfSelectOut = queriesCaught.size(); long totalBilledBytes =
- * queries.stream().mapToLong(fetcherService -> Math.toIntExact(fetcherService.getBilledBytes())).sum();
- * long totalProcessedBytes = queriesCaught.stream().mapToInt(fetcherService ->
- * Math.toIntExact(fetcherService.cost())).sum();
- * <p>
- * return new QueryStatisticsResponse(totalSelect, totalSelectCaught, totalScanned,
+ * LocalDate.now().minusDays(lastDays); Date date =
+ * Date.from(localDate.atStartOfDay(defaultZoneId).toInstant()); List<FetchedQuery> queries =
+ * fetcherService.fetchQueriesSince(projectId, date); List<FetchedQuery> queriesCaught = queries
+ * .stream() .filter(FetchedQuery::isUsingManagedMV) .collect(Collectors.toList()); long
+ * totalNumberOfSelect = queries.size(); long numberOfSelectIn = queriesCaught.size(); long
+ * numberOfSelectOut = queriesCaught.size(); long totalBilledBytes =
+ * queries.stream().mapToLong(fetcherService ->
+ * Math.toIntExact(fetcherService.getBilledBytes())).sum(); long totalProcessedBytes =
+ * queriesCaught.stream().mapToInt(fetcherService -> Math.toIntExact(fetcherService.cost())).sum();
+ *
+ * <p>return new QueryStatisticsResponse(totalSelect, totalSelectCaught, totalScanned,
  * totalScannedCaught);
  */
