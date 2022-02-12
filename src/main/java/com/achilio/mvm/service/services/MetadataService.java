@@ -9,46 +9,47 @@ import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-/**
- * All the useful services to generate relevant Materialized Views.
- */
+/** All the useful services to generate relevant Materialized Views. */
 @Service
 public class MetadataService {
 
-  @Autowired
-  private ProjectMetadataRepository projectRepository;
-  @Autowired
-  private DatasetMetadataRepository datasetRepository;
+  @Autowired private ProjectMetadataRepository projectRepository;
+  @Autowired private DatasetMetadataRepository datasetRepository;
 
-  public MetadataService() {
-  }
+  public MetadataService() {}
 
-  public boolean isProjectActivated(String projectId) {
+  public Boolean isProjectActivated(String projectId) {
     Optional<ProjectMetadata> projectMetadata = getProject(projectId);
     return projectMetadata.isPresent() && projectMetadata.get().isActivated();
+  }
+
+  public Boolean isProjectAutomatic(String projectId) {
+    Optional<ProjectMetadata> projectMetadata = getProject(projectId);
+    return projectMetadata.isPresent() && projectMetadata.get().isAutomatic();
   }
 
   private Optional<ProjectMetadata> getProject(String projectId) {
     return projectRepository.findByProjectId(projectId);
   }
 
-  private boolean projectExists(String projectId) {
-    return getProject(projectId).isPresent();
-  }
 
-
-  private void registerProjectIfNotExists(String projectId, Boolean activated) {
+  private void registerProjectIfNotExists(String projectId, Boolean activated, Boolean automatic) {
     if (!projectExists(projectId)) {
-      ProjectMetadata projectMetadata = new ProjectMetadata(projectId, activated);
+      ProjectMetadata projectMetadata = new ProjectMetadata(projectId, activated, automatic);
       projectRepository.save(projectMetadata);
     }
   }
 
+  public boolean projectExists(String projectId) {
+    return getProject(projectId).isPresent();
+  }
+
   @Transactional
-  public void updateProject(String projectId, Boolean activated) {
-    registerProjectIfNotExists(projectId, activated);
+  public void updateProject(String projectId, Boolean activated, Boolean automatic) {
+    registerProjectIfNotExists(projectId, activated, automatic);
     ProjectMetadata projectMetadata = getProject(projectId).get();
     projectMetadata.setActivated(activated);
+    projectMetadata.setAutomatic(automatic);
     projectRepository.save(projectMetadata);
   }
 
@@ -57,14 +58,18 @@ public class MetadataService {
     if (!projectMetadata.isPresent()) {
       return Optional.empty();
     }
-    return datasetRepository.findByProjectMetadataAndDatasetName(projectMetadata.get(),
-        datasetName);
+    return datasetRepository.findByProjectMetadataAndDatasetName(
+        projectMetadata.get(), datasetName);
   }
 
   private boolean datasetExists(Optional<ProjectMetadata> projectMetadata, String datasetName) {
-    return projectMetadata.filter(project -> datasetRepository
-        .findByProjectMetadataAndDatasetName(project, datasetName)
-        .isPresent()).isPresent();
+    return projectMetadata
+        .filter(
+            project ->
+                datasetRepository
+                    .findByProjectMetadataAndDatasetName(project, datasetName)
+                    .isPresent())
+        .isPresent();
   }
 
   private void registerDatasetIfNotExists(String projectId, String datasetName, Boolean activated) {
@@ -88,5 +93,4 @@ public class MetadataService {
     Optional<DatasetMetadata> datasetMetadata = getDataset(projectId, datasetName);
     return datasetMetadata.map(DatasetMetadata::isActivated).orElse(false);
   }
-
 }
