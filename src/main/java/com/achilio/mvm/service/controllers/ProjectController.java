@@ -94,6 +94,9 @@ public class ProjectController {
       LOGGER.info("Project {} is being deactivated. Turning off automatic mode", projectId);
       payload.setAutomatic(false);
     }
+    if (payload.isAutomatic() == null) {
+      payload.setAutomatic(false);
+    }
     metadataService.updateProject(projectId, payload.isActivated(), payload.isAutomatic());
   }
 
