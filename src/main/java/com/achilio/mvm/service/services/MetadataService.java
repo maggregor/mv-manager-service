@@ -9,7 +9,7 @@ import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-/** All the useful services to generate relevant Materialized Views. */
+/** Services to manage project and dataset resources. */
 @Service
 public class MetadataService {
 
@@ -31,7 +31,6 @@ public class MetadataService {
   private Optional<ProjectMetadata> getProject(String projectId) {
     return projectRepository.findByProjectId(projectId);
   }
-
 
   private void registerProjectIfNotExists(String projectId, Boolean activated, Boolean automatic) {
     if (!projectExists(projectId)) {
