@@ -13,6 +13,7 @@ import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics;
 import com.achilio.mvm.service.services.FetcherService;
+import com.achilio.mvm.service.services.FetcherService.StatEntry;
 import com.achilio.mvm.service.services.GooglePublisherService;
 import com.achilio.mvm.service.services.MetadataService;
 import com.achilio.mvm.service.visitors.FieldSetAnalyzer;
@@ -20,7 +21,6 @@ import com.achilio.mvm.service.visitors.FieldSetExtractFactory;
 import io.swagger.annotations.ApiOperation;
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
@@ -137,7 +137,7 @@ public class ProjectController {
       path = "/project/{projectId}/queries/{days}/statistics/series",
       produces = "application/json")
   @ApiOperation("Get statistics of queries grouped per days for charts")
-  public Map<String, Long> getDailyStatistics(
+  public List<StatEntry> getDailyStatistics(
       @PathVariable final String projectId, @PathVariable final int days) {
     return fetcherService.getDailyStatistics(projectId, days);
   }
