@@ -210,7 +210,8 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
    */
   public boolean containsSubStepUsingMVM(QueryStep step) {
     return step.getSubsteps().stream()
-        .anyMatch(subStep -> subStep.contains(SQL_FROM_WORD) && subStep.contains("mvm_"));
+        .anyMatch(subStep -> subStep.contains(SQL_FROM_WORD) && (subStep.contains("mvm_")
+            || subStep.contains("achilio_") || subStep.contains("mmv_")));
   }
 
   private List<BigQuery.JobListOption> getJobListOptions(long fromCreationTime) {
