@@ -31,13 +31,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -78,8 +75,7 @@ public class ProjectController {
     return new UpdateMetadataProjectRequestResponse(planName, activated, automatic);
   }
 
-  //  @CrossOrigin
-  @RequestMapping(method = RequestMethod.PATCH, path = "/project/{projectId}")
+  @PostMapping(path = "/project/{projectId}")
   @ApiOperation("Update metadata of a project")
   @ResponseStatus(HttpStatus.ACCEPTED)
   // TODO: When (if) next steps are followable somewhere, the response should include a link or
@@ -91,13 +87,14 @@ public class ProjectController {
       throws IOException, ExecutionException, InterruptedException {
     if (payload.isActivated() != null && payload.isActivated()) {
       LOGGER.info("Activating project {}", projectId);
-      //      googlePublisherService.publishProjectActivation(projectId);
+      googlePublisherService.publishProjectActivation(projectId);
     }
     if (payload.isAutomatic() != null && payload.isAutomatic()) {
-      LOGGER.info("Project {} is setting to automatic mode", projectId);
+      LOGGER.info("Project {} is starting automatic mode", projectId);
       // TODO: Send notif to a pubsub to update the schedulers
     } else if (payload.isActivated() != null && !payload.isActivated()) {
       LOGGER.info("Project {} is being deactivated. Turning off automatic mode", projectId);
+      payload.setAutomatic(false);
     }
     metadataService.updateProject(projectId, payload.isActivated(), payload.isAutomatic());
   }
