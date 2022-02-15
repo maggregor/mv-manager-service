@@ -8,7 +8,6 @@ public class OptimizationResponse {
   private Long id;
   private Date createdDate;
   private String projectId;
-  private String datasetName;
   private Double eligiblePercent;
   private Integer mvMaxPlan;
   private Integer mvAppliedCount;
@@ -40,14 +39,6 @@ public class OptimizationResponse {
 
   public void setProjectId(String projectId) {
     this.projectId = projectId;
-  }
-
-  public String getDatasetName() {
-    return datasetName;
-  }
-
-  public void setDatasetName(String datasetName) {
-    this.datasetName = datasetName;
   }
 
   public Double getEligiblePercent() {

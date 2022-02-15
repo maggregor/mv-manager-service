@@ -29,10 +29,6 @@ public class Optimization {
   @Column(name = "project_id", nullable = false)
   private String projectId;
 
-  // TODO: How to do a migration when adding a non-nullable column without setting a default ?
-  /*@Column(name = "dataset_name", nullable = false, columnDefinition = "varchar(255) default ''")
-  private String datasetName;*/
-
   @Column(name = "query_eligible_percentage", nullable = true)
   private Double queryEligiblePercentage;
 
