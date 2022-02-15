@@ -20,7 +20,7 @@ import java.util.List;
 
 public class ZetaSQLFieldSetExtractGlobalVisitor extends ZetaSQLFieldSetExtractVisitor {
 
-  private final static String NOT_REGULAR_TABLE_PREFIX = "$";
+  private static final String NOT_REGULAR_TABLE_PREFIX = "$";
 
   // Useful to build SQL expression from ResolvedNode.
   private final SimpleCatalog catalog;
@@ -68,9 +68,7 @@ public class ZetaSQLFieldSetExtractGlobalVisitor extends ZetaSQLFieldSetExtractV
     super.visit(node);
   }
 
-  /**
-   * Add a ResolvedColumn as ReferenceField. Checks if the ResolvedColumn isn't an alias.
-   */
+  /** Add a ResolvedColumn as ReferenceField. Checks if the ResolvedColumn isn't an alias. */
   private void addReference(ResolvedColumn column) {
     Preconditions.checkNotNull(column, "Reference is null.");
     if (isColumnFromRegularTable(column)) {
@@ -79,9 +77,7 @@ public class ZetaSQLFieldSetExtractGlobalVisitor extends ZetaSQLFieldSetExtractV
     }
   }
 
-  /**
-   * Add ResolvedExpr as reference Simple cast method.
-   */
+  /** Add ResolvedExpr as reference Simple cast method. */
   private void addReference(ResolvedExpr expr) {
     final ResolvedColumnRef ref = (ResolvedColumnRef) expr;
     final ResolvedColumn column = ref.getColumn();
@@ -126,8 +122,8 @@ public class ZetaSQLFieldSetExtractGlobalVisitor extends ZetaSQLFieldSetExtractV
     return expression;
   }
 
-  private void hackFindColumnsRefInNode(ImmutableList<ResolvedExpr> exprs,
-      List<ResolvedColumnRef> refs) {
+  private void hackFindColumnsRefInNode(
+      ImmutableList<ResolvedExpr> exprs, List<ResolvedColumnRef> refs) {
     for (ResolvedExpr expr : exprs) {
       if (expr instanceof ResolvedFunctionCallBase) {
         hackFindColumnsRefInNode(((ResolvedFunctionCallBase) expr).getArgumentList(), refs);

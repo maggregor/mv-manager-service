@@ -5,13 +5,11 @@ import java.util.List;
 
 public class CountDistinctMergingOptimizer implements Optimizer {
 
-  CountDistinctMergingOptimizer() {
-  }
+  CountDistinctMergingOptimizer() {}
 
   @Override
   public List<FieldSet> optimize(List<FieldSet> fieldSet) {
     // TODO: Implement simple cardinality merge.
     return fieldSet;
   }
-
 }

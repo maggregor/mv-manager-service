@@ -23,5 +23,4 @@ public class BigQueryHelper {
     throw new IllegalArgumentException(
         "The table id should be projectName.datasetName.tableName or datasetName.tableName");
   }
-
 }

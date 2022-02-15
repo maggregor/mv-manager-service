@@ -45,6 +45,5 @@ public class GoogleProjectInterceptor extends HandlerInterceptorAdapter {
       HttpServletResponse response,
       Object handler,
       @Nullable Exception ex)
-      throws Exception {
-  }
+      throws Exception {}
 }

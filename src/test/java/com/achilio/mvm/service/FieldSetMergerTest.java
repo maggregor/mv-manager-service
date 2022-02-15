@@ -57,5 +57,4 @@ public class FieldSetMergerTest {
     assertEquals(200L, actual.get(0).getStatistics().getProcessedBytes());
     assertEquals(20L, actual.get(0).getStatistics().getBilledBytes());
   }
-
 }

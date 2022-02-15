@@ -11,13 +11,11 @@ public class DontDoNothingOptimizer implements Optimizer {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DontDoNothingOptimizer.class);
 
-  DontDoNothingOptimizer() {
-  }
+  DontDoNothingOptimizer() {}
 
   @Override
   public List<FieldSet> optimize(List<FieldSet> fieldSet) {
     fieldSet.remove(FieldSetFactory.EMPTY_FIELD_SET);
     return new ArrayList<>(fieldSet);
   }
-
 }

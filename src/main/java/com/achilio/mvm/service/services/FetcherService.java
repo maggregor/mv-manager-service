@@ -31,16 +31,13 @@ import javax.persistence.PersistenceContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-/**
- * All the useful services to generate relevant Materialized Views.
- */
+/** All the useful services to generate relevant Materialized Views. */
 @Service
 public class FetcherService {
 
   BigQueryMaterializedViewStatementBuilder statementBuilder;
 
-  @PersistenceContext
-  private EntityManager entityManager;
+  @PersistenceContext private EntityManager entityManager;
 
   public FetcherService() {
     this.statementBuilder = new BigQueryMaterializedViewStatementBuilder();
@@ -114,23 +111,23 @@ public class FetcherService {
   }
 
   public List<StatEntry> getDailyStatistics(String projectId, int lastDays) {
-    Map<LocalDate, List<QueryUsageStatistics>> fetched = fetchQueriesSince(projectId, lastDays)
-        .parallelStream()
-        .collect(
-            Collectors.groupingBy(q -> q.getDate().with(TemporalAdjusters.ofDateAdjuster(d -> d)),
-                Collectors.mapping(FetchedQuery::getStatistics, Collectors.toList())));
+    Map<LocalDate, List<QueryUsageStatistics>> fetched =
+        fetchQueriesSince(projectId, lastDays).parallelStream()
+            .collect(
+                Collectors.groupingBy(
+                    q -> q.getDate().with(TemporalAdjusters.ofDateAdjuster(d -> d)),
+                    Collectors.mapping(FetchedQuery::getStatistics, Collectors.toList())));
     for (int i = 0; i < lastDays; i++) {
-      LocalDate currentDay = LocalDate.now().minusDays(i)
-          .with(TemporalAdjusters.ofDateAdjuster(d -> d));
+      LocalDate currentDay =
+          LocalDate.now().minusDays(i).with(TemporalAdjusters.ofDateAdjuster(d -> d));
       if (!fetched.containsKey(currentDay)) {
         fetched.put(currentDay, Collections.emptyList());
       }
     }
-    return fetched
-        .entrySet()
-        .stream()
+    return fetched.entrySet().stream()
         .collect(
-            Collectors.toMap(e -> e.getKey().atStartOfDay(ZoneId.systemDefault()).toEpochSecond(),
+            Collectors.toMap(
+                e -> e.getKey().atStartOfDay(ZoneId.systemDefault()).toEpochSecond(),
                 e -> averageQueryCost(e.getValue())))
         .entrySet()
         .stream()

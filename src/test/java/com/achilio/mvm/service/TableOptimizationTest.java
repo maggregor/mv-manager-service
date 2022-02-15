@@ -13,8 +13,8 @@ public class TableOptimizationTest {
 
   @Test
   public void constructorWithArguments() {
-    TableOptimization tableOptimization = new TableOptimization("myProject", "myDataset",
-        "myTable");
+    TableOptimization tableOptimization =
+        new TableOptimization("myProject", "myDataset", "myTable");
     assertEquals("myProject", tableOptimization.getProjectId());
     assertEquals("myDataset", tableOptimization.getDatasetName());
     assertEquals("myTable", tableOptimization.getTableName());
@@ -27,5 +27,4 @@ public class TableOptimizationTest {
     assertNull(tableOptimization.getDatasetName());
     assertNull(tableOptimization.getTableName());
   }
-
 }

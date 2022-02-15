@@ -9,19 +9,14 @@ import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-/**
- * Services to manage project and dataset resources.
- */
+/** Services to manage project and dataset resources. */
 @Service
 public class MetadataService {
 
-  @Autowired
-  private ProjectMetadataRepository projectRepository;
-  @Autowired
-  private DatasetMetadataRepository datasetRepository;
+  @Autowired private ProjectMetadataRepository projectRepository;
+  @Autowired private DatasetMetadataRepository datasetRepository;
 
-  public MetadataService() {
-  }
+  public MetadataService() {}
 
   public Boolean isProjectActivated(String projectId) {
     Optional<ProjectMetadata> projectMetadata = getProject(projectId);

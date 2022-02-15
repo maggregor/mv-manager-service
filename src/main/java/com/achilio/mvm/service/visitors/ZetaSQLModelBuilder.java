@@ -85,5 +85,4 @@ public abstract class ZetaSQLModelBuilder implements ModelBuilder {
   public SimpleCatalog getCatalog() {
     return this.catalog;
   }
-
 }

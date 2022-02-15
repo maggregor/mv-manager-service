@@ -44,12 +44,9 @@ public class ProjectController {
 
   private static Logger LOGGER = LoggerFactory.getLogger(ProjectController.class);
 
-  @Autowired
-  private MetadataService metadataService;
-  @Autowired
-  private FetcherService fetcherService;
-  @Autowired
-  private GooglePublisherService googlePublisherService;
+  @Autowired private MetadataService metadataService;
+  @Autowired private FetcherService fetcherService;
+  @Autowired private GooglePublisherService googlePublisherService;
 
   @GetMapping(path = "/project", produces = "application/json")
   @ApiOperation("List the project")
@@ -213,14 +210,15 @@ public class ProjectController {
 
 /**
  * ZoneId defaultZoneId = ZoneId.systemDefault(); LocalDate localDate =
- * LocalDate.now().minusDays(lastDays); Date date = Date.from(localDate.atStartOfDay(defaultZoneId).toInstant());
- * List<FetchedQuery> queries = fetcherService.fetchQueriesSince(projectId, date);
- * List<FetchedQuery> queriesCaught = queries .stream() .filter(FetchedQuery::isUsingManagedMV)
- * .collect(Collectors.toList()); long totalNumberOfSelect = queries.size(); long numberOfSelectIn =
- * queriesCaught.size(); long numberOfSelectOut = queriesCaught.size(); long totalBilledBytes =
- * queries.stream().mapToLong(fetcherService -> Math.toIntExact(fetcherService.getBilledBytes())).sum();
- * long totalProcessedBytes = queriesCaught.stream().mapToInt(fetcherService ->
- * Math.toIntExact(fetcherService.cost())).sum();
+ * LocalDate.now().minusDays(lastDays); Date date =
+ * Date.from(localDate.atStartOfDay(defaultZoneId).toInstant()); List<FetchedQuery> queries =
+ * fetcherService.fetchQueriesSince(projectId, date); List<FetchedQuery> queriesCaught = queries
+ * .stream() .filter(FetchedQuery::isUsingManagedMV) .collect(Collectors.toList()); long
+ * totalNumberOfSelect = queries.size(); long numberOfSelectIn = queriesCaught.size(); long
+ * numberOfSelectOut = queriesCaught.size(); long totalBilledBytes =
+ * queries.stream().mapToLong(fetcherService ->
+ * Math.toIntExact(fetcherService.getBilledBytes())).sum(); long totalProcessedBytes =
+ * queriesCaught.stream().mapToInt(fetcherService -> Math.toIntExact(fetcherService.cost())).sum();
  *
  * <p>return new QueryStatisticsResponse(totalSelect, totalSelectCaught, totalScanned,
  * totalScannedCaught);

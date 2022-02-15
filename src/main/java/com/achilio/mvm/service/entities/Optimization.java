@@ -48,8 +48,7 @@ public class Optimization {
   @Column(name = "mv_proposal_count")
   private Integer mvProposalCount;
 
-  public Optimization() {
-  }
+  public Optimization() {}
 
   public Optimization(String projectId) {
     this.projectId = projectId;

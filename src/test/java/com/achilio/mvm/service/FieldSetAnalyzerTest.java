@@ -30,19 +30,19 @@ import org.mockito.junit.MockitoJUnitRunner;
 public abstract class FieldSetAnalyzerTest {
 
   private static final String[][] SIMPLE_TABLE_COLUMNS =
-      new String[][]{
-          {"col1", ZetaSQLType.TypeKind.TYPE_STRING.name()},
-          {"col2", ZetaSQLType.TypeKind.TYPE_STRING.name()},
-          {"col3", ZetaSQLType.TypeKind.TYPE_INT64.name()},
-          {"col4", ZetaSQLType.TypeKind.TYPE_INT64.name()},
-          {"ts", ZetaSQLType.TypeKind.TYPE_TIMESTAMP.name()}
+      new String[][] {
+        {"col1", ZetaSQLType.TypeKind.TYPE_STRING.name()},
+        {"col2", ZetaSQLType.TypeKind.TYPE_STRING.name()},
+        {"col3", ZetaSQLType.TypeKind.TYPE_INT64.name()},
+        {"col4", ZetaSQLType.TypeKind.TYPE_INT64.name()},
+        {"ts", ZetaSQLType.TypeKind.TYPE_TIMESTAMP.name()}
       };
   private final FetchedTable MAIN_TABLE =
       createFetchedTable("myproject.mydataset.mytable", SIMPLE_TABLE_COLUMNS);
   private FieldSetAnalyzer extractor;
 
-  protected abstract FieldSetAnalyzer createFieldSetExtract(String projectId,
-      Set<FetchedTable> metadata);
+  protected abstract FieldSetAnalyzer createFieldSetExtract(
+      String projectId, Set<FetchedTable> metadata);
 
   @Before
   public void setUp() {
@@ -260,9 +260,10 @@ public abstract class FieldSetAnalyzerTest {
   @Test
   public void analyzeEligibleQueryWithFilter() {
     assertEligibleQuery("SELECT * FROM mydataset.mytable WHERE col1 = 'a'");
-    assertEligibleQuery("SELECT col1 AS myCol1, SUM(col3) "
-        + "FROM mydataset.mytable "
-        + "WHERE col1 = 'a' GROUP BY myCol1");
+    assertEligibleQuery(
+        "SELECT col1 AS myCol1, SUM(col3) "
+            + "FROM mydataset.mytable "
+            + "WHERE col1 = 'a' GROUP BY myCol1");
   }
 
   @Test
@@ -288,8 +289,9 @@ public abstract class FieldSetAnalyzerTest {
 
   @Test
   public void filter() {
-    FetchedQuery query = FetchedQueryFactory.createFetchedQuery(
-        "SELECT col1 FROM mydataset.mytable WHERE col1 = 'aze'");
+    FetchedQuery query =
+        FetchedQueryFactory.createFetchedQuery(
+            "SELECT col1 FROM mydataset.mytable WHERE col1 = 'aze'");
     assertTrue(query.isEligible());
     extractor.analyzeIneligibleReasons(query);
     assertTrue(query.isEligible());

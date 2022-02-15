@@ -36,13 +36,17 @@ public class GooglePublisherService {
   private static final String ATTRIBUTE_ACCESS_TOKEN = "accessToken";
   private static final String CMD_TYPE_APPLY = "apply";
   private static final String CMD_TYPE_WORKSPACE = "workspace";
-  private final static Logger LOGGER = LoggerFactory.getLogger(OptimizerApplication.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(OptimizerApplication.class);
+
   @Value("${publisher.google-project-id}")
   private String PUBLISHER_GOOGLE_PROJECT_ID = "achilio-dev";
+
   @Value("${publisher.google-topic-id}")
   private String PUBLISHER_GOOGLE_TOPIC_ID = "mvExecutorTopic";
-  private final TopicName TOPIC_NAME = TopicName.of(PUBLISHER_GOOGLE_PROJECT_ID,
-      PUBLISHER_GOOGLE_TOPIC_ID);
+
+  private final TopicName TOPIC_NAME =
+      TopicName.of(PUBLISHER_GOOGLE_PROJECT_ID, PUBLISHER_GOOGLE_TOPIC_ID);
+
   @Value("${publisher.enabled}")
   private boolean PUBLISHER_ENABLED = true;
 
@@ -81,11 +85,12 @@ public class GooglePublisherService {
 
   public String buildMaterializedViewsMessage(List<OptimizationResult> mViews)
       throws JsonProcessingException {
-    List<Entry<String, String>> entries = mViews.stream()
-        .filter(Objects::nonNull)
-        .filter(result -> StringUtils.isNotEmpty(result.getStatement()))
-        .map(this::toEntry)
-        .collect(Collectors.toList());
+    List<Entry<String, String>> entries =
+        mViews.stream()
+            .filter(Objects::nonNull)
+            .filter(result -> StringUtils.isNotEmpty(result.getStatement()))
+            .map(this::toEntry)
+            .collect(Collectors.toList());
     return new ObjectMapper().writeValueAsString(entries);
   }
 
@@ -95,11 +100,12 @@ public class GooglePublisherService {
     publishMessage(buildPubsubMessage(projectId, message, CMD_TYPE_WORKSPACE, false));
   }
 
-  public PubsubMessage buildPubsubMessage(String projectId, String message,
-      String cmdType, boolean requireAccessToken) {
-    PubsubMessage.Builder builder = PubsubMessage.newBuilder()
-        .putAttributes(ATTRIBUTE_CMD_TYPE, cmdType)
-        .putAttributes(ATTRIBUTE_PROJECT_ID, projectId);
+  public PubsubMessage buildPubsubMessage(
+      String projectId, String message, String cmdType, boolean requireAccessToken) {
+    PubsubMessage.Builder builder =
+        PubsubMessage.newBuilder()
+            .putAttributes(ATTRIBUTE_CMD_TYPE, cmdType)
+            .putAttributes(ATTRIBUTE_PROJECT_ID, projectId);
     if (requireAccessToken) {
       builder.putAttributes(ATTRIBUTE_ACCESS_TOKEN, getAccessToken());
     }
@@ -126,7 +132,7 @@ public class GooglePublisherService {
 
   private String getAccessToken() {
     return ((SimpleGoogleCredentialsAuthentication)
-        SecurityContextHolder.getContext().getAuthentication())
+            SecurityContextHolder.getContext().getAuthentication())
         .getCredentials()
         .getAccessToken()
         .getTokenValue();

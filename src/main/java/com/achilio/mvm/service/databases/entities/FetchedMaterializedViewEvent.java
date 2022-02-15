@@ -8,9 +8,12 @@ public class FetchedMaterializedViewEvent {
   private final long createdAt;
   private final String operationType;
 
-  public FetchedMaterializedViewEvent(final String name, final String datasetName,
+  public FetchedMaterializedViewEvent(
+      final String name,
+      final String datasetName,
       final String tableName,
-      final long createdAt, final String operationType) {
+      final long createdAt,
+      final String operationType) {
     this.name = name;
     this.datasetName = datasetName;
     this.tableName = tableName;

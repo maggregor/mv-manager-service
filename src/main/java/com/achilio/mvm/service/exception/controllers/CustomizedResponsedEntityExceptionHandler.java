@@ -13,9 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
-/**
- * Handling exceptions with proper response.
- */
+/** Handling exceptions with proper response. */
 @RestController
 @ControllerAdvice
 public class CustomizedResponsedEntityExceptionHandler extends ResponseEntityExceptionHandler {
@@ -42,9 +40,7 @@ public class CustomizedResponsedEntityExceptionHandler extends ResponseEntityExc
     return new ResponseEntity<Object>(exResponse, HttpStatus.UNAUTHORIZED);
   }
 
-  /**
-   * Handling invalid User Fields send in the request.
-   */
+  /** Handling invalid User Fields send in the request. */
   protected ResponseEntity<Object> handleMethodArgumentNotValid(
       MethodArgumentNotValidException ex,
       HttpHeaders headers,

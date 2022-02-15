@@ -51,8 +51,7 @@ public class SimpleGoogleCredentialsAuthentication implements Authentication {
   }
 
   @Override
-  public void setAuthenticated(boolean b) throws IllegalArgumentException {
-  }
+  public void setAuthenticated(boolean b) throws IllegalArgumentException {}
 
   @Override
   public String getName() {

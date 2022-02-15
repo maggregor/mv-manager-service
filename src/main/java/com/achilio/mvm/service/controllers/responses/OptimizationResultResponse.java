@@ -36,7 +36,6 @@ public class OptimizationResultResponse {
     this.projectId = projectId;
   }
 
-
   public String getTableName() {
     return tableName;
   }

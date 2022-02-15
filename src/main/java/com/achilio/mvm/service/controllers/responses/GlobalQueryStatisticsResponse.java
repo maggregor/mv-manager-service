@@ -9,6 +9,7 @@ public class GlobalQueryStatisticsResponse {
 
   @JsonProperty("global")
   private QueryStatistics global;
+
   @JsonProperty("details")
   private Map<String, QueryStatistics> details;
 

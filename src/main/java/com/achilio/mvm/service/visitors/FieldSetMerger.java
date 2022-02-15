@@ -7,19 +7,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/**
- * Merge FieldSet statistics.
- */
+/** Merge FieldSet statistics. */
 public class FieldSetMerger {
 
   /**
    * Merge QueryUsageStatistics
-   * <p>
-   * ie: Field1, Field2, 100Mb scanned Field1, Field2, 100Mb scanned Field3, 50Mb scanned
-   * </p>
-   * <p>
-   * output: Field1, Field2, 200Mb scanned Field3, 50Mb scanned
-   * </p>
+   *
+   * <p>ie: Field1, Field2, 100Mb scanned Field1, Field2, 100Mb scanned Field3, 50Mb scanned
+   *
+   * <p>output: Field1, Field2, 200Mb scanned Field3, 50Mb scanned
    *
    * @param fieldSets - Input FieldSet
    * @return merged fieldset
@@ -33,9 +29,12 @@ public class FieldSetMerger {
         merged.get(fieldSet).addQueryUsageStatistics(fieldSet.getStatistics());
       }
     }
-    return merged.entrySet().stream().map(entry -> {
-      entry.getKey().setStatistics(entry.getValue());
-      return entry.getKey();
-    }).collect(Collectors.toList());
+    return merged.entrySet().stream()
+        .map(
+            entry -> {
+              entry.getKey().setStatistics(entry.getValue());
+              return entry.getKey();
+            })
+        .collect(Collectors.toList());
   }
 }

@@ -25,5 +25,4 @@ public class OptimizationEventTest {
     assertEquals(StatusType.OPTIMIZING_FIELD_SETS, event.getStatusType());
     assertEquals(mockOptimization, event.getOptimization());
   }
-
 }

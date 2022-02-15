@@ -9,9 +9,7 @@ import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import java.util.List;
 import java.util.Set;
 
-/**
- * Database fetcher interface
- */
+/** Database fetcher interface */
 public interface DatabaseFetcher {
 
   /**

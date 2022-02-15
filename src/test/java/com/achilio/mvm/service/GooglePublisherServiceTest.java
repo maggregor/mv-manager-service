@@ -39,7 +39,8 @@ public class GooglePublisherServiceTest {
   public void buildPublishMessage() throws JsonProcessingException {
     List<OptimizationResult> mockResults;
     String jsonResults;
-    final String expected = "[{\"dataset1\":\"query1\"},{\"dataset2\":\"query2\"},{\"dataset3\":\"query3\"}]";
+    final String expected =
+        "[{\"dataset1\":\"query1\"},{\"dataset2\":\"query2\"},{\"dataset3\":\"query3\"}]";
     OptimizationResult mockResultNullStatement = mock(OptimizationResult.class);
     when(mockResultNullStatement.getStatement()).thenReturn(null);
     mockResults = Lists.newArrayList(result1, result2, result3);
@@ -50,5 +51,4 @@ public class GooglePublisherServiceTest {
     jsonResults = service.buildMaterializedViewsMessage(mockResults);
     assertEquals(expected, jsonResults);
   }
-
 }

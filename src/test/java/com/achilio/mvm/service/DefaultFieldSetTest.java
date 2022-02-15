@@ -19,21 +19,19 @@ import org.springframework.test.context.junit4.SpringRunner;
 public class DefaultFieldSetTest {
 
   private static final FieldSet FIELD_SET_1 =
-      FieldSetHelper.createFieldSet(new AggregateField("SUM(col1)"),
-          new FunctionField("CONCAT(col1, col2)"));
+      FieldSetHelper.createFieldSet(
+          new AggregateField("SUM(col1)"), new FunctionField("CONCAT(col1, col2)"));
   private static final FieldSet FIELD_SET_SAME_AS_1 =
-      FieldSetHelper.createFieldSet(new AggregateField("SUM(col1)"),
-          new FunctionField("CONCAT(col1, col2)"));
+      FieldSetHelper.createFieldSet(
+          new AggregateField("SUM(col1)"), new FunctionField("CONCAT(col1, col2)"));
   private static final FieldSet FIELD_SET_SAME_AS_1_DIFF_SORT =
-      FieldSetHelper.createFieldSet(new FunctionField("CONCAT(col1, col2)"),
-          new AggregateField("SUM(col1)"));
+      FieldSetHelper.createFieldSet(
+          new FunctionField("CONCAT(col1, col2)"), new AggregateField("SUM(col1)"));
   private static final FieldSet FIELD_SET_2 =
       FieldSetHelper.createFieldSet(new ReferenceField("col1"), new ReferenceField("col2"));
   private static final FieldSet FIELD_SET_3 =
       FieldSetHelper.createFieldSet(
-          new ReferenceField("col1"),
-          new AggregateField("MAX(col2)"),
-          new ReferenceField("col3"));
+          new ReferenceField("col1"), new AggregateField("MAX(col2)"), new ReferenceField("col3"));
   private static final FieldSet FIELD_SET_4 =
       FieldSetHelper.createFieldSet(new AggregateField("SUM(col10000)"));
 

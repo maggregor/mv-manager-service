@@ -39,5 +39,4 @@ public class ZetaSQLFetchedQueryElectorVisitor extends ResolvedNodes.Visitor {
     query.removeQueryIneligibilityReason(DOES_NOT_FILTER_OR_AGGREGATE);
     super.visit(node);
   }
-
 }

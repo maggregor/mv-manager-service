@@ -20,9 +20,7 @@ public interface FieldSetAnalyzer {
    * @return
    */
   default List<FieldSet> extract(List<FetchedQuery> fetchedQueries) {
-    return fetchedQueries.stream()
-        .map(this::extract)
-        .collect(Collectors.toList());
+    return fetchedQueries.stream().map(this::extract).collect(Collectors.toList());
   }
 
   /**

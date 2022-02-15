@@ -14,10 +14,9 @@ import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
-
 public class OptimizationResultTest {
 
-  private final static String SIMPLE_STATEMENT = "CREATE MATERIALIZED VIEW ...";
+  private static final String SIMPLE_STATEMENT = "CREATE MATERIALIZED VIEW ...";
   private final Optimization mockOptimization = mock(Optimization.class);
   private final FetchedTable mockFetchedTable = mock(FetchedTable.class);
 
@@ -30,8 +29,8 @@ public class OptimizationResultTest {
 
   @Test
   public void simpleValidation() {
-    OptimizationResult result = new OptimizationResult(
-        mockOptimization, mockFetchedTable, SIMPLE_STATEMENT);
+    OptimizationResult result =
+        new OptimizationResult(mockOptimization, mockFetchedTable, SIMPLE_STATEMENT);
     assertEquals(SIMPLE_STATEMENT, result.getStatement());
     assertEquals("myProject", result.getProjectId());
     assertEquals("myDataset", result.getDatasetName());
@@ -49,5 +48,4 @@ public class OptimizationResultTest {
     assertNull(result.getId());
     assertNull(result.getOptimization());
   }
-
 }

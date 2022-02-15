@@ -4,9 +4,7 @@ import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-/**
- * Represents a field in sql query. Can be a function, an aggregate or reference to a column.
- */
+/** Represents a field in sql query. Can be a function, an aggregate or reference to a column. */
 public abstract class Field {
 
   private static final String ALIAS_PREFIX = "a_";
@@ -55,14 +53,14 @@ public abstract class Field {
 
     Field field = (Field) o;
 
-    return new EqualsBuilder().append(expression, field.expression)
-        .append(alias, field.alias).isEquals();
+    return new EqualsBuilder()
+        .append(expression, field.expression)
+        .append(alias, field.alias)
+        .isEquals();
   }
 
   @Override
   public int hashCode() {
-    return new HashCodeBuilder(17, 37)
-        .append(expression)
-        .append(alias).toHashCode();
+    return new HashCodeBuilder(17, 37).append(expression).append(alias).toHashCode();
   }
 }
