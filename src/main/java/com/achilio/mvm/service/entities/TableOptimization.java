@@ -35,13 +35,10 @@ public class TableOptimization {
   @Column(name = "created_date", nullable = false)
   private Date createdDate;
 
-  public TableOptimization() {
-  }
+  public TableOptimization() {}
 
   public TableOptimization(
-      final String projectId,
-      final String datasetName,
-      final String tableName) {
+      final String projectId, final String datasetName, final String tableName) {
     this.projectId = projectId;
     this.datasetName = datasetName;
     this.tableName = tableName;

@@ -35,5 +35,4 @@ public abstract class FieldSetExtractVisitor extends ResolvedNodes.Visitor {
   public FieldSet fieldSet() {
     return fieldSet;
   }
-
 }

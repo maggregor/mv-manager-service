@@ -2,10 +2,10 @@ package com.achilio.mvm.service;
 
 public class OptimizerFactory {
 
-  private static final OptimizerStrategyType DEFAULT_STRATEGY_TYPE = OptimizerStrategyType.DONT_DO_NOTHING;
+  private static final OptimizerStrategyType DEFAULT_STRATEGY_TYPE =
+      OptimizerStrategyType.DONT_DO_NOTHING;
 
-  private OptimizerFactory() {
-  }
+  private OptimizerFactory() {}
 
   public static Optimizer createOptimizerWithDefaultStrategy() {
     return createOptimizer(DEFAULT_STRATEGY_TYPE);
@@ -20,5 +20,4 @@ public class OptimizerFactory {
     }
     throw new IllegalArgumentException("Factory doesn't support this strategy: " + strategyType);
   }
-
 }

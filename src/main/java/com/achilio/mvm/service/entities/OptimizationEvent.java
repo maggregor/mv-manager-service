@@ -25,8 +25,7 @@ public class OptimizationEvent {
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Long id;
 
-  @ManyToOne
-  private Optimization optimization;
+  @ManyToOne private Optimization optimization;
 
   @CreatedDate
   @Column(name = "created_date", nullable = false)
@@ -36,8 +35,7 @@ public class OptimizationEvent {
   @Column(name = "status", nullable = false)
   private StatusType status;
 
-  public OptimizationEvent() {
-  }
+  public OptimizationEvent() {}
 
   public OptimizationEvent(Optimization optimization, StatusType statusType) {
     this.optimization = optimization;

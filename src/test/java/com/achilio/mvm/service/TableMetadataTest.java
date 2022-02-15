@@ -31,5 +31,4 @@ public class TableMetadataTest {
     assertNull(tableMetadata.getId());
     assertFalse(tableMetadata.isEnabled());
   }
-
 }

@@ -11,5 +11,4 @@ public class ZetaSQLFieldSetAnalyzerTest extends FieldSetAnalyzerTest {
   protected FieldSetAnalyzer createFieldSetExtract(String projectName, Set<FetchedTable> tables) {
     return new ZetaSQLExtract(projectName, tables);
   }
-
 }

@@ -174,24 +174,25 @@ public class BigQueryDatabaseFetcherTest {
 
   @Test
   public void queryContainsComments() {
-    final String REGULAR_SUPERSET_QUERY = "-- 6dcd92a04feb50f14bbcf07c661680ba\n"
-        + "SELECT TIMESTAMP_TRUNC(`pickup_datetime`, WEEK) AS `__timestamp`,\n"
-        + "       `passenger_count` AS `passenger_count`,\n"
-        + "       sum(`tip_amount`) AS `SUM_tip_amount__f2041`\n"
-        + "FROM `nyc_trips`.`tlc_yellow_trips_2015_small`\n"
-        + "WHERE `payment_type` IN ('2',\n"
-        + "                         '3')\n"
-        + "  AND `passenger_count` IN (2,\n"
-        + "                            4,\n"
-        + "                            0,\n"
-        + "                            6,\n"
-        + "                            1)\n"
-        + "  AND `rate_code` <= 41\n"
-        + "GROUP BY `passenger_count`,\n"
-        + "         `__timestamp`\n"
-        + "ORDER BY SUM_tip_amount__f2041 DESC\n"
-        + "LIMIT 10000\n"
-        + "-- 6dcd92a04feb50f14bbcf07c661680ba";
+    final String REGULAR_SUPERSET_QUERY =
+        "-- 6dcd92a04feb50f14bbcf07c661680ba\n"
+            + "SELECT TIMESTAMP_TRUNC(`pickup_datetime`, WEEK) AS `__timestamp`,\n"
+            + "       `passenger_count` AS `passenger_count`,\n"
+            + "       sum(`tip_amount`) AS `SUM_tip_amount__f2041`\n"
+            + "FROM `nyc_trips`.`tlc_yellow_trips_2015_small`\n"
+            + "WHERE `payment_type` IN ('2',\n"
+            + "                         '3')\n"
+            + "  AND `passenger_count` IN (2,\n"
+            + "                            4,\n"
+            + "                            0,\n"
+            + "                            6,\n"
+            + "                            1)\n"
+            + "  AND `rate_code` <= 41\n"
+            + "GROUP BY `passenger_count`,\n"
+            + "         `__timestamp`\n"
+            + "ORDER BY SUM_tip_amount__f2041 DESC\n"
+            + "LIMIT 10000\n"
+            + "-- 6dcd92a04feb50f14bbcf07c661680ba";
     assertTrue(fetcher.isRegularSelectQuery(REGULAR_SUPERSET_QUERY));
   }
 

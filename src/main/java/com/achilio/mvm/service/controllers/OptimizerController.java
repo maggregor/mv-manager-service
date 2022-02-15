@@ -21,8 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 public class OptimizerController {
 
-  @Autowired
-  private OptimizerService service;
+  @Autowired private OptimizerService service;
 
   @GetMapping(path = "/optimize/{projectId}", produces = "application/json")
   @ApiOperation("Get all optimizations by projectId")
@@ -42,13 +41,10 @@ public class OptimizerController {
         .collect(Collectors.toList());
   }*/
 
-  @GetMapping(
-      path = "/optimize/{projectId}/{optimizationId}",
-      produces = "application/json")
+  @GetMapping(path = "/optimize/{projectId}/{optimizationId}", produces = "application/json")
   @ApiOperation("Get a single optimization from a project and dataset with its results")
   public OptimizationResultsResponse getOptimizationResults(
-      @PathVariable final String projectId,
-      @PathVariable final Long optimizationId) {
+      @PathVariable final String projectId, @PathVariable final Long optimizationId) {
     Optimization optimization = service.getOptimization(projectId, optimizationId);
     List<OptimizationResult> optimizationResults =
         service.getOptimizationResults(projectId, optimizationId);
@@ -57,8 +53,8 @@ public class OptimizerController {
 
   @PostMapping(path = "/optimize/{projectId}/days/{days}", produces = "application/json")
   @ApiOperation("Trigger an optimization on a projectId")
-  public OptimizationResponse optimizeProject(@PathVariable("projectId") String projectId,
-      @PathVariable("days") int days)
+  public OptimizationResponse optimizeProject(
+      @PathVariable("projectId") String projectId, @PathVariable("days") int days)
       throws Exception {
     Optimization optimization = service.optimizeProject(projectId, days);
     return new OptimizationResponse(optimization);

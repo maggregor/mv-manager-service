@@ -21,17 +21,14 @@ public class TableMetadata {
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Long id;
 
-  @ManyToOne
-  private ProjectMetadata projectMetadata;
+  @ManyToOne private ProjectMetadata projectMetadata;
 
   @Column(name = "enabled", nullable = false)
   private boolean enabled;
 
-  public TableMetadata() {
-  }
+  public TableMetadata() {}
 
-  public TableMetadata(ProjectMetadata projectMetadata,
-      boolean enabled) {
+  public TableMetadata(ProjectMetadata projectMetadata, boolean enabled) {
     this.projectMetadata = projectMetadata;
     this.enabled = enabled;
   }

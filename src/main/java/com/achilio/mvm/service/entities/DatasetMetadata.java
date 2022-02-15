@@ -21,8 +21,7 @@ public class DatasetMetadata {
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Long id;
 
-  @ManyToOne
-  private ProjectMetadata projectMetadata;
+  @ManyToOne private ProjectMetadata projectMetadata;
 
   @Column(name = "dataset_name", nullable = false)
   private String datasetName;
@@ -30,8 +29,7 @@ public class DatasetMetadata {
   @Column(name = "activated", nullable = false)
   private Boolean activated;
 
-  public DatasetMetadata() {
-  }
+  public DatasetMetadata() {}
 
   public DatasetMetadata(ProjectMetadata projectMetadata, String datasetName, Boolean activated) {
     this.projectMetadata = projectMetadata;

@@ -36,7 +36,6 @@ public class ZetaSQLExtract extends ZetaSQLModelBuilder implements FieldSetAnaly
     super(projectName, tables);
   }
 
-
   private AnalyzerOptions defaultAnalyzerOptions() {
     AnalyzerOptions options = new AnalyzerOptions();
     LanguageOptions languageOptions = options.getLanguageOptions();
@@ -79,10 +78,11 @@ public class ZetaSQLExtract extends ZetaSQLModelBuilder implements FieldSetAnaly
   @Override
   public void discoverFetchedTable(FetchedQuery fetchedQuery) {
     List<List<String>> allPaths = findTablePaths(fetchedQuery);
-    Set<FetchedTable> tables = allPaths.stream()
-        .map(this::findFetchedTableByPath)
-        .filter(Objects::nonNull)
-        .collect(Collectors.toSet());
+    Set<FetchedTable> tables =
+        allPaths.stream()
+            .map(this::findFetchedTableByPath)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toSet());
     fetchedQuery.setReferenceTables(tables);
     if (tables.isEmpty()) {
       LOGGER.debug("No one table path found for this query: " + fetchedQuery.getQuery());
@@ -125,5 +125,4 @@ public class ZetaSQLExtract extends ZetaSQLModelBuilder implements FieldSetAnaly
       return Collections.emptyList();
     }
   }
-
 }

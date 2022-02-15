@@ -21,5 +21,4 @@ public class FieldTest {
     assertEquals(ref1, ref1clone);
     assertNotEquals(ref1, ref2);
   }
-
 }

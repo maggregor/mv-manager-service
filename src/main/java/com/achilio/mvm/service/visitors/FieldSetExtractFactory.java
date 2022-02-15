@@ -13,5 +13,4 @@ public class FieldSetExtractFactory {
   public static FieldSetAnalyzer createFieldSetExtract(String projectId, Set<FetchedTable> tables) {
     return new ZetaSQLExtract(projectId, tables);
   }
-
 }
