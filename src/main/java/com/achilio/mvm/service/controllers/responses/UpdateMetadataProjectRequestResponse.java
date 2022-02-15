@@ -32,5 +32,7 @@ public class UpdateMetadataProjectRequestResponse {
     return automatic;
   }
 
-  public void setAutomatic(Boolean automatic) { this.automatic = automatic; }
+  public void setAutomatic(Boolean automatic) {
+    this.automatic = automatic;
+  }
 }

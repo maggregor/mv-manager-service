@@ -29,7 +29,8 @@ public class ProjectMetadata {
   @Column(name = "automatic", nullable = false, columnDefinition = "boolean default false")
   private Boolean automatic;
 
-  public ProjectMetadata() {}
+  public ProjectMetadata() {
+  }
 
   public ProjectMetadata(String projectId, Boolean activated, Boolean automatic) {
     this.projectId = projectId;

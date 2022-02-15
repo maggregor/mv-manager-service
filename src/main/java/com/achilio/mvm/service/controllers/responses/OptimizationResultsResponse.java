@@ -22,5 +22,5 @@ public class OptimizationResultsResponse {
   public List<OptimizationResult> getResults() {
     return results;
   }
-  
+
 }
