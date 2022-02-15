@@ -4,8 +4,8 @@ import com.achilio.mvm.service.controllers.responses.DatasetResponse;
 import com.achilio.mvm.service.controllers.responses.GlobalQueryStatisticsResponse;
 import com.achilio.mvm.service.controllers.responses.ProjectResponse;
 import com.achilio.mvm.service.controllers.responses.TableResponse;
-import com.achilio.mvm.service.controllers.responses.UpdateMetadataDatasetRequestResponse;
-import com.achilio.mvm.service.controllers.responses.UpdateMetadataProjectRequestResponse;
+import com.achilio.mvm.service.controllers.responses.UpdateDatasetRequestResponse;
+import com.achilio.mvm.service.controllers.responses.UpdateProjectRequestResponse;
 import com.achilio.mvm.service.databases.entities.FetchedDataset;
 import com.achilio.mvm.service.databases.entities.FetchedMaterializedViewEvent;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
@@ -15,7 +15,7 @@ import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics;
 import com.achilio.mvm.service.services.FetcherService;
 import com.achilio.mvm.service.services.FetcherService.StatEntry;
 import com.achilio.mvm.service.services.GooglePublisherService;
-import com.achilio.mvm.service.services.MetadataService;
+import com.achilio.mvm.service.services.ProjectService;
 import com.achilio.mvm.service.visitors.FieldSetAnalyzer;
 import com.achilio.mvm.service.visitors.FieldSetExtractFactory;
 import io.swagger.annotations.ApiOperation;
@@ -44,7 +44,7 @@ public class ProjectController {
 
   private static Logger LOGGER = LoggerFactory.getLogger(ProjectController.class);
 
-  @Autowired private MetadataService metadataService;
+  @Autowired private ProjectService projectService;
   @Autowired private FetcherService fetcherService;
   @Autowired private GooglePublisherService googlePublisherService;
 
@@ -65,12 +65,11 @@ public class ProjectController {
   @Deprecated
   @GetMapping(path = "/project/{projectId}/metadata", produces = "application/json")
   @ApiOperation("Get a project for a given projectId")
-  public UpdateMetadataProjectRequestResponse getProjectMetadata(
-      @PathVariable final String projectId) {
-    final Boolean activated = metadataService.isProjectActivated(projectId);
-    final Boolean automatic = metadataService.isProjectAutomatic(projectId);
+  public UpdateProjectRequestResponse getProjectMetadata(@PathVariable final String projectId) {
+    final Boolean activated = projectService.isProjectActivated(projectId);
+    final Boolean automatic = projectService.isProjectAutomatic(projectId);
     final String planName = activated ? "Enterprise plan" : null; // TODO: Get real plan.
-    return new UpdateMetadataProjectRequestResponse(planName, activated, automatic);
+    return new UpdateProjectRequestResponse(planName, activated, automatic);
   }
 
   @PostMapping(path = "/project/{projectId}")
@@ -80,8 +79,7 @@ public class ProjectController {
   // something
   //  to where the user can follow the steps
   public void updateProject(
-      @PathVariable final String projectId,
-      @RequestBody final UpdateMetadataProjectRequestResponse payload)
+      @PathVariable final String projectId, @RequestBody final UpdateProjectRequestResponse payload)
       throws IOException, ExecutionException, InterruptedException {
     if (payload.isActivated() != null && payload.isActivated()) {
       LOGGER.info("Activating project {}", projectId);
@@ -97,7 +95,7 @@ public class ProjectController {
     if (payload.isAutomatic() == null) {
       payload.setAutomatic(false);
     }
-    metadataService.updateProject(projectId, payload.isActivated(), payload.isAutomatic());
+    projectService.updateProject(projectId, payload.isActivated(), payload.isAutomatic());
   }
 
   @PostMapping(path = "/project/{projectId}/dataset/{datasetName}", produces = "application/json")
@@ -105,8 +103,8 @@ public class ProjectController {
   public void updateDataset(
       @PathVariable final String projectId,
       @PathVariable final String datasetName,
-      @RequestBody final UpdateMetadataDatasetRequestResponse payload) {
-    metadataService.updateDataset(projectId, datasetName, payload.isActivated());
+      @RequestBody final UpdateDatasetRequestResponse payload) {
+    projectService.updateDataset(projectId, datasetName, payload.isActivated());
   }
 
   @GetMapping(path = "/project/{projectId}/dataset", produces = "application/json")
@@ -175,8 +173,8 @@ public class ProjectController {
 
   public ProjectResponse toProjectResponse(FetchedProject project) {
     final String projectId = project.getProjectId();
-    Boolean activated = metadataService.isProjectActivated(projectId);
-    Boolean automatic = metadataService.isProjectAutomatic(projectId);
+    Boolean activated = projectService.isProjectActivated(projectId);
+    Boolean automatic = projectService.isProjectAutomatic(projectId);
     return new ProjectResponse(projectId, project.getName(), activated, automatic);
   }
 
@@ -188,7 +186,7 @@ public class ProjectController {
     final String description = dataset.getDescription();
     final Long createdAt = dataset.getCreatedAt();
     final Long lastModified = dataset.getLastModified();
-    final boolean activated = metadataService.isDatasetActivated(projectId, datasetName);
+    final boolean activated = projectService.isDatasetActivated(projectId, datasetName);
     return new DatasetResponse(
         projectId,
         datasetName,

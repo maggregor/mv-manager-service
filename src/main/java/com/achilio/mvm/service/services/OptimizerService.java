@@ -48,7 +48,7 @@ public class OptimizerService {
 
   @Autowired private OptimizerResultRepository optimizerResultRepository;
 
-  @Autowired private MetadataService metadataService;
+  @Autowired private ProjectService projectService;
 
   @Autowired private FetcherService fetcherService;
   @Autowired private GooglePublisherService publisherService;
@@ -63,7 +63,7 @@ public class OptimizerService {
     List<FetchedDataset> datasets =
         fetcherService.fetchAllDatasets(projectId).parallelStream()
             .filter(
-                dataset -> metadataService.isDatasetActivated(projectId, dataset.getDatasetName()))
+                dataset -> projectService.isDatasetActivated(projectId, dataset.getDatasetName()))
             .collect(toList());
     LOGGER.info("Run a new optimization on {} with activated datasets {}", projectId, datasets);
     FetchedProject project = fetcherService.fetchProject(projectId);

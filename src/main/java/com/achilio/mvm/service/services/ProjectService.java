@@ -1,9 +1,9 @@
 package com.achilio.mvm.service.services;
 
-import com.achilio.mvm.service.entities.DatasetMetadata;
-import com.achilio.mvm.service.entities.ProjectMetadata;
-import com.achilio.mvm.service.repositories.DatasetMetadataRepository;
-import com.achilio.mvm.service.repositories.ProjectMetadataRepository;
+import com.achilio.mvm.service.entities.Dataset;
+import com.achilio.mvm.service.entities.Project;
+import com.achilio.mvm.service.repositories.DatasetRepository;
+import com.achilio.mvm.service.repositories.ProjectRepository;
 import java.util.Optional;
 import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,31 +11,31 @@ import org.springframework.stereotype.Service;
 
 /** Services to manage project and dataset resources. */
 @Service
-public class MetadataService {
+public class ProjectService {
 
-  @Autowired private ProjectMetadataRepository projectRepository;
-  @Autowired private DatasetMetadataRepository datasetRepository;
+  @Autowired private ProjectRepository projectRepository;
+  @Autowired private DatasetRepository datasetRepository;
 
-  public MetadataService() {}
+  public ProjectService() {}
 
   public Boolean isProjectActivated(String projectId) {
-    Optional<ProjectMetadata> projectMetadata = getProject(projectId);
+    Optional<Project> projectMetadata = getProject(projectId);
     return projectMetadata.isPresent() && projectMetadata.get().isActivated();
   }
 
   public Boolean isProjectAutomatic(String projectId) {
-    Optional<ProjectMetadata> projectMetadata = getProject(projectId);
+    Optional<Project> projectMetadata = getProject(projectId);
     return projectMetadata.isPresent() && projectMetadata.get().isAutomatic();
   }
 
-  private Optional<ProjectMetadata> getProject(String projectId) {
+  private Optional<Project> getProject(String projectId) {
     return projectRepository.findByProjectId(projectId);
   }
 
   private void registerProjectIfNotExists(String projectId, Boolean activated, Boolean automatic) {
     if (!projectExists(projectId)) {
-      ProjectMetadata projectMetadata = new ProjectMetadata(projectId, activated, automatic);
-      projectRepository.save(projectMetadata);
+      Project project = new Project(projectId, activated, automatic, username);
+      projectRepository.save(project);
     }
   }
 
@@ -46,14 +46,14 @@ public class MetadataService {
   @Transactional
   public void updateProject(String projectId, Boolean activated, Boolean automatic) {
     registerProjectIfNotExists(projectId, activated, automatic);
-    ProjectMetadata projectMetadata = getProject(projectId).get();
-    projectMetadata.setActivated(activated);
-    projectMetadata.setAutomatic(automatic);
-    projectRepository.save(projectMetadata);
+    Project project = getProject(projectId).get();
+    project.setActivated(activated);
+    project.setAutomatic(automatic);
+    projectRepository.save(project);
   }
 
-  private Optional<DatasetMetadata> getDataset(String projectId, String datasetName) {
-    Optional<ProjectMetadata> projectMetadata = getProject(projectId);
+  private Optional<Dataset> getDataset(String projectId, String datasetName) {
+    Optional<Project> projectMetadata = getProject(projectId);
     if (!projectMetadata.isPresent()) {
       return Optional.empty();
     }
@@ -61,7 +61,7 @@ public class MetadataService {
         projectMetadata.get(), datasetName);
   }
 
-  private boolean datasetExists(Optional<ProjectMetadata> projectMetadata, String datasetName) {
+  private boolean datasetExists(Optional<Project> projectMetadata, String datasetName) {
     return projectMetadata
         .filter(
             project ->
@@ -72,24 +72,23 @@ public class MetadataService {
   }
 
   private void registerDatasetIfNotExists(String projectId, String datasetName, Boolean activated) {
-    Optional<ProjectMetadata> projectMetadata = getProject(projectId);
+    Optional<Project> projectMetadata = getProject(projectId);
     if (!datasetExists(projectMetadata, datasetName)) {
-      DatasetMetadata datasetMetadata =
-          new DatasetMetadata(projectMetadata.get(), datasetName, activated);
-      datasetRepository.save(datasetMetadata);
+      Dataset dataset = new Dataset(projectMetadata.get(), datasetName, activated);
+      datasetRepository.save(dataset);
     }
   }
 
   @Transactional
   public void updateDataset(String projectId, String datasetName, Boolean activated) {
     registerDatasetIfNotExists(projectId, datasetName, activated);
-    DatasetMetadata datasetMetadata = getDataset(projectId, datasetName).get();
-    datasetMetadata.setActivated(activated);
-    datasetRepository.save(datasetMetadata);
+    Dataset dataset = getDataset(projectId, datasetName).get();
+    dataset.setActivated(activated);
+    datasetRepository.save(dataset);
   }
 
   public boolean isDatasetActivated(String projectId, String datasetName) {
-    Optional<DatasetMetadata> datasetMetadata = getDataset(projectId, datasetName);
-    return datasetMetadata.map(DatasetMetadata::isActivated).orElse(false);
+    Optional<Dataset> datasetMetadata = getDataset(projectId, datasetName);
+    return datasetMetadata.map(Dataset::isActivated).orElse(false);
   }
 }

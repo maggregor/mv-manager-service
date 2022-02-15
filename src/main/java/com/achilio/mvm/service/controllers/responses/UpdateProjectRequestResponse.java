@@ -2,7 +2,7 @@ package com.achilio.mvm.service.controllers.responses;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class UpdateMetadataProjectRequestResponse {
+public class UpdateProjectRequestResponse {
 
   @JsonProperty("planName")
   private final String planName;
@@ -13,8 +13,7 @@ public class UpdateMetadataProjectRequestResponse {
   @JsonProperty("automatic")
   private Boolean automatic;
 
-  public UpdateMetadataProjectRequestResponse(
-      String planName, Boolean activated, Boolean automatic) {
+  public UpdateProjectRequestResponse(String planName, Boolean activated, Boolean automatic) {
     this.planName = planName;
     this.activated = activated;
     this.automatic = automatic;

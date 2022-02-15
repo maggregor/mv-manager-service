@@ -6,62 +6,46 @@ import javax.persistence.EntityListeners;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 @Entity
-@Table(name = "projects_metadata")
+@Table(name = "datasets_metadata")
 @EnableJpaAuditing
 @EntityListeners(AuditingEntityListener.class)
-public class ProjectMetadata {
+public class Dataset {
 
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Long id;
 
-  @Column(name = "project_id", nullable = false)
-  private String projectId;
+  @ManyToOne private Project project;
+
+  @Column(name = "dataset_name", nullable = false)
+  private String datasetName;
 
   @Column(name = "activated", nullable = false)
   private Boolean activated;
 
-  @Column(name = "automatic", nullable = false, columnDefinition = "boolean default false")
-  private Boolean automatic;
+  public Dataset() {}
 
-  public ProjectMetadata() {}
-
-  public ProjectMetadata(String projectId, Boolean activated, Boolean automatic) {
-    this.projectId = projectId;
+  public Dataset(Project project, String datasetName, Boolean activated) {
+    this.project = project;
+    this.datasetName = datasetName;
     this.activated = activated;
-    this.automatic = automatic;
   }
 
   public Long getId() {
     return id;
   }
 
-  public String getProjectId() {
-    return projectId;
-  }
-
-  public Boolean isActivated() {
+  public boolean isActivated() {
     return activated;
   }
 
-  public Boolean isAutomatic() {
-    return automatic;
-  }
-
-  public void setAutomatic(Boolean automatic) {
-    if (automatic != null) {
-      this.automatic = automatic;
-    }
-  }
-
   public void setActivated(Boolean activated) {
-    if (activated != null) {
-      this.activated = activated;
-    }
+    this.activated = activated;
   }
 }
