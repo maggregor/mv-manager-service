@@ -1,5 +1,6 @@
 package com.achilio.mvm.service.controllers;
 
+import com.achilio.mvm.service.controllers.requests.OptimizeProjectRequest;
 import com.achilio.mvm.service.controllers.responses.OptimizationResponse;
 import com.achilio.mvm.service.controllers.responses.OptimizationResultsResponse;
 import com.achilio.mvm.service.entities.Optimization;
@@ -9,10 +10,12 @@ import io.swagger.annotations.ApiOperation;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -24,7 +27,7 @@ public class OptimizerController {
   @Autowired
   private OptimizerService service;
 
-  @GetMapping(path = "/optimize/{projectId}", produces = "application/json")
+  @GetMapping(path = "/optimize/{projectId}", produces = MediaType.APPLICATION_JSON_VALUE)
   @ApiOperation("Get all optimizations by projectId")
   public List<OptimizationResponse> getAllOptimizationByProject(
       @PathVariable final String projectId) {
@@ -33,34 +36,25 @@ public class OptimizerController {
         .collect(Collectors.toList());
   }
 
-  /*@GetMapping(path = "/optimize/{projectId}/{datasetName}", produces = "application/json")
-  @ApiOperation("Get all optimizations by datasetName")
-  public List<OptimizationResponse> getAllOptimizationByProjectAndDatasetName(
-      @PathVariable final String projectId, @PathVariable final String datasetName) {
-    return service.getAllOptimizationByProjectAndDataset(projectId, datasetName).stream()
-        .map(OptimizationResponse::new)
-        .collect(Collectors.toList());
-  }*/
+  @PostMapping(path = "/optimize/{projectId}", produces = MediaType.APPLICATION_JSON_VALUE)
+  @ApiOperation("Trigger an optimization on a projectId")
+  public OptimizationResponse optimizeProject(
+      @PathVariable("projectId") String projectId, @RequestBody OptimizeProjectRequest payload)
+      throws Exception {
+
+    Optimization optimization = service.optimizeProject(projectId, payload.getDays());
+    return new OptimizationResponse(optimization);
+  }
 
   @GetMapping(
       path = "/optimize/{projectId}/{optimizationId}",
-      produces = "application/json")
+      produces = MediaType.APPLICATION_JSON_VALUE)
   @ApiOperation("Get a single optimization from a project and dataset with its results")
   public OptimizationResultsResponse getOptimizationResults(
-      @PathVariable final String projectId,
-      @PathVariable final Long optimizationId) {
+      @PathVariable final String projectId, @PathVariable final Long optimizationId) {
     Optimization optimization = service.getOptimization(projectId, optimizationId);
     List<OptimizationResult> optimizationResults =
         service.getOptimizationResults(projectId, optimizationId);
     return new OptimizationResultsResponse(optimization, optimizationResults);
-  }
-
-  @PostMapping(path = "/optimize/{projectId}/days/{days}", produces = "application/json")
-  @ApiOperation("Trigger an optimization on a projectId")
-  public OptimizationResponse optimizeProject(@PathVariable("projectId") String projectId,
-      @PathVariable("days") int days)
-      throws Exception {
-    Optimization optimization = service.optimizeProject(projectId, days);
-    return new OptimizationResponse(optimization);
   }
 }
