@@ -21,6 +21,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 @EntityListeners(AuditingEntityListener.class)
 public class OptimizationResult {
 
+  private static final String MV_NAME_PREFIX = "achilio_";
+
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Long id;
@@ -38,6 +40,9 @@ public class OptimizationResult {
 
   @Column(name = "statement", nullable = false, length = 65536)
   private String statement;
+
+  @Column(name = "mv_name", nullable = false, columnDefinition = "varchar(255) default 'undefined'")
+  private String mvName;
 
   @Enumerated(EnumType.STRING)
   @Column(
@@ -68,6 +73,7 @@ public class OptimizationResult {
     this.tableName = referenceTable.getTableName();
     this.status = Status.UNDEFINED;
     this.statement = statement;
+    this.mvName = MV_NAME_PREFIX + Math.abs(statement.hashCode());
     if (statistics != null) {
       this.totalProcessedBytes = statistics.getProcessedBytes();
       this.queries = statistics.getQueryCount();
@@ -82,6 +88,10 @@ public class OptimizationResult {
 
   public String getStatement() {
     return this.statement;
+  }
+
+  public String getMvName() {
+    return this.mvName;
   }
 
   public Optimization getOptimization() {

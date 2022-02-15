@@ -33,6 +33,9 @@ public class GooglePublisherServiceTest {
     when(result1.getDatasetName()).thenReturn("dataset1");
     when(result2.getDatasetName()).thenReturn("dataset2");
     when(result3.getDatasetName()).thenReturn("dataset3");
+    when(result1.getMvName()).thenReturn("achilio_12345");
+    when(result2.getMvName()).thenReturn("achilio_67890");
+    when(result3.getMvName()).thenReturn("achilio_13579");
   }
 
   @Test
@@ -40,7 +43,7 @@ public class GooglePublisherServiceTest {
     List<OptimizationResult> mockResults;
     String jsonResults;
     final String expected =
-        "[{\"dataset1\":\"query1\"},{\"dataset2\":\"query2\"},{\"dataset3\":\"query3\"}]";
+        "[{\"datasetName\":\"dataset1\",\"statement\":\"query1\",\"mmvName\":\"achilio_12345\"},{\"datasetName\":\"dataset2\",\"statement\":\"query2\",\"mmvName\":\"achilio_67890\"},{\"datasetName\":\"dataset3\",\"statement\":\"query3\",\"mmvName\":\"achilio_13579\"}]";
     OptimizationResult mockResultNullStatement = mock(OptimizationResult.class);
     when(mockResultNullStatement.getStatement()).thenReturn(null);
     mockResults = Lists.newArrayList(result1, result2, result3);

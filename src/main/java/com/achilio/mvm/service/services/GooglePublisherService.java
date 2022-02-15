@@ -11,10 +11,10 @@ import com.google.protobuf.ByteString;
 import com.google.pubsub.v1.PubsubMessage;
 import com.google.pubsub.v1.TopicName;
 import java.io.IOException;
-import java.util.AbstractMap.SimpleEntry;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Map.Entry;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -63,8 +63,12 @@ public class GooglePublisherService {
     publishMaterializedViews(projectId, materializedViews);
   }
 
-  private Entry<String, String> toEntry(OptimizationResult result) {
-    return new SimpleEntry<>(result.getDatasetName(), result.getStatement());
+  private Map<String, String> toEntry(OptimizationResult result) {
+    Map<String, String> m = new HashMap<>();
+    m.put("mmvName", result.getMvName());
+    m.put("datasetName", result.getDatasetName());
+    m.put("statement", result.getStatement());
+    return m;
   }
 
   private void publishMaterializedViews(String projectId, List<OptimizationResult> mViews) {
@@ -85,7 +89,7 @@ public class GooglePublisherService {
 
   public String buildMaterializedViewsMessage(List<OptimizationResult> mViews)
       throws JsonProcessingException {
-    List<Entry<String, String>> entries =
+    List<Map<String, String>> entries =
         mViews.stream()
             .filter(Objects::nonNull)
             .filter(result -> StringUtils.isNotEmpty(result.getStatement()))
