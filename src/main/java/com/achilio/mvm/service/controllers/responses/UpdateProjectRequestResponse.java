@@ -13,10 +13,15 @@ public class UpdateProjectRequestResponse {
   @JsonProperty("automatic")
   private Boolean automatic;
 
-  public UpdateProjectRequestResponse(String planName, Boolean activated, Boolean automatic) {
+  @JsonProperty("username")
+  private String username;
+
+  public UpdateProjectRequestResponse(
+      String planName, Boolean activated, Boolean automatic, String username) {
     this.planName = planName;
     this.activated = activated;
     this.automatic = automatic;
+    this.username = username;
   }
 
   public String getPlanName() {
@@ -33,5 +38,9 @@ public class UpdateProjectRequestResponse {
 
   public void setAutomatic(Boolean automatic) {
     this.automatic = automatic;
+  }
+
+  public String getUsername() {
+    return username;
   }
 }

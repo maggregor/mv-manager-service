@@ -62,16 +62,6 @@ public class ProjectController {
     return toProjectResponse(fetcherService.fetchProject(projectId));
   }
 
-  @Deprecated
-  @GetMapping(path = "/project/{projectId}/metadata", produces = "application/json")
-  @ApiOperation("Get a project for a given projectId")
-  public UpdateProjectRequestResponse getProjectMetadata(@PathVariable final String projectId) {
-    final Boolean activated = projectService.isProjectActivated(projectId);
-    final Boolean automatic = projectService.isProjectAutomatic(projectId);
-    final String planName = activated ? "Enterprise plan" : null; // TODO: Get real plan.
-    return new UpdateProjectRequestResponse(planName, activated, automatic);
-  }
-
   @PostMapping(path = "/project/{projectId}")
   @ApiOperation("Update metadata of a project")
   @ResponseStatus(HttpStatus.ACCEPTED)
@@ -87,15 +77,12 @@ public class ProjectController {
     }
     if (payload.isAutomatic() != null && payload.isAutomatic()) {
       LOGGER.info("Project {} is starting automatic mode", projectId);
-      // TODO: Send notif to a pubsub to update the schedulers
     } else if (payload.isActivated() != null && !payload.isActivated()) {
       LOGGER.info("Project {} is being deactivated. Turning off automatic mode", projectId);
       payload.setAutomatic(false);
     }
-    if (payload.isAutomatic() == null) {
-      payload.setAutomatic(false);
-    }
-    projectService.updateProject(projectId, payload.isActivated(), payload.isAutomatic());
+    projectService.updateProject(
+        projectId, payload.isActivated(), payload.isAutomatic(), payload.getUsername());
   }
 
   @PostMapping(path = "/project/{projectId}/dataset/{datasetName}", produces = "application/json")
@@ -175,7 +162,8 @@ public class ProjectController {
     final String projectId = project.getProjectId();
     Boolean activated = projectService.isProjectActivated(projectId);
     Boolean automatic = projectService.isProjectAutomatic(projectId);
-    return new ProjectResponse(projectId, project.getName(), activated, automatic);
+    String username = projectService.getProjectUsername(projectId);
+    return new ProjectResponse(projectId, project.getName(), activated, automatic, username);
   }
 
   public DatasetResponse toDatasetResponse(FetchedDataset dataset) {

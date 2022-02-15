@@ -16,12 +16,16 @@ public class ProjectResponse {
   @JsonProperty("automatic")
   private final Boolean automatic;
 
+  @JsonProperty("username")
+  private final String username;
+
   public ProjectResponse(
-      String projectId, String projectName, Boolean activated, Boolean automatic) {
+      String projectId, String projectName, Boolean activated, Boolean automatic, String username) {
     this.projectId = projectId;
     this.projectName = projectName;
     this.activated = activated;
     this.automatic = automatic;
+    this.username = username;
   }
 
   public String getProjectId() {
@@ -30,5 +34,9 @@ public class ProjectResponse {
 
   public String getProjectName() {
     return projectName;
+  }
+
+  public String getUsername() {
+    return username;
   }
 }

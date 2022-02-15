@@ -39,17 +39,23 @@ public class GooglePublisherService {
   private static final String CMD_TYPE_WORKSPACE = "workspace";
   private static final Logger LOGGER = LoggerFactory.getLogger(OptimizerApplication.class);
 
+  @Value("${publisher.enabled}")
+  private boolean PUBLISHER_ENABLED = true;
+
   @Value("${publisher.google-project-id}")
   private String PUBLISHER_GOOGLE_PROJECT_ID = "achilio-dev";
 
-  @Value("${publisher.google-topic-id}")
-  private String PUBLISHER_GOOGLE_TOPIC_ID = "mvExecutorTopic";
+  @Value("${publisher.executor-topic-id}")
+  private String PUBLISHER_EXECUTOR_TOPIC_ID = "mvExecutorTopic";
 
-  private final TopicName TOPIC_NAME =
-      TopicName.of(PUBLISHER_GOOGLE_PROJECT_ID, PUBLISHER_GOOGLE_TOPIC_ID);
+  private final TopicName EXECUTOR_TOPIC_NAME =
+      TopicName.of(PUBLISHER_GOOGLE_PROJECT_ID, PUBLISHER_EXECUTOR_TOPIC_ID);
 
-  @Value("${publisher.enabled}")
-  private boolean PUBLISHER_ENABLED = true;
+  @Value("${publisher.scheduler-topic-id}")
+  private String PUBLISHER_SCHEDULER_TOPIC_ID = "mvScheduleManagerTopic";
+
+  private final TopicName SCHEDULER_TOPIC_NAME =
+      TopicName.of(PUBLISHER_GOOGLE_PROJECT_ID, PUBLISHER_SCHEDULER_TOPIC_ID);
 
   public void publishOptimization(Optimization o, List<OptimizationResult> materializedViews) {
     final String projectId = o.getProjectId();
@@ -87,7 +93,8 @@ public class GooglePublisherService {
     try {
       String formattedMessage = buildMaterializedViewsMessage(mViews);
       publishMessage(
-          buildMaterializedViewsPubsubMessage(projectId, formattedMessage, CMD_TYPE_APPLY, true));
+          buildMaterializedViewsPubsubMessage(projectId, formattedMessage, CMD_TYPE_APPLY, true),
+          EXECUTOR_TOPIC_NAME);
       LOGGER.info("{} results published for the project {}", mViews.size(), projectId);
     } catch (JsonProcessingException e) {
       LOGGER.error("Error during results JSON formatting", e);
@@ -110,7 +117,9 @@ public class GooglePublisherService {
   public void publishProjectSchedulers(List<Project> projects) {
     try {
       String formattedMessage = buildSchedulerMessage(projects);
-      publishMessage(buildSchedulerPubSubMessage());
+      publishMessage(
+          buildSchedulerPubSubMessage(CMD_TYPE_APPLY, formattedMessage), SCHEDULER_TOPIC_NAME);
+      LOGGER.info("Published update of all projects schedulers");
     } catch (JsonProcessingException e) {
       LOGGER.error("Error during results JSON formatting", e);
     } catch (IOException | ExecutionException | InterruptedException e) {
@@ -124,7 +133,8 @@ public class GooglePublisherService {
         new ObjectMapper()
             .writeValueAsString(Collections.singletonList("Activating project " + projectId));
     publishMessage(
-        buildMaterializedViewsPubsubMessage(projectId, message, CMD_TYPE_WORKSPACE, false));
+        buildMaterializedViewsPubsubMessage(projectId, message, CMD_TYPE_WORKSPACE, false),
+        EXECUTOR_TOPIC_NAME);
   }
 
   public String buildSchedulerMessage(List<Project> projects) throws JsonProcessingException {
@@ -132,7 +142,7 @@ public class GooglePublisherService {
         projects.stream()
             .filter(Objects::nonNull)
             .filter(project -> StringUtils.isNotEmpty(project.getUsername()))
-            .filter(Project::isAutomatic)
+            .filter(Project::isAutomatic) // Should already be the case but just for safety
             .map(this::toProjectEntry)
             .collect(Collectors.toList());
     return new ObjectMapper().writeValueAsString(entries);
@@ -162,11 +172,11 @@ public class GooglePublisherService {
     return builder.build();
   }
 
-  public void publishMessage(PubsubMessage pubsubMessage)
+  public void publishMessage(PubsubMessage pubsubMessage, TopicName topicName)
       throws IOException, ExecutionException, InterruptedException {
     Publisher publisher = null;
     try {
-      publisher = Publisher.newBuilder(TOPIC_NAME).build();
+      publisher = Publisher.newBuilder(topicName).build();
       publisher.publish(pubsubMessage);
     } finally {
       if (publisher != null) {

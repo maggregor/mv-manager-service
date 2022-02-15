@@ -15,7 +15,7 @@ public class ProjectTest {
 
   @Test
   public void simpleValidation() {
-    Project project = new Project("myProject", true, false, username);
+    Project project = new Project("myProject", true, false, "myUser");
     assertEquals("myProject", project.getProjectId());
     assertTrue(project.isActivated());
     project.setActivated(false);
@@ -23,6 +23,7 @@ public class ProjectTest {
     assertFalse(project.isAutomatic());
     project.setAutomatic(true);
     assertTrue(project.isAutomatic());
+    assertEquals("myUser", project.getUsername());
   }
 
   @Test

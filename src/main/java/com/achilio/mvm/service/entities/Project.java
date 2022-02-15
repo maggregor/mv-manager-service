@@ -57,10 +57,12 @@ public class Project {
     return automatic;
   }
 
-  public void setAutomatic(Boolean automatic) {
+  public Boolean setAutomatic(Boolean automatic) {
     if (automatic != null) {
       this.automatic = automatic;
+      return true;
     }
+    return false;
   }
 
   public void setActivated(Boolean activated) {
@@ -74,6 +76,8 @@ public class Project {
   }
 
   public void setUsername(String username) {
-    this.username = username;
+    if (username != null) {
+      this.username = username;
+    }
   }
 }
