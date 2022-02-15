@@ -8,6 +8,7 @@ public class OptimizationResultResponse {
   private String projectId;
   private String tableName;
   private String statement;
+  private String mvName;
   private long processedBytes;
   private int queries;
 
@@ -18,6 +19,7 @@ public class OptimizationResultResponse {
     this.statement = optimizationResult.getStatement();
     this.processedBytes = optimizationResult.getTotalProcessedBytes();
     this.queries = optimizationResult.getQueries();
+    this.mvName = optimizationResult.getMvName();
   }
 
   public Long getId() {
@@ -58,5 +60,9 @@ public class OptimizationResultResponse {
 
   public long getProcessedBytes() {
     return this.processedBytes;
+  }
+
+  public String getMvName() {
+    return mvName;
   }
 }
