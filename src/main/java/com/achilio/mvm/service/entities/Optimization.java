@@ -36,6 +36,18 @@ public class Optimization {
   @Column(name = "query_eligible_percentage", nullable = true)
   private Double queryEligiblePercentage;
 
+  @Column(name = "mv_max_table")
+  private Integer mvMaxPerTable;
+
+  @Column(name = "mv_max_plan")
+  private Integer mvMaxPlan;
+
+  @Column(name = "mv_applied_count")
+  private Integer mvAppliedCount;
+
+  @Column(name = "mv_proposal_count")
+  private Integer mvProposalCount;
+
   public Optimization() {
   }
 
@@ -61,5 +73,37 @@ public class Optimization {
 
   public void setQueryEligiblePercentage(Double queryEligiblePercentage) {
     this.queryEligiblePercentage = queryEligiblePercentage;
+  }
+
+  public Integer getMvMaxPerTable() {
+    return this.mvMaxPerTable;
+  }
+
+  public void setMvMaxTable(Integer mvMaxPerTable) {
+    this.mvMaxPerTable = mvMaxPerTable;
+  }
+
+  public Integer getMvMaxPlan() {
+    return this.mvMaxPlan;
+  }
+
+  public void setMvMaxPlan(Integer mvMaxPlan) {
+    this.mvMaxPlan = mvMaxPlan;
+  }
+
+  public Integer getMvAppliedCount() {
+    return this.mvAppliedCount;
+  }
+
+  public void setMvAppliedCount(Integer mvAppliedCount) {
+    this.mvAppliedCount = mvAppliedCount;
+  }
+
+  public Integer getMvProposalCount() {
+    return this.mvProposalCount;
+  }
+
+  public void setMvProposalCount(Integer mvProposalCount) {
+    this.mvProposalCount = mvProposalCount;
   }
 }

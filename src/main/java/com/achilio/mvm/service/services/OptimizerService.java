@@ -41,7 +41,7 @@ import org.springframework.stereotype.Service;
 @Transactional
 public class OptimizerService {
 
-  private static final int DEFAULT_PLAN_MAX_MV = 50;
+  private static final int DEFAULT_PLAN_MAX_MV = 20;
   private static final int GOOGLE_MAX_MV_PER_TABLE = 20;
   private static Logger LOGGER = LoggerFactory.getLogger(OptimizerService.class);
   BigQueryMaterializedViewStatementBuilder statementBuilder;
@@ -74,6 +74,8 @@ public class OptimizerService {
     LOGGER.info("Run a new optimization on {} with activated datasets {}", projectId, datasets);
     FetchedProject project = fetcherService.fetchProject(projectId);
     Optimization o = createNewOptimization(project.getProjectId());
+    o.setMvMaxPlan(DEFAULT_PLAN_MAX_MV);
+    o.setMvMaxTable(GOOGLE_MAX_MV_PER_TABLE);
     // STEP 1 - Fetch all queries of targeted project
     addOptimizationEvent(o, StatusType.FETCHING_QUERIES);
     List<FetchedQuery> allQueries = fetcherService.fetchQueriesSince(projectId, days);
@@ -111,6 +113,10 @@ public class OptimizerService {
     addOptimizationEvent(o, StatusType.PUBLISHING);
     List<OptimizationResult> resultsToPublish = results.stream()
         .filter(r -> r.getStatus().equals(Status.APPLY)).collect(toList());
+    o.setMvAppliedCount(resultsToPublish.size());
+    o.setMvProposalCount(
+        (int) results.stream()
+            .filter(r -> !r.getStatus().equals(Status.LIMIT_REACHED_PER_TABLE)).count());
     publish(o, resultsToPublish);
     addOptimizationEvent(o, StatusType.PUBLISHED);
     LOGGER.info("Optimization {} published with {} MV applied. And as {} proposals.", o.getId(),

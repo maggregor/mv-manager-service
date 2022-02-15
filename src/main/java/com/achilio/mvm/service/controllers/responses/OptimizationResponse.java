@@ -10,12 +10,20 @@ public class OptimizationResponse {
   private String projectId;
   private String datasetName;
   private Double eligiblePercent;
+  private Integer mvMaxPlan;
+  private Integer mvAppliedCount;
+  private Integer mvProposalCount;
+  private Integer mvMaxPerTable;
 
   public OptimizationResponse(Optimization optimization) {
     this.id = optimization.getId();
     this.createdDate = optimization.getCreatedDate();
     this.projectId = optimization.getProjectId();
     this.eligiblePercent = optimization.getQueryEligiblePercentage();
+    this.mvMaxPlan = optimization.getMvMaxPlan();
+    this.mvAppliedCount = optimization.getMvAppliedCount();
+    this.mvProposalCount = optimization.getMvProposalCount();
+    this.mvMaxPerTable = optimization.getMvMaxPerTable();
   }
 
   public Long getId() {
@@ -46,11 +54,47 @@ public class OptimizationResponse {
     return this.eligiblePercent;
   }
 
+  public void setEligiblePercent(Double eligiblePercent) {
+    this.eligiblePercent = eligiblePercent;
+  }
+
   public Date getCreatedDate() {
     return createdDate;
   }
 
   public void setCreatedDate(Date createdDate) {
     this.createdDate = createdDate;
+  }
+
+  public Integer getMvMaxPlan() {
+    return mvMaxPlan;
+  }
+
+  public void setMvMaxPlan(Integer mvMaxPlan) {
+    this.mvMaxPlan = mvMaxPlan;
+  }
+
+  public Integer getMvAppliedCount() {
+    return mvAppliedCount;
+  }
+
+  public void setMvAppliedCount(Integer mvAppliedCount) {
+    this.mvAppliedCount = mvAppliedCount;
+  }
+
+  public Integer getMvProposalCount() {
+    return mvProposalCount;
+  }
+
+  public void setMvProposalCount(Integer mvProposalCount) {
+    this.mvProposalCount = mvProposalCount;
+  }
+
+  public Integer getMvMaxPerTable() {
+    return mvMaxPerTable;
+  }
+
+  public void setMvMaxPerTable(Integer mvMaxPerTable) {
+    this.mvMaxPerTable = mvMaxPerTable;
   }
 }

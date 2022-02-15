@@ -6,38 +6,21 @@ import java.util.List;
 
 public class OptimizationResultsResponse {
 
-  private Long id;
-  private String projectId;
+  private Optimization optimization;
   private List<OptimizationResult> results;
 
   public OptimizationResultsResponse(
       Optimization optimization, List<OptimizationResult> optimizationResults) {
-    this.id = optimization.getId();
-    this.projectId = optimization.getProjectId();
+    this.optimization = optimization;
     this.results = optimizationResults;
   }
 
-  public Long getId() {
-    return id;
-  }
-
-  public void setId(Long id) {
-    this.id = id;
-  }
-
-  public String getProjectId() {
-    return projectId;
-  }
-
-  public void setProjectId(String projectId) {
-    this.projectId = projectId;
+  public Optimization getOptimization() {
+    return optimization;
   }
 
   public List<OptimizationResult> getResults() {
     return results;
   }
-
-  public void setResults(List<OptimizationResult> optimizationResults) {
-    this.results = optimizationResults;
-  }
+  
 }
