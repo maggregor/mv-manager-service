@@ -6,16 +6,18 @@ public class OptimizationResultResponse {
 
   private Long id;
   private String projectId;
-  private String datasetName;
   private String tableName;
   private String statement;
+  private long processedBytes;
+  private int queries;
 
   public OptimizationResultResponse(OptimizationResult optimizationResult) {
     this.id = optimizationResult.getId();
     this.projectId = optimizationResult.getProjectId();
-    this.datasetName = optimizationResult.getDatasetName();
     this.tableName = optimizationResult.getTableName();
     this.statement = optimizationResult.getStatement();
+    this.processedBytes = optimizationResult.getTotalProcessedBytes();
+    this.queries = optimizationResult.getQueries();
   }
 
   public Long getId() {
@@ -34,19 +36,27 @@ public class OptimizationResultResponse {
     this.projectId = projectId;
   }
 
-  public String getDatasetName() {
-    return datasetName;
+  public String getTableName() {
+    return tableName;
   }
 
-  public void setDatasetName(String datasetName) {
-    this.datasetName = datasetName;
+  public void setTableName(String tableName) {
+    this.tableName = tableName;
   }
 
-  public String getTableName() { return tableName; }
+  public String getStatement() {
+    return statement;
+  }
 
-  public void setTableName(String tableName) { this.tableName = tableName; }
+  public void setStatement(String statement) {
+    this.statement = statement;
+  }
 
-  public String getStatement() { return statement; }
+  public int getQueries() {
+    return this.queries;
+  }
 
-  public void setStatement(String statement) { this.statement = statement; }
+  public long getProcessedBytes() {
+    return this.processedBytes;
+  }
 }

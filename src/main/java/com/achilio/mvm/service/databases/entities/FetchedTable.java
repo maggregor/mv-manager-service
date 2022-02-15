@@ -2,9 +2,7 @@ package com.achilio.mvm.service.databases.entities;
 
 import java.util.Map;
 
-/**
- * Represents a single table from database with metadata.
- */
+/** Represents a single table from database with metadata. */
 public interface FetchedTable {
 
   /**

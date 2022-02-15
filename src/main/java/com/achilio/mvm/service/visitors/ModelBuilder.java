@@ -10,5 +10,4 @@ public interface ModelBuilder {
   void registerTable(FetchedTable table);
 
   boolean isTableRegistered(FetchedTable table);
-
 }

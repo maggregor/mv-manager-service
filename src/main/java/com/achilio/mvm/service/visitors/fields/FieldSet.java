@@ -11,9 +11,7 @@ import java.util.Set;
  */
 public interface FieldSet {
 
-  /**
-   * Returns query cost
-   */
+  /** Returns query cost */
   long cost();
 
   /**
@@ -45,24 +43,16 @@ public interface FieldSet {
    */
   void merge(FieldSet fieldSet);
 
-  /**
-   * Returns aggregate fields in the field set
-   */
+  /** Returns aggregate fields in the field set */
   Set<Field> aggregates();
 
-  /**
-   * Returns references fields in the field set
-   */
+  /** Returns references fields in the field set */
   Set<Field> references();
 
-  /**
-   * Returns functions fields in the field set
-   */
+  /** Returns functions fields in the field set */
   Set<Field> functions();
 
-  /**
-   * Create a FieldSet clone
-   */
+  /** Create a FieldSet clone */
   FieldSet clone();
 
   /**

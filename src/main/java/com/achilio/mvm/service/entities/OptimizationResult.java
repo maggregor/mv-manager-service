@@ -25,8 +25,7 @@ public class OptimizationResult {
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Long id;
 
-  @ManyToOne
-  private Optimization optimization;
+  @ManyToOne private Optimization optimization;
 
   @Column(name = "project_id", nullable = false)
   private String projectId;
@@ -41,7 +40,10 @@ public class OptimizationResult {
   private String statement;
 
   @Enumerated(EnumType.STRING)
-  @Column(name = "status", nullable = false, columnDefinition = "varchar(255) default 'PLAN_LIMIT_REACHED'")
+  @Column(
+      name = "status",
+      nullable = false,
+      columnDefinition = "varchar(255) default 'PLAN_LIMIT_REACHED'")
   private Status status;
 
   @Column(name = "totalProcessedBytes", nullable = false, columnDefinition = "bigint default 0")
@@ -72,8 +74,7 @@ public class OptimizationResult {
     }
   }
 
-  public OptimizationResult() {
-  }
+  public OptimizationResult() {}
 
   public Long getId() {
     return id;

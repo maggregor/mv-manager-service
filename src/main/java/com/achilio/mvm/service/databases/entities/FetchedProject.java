@@ -1,8 +1,6 @@
 package com.achilio.mvm.service.databases.entities;
 
-/**
- * Represents a single project from database with metadata.
- */
+/** Represents a single project from database with metadata. */
 public interface FetchedProject {
 
   /**

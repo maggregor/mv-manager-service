@@ -32,8 +32,7 @@ public class GoogleProjectInterceptor extends HandlerInterceptorAdapter {
       SimpleGoogleCredentialsAuthentication authentication =
           (SimpleGoogleCredentialsAuthentication)
               SecurityContextHolder.getContext().getAuthentication();
-      BigQueryDatabaseFetcher bq =
-          new BigQueryDatabaseFetcher(authentication.getCredentials(), projectId);
+      new BigQueryDatabaseFetcher(authentication.getCredentials(), projectId);
     } catch (ResourceManagerException e) {
       throw new UnauthorizedException("Access token is invalid");
     }

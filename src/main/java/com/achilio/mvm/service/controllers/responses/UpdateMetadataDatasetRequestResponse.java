@@ -7,9 +7,7 @@ public class UpdateMetadataDatasetRequestResponse {
   @JsonProperty("activated")
   private boolean activated = false;
 
-  public UpdateMetadataDatasetRequestResponse() {
-
-  }
+  public UpdateMetadataDatasetRequestResponse() {}
 
   public UpdateMetadataDatasetRequestResponse(boolean activated) {
     this.activated = activated;
