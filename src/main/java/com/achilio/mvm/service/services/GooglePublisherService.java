@@ -121,10 +121,7 @@ public class GooglePublisherService {
 
   public void publishDestroyMaterializedViews(String projectId) {
     try {
-      String message =
-          new ObjectMapper()
-              .writeValueAsString(
-                  Collections.singletonList("Destroying all MMVs in project " + projectId));
+      String message = new ObjectMapper().writeValueAsString(Collections.emptyList());
       if (publishMessage(
           buildMaterializedViewsPubsubMessage(projectId, message, CMD_TYPE_DESTROY, true),
           EXECUTOR_TOPIC_NAME)) {
@@ -158,9 +155,7 @@ public class GooglePublisherService {
 
   public void publishProjectActivation(String projectId)
       throws IOException, ExecutionException, InterruptedException {
-    String message =
-        new ObjectMapper()
-            .writeValueAsString(Collections.singletonList("Activating project " + projectId));
+    String message = new ObjectMapper().writeValueAsString(Collections.emptyList());
     if (publishMessage(
         buildMaterializedViewsPubsubMessage(projectId, message, CMD_TYPE_WORKSPACE, false),
         EXECUTOR_TOPIC_NAME)) {

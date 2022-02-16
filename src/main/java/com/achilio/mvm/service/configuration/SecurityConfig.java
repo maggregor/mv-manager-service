@@ -20,7 +20,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
   @Override
   protected void configure(HttpSecurity http) throws Exception {
-    //    http.authorizeRequests().anyRequest().permitAll();
     http.addFilterBefore(corsFilter(), ChannelProcessingFilter.class)
         .csrf()
         .disable()
@@ -42,7 +41,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     config.addAllowedMethod("POST");
     config.addAllowedMethod("DELETE");
     config.addAllowedMethod("PATCH");
-    config.addExposedHeader("Location");
 
     source.registerCorsConfiguration("/api/**", config);
 
