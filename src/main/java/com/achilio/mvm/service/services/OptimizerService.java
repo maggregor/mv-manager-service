@@ -66,11 +66,14 @@ public class OptimizerService {
                 dataset -> projectService.isDatasetActivated(projectId, dataset.getDatasetName()))
             .collect(toList());
     LOGGER.info("Run a new optimization on {} with activated datasets {}", projectId, datasets);
-    FetchedProject project = fetcherService.fetchProject(projectId);
-    Optimization o = createNewOptimization(project.getProjectId());
+    FetchedProject fetchedProject = fetcherService.fetchProject(projectId);
+    String projectUsername = projectService.getProjectUsername(projectId);
+    Optimization o = createNewOptimization(fetchedProject.getProjectId(), projectUsername);
+    o.setUsername(projectService.getProjectUsername(projectId));
+    LOGGER.info("Username used for optimization {} is {}", o.getId(), projectUsername);
     o.setMvMaxPlan(DEFAULT_PLAN_MAX_MV);
-    o.setMvMaxTable(GOOGLE_MAX_MV_PER_TABLE);
-    // STEP 1 - Fetch all queries of targeted project
+    o.setMvMaxPerTable(GOOGLE_MAX_MV_PER_TABLE);
+    // STEP 1 - Fetch all queries of targeted fetchedProject
     addOptimizationEvent(o, StatusType.FETCHING_QUERIES);
     List<FetchedQuery> allQueries = fetcherService.fetchQueriesSince(projectId, days);
     // STEP 2 - Fetch all tables
@@ -111,13 +114,16 @@ public class OptimizerService {
             results.stream()
                 .filter(r -> !r.getStatus().equals(Status.LIMIT_REACHED_PER_TABLE))
                 .count());
-    publish(o, resultsToPublish);
-    addOptimizationEvent(o, StatusType.PUBLISHED);
-    LOGGER.info(
-        "Optimization {} published with {} MV applied. And as {} proposals.",
-        o.getId(),
-        resultsToPublish.size(),
-        results.size());
+    if (publish(o, resultsToPublish)) {
+      addOptimizationEvent(o, StatusType.PUBLISHED);
+      LOGGER.info(
+          "Optimization {} published with {} MV applied. And as {} proposals.",
+          o.getId(),
+          resultsToPublish.size(),
+          results.size());
+    } else {
+      addOptimizationEvent(o, StatusType.NOT_PUBLISHED);
+    }
     return o;
   }
 
@@ -162,9 +168,9 @@ public class OptimizerService {
     return queries.stream().filter(FetchedQuery::isEligible).collect(toList());
   }
 
-  private void publish(Optimization o, List<OptimizationResult> results) {
-    publisherService.publishOptimization(o, results);
+  private Boolean publish(Optimization o, List<OptimizationResult> results) {
     LOGGER.info("Optimization done with {} results.", results.size());
+    return publisherService.publishOptimization(o, results);
   }
 
   private List<OptimizationResult> buildOptimizationsResults(
@@ -194,8 +200,8 @@ public class OptimizerService {
   }
 
   @Transactional
-  public Optimization createNewOptimization(final String projectId) {
-    Optimization optimization = new Optimization(projectId);
+  public Optimization createNewOptimization(final String projectId, final String projectUsername) {
+    Optimization optimization = new Optimization(projectId, projectUsername);
     entityManager.persist(optimization);
     LOGGER.info("New optimization created: {}", optimization.getId());
     return optimization;
