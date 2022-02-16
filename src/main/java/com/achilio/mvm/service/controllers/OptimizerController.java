@@ -10,13 +10,16 @@ import io.swagger.annotations.ApiOperation;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -24,8 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 public class OptimizerController {
 
-  @Autowired
-  private OptimizerService service;
+  @Autowired private OptimizerService service;
 
   @GetMapping(path = "/optimize/{projectId}", produces = MediaType.APPLICATION_JSON_VALUE)
   @ApiOperation("Get all optimizations by projectId")
@@ -56,5 +58,11 @@ public class OptimizerController {
     List<OptimizationResult> optimizationResults =
         service.getOptimizationResults(projectId, optimizationId);
     return new OptimizationResultsResponse(optimization, optimizationResults);
+  }
+
+  @DeleteMapping(path = "/optimize/{projectId}")
+  @ResponseStatus(HttpStatus.ACCEPTED)
+  public void deleteAllOptimization(@PathVariable final String projectId) {
+    service.destroyAllMaterializedViewsByProject(projectId);
   }
 }

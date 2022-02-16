@@ -37,10 +37,11 @@ public class GooglePublisherService {
   private static final String ATTRIBUTE_ACCESS_TOKEN = "accessToken";
   private static final String CMD_TYPE_APPLY = "apply";
   private static final String CMD_TYPE_WORKSPACE = "workspace";
+  private static final String CMD_TYPE_DESTROY = "destroy";
   private static final Logger LOGGER = LoggerFactory.getLogger(OptimizerApplication.class);
 
   @Value("${publisher.enabled}")
-  private boolean PUBLISHER_ENABLED = true;
+  private boolean PUBLISHER_ENABLED = false;
 
   @Value("${publisher.google-project-id}")
   private String PUBLISHER_GOOGLE_PROJECT_ID = "achilio-dev";
@@ -112,6 +113,23 @@ public class GooglePublisherService {
             .map(this::toResultEntry)
             .collect(Collectors.toList());
     return new ObjectMapper().writeValueAsString(entries);
+  }
+
+  public void publishDestroyMaterializedViews(String projectId) {
+    try {
+      String message =
+          new ObjectMapper()
+              .writeValueAsString(
+                  Collections.singletonList("Destroying all MMVs in project " + projectId));
+      publishMessage(
+          buildMaterializedViewsPubsubMessage(projectId, message, CMD_TYPE_DESTROY, true),
+          EXECUTOR_TOPIC_NAME);
+      LOGGER.info("All MMVs destroyed for the project {}", projectId);
+    } catch (JsonProcessingException e) {
+      LOGGER.error("Error during results JSON formatting", e);
+    } catch (IOException | ExecutionException | InterruptedException e) {
+      LOGGER.error("Results publishing failed for the project {}", projectId, e);
+    }
   }
 
   public void publishProjectSchedulers(List<Project> projects) {
