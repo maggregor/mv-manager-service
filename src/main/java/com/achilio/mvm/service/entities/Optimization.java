@@ -78,7 +78,7 @@ public class Optimization {
     return this.mvMaxPerTable;
   }
 
-  public void setMvMaxTable(Integer mvMaxPerTable) {
+  public void setMvMaxPerTable(Integer mvMaxPerTable) {
     this.mvMaxPerTable = mvMaxPerTable;
   }
 
