@@ -13,6 +13,7 @@ public class OptimizationResponse {
   private Integer mvAppliedCount;
   private Integer mvProposalCount;
   private Integer mvMaxPerTable;
+  private String username;
 
   public OptimizationResponse(Optimization optimization) {
     this.id = optimization.getId();
@@ -23,6 +24,7 @@ public class OptimizationResponse {
     this.mvAppliedCount = optimization.getMvAppliedCount();
     this.mvProposalCount = optimization.getMvProposalCount();
     this.mvMaxPerTable = optimization.getMvMaxPerTable();
+    this.username = optimization.getUsername();
   }
 
   public Long getId() {
@@ -87,5 +89,13 @@ public class OptimizationResponse {
 
   public void setMvMaxPerTable(Integer mvMaxPerTable) {
     this.mvMaxPerTable = mvMaxPerTable;
+  }
+
+  public String getUsername() {
+    return username;
+  }
+
+  public void setUsername(String username) {
+    this.username = username;
   }
 }

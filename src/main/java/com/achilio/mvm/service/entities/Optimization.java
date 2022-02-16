@@ -29,7 +29,7 @@ public class Optimization {
   @Column(name = "project_id", nullable = false)
   private String projectId;
 
-  @Column(name = "query_eligible_percentage", nullable = true)
+  @Column(name = "query_eligible_percentage")
   private Double queryEligiblePercentage;
 
   @Column(name = "mv_max_table")
@@ -44,10 +44,14 @@ public class Optimization {
   @Column(name = "mv_proposal_count")
   private Integer mvProposalCount;
 
+  @Column(name = "username", nullable = false, columnDefinition = "varchar(255) default 'unknown'")
+  private String username;
+
   public Optimization() {}
 
-  public Optimization(String projectId) {
+  public Optimization(String projectId, String username) {
     this.projectId = projectId;
+    this.username = username;
   }
 
   public Long getId() {
@@ -100,5 +104,13 @@ public class Optimization {
 
   public void setMvProposalCount(Integer mvProposalCount) {
     this.mvProposalCount = mvProposalCount;
+  }
+
+  public String getUsername() {
+    return username;
+  }
+
+  public void setUsername(String username) {
+    this.username = username;
   }
 }
