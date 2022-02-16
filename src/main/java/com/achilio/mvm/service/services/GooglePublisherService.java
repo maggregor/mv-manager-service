@@ -37,10 +37,11 @@ public class GooglePublisherService {
   private static final String ATTRIBUTE_ACCESS_TOKEN = "accessToken";
   private static final String CMD_TYPE_APPLY = "apply";
   private static final String CMD_TYPE_WORKSPACE = "workspace";
+  private static final String CMD_TYPE_DESTROY = "destroy";
   private static final Logger LOGGER = LoggerFactory.getLogger(OptimizerApplication.class);
 
   @Value("${publisher.enabled}")
-  private boolean PUBLISHER_ENABLED = true;
+  private boolean PUBLISHER_ENABLED = false;
 
   @Value("${publisher.google-project-id}")
   private String PUBLISHER_GOOGLE_PROJECT_ID = "achilio-dev";
@@ -118,6 +119,23 @@ public class GooglePublisherService {
     return new ObjectMapper().writeValueAsString(entries);
   }
 
+  public void publishDestroyMaterializedViews(String projectId) {
+    try {
+      String message = new ObjectMapper().writeValueAsString(Collections.emptyList());
+      if (publishMessage(
+          buildMaterializedViewsPubsubMessage(projectId, message, CMD_TYPE_DESTROY, true),
+          EXECUTOR_TOPIC_NAME)) {
+        LOGGER.info("All MMVs destroyed for the project {}", projectId);
+      } else {
+        LOGGER.info("No actual materialized view will be destroyed");
+      }
+    } catch (JsonProcessingException e) {
+      LOGGER.error("Error during results JSON formatting", e);
+    } catch (IOException | ExecutionException | InterruptedException e) {
+      LOGGER.error("Results publishing failed for the project {}", projectId, e);
+    }
+  }
+
   public void publishProjectSchedulers(List<Project> projects) {
     try {
       String formattedMessage = buildSchedulerMessage(projects);
@@ -126,7 +144,7 @@ public class GooglePublisherService {
         LOGGER.info("Published update of all projects schedulers");
       } else {
         LOGGER.info(
-            "Project has been updated in the database. But pubsub has not been sent and Cloud Schedulers will not update");
+            "Project has been updated in the database. But pubsub has not been sent and Cloud Schedulers will not be updated");
       }
     } catch (JsonProcessingException e) {
       LOGGER.error("Error during results JSON formatting", e);
@@ -137,9 +155,7 @@ public class GooglePublisherService {
 
   public void publishProjectActivation(String projectId)
       throws IOException, ExecutionException, InterruptedException {
-    String message =
-        new ObjectMapper()
-            .writeValueAsString(Collections.singletonList("Activating project " + projectId));
+    String message = new ObjectMapper().writeValueAsString(Collections.emptyList());
     if (publishMessage(
         buildMaterializedViewsPubsubMessage(projectId, message, CMD_TYPE_WORKSPACE, false),
         EXECUTOR_TOPIC_NAME)) {
@@ -191,11 +207,12 @@ public class GooglePublisherService {
     Publisher publisher = null;
     if (!PUBLISHER_ENABLED) {
       LOGGER.info(
-          "Publisher disabled. Message {} with data {} will not be published.",
-          pubsubMessage.getMessageId(),
-          pubsubMessage.getData());
+          "Publisher disabled. Message with data {} and attributes {} will NOT be published.",
+          pubsubMessage.getData().toStringUtf8(),
+          pubsubMessage.getAttributesMap());
       return false;
     }
+
     try {
       publisher = Publisher.newBuilder(topicName).build();
       publisher.publish(pubsubMessage);
@@ -205,6 +222,10 @@ public class GooglePublisherService {
         publisher.awaitTermination(1, TimeUnit.MINUTES);
       }
     }
+    LOGGER.info(
+        "Publisher enabled. Message with data {} and attributes {} will be published.",
+        pubsubMessage.getData().toStringUtf8(),
+        pubsubMessage.getAttributesMap());
     return true;
   }
 

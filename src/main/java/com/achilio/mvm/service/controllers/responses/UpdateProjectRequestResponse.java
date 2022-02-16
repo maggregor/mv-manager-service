@@ -16,12 +16,25 @@ public class UpdateProjectRequestResponse {
   @JsonProperty("username")
   private String username;
 
+  @JsonProperty("analysisTimeframe")
+  private Integer analysisTimeframe;
+
+  @JsonProperty("mvMaxPerTable")
+  private Integer mvMaxPerTable;
+
   public UpdateProjectRequestResponse(
-      String planName, Boolean activated, Boolean automatic, String username) {
+      String planName,
+      Boolean activated,
+      Boolean automatic,
+      String username,
+      Integer analysisTimeframe,
+      Integer mvMaxPerTable) {
     this.planName = planName;
     this.activated = activated;
     this.automatic = automatic;
     this.username = username;
+    this.analysisTimeframe = analysisTimeframe;
+    this.mvMaxPerTable = mvMaxPerTable;
   }
 
   public String getPlanName() {
@@ -42,5 +55,13 @@ public class UpdateProjectRequestResponse {
 
   public String getUsername() {
     return username;
+  }
+
+  public Integer getAnalysisTimeframe() {
+    return analysisTimeframe;
+  }
+
+  public Integer getMvMaxPerTable() {
+    return mvMaxPerTable;
   }
 }

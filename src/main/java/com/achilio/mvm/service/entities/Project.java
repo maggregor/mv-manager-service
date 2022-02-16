@@ -32,6 +32,12 @@ public class Project {
   @Column(name = "username", nullable = false, columnDefinition = "varchar(255) default ''")
   private String username;
 
+  @Column(name = "mv_max_per_table", nullable = false, columnDefinition = "numeric default 20")
+  private Integer mvMaxPerTable;
+
+  @Column(name = "analysis_timeframe", nullable = false, columnDefinition = "numeric default 30")
+  private Integer analysisTimeframe;
+
   public Project() {}
 
   public Project(String projectId, Boolean activated, Boolean automatic, String username) {
@@ -78,6 +84,26 @@ public class Project {
   public void setUsername(String username) {
     if (username != null) {
       this.username = username;
+    }
+  }
+
+  public Integer getMvMaxPerTable() {
+    return this.mvMaxPerTable;
+  }
+
+  public void setMvMaxPerTable(Integer mvMaxPerTable) {
+    if (mvMaxPerTable != null) {
+      this.mvMaxPerTable = mvMaxPerTable;
+    }
+  }
+
+  public Integer getAnalysisTimeframe() {
+    return this.analysisTimeframe;
+  }
+
+  public void setAnalysisTimeframe(Integer analysisTimeframe) {
+    if (analysisTimeframe != null) {
+      this.analysisTimeframe = analysisTimeframe;
     }
   }
 }
