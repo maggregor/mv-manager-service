@@ -111,13 +111,16 @@ public class OptimizerService {
             results.stream()
                 .filter(r -> !r.getStatus().equals(Status.LIMIT_REACHED_PER_TABLE))
                 .count());
-    publish(o, resultsToPublish);
-    addOptimizationEvent(o, StatusType.PUBLISHED);
-    LOGGER.info(
-        "Optimization {} published with {} MV applied. And as {} proposals.",
-        o.getId(),
-        resultsToPublish.size(),
-        results.size());
+    if (publish(o, resultsToPublish)) {
+      addOptimizationEvent(o, StatusType.PUBLISHED);
+      LOGGER.info(
+          "Optimization {} published with {} MV applied. And as {} proposals.",
+          o.getId(),
+          resultsToPublish.size(),
+          results.size());
+    } else {
+      addOptimizationEvent(o, StatusType.NOT_PUBLISHED);
+    }
     return o;
   }
 
@@ -162,9 +165,9 @@ public class OptimizerService {
     return queries.stream().filter(FetchedQuery::isEligible).collect(toList());
   }
 
-  private void publish(Optimization o, List<OptimizationResult> results) {
-    publisherService.publishOptimization(o, results);
+  private Boolean publish(Optimization o, List<OptimizationResult> results) {
     LOGGER.info("Optimization done with {} results.", results.size());
+    return publisherService.publishOptimization(o, results);
   }
 
   private List<OptimizationResult> buildOptimizationsResults(

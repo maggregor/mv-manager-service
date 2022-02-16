@@ -75,6 +75,8 @@ public class OptimizationEvent {
     PUBLISHING,
     // Publishing done
     PUBLISHED,
+    // Not published
+    NOT_PUBLISHED,
     ;
   }
 }

@@ -57,17 +57,13 @@ public class GooglePublisherService {
   private final TopicName SCHEDULER_TOPIC_NAME =
       TopicName.of(PUBLISHER_GOOGLE_PROJECT_ID, PUBLISHER_SCHEDULER_TOPIC_ID);
 
-  public void publishOptimization(Optimization o, List<OptimizationResult> materializedViews) {
+  public Boolean publishOptimization(Optimization o, List<OptimizationResult> materializedViews) {
     final String projectId = o.getProjectId();
-    if (!PUBLISHER_ENABLED) {
-      LOGGER.info("Publisher disabled. The optimization {} will not be published.", o.getId());
-      return;
-    }
     if (materializedViews.isEmpty()) {
       LOGGER.info("No optimizations published:no Materialized Views found on {}", projectId);
-      return;
+      return false;
     }
-    publishMaterializedViews(projectId, materializedViews);
+    return publishMaterializedViews(projectId, materializedViews);
   }
 
   private Map<String, String> toProjectEntry(Project project) {
@@ -85,22 +81,30 @@ public class GooglePublisherService {
     return m;
   }
 
-  private void publishMaterializedViews(String projectId, List<OptimizationResult> mViews) {
+  private Boolean publishMaterializedViews(String projectId, List<OptimizationResult> mViews) {
     if (mViews.isEmpty()) {
       LOGGER.info("Empty results for the project {}: publishing skipped", projectId);
-      return;
+      return false;
     }
     try {
       String formattedMessage = buildMaterializedViewsMessage(mViews);
-      publishMessage(
-          buildMaterializedViewsPubsubMessage(projectId, formattedMessage, CMD_TYPE_APPLY, true),
-          EXECUTOR_TOPIC_NAME);
-      LOGGER.info("{} results published for the project {}", mViews.size(), projectId);
+      Boolean published =
+          publishMessage(
+              buildMaterializedViewsPubsubMessage(
+                  projectId, formattedMessage, CMD_TYPE_APPLY, true),
+              EXECUTOR_TOPIC_NAME);
+      if (published) {
+        LOGGER.info("{} results published for the project {}", mViews.size(), projectId);
+        return true;
+      }
     } catch (JsonProcessingException e) {
       LOGGER.error("Error during results JSON formatting", e);
+      return false;
     } catch (IOException | ExecutionException | InterruptedException e) {
       LOGGER.error("Results publishing failed for the project {}", projectId, e);
+      return false;
     }
+    return false;
   }
 
   public String buildMaterializedViewsMessage(List<OptimizationResult> mViews)
@@ -117,9 +121,13 @@ public class GooglePublisherService {
   public void publishProjectSchedulers(List<Project> projects) {
     try {
       String formattedMessage = buildSchedulerMessage(projects);
-      publishMessage(
-          buildSchedulerPubSubMessage(CMD_TYPE_APPLY, formattedMessage), SCHEDULER_TOPIC_NAME);
-      LOGGER.info("Published update of all projects schedulers");
+      if (publishMessage(
+          buildSchedulerPubSubMessage(CMD_TYPE_APPLY, formattedMessage), SCHEDULER_TOPIC_NAME)) {
+        LOGGER.info("Published update of all projects schedulers");
+      } else {
+        LOGGER.info(
+            "Project has been updated in the database. But pubsub has not been sent and Cloud Schedulers will not update");
+      }
     } catch (JsonProcessingException e) {
       LOGGER.error("Error during results JSON formatting", e);
     } catch (IOException | ExecutionException | InterruptedException e) {
@@ -132,9 +140,15 @@ public class GooglePublisherService {
     String message =
         new ObjectMapper()
             .writeValueAsString(Collections.singletonList("Activating project " + projectId));
-    publishMessage(
+    if (publishMessage(
         buildMaterializedViewsPubsubMessage(projectId, message, CMD_TYPE_WORKSPACE, false),
-        EXECUTOR_TOPIC_NAME);
+        EXECUTOR_TOPIC_NAME)) {
+      LOGGER.info("Activating project {}", projectId);
+    } else {
+      LOGGER.info(
+          "Project {} is activated in database. But pubsub has not been sent and Workspace may not be created",
+          projectId);
+    }
   }
 
   public String buildSchedulerMessage(List<Project> projects) throws JsonProcessingException {
@@ -172,9 +186,16 @@ public class GooglePublisherService {
     return builder.build();
   }
 
-  public void publishMessage(PubsubMessage pubsubMessage, TopicName topicName)
+  public Boolean publishMessage(PubsubMessage pubsubMessage, TopicName topicName)
       throws IOException, ExecutionException, InterruptedException {
     Publisher publisher = null;
+    if (!PUBLISHER_ENABLED) {
+      LOGGER.info(
+          "Publisher disabled. Message {} with data {} will not be published.",
+          pubsubMessage.getMessageId(),
+          pubsubMessage.getData());
+      return false;
+    }
     try {
       publisher = Publisher.newBuilder(topicName).build();
       publisher.publish(pubsubMessage);
@@ -184,6 +205,7 @@ public class GooglePublisherService {
         publisher.awaitTermination(1, TimeUnit.MINUTES);
       }
     }
+    return true;
   }
 
   private String getAccessToken() {
