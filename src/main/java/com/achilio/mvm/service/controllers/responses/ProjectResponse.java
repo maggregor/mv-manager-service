@@ -21,10 +21,10 @@ public class ProjectResponse {
   private Integer analysisTimeframe;
 
   @JsonProperty("activated")
-  private Boolean activated = Boolean.FALSE;
+  private Boolean activated;
 
   @JsonProperty("automatic")
-  private Boolean automatic = Boolean.FALSE;
+  private Boolean automatic;
 
   public ProjectResponse(String projectId, String projectName) {
     this.projectId = projectId;
