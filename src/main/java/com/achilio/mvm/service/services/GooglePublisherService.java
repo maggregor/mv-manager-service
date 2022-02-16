@@ -125,10 +125,13 @@ public class GooglePublisherService {
           new ObjectMapper()
               .writeValueAsString(
                   Collections.singletonList("Destroying all MMVs in project " + projectId));
-      publishMessage(
+      if (publishMessage(
           buildMaterializedViewsPubsubMessage(projectId, message, CMD_TYPE_DESTROY, true),
-          EXECUTOR_TOPIC_NAME);
-      LOGGER.info("All MMVs destroyed for the project {}", projectId);
+          EXECUTOR_TOPIC_NAME)) {
+        LOGGER.info("All MMVs destroyed for the project {}", projectId);
+      } else {
+        LOGGER.info("No actual materialized view will be destroyed");
+      }
     } catch (JsonProcessingException e) {
       LOGGER.error("Error during results JSON formatting", e);
     } catch (IOException | ExecutionException | InterruptedException e) {
@@ -144,7 +147,7 @@ public class GooglePublisherService {
         LOGGER.info("Published update of all projects schedulers");
       } else {
         LOGGER.info(
-            "Project has been updated in the database. But pubsub has not been sent and Cloud Schedulers will not update");
+            "Project has been updated in the database. But pubsub has not been sent and Cloud Schedulers will not be updated");
       }
     } catch (JsonProcessingException e) {
       LOGGER.error("Error during results JSON formatting", e);
@@ -209,11 +212,12 @@ public class GooglePublisherService {
     Publisher publisher = null;
     if (!PUBLISHER_ENABLED) {
       LOGGER.info(
-          "Publisher disabled. Message {} with data {} will not be published.",
-          pubsubMessage.getMessageId(),
-          pubsubMessage.getData());
+          "Publisher disabled. Message with data {} and attributes {} will NOT be published.",
+          pubsubMessage.getData().toStringUtf8(),
+          pubsubMessage.getAttributesMap());
       return false;
     }
+
     try {
       publisher = Publisher.newBuilder(topicName).build();
       publisher.publish(pubsubMessage);
@@ -223,6 +227,10 @@ public class GooglePublisherService {
         publisher.awaitTermination(1, TimeUnit.MINUTES);
       }
     }
+    LOGGER.info(
+        "Publisher enabled. Message with data {} and attributes {} will be published.",
+        pubsubMessage.getData().toStringUtf8(),
+        pubsubMessage.getAttributesMap());
     return true;
   }
 
