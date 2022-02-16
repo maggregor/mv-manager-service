@@ -21,7 +21,7 @@ steps:
           "mvm-service",
           "--image",
           "gcr.io/achilio-dev/mvm-service",
-          "--set-env-vars=SPRING_DATASOURCE_URL=jdbc:postgresql://34.140.78.47:5432/optimizer_dev",
+          "--set-env-vars=SPRING_DATASOURCE_URL=jdbc:postgresql://34.140.78.47:5432/optimizer_dev,PUBLISHER_ENABLED=true",
           "--region",
           "europe-west1",
           "--platform",
