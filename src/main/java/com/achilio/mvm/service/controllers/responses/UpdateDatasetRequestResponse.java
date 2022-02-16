@@ -2,14 +2,14 @@ package com.achilio.mvm.service.controllers.responses;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class UpdateMetadataDatasetRequestResponse {
+public class UpdateDatasetRequestResponse {
 
   @JsonProperty("activated")
   private boolean activated = false;
 
-  public UpdateMetadataDatasetRequestResponse() {}
+  public UpdateDatasetRequestResponse() {}
 
-  public UpdateMetadataDatasetRequestResponse(boolean activated) {
+  public UpdateDatasetRequestResponse(boolean activated) {
     this.activated = activated;
   }
 

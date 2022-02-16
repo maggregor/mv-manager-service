@@ -4,6 +4,7 @@ import com.achilio.mvm.service.OptimizerApplication;
 import com.achilio.mvm.service.configuration.SimpleGoogleCredentialsAuthentication;
 import com.achilio.mvm.service.entities.Optimization;
 import com.achilio.mvm.service.entities.OptimizationResult;
+import com.achilio.mvm.service.entities.Project;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.cloud.pubsub.v1.Publisher;
@@ -38,17 +39,23 @@ public class GooglePublisherService {
   private static final String CMD_TYPE_WORKSPACE = "workspace";
   private static final Logger LOGGER = LoggerFactory.getLogger(OptimizerApplication.class);
 
+  @Value("${publisher.enabled}")
+  private boolean PUBLISHER_ENABLED = true;
+
   @Value("${publisher.google-project-id}")
   private String PUBLISHER_GOOGLE_PROJECT_ID = "achilio-dev";
 
-  @Value("${publisher.google-topic-id}")
-  private String PUBLISHER_GOOGLE_TOPIC_ID = "mvExecutorTopic";
+  @Value("${publisher.executor-topic-id}")
+  private String PUBLISHER_EXECUTOR_TOPIC_ID = "mvExecutorTopic";
 
-  private final TopicName TOPIC_NAME =
-      TopicName.of(PUBLISHER_GOOGLE_PROJECT_ID, PUBLISHER_GOOGLE_TOPIC_ID);
+  private final TopicName EXECUTOR_TOPIC_NAME =
+      TopicName.of(PUBLISHER_GOOGLE_PROJECT_ID, PUBLISHER_EXECUTOR_TOPIC_ID);
 
-  @Value("${publisher.enabled}")
-  private boolean PUBLISHER_ENABLED = true;
+  @Value("${publisher.scheduler-topic-id}")
+  private String PUBLISHER_SCHEDULER_TOPIC_ID = "mvScheduleManagerTopic";
+
+  private final TopicName SCHEDULER_TOPIC_NAME =
+      TopicName.of(PUBLISHER_GOOGLE_PROJECT_ID, PUBLISHER_SCHEDULER_TOPIC_ID);
 
   public void publishOptimization(Optimization o, List<OptimizationResult> materializedViews) {
     final String projectId = o.getProjectId();
@@ -63,7 +70,14 @@ public class GooglePublisherService {
     publishMaterializedViews(projectId, materializedViews);
   }
 
-  private Map<String, String> toEntry(OptimizationResult result) {
+  private Map<String, String> toProjectEntry(Project project) {
+    Map<String, String> m = new HashMap<>();
+    m.put("projectId", project.getProjectId());
+    m.put("username", project.getUsername());
+    return m;
+  }
+
+  private Map<String, String> toResultEntry(OptimizationResult result) {
     Map<String, String> m = new HashMap<>();
     m.put("mmvName", result.getMvName());
     m.put("datasetName", result.getDatasetName());
@@ -78,7 +92,9 @@ public class GooglePublisherService {
     }
     try {
       String formattedMessage = buildMaterializedViewsMessage(mViews);
-      publishMessage(buildPubsubMessage(projectId, formattedMessage, CMD_TYPE_APPLY, true));
+      publishMessage(
+          buildMaterializedViewsPubsubMessage(projectId, formattedMessage, CMD_TYPE_APPLY, true),
+          EXECUTOR_TOPIC_NAME);
       LOGGER.info("{} results published for the project {}", mViews.size(), projectId);
     } catch (JsonProcessingException e) {
       LOGGER.error("Error during results JSON formatting", e);
@@ -93,18 +109,54 @@ public class GooglePublisherService {
         mViews.stream()
             .filter(Objects::nonNull)
             .filter(result -> StringUtils.isNotEmpty(result.getStatement()))
-            .map(this::toEntry)
+            .map(this::toResultEntry)
             .collect(Collectors.toList());
     return new ObjectMapper().writeValueAsString(entries);
   }
 
-  public void publishProjectActivation(String projectId)
-      throws IOException, ExecutionException, InterruptedException {
-    String message = new ObjectMapper().writeValueAsString(Collections.singletonList("a"));
-    publishMessage(buildPubsubMessage(projectId, message, CMD_TYPE_WORKSPACE, false));
+  public void publishProjectSchedulers(List<Project> projects) {
+    try {
+      String formattedMessage = buildSchedulerMessage(projects);
+      publishMessage(
+          buildSchedulerPubSubMessage(CMD_TYPE_APPLY, formattedMessage), SCHEDULER_TOPIC_NAME);
+      LOGGER.info("Published update of all projects schedulers");
+    } catch (JsonProcessingException e) {
+      LOGGER.error("Error during results JSON formatting", e);
+    } catch (IOException | ExecutionException | InterruptedException e) {
+      LOGGER.error("Automatic scheduler publishing failed", e);
+    }
   }
 
-  public PubsubMessage buildPubsubMessage(
+  public void publishProjectActivation(String projectId)
+      throws IOException, ExecutionException, InterruptedException {
+    String message =
+        new ObjectMapper()
+            .writeValueAsString(Collections.singletonList("Activating project " + projectId));
+    publishMessage(
+        buildMaterializedViewsPubsubMessage(projectId, message, CMD_TYPE_WORKSPACE, false),
+        EXECUTOR_TOPIC_NAME);
+  }
+
+  public String buildSchedulerMessage(List<Project> projects) throws JsonProcessingException {
+    List<Map<String, String>> entries =
+        projects.stream()
+            .filter(Objects::nonNull)
+            .filter(project -> StringUtils.isNotEmpty(project.getUsername()))
+            .filter(Project::isAutomatic) // Should already be the case but just for safety
+            .map(this::toProjectEntry)
+            .collect(Collectors.toList());
+    return new ObjectMapper().writeValueAsString(entries);
+  }
+
+  public PubsubMessage buildSchedulerPubSubMessage(String cmdType, String message) {
+    PubsubMessage.Builder builder =
+        PubsubMessage.newBuilder().putAttributes(ATTRIBUTE_CMD_TYPE, cmdType);
+    ByteString data = ByteString.copyFromUtf8(message);
+    builder.setData(data);
+    return builder.build();
+  }
+
+  public PubsubMessage buildMaterializedViewsPubsubMessage(
       String projectId, String message, String cmdType, boolean requireAccessToken) {
     PubsubMessage.Builder builder =
         PubsubMessage.newBuilder()
@@ -120,11 +172,11 @@ public class GooglePublisherService {
     return builder.build();
   }
 
-  public void publishMessage(PubsubMessage pubsubMessage)
+  public void publishMessage(PubsubMessage pubsubMessage, TopicName topicName)
       throws IOException, ExecutionException, InterruptedException {
     Publisher publisher = null;
     try {
-      publisher = Publisher.newBuilder(TOPIC_NAME).build();
+      publisher = Publisher.newBuilder(topicName).build();
       publisher.publish(pubsubMessage);
     } finally {
       if (publisher != null) {
