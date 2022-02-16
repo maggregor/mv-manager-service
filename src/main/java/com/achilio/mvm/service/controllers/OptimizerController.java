@@ -1,6 +1,5 @@
 package com.achilio.mvm.service.controllers;
 
-import com.achilio.mvm.service.controllers.requests.OptimizeProjectRequest;
 import com.achilio.mvm.service.controllers.responses.OptimizationResponse;
 import com.achilio.mvm.service.controllers.responses.OptimizationResultsResponse;
 import com.achilio.mvm.service.entities.Optimization;
@@ -17,7 +16,6 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -40,11 +38,9 @@ public class OptimizerController {
 
   @PostMapping(path = "/optimize/{projectId}", produces = MediaType.APPLICATION_JSON_VALUE)
   @ApiOperation("Trigger an optimization on a projectId")
-  public OptimizationResponse optimizeProject(
-      @PathVariable("projectId") String projectId, @RequestBody OptimizeProjectRequest payload)
+  public OptimizationResponse optimizeProject(@PathVariable("projectId") String projectId)
       throws Exception {
-
-    Optimization optimization = service.optimizeProject(projectId, payload.getDays());
+    Optimization optimization = service.optimizeProject(projectId);
     return new OptimizationResponse(optimization);
   }
 

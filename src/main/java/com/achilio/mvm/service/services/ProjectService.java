@@ -21,17 +21,17 @@ public class ProjectService {
   public ProjectService() {}
 
   public Boolean isProjectActivated(String projectId) {
-    Optional<Project> project = getProject(projectId);
+    Optional<Project> project = findProject(projectId);
     return project.isPresent() && project.get().isActivated();
   }
 
   public Boolean isProjectAutomatic(String projectId) {
-    Optional<Project> project = getProject(projectId);
+    Optional<Project> project = findProject(projectId);
     return project.isPresent() && project.get().isAutomatic();
   }
 
   public String getProjectUsername(String projectId) {
-    Optional<Project> project = getProject(projectId);
+    Optional<Project> project = findProject(projectId);
     return project.isPresent() ? project.get().getUsername() : "";
   }
 
@@ -40,8 +40,12 @@ public class ProjectService {
     publisherService.publishProjectSchedulers(projects);
   }
 
-  private Optional<Project> getProject(String projectId) {
+  public Optional<Project> findProject(String projectId) {
     return projectRepository.findByProjectId(projectId);
+  }
+
+  public Project getProject(String projectId) {
+    return projectRepository.findByProjectId(projectId).get();
   }
 
   private void registerProjectIfNotExists(
@@ -53,19 +57,26 @@ public class ProjectService {
   }
 
   public boolean projectExists(String projectId) {
-    return getProject(projectId).isPresent();
+    return findProject(projectId).isPresent();
   }
 
   @Transactional
   public void updateProject(
-      String projectId, Boolean activated, Boolean automatic, String username) {
+      String projectId,
+      Boolean activated,
+      Boolean automatic,
+      String username,
+      Integer analysisTimeframe,
+      Integer mvMaxPerTable) {
     registerProjectIfNotExists(projectId, activated, automatic, username);
-    Project project = getProject(projectId).get();
+    Project project = findProject(projectId).get();
     project.setActivated(activated);
     // If automatic has been sent in the payload (or if the project is being deactivated), we need
     // to publish a potential config change on the schedulers
     Boolean automaticChanged = project.setAutomatic(automatic);
     project.setUsername(username);
+    project.setAnalysisTimeframe(analysisTimeframe);
+    project.setMvMaxPerTable(mvMaxPerTable);
     projectRepository.save(project);
     if (automaticChanged) {
       publishSchedulers();
@@ -73,7 +84,7 @@ public class ProjectService {
   }
 
   private Optional<Dataset> getDataset(String projectId, String datasetName) {
-    Optional<Project> projectMetadata = getProject(projectId);
+    Optional<Project> projectMetadata = findProject(projectId);
     if (!projectMetadata.isPresent()) {
       return Optional.empty();
     }
@@ -87,7 +98,7 @@ public class ProjectService {
   }
 
   private void registerDatasetIfNotExists(String projectId, String datasetName, Boolean activated) {
-    Optional<Project> project = getProject(projectId);
+    Optional<Project> project = findProject(projectId);
     if (!datasetExists(project, datasetName)) {
       Dataset dataset = new Dataset(project.get(), datasetName, activated);
       datasetRepository.save(dataset);

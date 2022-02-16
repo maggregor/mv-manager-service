@@ -1,5 +1,6 @@
 package com.achilio.mvm.service.controllers.responses;
 
+import com.achilio.mvm.service.entities.Project;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class ProjectResponse {
@@ -10,33 +11,32 @@ public class ProjectResponse {
   @JsonProperty("projectName")
   private final String projectName;
 
+  @JsonProperty("username")
+  private String username;
+
+  @JsonProperty("mvMaxPerTable")
+  private Integer mvMaxPerTable;
+
+  @JsonProperty("analysisTimeframe")
+  private Integer analysisTimeframe;
+
   @JsonProperty("activated")
-  private final Boolean activated;
+  private Boolean activated = Boolean.FALSE;
 
   @JsonProperty("automatic")
-  private final Boolean automatic;
+  private Boolean automatic = Boolean.FALSE;
 
-  @JsonProperty("username")
-  private final String username;
-
-  public ProjectResponse(
-      String projectId, String projectName, Boolean activated, Boolean automatic, String username) {
+  public ProjectResponse(String projectId, String projectName) {
     this.projectId = projectId;
     this.projectName = projectName;
-    this.activated = activated;
-    this.automatic = automatic;
-    this.username = username;
   }
 
-  public String getProjectId() {
-    return projectId;
-  }
-
-  public String getProjectName() {
-    return projectName;
-  }
-
-  public String getUsername() {
-    return username;
+  public ProjectResponse(String projectName, Project project) {
+    this(project.getProjectId(), projectName);
+    this.activated = project.isActivated();
+    this.automatic = project.isAutomatic();
+    this.username = project.getUsername();
+    this.mvMaxPerTable = project.getMvMaxPerTable();
+    this.analysisTimeframe = project.getAnalysisTimeframe();
   }
 }

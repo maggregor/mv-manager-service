@@ -11,6 +11,7 @@ import com.achilio.mvm.service.databases.entities.FetchedMaterializedViewEvent;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
+import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics;
 import com.achilio.mvm.service.services.FetcherService;
 import com.achilio.mvm.service.services.FetcherService.StatEntry;
@@ -21,6 +22,7 @@ import com.achilio.mvm.service.visitors.FieldSetExtractFactory;
 import io.swagger.annotations.ApiOperation;
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
@@ -82,7 +84,12 @@ public class ProjectController {
       payload.setAutomatic(false);
     }
     projectService.updateProject(
-        projectId, payload.isActivated(), payload.isAutomatic(), payload.getUsername());
+        projectId,
+        payload.isActivated(),
+        payload.isAutomatic(),
+        payload.getUsername(),
+        payload.getAnalysisTimeframe(),
+        payload.getMvMaxPerTable());
   }
 
   @PostMapping(path = "/project/{projectId}/dataset/{datasetName}", produces = "application/json")
@@ -158,12 +165,12 @@ public class ProjectController {
     return new GlobalQueryStatisticsResponse(statistics);
   }
 
-  public ProjectResponse toProjectResponse(FetchedProject project) {
-    final String projectId = project.getProjectId();
-    Boolean activated = projectService.isProjectActivated(projectId);
-    Boolean automatic = projectService.isProjectAutomatic(projectId);
-    String username = projectService.getProjectUsername(projectId);
-    return new ProjectResponse(projectId, project.getName(), activated, automatic, username);
+  public ProjectResponse toProjectResponse(FetchedProject fetchedProject) {
+    final String projectId = fetchedProject.getProjectId();
+    Optional<Project> projectOptional = projectService.findProject(projectId);
+    return projectOptional
+        .map(project -> new ProjectResponse(fetchedProject.getName(), project))
+        .orElse(new ProjectResponse(projectId, fetchedProject.getName()));
   }
 
   public DatasetResponse toDatasetResponse(FetchedDataset dataset) {

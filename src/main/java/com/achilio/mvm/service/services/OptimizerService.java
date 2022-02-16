@@ -14,6 +14,7 @@ import com.achilio.mvm.service.entities.OptimizationEvent;
 import com.achilio.mvm.service.entities.OptimizationEvent.StatusType;
 import com.achilio.mvm.service.entities.OptimizationResult;
 import com.achilio.mvm.service.entities.OptimizationResult.Status;
+import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.repositories.OptimizerRepository;
 import com.achilio.mvm.service.repositories.OptimizerResultRepository;
 import com.achilio.mvm.service.visitors.FieldSetAnalyzer;
@@ -59,7 +60,10 @@ public class OptimizerService {
     this.statementBuilder = new BigQueryMaterializedViewStatementBuilder();
   }
 
-  public Optimization optimizeProject(String projectId, int days) throws Exception {
+  public Optimization optimizeProject(String projectId) throws Exception {
+    Project project = projectService.getProject(projectId);
+    int days = project.getAnalysisTimeframe();
+    int maxMvPerTable = Math.min(GOOGLE_MAX_MV_PER_TABLE, project.getMvMaxPerTable());
     List<FetchedDataset> datasets =
         fetcherService.fetchAllDatasets(projectId).parallelStream()
             .filter(
@@ -72,7 +76,7 @@ public class OptimizerService {
     o.setUsername(projectService.getProjectUsername(projectId));
     LOGGER.info("Username used for optimization {} is {}", o.getId(), projectUsername);
     o.setMvMaxPlan(DEFAULT_PLAN_MAX_MV);
-    o.setMvMaxPerTable(GOOGLE_MAX_MV_PER_TABLE);
+    o.setMvMaxPerTable(maxMvPerTable);
     // STEP 1 - Fetch all queries of targeted fetchedProject
     addOptimizationEvent(o, StatusType.FETCHING_QUERIES);
     List<FetchedQuery> allQueries = fetcherService.fetchQueriesSince(projectId, days);
@@ -102,7 +106,7 @@ public class OptimizerService {
     addOptimizationEvent(o, StatusType.BUILD_MATERIALIZED_VIEWS_STATEMENT);
     List<OptimizationResult> results = buildOptimizationsResults(o, optimized);
     // STEP 9 - Publishing optimization
-    applyStatus(results);
+    applyStatus(o, results);
     Double percent = (double) eligibleQueriesOnDataset.size() / allQueriesOnDataset.size();
     o.setQueryEligiblePercentage(percent);
     addOptimizationEvent(o, StatusType.PUBLISHING);
@@ -127,7 +131,7 @@ public class OptimizerService {
     return o;
   }
 
-  private void applyStatus(List<OptimizationResult> results) {
+  private void applyStatus(Optimization optimization, List<OptimizationResult> results) {
     // Apply status limit by tables
     results.stream()
         .collect(Collectors.groupingBy(OptimizationResult::getTableId))
@@ -136,7 +140,7 @@ public class OptimizerService {
               value.sort(
                   Comparator.comparingLong(OptimizationResult::getTotalProcessedBytes).reversed());
               value
-                  .subList(Math.min(value.size(), GOOGLE_MAX_MV_PER_TABLE), value.size())
+                  .subList(Math.min(value.size(), optimization.getMvMaxPerTable()), value.size())
                   .forEach(r -> r.setStatus(Status.LIMIT_REACHED_PER_TABLE));
             });
     // Apply status for allowed MV.
