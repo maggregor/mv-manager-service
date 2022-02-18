@@ -6,10 +6,10 @@ steps:
     args: [ "test" ]
   # Build the container image
   - name: "gcr.io/cloud-builders/docker"
-    args: [ "build", "-t", "gcr.io/achilio-dev/mvm-service", "." ]
+    args: [ "build", "-t", "gcr.io/achilio-${_ENV}/mvm-service", "." ]
   # Push the container image to Container Registry
   - name: "gcr.io/cloud-builders/docker"
-    args: [ "push", "gcr.io/achilio-dev/mvm-service" ]
+    args: [ "push", "gcr.io/achilio-${_ENV}/mvm-service" ]
   # Deploy container image to Cloud Run
   - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
     entrypoint: gcloud
@@ -20,8 +20,8 @@ steps:
           "deploy",
           "mvm-service",
           "--image",
-          "gcr.io/achilio-dev/mvm-service",
-          "--set-env-vars=SPRING_DATASOURCE_URL=jdbc:postgresql://34.140.78.47:5432/optimizer_dev,PUBLISHER_ENABLED=true",
+          "gcr.io/achilio-${_ENV}/mvm-service",
+          "--set-env-vars=SPRING_DATASOURCE_URL=${_SPRING_DATASOURCE_URL},PUBLISHER_ENABLED={_PUBLISHER_ENABLED},PUBLISHER_GOOGLE-PROJECT-ID=${_PUBLISHER_GOOGLE_PROJECT_ID}",
           "--region",
           "europe-west1",
           "--platform",
@@ -34,16 +34,10 @@ steps:
           "--min-instances=1",
           "--max-instances=1"
       ]
-  - name: 'gcr.io/cloud-builders/curl'
-    id: 'codecov-report'
-    waitFor: [ 'mvn-test' ]
-    entrypoint: bash
-    args: [ '-c', 'bash <(curl -s https://codecov.io/bash)' ]
-    env:
-      - 'VCS_COMMIT_ID=$COMMIT_SHA'
-      - 'VCS_BRANCH_NAME=$BRANCH_NAME'
-      - 'VCS_PULL_REQUEST=$_PR_NUMBER'
-      - 'CI_BUILD_ID=$BUILD_ID'
-      - 'CODECOV_TOKEN=e4d865c5-5163-457d-aa52-709ca403f72b' # _CODECOV_TOKEN is user user substituion variable specified in my cloud build trigger
-images: [ "gcr.io/achilio-dev/mvm-service" ]
+substitutions:
+  _ENV: dev
+  _SPRING_DATASOURCE_URL: "jdbc:postgresql://34.140.78.47:5432/optimizer_dev"
+  _PUBLISHER_ENABLED: true
+  _PUBLISHER_GOOGLE_PROJECT_ID: "achilio-dev"
+images: [ "gcr.io/achilio-${_ENV}/mvm-service" ]
 
