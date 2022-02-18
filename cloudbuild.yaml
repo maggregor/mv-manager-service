@@ -3,41 +3,40 @@ steps:
   - name: maven:3-openjdk-8
     id: "mvn-test"
     entrypoint: mvn
-    args: [ "test" ]
+    args: ["test"]
   # Build the container image
   - name: "gcr.io/cloud-builders/docker"
-    args: [ "build", "-t", "gcr.io/achilio-${_ENV}/mvm-service", "." ]
+    args: ["build", "-t", "gcr.io/achilio-${_ENV}/mvm-service", "."]
   # Push the container image to Container Registry
   - name: "gcr.io/cloud-builders/docker"
-    args: [ "push", "gcr.io/achilio-${_ENV}/mvm-service" ]
+    args: ["push", "gcr.io/achilio-${_ENV}/mvm-service"]
   # Deploy container image to Cloud Run
   - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
     entrypoint: gcloud
     args:
       [
-          "beta",
-          "run",
-          "deploy",
-          "mvm-service",
-          "--image",
-          "gcr.io/achilio-${_ENV}/mvm-service",
-          "--set-env-vars=SPRING_DATASOURCE_URL=${_SPRING_DATASOURCE_URL},PUBLISHER_ENABLED=${_PUBLISHER_ENABLED},PUBLISHER_GOOGLE-PROJECT-ID=${_PUBLISHER_GOOGLE_PROJECT_ID}",
-          "--region",
-          "europe-west1",
-          "--platform",
-          "managed",
-          "--cpu",
-          "4",
-          "--memory",
-          "2Gi",
-          "--allow-unauthenticated",
-          "--min-instances=1",
-          "--max-instances=1"
+        "beta",
+        "run",
+        "deploy",
+        "mvm-service",
+        "--image",
+        "gcr.io/achilio-${_ENV}/mvm-service",
+        "--set-env-vars=SPRING_DATASOURCE_URL=${_SPRING_DATASOURCE_URL},PUBLISHER_ENABLED=${_PUBLISHER_ENABLED},PUBLISHER_GOOGLE_PROJECT_ID=${_PUBLISHER_GOOGLE_PROJECT_ID}",
+        "--region",
+        "europe-west1",
+        "--platform",
+        "managed",
+        "--cpu",
+        "4",
+        "--memory",
+        "2Gi",
+        "--allow-unauthenticated",
+        "--min-instances=1",
+        "--max-instances=1",
       ]
 substitutions:
   _ENV: "dev"
   _SPRING_DATASOURCE_URL: "jdbc:postgresql://34.140.78.47:5432/optimizer_${_ENV}"
   _PUBLISHER_ENABLED: "true"
   _PUBLISHER_GOOGLE_PROJECT_ID: "achilio-dev"
-images: [ "gcr.io/achilio-${_ENV}/mvm-service" ]
-
+images: ["gcr.io/achilio-${_ENV}/mvm-service"]
