@@ -21,7 +21,7 @@ steps:
           "mvm-service",
           "--image",
           "gcr.io/achilio-${_ENV}/mvm-service",
-          "--set-env-vars=SPRING_DATASOURCE_URL=${_SPRING_DATASOURCE_URL},PUBLISHER_ENABLED={_PUBLISHER_ENABLED},PUBLISHER_GOOGLE-PROJECT-ID=${_PUBLISHER_GOOGLE_PROJECT_ID}",
+          "--set-env-vars=SPRING_DATASOURCE_URL=${_SPRING_DATASOURCE_URL},PUBLISHER_ENABLED=${_PUBLISHER_ENABLED},PUBLISHER_GOOGLE-PROJECT-ID=${_PUBLISHER_GOOGLE_PROJECT_ID}",
           "--region",
           "europe-west1",
           "--platform",
