@@ -15,7 +15,7 @@ public class ProjectTest {
 
   @Test
   public void simpleValidation() {
-    Project project = new Project("myProject", true, false, "myUser");
+    Project project = new Project("myProject", true, "myUser");
     assertEquals("myProject", project.getProjectId());
     assertTrue(project.isActivated());
     project.setActivated(false);

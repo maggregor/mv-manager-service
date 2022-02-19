@@ -48,10 +48,9 @@ public class ProjectService {
     return projectRepository.findByProjectId(projectId).get();
   }
 
-  private void registerProjectIfNotExists(
-      String projectId, Boolean activated, Boolean automatic, String username) {
+  private void registerProjectIfNotExists(String projectId, Boolean activated, String username) {
     if (!projectExists(projectId)) {
-      Project project = new Project(projectId, activated, automatic, username);
+      Project project = new Project(projectId, activated, username);
       projectRepository.save(project);
     }
   }
@@ -68,7 +67,7 @@ public class ProjectService {
       String username,
       Integer analysisTimeframe,
       Integer mvMaxPerTable) {
-    registerProjectIfNotExists(projectId, activated, automatic, username);
+    registerProjectIfNotExists(projectId, activated, username);
     Project project = findProject(projectId).get();
     project.setActivated(activated);
     // If automatic has been sent in the payload (or if the project is being deactivated), we need
