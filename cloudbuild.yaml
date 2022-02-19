@@ -38,5 +38,5 @@ substitutions:
   _ENV: "dev"
   _SPRING_DATASOURCE_URL: "jdbc:postgresql://34.140.78.47:5432/optimizer_${_ENV}"
   _PUBLISHER_ENABLED: "true"
-  _PUBLISHER_GOOGLE_PROJECT_ID: "achilio-dev"
+  _PUBLISHER_GOOGLE_PROJECT_ID: "achilio-${_ENV}"
 images: ["gcr.io/achilio-${_ENV}/mvm-service"]
