@@ -38,12 +38,13 @@ public class Project {
   @Column(name = "analysis_timeframe", nullable = false, columnDefinition = "numeric default 30")
   private Integer analysisTimeframe;
 
+  @Column(name = "stripe_customer_id")
+  private String stripeCustomerId;
+
   public Project() {}
 
   public Project(String projectId, Boolean activated, Boolean automatic, String username) {
     this.projectId = projectId;
-    this.activated = activated;
-    this.automatic = automatic;
     this.username = username;
   }
 
@@ -104,6 +105,16 @@ public class Project {
   public void setAnalysisTimeframe(Integer analysisTimeframe) {
     if (analysisTimeframe != null) {
       this.analysisTimeframe = analysisTimeframe;
+    }
+  }
+
+  public String getStripeCustomerId() {
+    return this.stripeCustomerId;
+  }
+
+  public void setStripeCustomerId(String stripeCustomerId) {
+    if (stripeCustomerId != null) {
+      this.stripeCustomerId = stripeCustomerId;
     }
   }
 }

@@ -17,6 +17,14 @@ import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics;
 import com.achilio.mvm.service.entities.statistics.QueryStatistics;
 import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import com.google.api.client.http.HttpTransport;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.JsonFactory;
+import com.google.api.client.json.gson.GsonFactory;
+import com.google.api.services.oauth2.Oauth2;
+import com.google.api.services.oauth2.model.Userinfo;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.TemporalAdjusters;
@@ -35,6 +43,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class FetcherService {
 
+  private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
+  private static final HttpTransport HTTP_TRANSPORT = new NetHttpTransport();
   BigQueryMaterializedViewStatementBuilder statementBuilder;
 
   @PersistenceContext private EntityManager entityManager;
@@ -156,6 +166,16 @@ public class FetcherService {
     return global;
   }
 
+  public Userinfo getUserInfo() throws IOException {
+    Oauth2 oauth2 =
+        new Oauth2.Builder(
+                HTTP_TRANSPORT,
+                JSON_FACTORY,
+                new GoogleCredential().setAccessToken(getAccessToken()))
+            .build();
+    return oauth2.userinfo().get().execute();
+  }
+
   private DatabaseFetcher fetcher() {
     return fetcher(null);
   }
@@ -165,6 +185,14 @@ public class FetcherService {
         (SimpleGoogleCredentialsAuthentication)
             SecurityContextHolder.getContext().getAuthentication();
     return new BigQueryDatabaseFetcher(authentication.getCredentials(), projectId);
+  }
+
+  public String getAccessToken() {
+    return ((SimpleGoogleCredentialsAuthentication)
+            SecurityContextHolder.getContext().getAuthentication())
+        .getCredentials()
+        .getAccessToken()
+        .getTokenValue();
   }
 
   private long daysToMillis(int days) {

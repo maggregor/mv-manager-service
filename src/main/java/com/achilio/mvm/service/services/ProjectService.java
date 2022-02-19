@@ -21,17 +21,17 @@ public class ProjectService {
   public ProjectService() {}
 
   public Boolean isProjectActivated(String projectId) {
-    Optional<Project> project = findProject(projectId);
+    Optional<Project> project = findProjectOrCreate(projectId);
     return project.isPresent() && project.get().isActivated();
   }
 
   public Boolean isProjectAutomatic(String projectId) {
-    Optional<Project> project = findProject(projectId);
+    Optional<Project> project = findProjectOrCreate(projectId);
     return project.isPresent() && project.get().isAutomatic();
   }
 
   public String getProjectUsername(String projectId) {
-    Optional<Project> project = findProject(projectId);
+    Optional<Project> project = findProjectOrCreate(projectId);
     return project.isPresent() ? project.get().getUsername() : "";
   }
 
@@ -40,7 +40,11 @@ public class ProjectService {
     publisherService.publishProjectSchedulers(projects);
   }
 
-  public Optional<Project> findProject(String projectId) {
+  public Optional<Project> findProjectOrCreate(String projectId) {
+    if (!projectExists(projectId)) {
+      Project project = new Project(projectId);
+      projectRepository.save(project);
+    }
     return projectRepository.findByProjectId(projectId);
   }
 
@@ -48,16 +52,8 @@ public class ProjectService {
     return projectRepository.findByProjectId(projectId).get();
   }
 
-  private void registerProjectIfNotExists(
-      String projectId, Boolean activated, Boolean automatic, String username) {
-    if (!projectExists(projectId)) {
-      Project project = new Project(projectId, activated, automatic, username);
-      projectRepository.save(project);
-    }
-  }
-
   public boolean projectExists(String projectId) {
-    return findProject(projectId).isPresent();
+    return projectRepository.findByProjectId(projectId).isPresent();
   }
 
   @Transactional
@@ -68,7 +64,6 @@ public class ProjectService {
       String username,
       Integer analysisTimeframe,
       Integer mvMaxPerTable) {
-    registerProjectIfNotExists(projectId, activated, automatic, username);
     Project project = findProject(projectId).get();
     project.setActivated(activated);
     // If automatic has been sent in the payload (or if the project is being deactivated), we need
