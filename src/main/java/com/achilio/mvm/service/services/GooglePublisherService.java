@@ -223,9 +223,11 @@ public class GooglePublisherService {
       }
     }
     LOGGER.info(
-        "Publisher enabled. Message with data {} and attributes {} will be published.",
+        "Publisher enabled. Message with data {} and attributes {} will be published on topic {} from project {}.",
         pubsubMessage.getData().toStringUtf8(),
-        pubsubMessage.getAttributesMap());
+        pubsubMessage.getAttributesMap(),
+        topicName,
+        PUBLISHER_GOOGLE_PROJECT_ID);
     return true;
   }
 
