@@ -36,6 +36,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -46,6 +47,9 @@ public class FetcherService {
   private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
   private static final HttpTransport HTTP_TRANSPORT = new NetHttpTransport();
   BigQueryMaterializedViewStatementBuilder statementBuilder;
+
+  @Value("${application.name}")
+  private String applicationName;
 
   @PersistenceContext private EntityManager entityManager;
 
@@ -172,6 +176,7 @@ public class FetcherService {
                 HTTP_TRANSPORT,
                 JSON_FACTORY,
                 new GoogleCredential().setAccessToken(getAccessToken()))
+            .setApplicationName(applicationName)
             .build();
     return oauth2.userinfo().get().execute();
   }
