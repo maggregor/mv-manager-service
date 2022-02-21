@@ -11,7 +11,7 @@ public class FunctionField extends Field {
     super(name, alias);
   }
 
-  public FunctionField(String name, String alias, float distinctValuePercent) {
-    super(name, alias, distinctValuePercent);
+  public FunctionField(String name, String alias, long countDistinct) {
+    super(name, alias, countDistinct);
   }
 }

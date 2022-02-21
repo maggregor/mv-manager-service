@@ -2,6 +2,7 @@ package com.achilio.mvm.service.visitors;
 
 import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
 import com.achilio.mvm.service.visitors.fields.FieldSet;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,5 +37,22 @@ public class FieldSetMerger {
               return entry.getKey();
             })
         .collect(Collectors.toList());
+  }
+
+  /**
+   * @param fieldSets
+   * @return
+   */
+  public static final List<FieldSet> mergeSameFieldSets(List<FieldSet> fieldSets) {
+    Map<Integer, FieldSet> map = new HashMap<>(); // F1,
+    for (FieldSet fieldSet : fieldSets) {
+      int key = fieldSet.hashCode();
+      if (map.containsKey(key)) {
+        map.get(key).merge(fieldSet);
+      } else {
+        map.put(key, fieldSet);
+      }
+    }
+    return new ArrayList<>(map.values());
   }
 }

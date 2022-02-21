@@ -3,7 +3,7 @@ package com.achilio.mvm.service.visitors.fields;
 import com.achilio.mvm.service.OptimizerApplication;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
-import java.util.LinkedHashSet;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -15,16 +15,18 @@ public class DefaultFieldSet implements FieldSet, Cloneable {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(OptimizerApplication.class);
 
-  private final Set<Field> fields;
+  private Set<Field> fields = new HashSet<>();
   private Set<FetchedTable> referenceTables;
   private QueryUsageStatistics statistics;
+  private int totalHits = 0;
 
   public DefaultFieldSet() {
-    this(new LinkedHashSet<>());
+    this(new HashSet<>());
   }
 
   public DefaultFieldSet(final Set<Field> fields) {
-    this.fields = fields;
+    fields.forEach(this::add);
+    this.statistics = new QueryUsageStatistics(0, 0, 0);
   }
 
   @Override
@@ -54,12 +56,15 @@ public class DefaultFieldSet implements FieldSet, Cloneable {
 
   @Override
   public void add(Field field) {
+    this.totalHits++;
     this.fields.add(field);
   }
 
   @Override
   public void merge(FieldSet fieldSet) {
-    fields.addAll(fieldSet.fields());
+    this.fields.addAll(fieldSet.fields());
+    this.totalHits += fieldSet.getTotalHits();
+    this.getStatistics().addQueryUsageStatistics(fieldSet.getStatistics());
   }
 
   @Override
@@ -105,6 +110,11 @@ public class DefaultFieldSet implements FieldSet, Cloneable {
   }
 
   @Override
+  public int getTotalHits() {
+    return this.totalHits;
+  }
+
+  @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;
@@ -119,5 +129,10 @@ public class DefaultFieldSet implements FieldSet, Cloneable {
   @Override
   public int hashCode() {
     return new HashCodeBuilder(17, 37).append(fields()).toHashCode();
+  }
+
+  @Override
+  public String toString() {
+    return "DefaultFieldSet{" + "fields=" + fields + ", totalHits=" + totalHits + '}';
   }
 }

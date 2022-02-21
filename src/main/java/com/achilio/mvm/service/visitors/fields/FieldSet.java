@@ -61,4 +61,6 @@ public interface FieldSet {
    * @return
    */
   boolean isEmpty();
+
+  int getTotalHits();
 }

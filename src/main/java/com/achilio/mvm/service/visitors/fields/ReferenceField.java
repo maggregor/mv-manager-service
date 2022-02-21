@@ -11,7 +11,7 @@ public class ReferenceField extends Field {
     super(name, alias);
   }
 
-  public ReferenceField(String name, String alias, float distinctValuePercent) {
-    super(name, alias, distinctValuePercent);
+  public ReferenceField(String name, String alias, long countDistinct) {
+    super(name, alias, countDistinct);
   }
 }

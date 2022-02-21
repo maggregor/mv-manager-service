@@ -11,7 +11,7 @@ public class AggregateField extends FunctionField {
     super(name, alias);
   }
 
-  public AggregateField(String name, String alias, float distinctValuePercent) {
-    super(name, alias, distinctValuePercent);
+  public AggregateField(String name, String alias, long countDistinct) {
+    super(name, alias, countDistinct);
   }
 }

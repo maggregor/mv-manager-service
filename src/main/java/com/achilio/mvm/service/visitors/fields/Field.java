@@ -11,8 +11,7 @@ public abstract class Field {
 
   private final String expression;
   private final String alias;
-
-  private final float distinctValuePercent;
+  private final long countDistinct;
 
   public Field(String expression) {
     this(expression, ALIAS_PREFIX + Math.abs(expression.hashCode()));
@@ -23,14 +22,14 @@ public abstract class Field {
     this(expression, alias, 0);
   }
 
-  public Field(String expression, String alias, float distinctValuePercent) {
+  public Field(String expression, String alias, long countDistinct) {
     this.expression = expression;
     this.alias = alias;
-    this.distinctValuePercent = distinctValuePercent;
+    this.countDistinct = countDistinct;
   }
 
-  public float getDistinctValuePercent() {
-    return distinctValuePercent;
+  public long getCountDistinct() {
+    return countDistinct;
   }
 
   public String alias() {
@@ -62,5 +61,10 @@ public abstract class Field {
   @Override
   public int hashCode() {
     return new HashCodeBuilder(17, 37).append(expression).append(alias).toHashCode();
+  }
+
+  @Override
+  public String toString() {
+    return "['" + expression + '\'' + ", distinct=" + countDistinct + ']';
   }
 }

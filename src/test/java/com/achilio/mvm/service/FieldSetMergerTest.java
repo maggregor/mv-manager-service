@@ -51,9 +51,8 @@ public class FieldSetMergerTest {
 
   @Test
   public void statisticsMerged() {
-    FieldSetMerger fieldSetMerger = new FieldSetMerger();
     final List<FieldSet> fieldSets = Arrays.asList(mockFieldSet1, mockFieldSet1Copy);
-    List<FieldSet> actual = fieldSetMerger.merge(fieldSets);
+    List<FieldSet> actual = FieldSetMerger.merge(fieldSets);
     assertEquals(200L, actual.get(0).getStatistics().getProcessedBytes());
     assertEquals(20L, actual.get(0).getStatistics().getBilledBytes());
   }
