@@ -227,7 +227,7 @@ public class GooglePublisherService {
       publisher = Publisher.newBuilder(topicName).build();
       publisher.publish(pubsubMessage);
     } catch (Exception e) {
-      LOGGER.error(String.valueOf(e));
+      LOGGER.error("Error during publish of message. ", e);
     } finally {
       if (publisher != null) {
         publisher.shutdown();
