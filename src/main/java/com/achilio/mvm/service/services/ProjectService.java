@@ -49,9 +49,9 @@ public class ProjectService {
       projectRepository.save(project);
     }
     Project project = projectRepository.findByProjectId(projectId).get();
-    if (StringUtils.isEmpty(project.getStripeCustomerId())) {
+    if (StringUtils.isEmpty(project.getCustomerId())) {
       final String customerId = stripeService.createCustomer(projectId);
-      project.setStripeCustomerId(customerId);
+      project.setCustomerId(customerId);
       projectRepository.save(project);
     }
     return project;

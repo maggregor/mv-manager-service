@@ -40,7 +40,7 @@ public class Project {
   private Integer analysisTimeframe = 30;
 
   @Column(name = "stripe_customer_id")
-  private String stripeCustomerId;
+  private String customerId;
 
   public Project() {}
 
@@ -108,13 +108,13 @@ public class Project {
     }
   }
 
-  public String getStripeCustomerId() {
-    return this.stripeCustomerId;
+  public String getCustomerId() {
+    return this.customerId;
   }
 
-  public void setStripeCustomerId(String stripeCustomerId) {
-    if (stripeCustomerId != null) {
-      this.stripeCustomerId = stripeCustomerId;
+  public void setCustomerId(String customerId) {
+    if (customerId != null) {
+      this.customerId = customerId;
     }
   }
 }

@@ -26,8 +26,8 @@ public class ProjectResponse {
   @JsonProperty("automatic")
   private Boolean automatic;
 
-  @JsonProperty("stripeCustomerId")
-  private String stripeCustomerId;
+  @JsonProperty("customerId")
+  private String customerId;
 
   public ProjectResponse(String projectId, String projectName) {
     this.projectId = projectId;
@@ -41,6 +41,6 @@ public class ProjectResponse {
     this.username = project.getUsername();
     this.mvMaxPerTable = project.getMvMaxPerTable();
     this.analysisTimeframe = project.getAnalysisTimeframe();
-    this.stripeCustomerId = project.getStripeCustomerId();
+    this.customerId = project.getCustomerId();
   }
 }
