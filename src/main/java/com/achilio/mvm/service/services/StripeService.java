@@ -158,7 +158,8 @@ public class StripeService {
   public void handleSubscription(Subscription subscription, String customerId)
       throws StripeException {
     Stripe.apiKey = API_KEY;
-    String projectId = Customer.retrieve(customerId).getMetadata().get(CustomerMetadata.PROJECT_ID.getValue());
+    String projectId =
+        Customer.retrieve(customerId).getMetadata().get(CustomerMetadata.PROJECT_ID.getValue());
     Project project = projectService.getProject(projectId);
     if (subscription.getStatus().equals(Status.ACTIVE.getValue())) {
       projectService.activateProject(project);
@@ -191,7 +192,7 @@ public class StripeService {
         final String priceId = price.getStripePriceId();
         ProjectSubscription subscription = getSubscriptionByPriceId(priceId);
         if (subscription != null) {
-          projectPlan.setSubscription(getSubscriptionByPriceId(priceId));
+          projectPlan.setSubscription(subscription);
         }
       }
     } catch (StripeException e) {
@@ -201,11 +202,9 @@ public class StripeService {
   }
 
   private ProjectPlanPrice toProjectPlanPrice(Price price) {
+    String interval = price.getRecurring() == null ? null : price.getRecurring().getInterval();
     return new ProjectPlanPrice(
-        price.getId(),
-        price.getUnitAmount(),
-        price.getCurrency(),
-        price.getRecurring().getInterval());
+        price.getId(), price.getUnitAmount(), price.getCurrency(), interval);
   }
 
   private ProjectSubscription toProjectSubscription(Subscription s) {

@@ -27,14 +27,16 @@ public class GoogleProjectInterceptor extends HandlerInterceptorAdapter {
         new TreeMap<>(
             (Map<String, String>)
                 request.getAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE));
-    String projectId = (String) map.get("projectId");
-    try {
-      SimpleGoogleCredentialsAuthentication authentication =
-          (SimpleGoogleCredentialsAuthentication)
-              SecurityContextHolder.getContext().getAuthentication();
-      new BigQueryDatabaseFetcher(authentication.getCredentials(), projectId);
-    } catch (ResourceManagerException e) {
-      throw new UnauthorizedException("Access token is invalid");
+    if (map.containsKey("projectId")) {
+      String projectId = (String) map.get("projectId");
+      try {
+        SimpleGoogleCredentialsAuthentication authentication =
+            (SimpleGoogleCredentialsAuthentication)
+                SecurityContextHolder.getContext().getAuthentication();
+        new BigQueryDatabaseFetcher(authentication.getCredentials(), projectId);
+      } catch (ResourceManagerException e) {
+        throw new UnauthorizedException("Access token is invalid");
+      }
     }
     return true;
   }
