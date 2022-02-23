@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -40,23 +41,32 @@ public class GooglePublisherService {
   private static final String CMD_TYPE_DESTROY = "destroy";
   private static final Logger LOGGER = LoggerFactory.getLogger(OptimizerApplication.class);
 
-  @Value("${publisher.enabled}")
-  private boolean PUBLISHER_ENABLED = false;
+  private boolean PUBLISHER_ENABLED;
+  private TopicName EXECUTOR_TOPIC_NAME;
+  private TopicName SCHEDULER_TOPIC_NAME;
 
-  @Value("${publisher.google-project-id}")
-  private String PUBLISHER_GOOGLE_PROJECT_ID = "achilio-dev";
 
-  @Value("${publisher.executor-topic-id}")
-  private String PUBLISHER_EXECUTOR_TOPIC_ID = "mvExecutorTopic";
+  public GooglePublisherService() {
+    new GooglePublisherService(false, "achilio-dev", "mvExecutorTopic", "mvScheduleManagerTopic");
+  }
 
-  private final TopicName EXECUTOR_TOPIC_NAME =
-      TopicName.of(PUBLISHER_GOOGLE_PROJECT_ID, PUBLISHER_EXECUTOR_TOPIC_ID);
-
-  @Value("${publisher.scheduler-topic-id}")
-  private String PUBLISHER_SCHEDULER_TOPIC_ID = "mvScheduleManagerTopic";
-
-  private final TopicName SCHEDULER_TOPIC_NAME =
-      TopicName.of(PUBLISHER_GOOGLE_PROJECT_ID, PUBLISHER_SCHEDULER_TOPIC_ID);
+  @Autowired
+  public GooglePublisherService(
+      @Value("${publisher.enabled}") boolean publisherEnabled,
+      @Value("${publisher.google-project-id}") String publisherProjectId,
+      @Value("${publisher.executor-topic-id}") String executorTopicId,
+      @Value("${publisher.scheduler-topic-id}") String schedulerTopicId) {
+    this.PUBLISHER_ENABLED = publisherEnabled;
+    this.EXECUTOR_TOPIC_NAME =
+        TopicName.of(publisherProjectId, executorTopicId);
+    this.SCHEDULER_TOPIC_NAME =
+        TopicName.of(publisherProjectId, schedulerTopicId);
+    LOGGER.info(
+        "Initialized publisher: PROJECT_ID: {}, EXECUTOR_TOPIC: {}, SCHEDULER_TOPIC: {}",
+        publisherProjectId,
+        this.EXECUTOR_TOPIC_NAME,
+        this.SCHEDULER_TOPIC_NAME);
+  }
 
   public Boolean publishOptimization(Optimization o, List<OptimizationResult> materializedViews) {
     final String projectId = o.getProjectId();
@@ -216,6 +226,8 @@ public class GooglePublisherService {
     try {
       publisher = Publisher.newBuilder(topicName).build();
       publisher.publish(pubsubMessage);
+    } catch (Exception e) {
+      LOGGER.error("Error during publish of message. ", e);
     } finally {
       if (publisher != null) {
         publisher.shutdown();
@@ -223,9 +235,10 @@ public class GooglePublisherService {
       }
     }
     LOGGER.info(
-        "Publisher enabled. Message with data {} and attributes {} will be published.",
+        "Publisher enabled. Message with data {} and attributes {} will be published on topic {}.",
         pubsubMessage.getData().toStringUtf8(),
-        pubsubMessage.getAttributesMap());
+        pubsubMessage.getAttributesMap(),
+        topicName);
     return true;
   }
 
