@@ -2,6 +2,7 @@ package com.achilio.mvm.service.services;
 
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.models.ProjectPlan;
+import com.achilio.mvm.service.models.ProjectPlan.PossibleAction;
 import com.achilio.mvm.service.models.ProjectPlanPrice;
 import com.achilio.mvm.service.models.ProjectSubscription;
 import com.google.api.services.oauth2.model.Userinfo;
@@ -22,6 +23,7 @@ import com.stripe.param.SubscriptionListParams;
 import com.stripe.param.SubscriptionListParams.Status;
 import com.stripe.param.SubscriptionUpdateParams;
 import com.stripe.param.SubscriptionUpdateParams.ProrationBehavior;
+import io.micrometer.core.instrument.util.StringUtils;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
@@ -99,11 +101,16 @@ public class StripeService {
     return toProjectSubscription(Subscription.retrieve(subscriptionId));
   }
 
-  public ProjectSubscription getSubscriptionByPriceId(String priceId) throws StripeException {
+  public ProjectSubscription getSubscriptionByPriceId(String customerId, String priceId)
+      throws StripeException {
     Stripe.apiKey = API_KEY;
     Subscription subscription =
         Subscription.list(
-                SubscriptionListParams.builder().setPrice(priceId).setStatus(Status.ACTIVE).build())
+                SubscriptionListParams.builder()
+                    .setCustomer(customerId)
+                    .setPrice(priceId)
+                    .setStatus(Status.ACTIVE)
+                    .build())
             .getData()
             .stream()
             .findFirst()
@@ -114,9 +121,31 @@ public class StripeService {
   public List<ProjectPlan> getPlans(String customerId) throws StripeException {
     Stripe.apiKey = API_KEY;
     ProductListParams p = ProductListParams.builder().setActive(true).build();
-    return Product.list(p).getData().parallelStream()
-        .map(this::toProjectPlan)
-        .collect(Collectors.toList());
+    List<ProjectPlan> plans =
+        Product.list(p).getData().parallelStream()
+            .map(plan -> toProjectPlan(plan, customerId))
+            .collect(Collectors.toList());
+    applyPossibleActions(plans);
+    return plans;
+  }
+
+  public void applyPossibleActions(List<ProjectPlan> plans) {
+    ProjectPlan enabledPlan =
+        plans.stream().filter(ProjectPlan::isEnabled).findFirst().orElse(null);
+    plans.forEach(
+        plan -> {
+          if (enabledPlan == null) {
+            plan.setPossibleAction(PossibleAction.SUBSCRIBE);
+          } else if (plan.isEnabled()) {
+            plan.setPossibleAction(PossibleAction.CANCEL);
+          } else if (!enabledPlan.getPrices().isEmpty() && !plan.getPrices().isEmpty()) {
+            boolean upgrade =
+                enabledPlan.getPrices().get(0).getAmount() < plan.getPrices().get(0).getAmount();
+            plan.setPossibleAction(upgrade ? PossibleAction.UPGRADE : PossibleAction.DOWNGRADE);
+          } else {
+            plan.setPossibleAction(PossibleAction.SUBSCRIBE);
+          }
+        });
   }
 
   public ProjectSubscription changeSubscriptionPricing(String subscriptionId, String newPriceId)
@@ -151,8 +180,10 @@ public class StripeService {
   public String getLatestIntentClientSecret(String subscriptionId) throws StripeException {
     Subscription subscription = Subscription.retrieve(subscriptionId);
     Invoice invoice = Invoice.retrieve(subscription.getLatestInvoice());
-    PaymentIntent paymentIntent = PaymentIntent.retrieve(invoice.getPaymentIntent());
-    return paymentIntent.getClientSecret();
+    if (StringUtils.isEmpty(invoice.getPaymentIntent())) {
+      return null;
+    }
+    return PaymentIntent.retrieve(invoice.getPaymentIntent()).getClientSecret();
   }
 
   public void handleSubscription(Subscription subscription, String customerId)
@@ -179,21 +210,24 @@ public class StripeService {
         .collect(Collectors.toList());
   }
 
-  private ProjectPlan toProjectPlan(Product product) {
+  private ProjectPlan toProjectPlan(Product product, String customerId) {
     String imageUrl = product.getImages().isEmpty() ? null : product.getImages().get(0);
     String description = product.getDescription();
     String name = product.getName();
     String id = product.getId();
     ProjectPlan projectPlan = new ProjectPlan(name, id, imageUrl, description);
     try {
-      List<ProjectPlanPrice> prices = getPrices(product.getId());
+      List<ProjectPlanPrice> prices = getPrices(id);
       projectPlan.setPricing(prices);
+      ProjectSubscription subscription = null;
       for (ProjectPlanPrice price : prices) {
-        final String priceId = price.getStripePriceId();
-        ProjectSubscription subscription = getSubscriptionByPriceId(priceId);
-        if (subscription != null) {
-          projectPlan.setSubscription(subscription);
+        ProjectSubscription s = getSubscriptionByPriceId(customerId, price.getStripePriceId());
+        if (s != null) {
+          subscription = s;
         }
+      }
+      if (subscription != null) {
+        projectPlan.setSubscription(subscription);
       }
     } catch (StripeException e) {
       LOGGER.error("Error while fetching product {} ({}) ", name, id, e);

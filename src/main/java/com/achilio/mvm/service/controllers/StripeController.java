@@ -13,7 +13,9 @@ import com.stripe.model.StripeObject;
 import com.stripe.model.Subscription;
 import com.stripe.net.Webhook;
 import io.swagger.annotations.ApiOperation;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,9 +62,11 @@ public class StripeController {
   @GetMapping(
       path = "/subscription/{subscriptionId}/latestIntentClientSecret",
       produces = "application/json")
-  public String getLatestIntentClientSecret(@PathVariable String subscriptionId)
+  public Map<String, String> getLatestIntentClientSecret(@PathVariable String subscriptionId)
       throws StripeException {
-    return stripeService.getLatestIntentClientSecret(subscriptionId);
+    Map<String, String> response = new HashMap<>();
+    response.put("clientSecret", stripeService.getLatestIntentClientSecret(subscriptionId));
+    return response;
   }
 
   @DeleteMapping(path = "/subscription/{subscriptionId}", produces = "application/json")

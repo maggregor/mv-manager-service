@@ -15,12 +15,10 @@ public class ProjectPlan {
   private String stripeProductId;
 
   private List<ProjectPlanPrice> prices;
-
   private ProjectSubscription subscription;
-
   private String urlImage;
-
   private String description;
+  private PossibleAction possibleAction;
 
   public ProjectPlan(String name, String stripeProductId, String urlImage, String description) {
     this.name = name;
@@ -63,5 +61,16 @@ public class ProjectPlan {
 
   public void setPricing(List<ProjectPlanPrice> prices) {
     this.prices = prices;
+  }
+
+  public void setPossibleAction(PossibleAction possibleAction) {
+    this.possibleAction = possibleAction;
+  }
+
+  public enum PossibleAction {
+    UPGRADE,
+    DOWNGRADE,
+    CANCEL,
+    SUBSCRIBE;
   }
 }
