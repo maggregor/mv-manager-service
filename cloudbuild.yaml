@@ -3,40 +3,44 @@ steps:
   - name: maven:3-openjdk-8
     id: "mvn-test"
     entrypoint: mvn
-    args: ["test"]
+    args: [ "test" ]
   # Build the container image
   - name: "gcr.io/cloud-builders/docker"
-    args: ["build", "-t", "gcr.io/achilio-${_ENV}/mvm-service", "."]
+    args: [ "build", "-t", "gcr.io/achilio-${_ENV}/mvm-service", "." ]
   # Push the container image to Container Registry
   - name: "gcr.io/cloud-builders/docker"
-    args: ["push", "gcr.io/achilio-${_ENV}/mvm-service"]
+    args: [ "push", "gcr.io/achilio-${_ENV}/mvm-service" ]
   # Deploy container image to Cloud Run
   - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
     entrypoint: gcloud
     args:
       [
-        "beta",
-        "run",
-        "deploy",
-        "mvm-service",
-        "--image",
-        "gcr.io/achilio-${_ENV}/mvm-service",
-        "--set-env-vars=SPRING_DATASOURCE_URL=${_SPRING_DATASOURCE_URL},PUBLISHER_ENABLED=${_PUBLISHER_ENABLED},PUBLISHER_GOOGLE_PROJECT_ID=${_PUBLISHER_GOOGLE_PROJECT_ID}",
-        "--region",
-        "europe-west1",
-        "--platform",
-        "managed",
-        "--cpu",
-        "4",
-        "--memory",
-        "2Gi",
-        "--allow-unauthenticated",
-        "--min-instances=1",
-        "--max-instances=1",
+          "beta",
+          "run",
+          "deploy",
+          "mvm-service",
+          "--image",
+          "gcr.io/${PROJECT_ID}/mvm-service",
+          "--set-env-vars=SPRING_DATASOURCE_URL=${_SPRING_DATASOURCE_URL},PUBLISHER_ENABLED=${_PUBLISHER_ENABLED},PUBLISHER_GOOGLE_PROJECT_ID=${_PUBLISHER_GOOGLE_PROJECT_ID}",
+          "--update-env-vars=STRIPE_API_KEY=${_STRIPE_API_KEY}",
+          "--update-env-vars=STRIPE_ENDPOINT_SECRET=${_STRIPE_ENDPOINT_SECRET}",
+          "--region",
+          "europe-west1",
+          "--platform",
+          "managed",
+          "--cpu",
+          "4",
+          "--memory",
+          "2Gi",
+          "--allow-unauthenticated",
+          "--min-instances=1",
+          "--max-instances=1",
       ]
 substitutions:
   _ENV: "dev"
   _SPRING_DATASOURCE_URL: "jdbc:postgresql://34.140.78.47:5432/optimizer_${_ENV}"
   _PUBLISHER_ENABLED: "true"
-  _PUBLISHER_GOOGLE_PROJECT_ID: "achilio-${_ENV}"
-images: ["gcr.io/achilio-${_ENV}/mvm-service"]
+  _PUBLISHER_GOOGLE_PROJECT_ID: "${PROJECT_ID}"
+  _STRIPE_API_KEY: "sk_test_51I8oL1Kz3TV8XBbdgPtkPKW1Mh3qrWfC13TbJBUQND9rWNvtyTT3wVssVYbgDteA5xTpzE5XEM9IfAXWQLZZJWPw00ljma7GOR"
+  _STRIPE_ENDPOINT_SECRET: "whsec_t8R7LnqYfvyGr6N4l8kJJpAKybKzq3UZ"
+images: [ "gcr.io/achilio-${_ENV}/mvm-service" ]

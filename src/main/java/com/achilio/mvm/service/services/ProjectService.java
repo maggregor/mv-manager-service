@@ -116,4 +116,18 @@ public class ProjectService {
     Optional<Dataset> dataset = getDataset(projectId, datasetName);
     return dataset.map(Dataset::isActivated).orElse(false);
   }
+
+  @Transactional
+  public void activateProject(Project project) {
+    project.setActivated(true);
+    projectRepository.save(project);
+  }
+
+  @Transactional
+  public void deactivateProject(Project project) {
+    project.setActivated(false);
+    project.setAutomatic(false);
+    // TODO: Other cleanup action ?
+    projectRepository.save(project);
+  }
 }

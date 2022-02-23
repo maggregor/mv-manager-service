@@ -7,7 +7,6 @@ import com.achilio.mvm.service.services.StripeService;
 import com.stripe.exception.EventDataObjectDeserializationException;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.exception.StripeException;
-import com.stripe.model.Customer;
 import com.stripe.model.Event;
 import com.stripe.model.EventDataObjectDeserializer;
 import com.stripe.model.StripeObject;
@@ -18,6 +17,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,10 +34,11 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 public class StripeController {
 
-  private static Logger LOGGER = LoggerFactory.getLogger(ProjectController.class);
+  private static Logger LOGGER = LoggerFactory.getLogger(StripeController.class);
   @Autowired private StripeService stripeService;
-  private String endpointSecret =
-      "whsec_a8eef294ac2e2166bcc1e32137d206da9cf7a29d28a9314d6f14f714e0667163";
+
+  @Value("${stripe.endpoint.secret}")
+  private String endpointSecret;
 
   @GetMapping(path = "/plan", produces = "application/json")
   public List<ProjectPlan> getProjectPlans(@RequestParam String customerId) throws StripeException {
@@ -96,7 +97,7 @@ public class StripeController {
 
     // Deserialize the nested object inside the event
     EventDataObjectDeserializer dataObjectDeserializer = event.getDataObjectDeserializer();
-    StripeObject stripeObject = null;
+    StripeObject stripeObject;
     if (dataObjectDeserializer.getObject().isPresent()) {
       stripeObject = dataObjectDeserializer.getObject().get();
     } else {
@@ -115,22 +116,21 @@ public class StripeController {
         // handle subscription canceled automatically based
         // upon your subscription settings. Or if the user
         // cancels it.
-        LOGGER.info("We can process the deletion of the subscription");
-        break;
+        LOGGER.info("Processing the deletion of the subscription");
       case "customer.subscription.updated":
         // handle subscription updated by updating the project
         // associated to its customerId
         LOGGER.info("Updating subscription for customer: {}", customerId);
       case "customer.subscription.created":
-        LOGGER.info("We can process the subscription for customer: {}", customerId);
-        stripeService.handleSubscriptionCreated(customerId);
-        String projectId = Customer.retrieve(customerId).getMetadata().get("project_id");
-        Project project = projectService.findById(projectId);
-        //
+        LOGGER.info(
+            "Processing the subscription {} for customer: {}",
+            subscription.getStatus(),
+            customerId);
+        stripeService.handleSubscription(subscription, customerId);
         break;
       default:
         // Unhandled event type
-        LOGGER.warn("No event of this type: {}", event.getType());
+        LOGGER.warn("Unhandled event type: {}", event.getType());
     }
   }
 }
