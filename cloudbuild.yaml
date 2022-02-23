@@ -22,8 +22,8 @@ steps:
           "--image",
           "gcr.io/${PROJECT_ID}/mvm-service",
           "--set-env-vars=SPRING_DATASOURCE_URL=${_SPRING_DATASOURCE_URL},PUBLISHER_ENABLED=${_PUBLISHER_ENABLED},PUBLISHER_GOOGLE_PROJECT_ID=${_PUBLISHER_GOOGLE_PROJECT_ID}",
-          "--update-env-vars=STRIPE_API_KEY=${_STRIPE_API_KEY}",
-          "--update-env-vars=STRIPE_ENDPOINT_SECRET=${_STRIPE_ENDPOINT_SECRET}",
+          "--update-secrets=STRIPE_API_KEY=projects/${PROJECT_ID}/secrets/stripe_api_key/versions/latest",
+          "--update-secrets=STRIPE_ENDPOINT_SECRET=projects/${PROJECT_ID}/secrets/stripe_endpoint_secret/versions/latest",
           "--region",
           "europe-west1",
           "--platform",
@@ -33,7 +33,7 @@ steps:
           "--memory",
           "2Gi",
           "--allow-unauthenticated",
-          "--min-instances=1",
+          "--min-instances=0",
           "--max-instances=1",
       ]
 substitutions:
@@ -41,6 +41,4 @@ substitutions:
   _SPRING_DATASOURCE_URL: "jdbc:postgresql://34.140.78.47:5432/optimizer_${_ENV}"
   _PUBLISHER_ENABLED: "true"
   _PUBLISHER_GOOGLE_PROJECT_ID: "${PROJECT_ID}"
-  _STRIPE_API_KEY: "sk_test_51I8oL1Kz3TV8XBbdgPtkPKW1Mh3qrWfC13TbJBUQND9rWNvtyTT3wVssVYbgDteA5xTpzE5XEM9IfAXWQLZZJWPw00ljma7GOR"
-  _STRIPE_ENDPOINT_SECRET: "whsec_t8R7LnqYfvyGr6N4l8kJJpAKybKzq3UZ"
 images: [ "gcr.io/achilio-${_ENV}/mvm-service" ]
