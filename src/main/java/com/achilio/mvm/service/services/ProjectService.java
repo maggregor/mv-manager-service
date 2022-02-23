@@ -7,6 +7,9 @@ import com.achilio.mvm.service.repositories.ProjectRepository;
 import java.util.List;
 import java.util.Optional;
 import javax.transaction.Transactional;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,25 +17,25 @@ import org.springframework.stereotype.Service;
 @Service
 public class ProjectService {
 
+  private static Logger LOGGER = LoggerFactory.getLogger(ProjectService.class);
+
   @Autowired private ProjectRepository projectRepository;
   @Autowired private DatasetRepository datasetRepository;
   @Autowired private GooglePublisherService publisherService;
+  @Autowired private StripeService stripeService;
 
   public ProjectService() {}
 
   public Boolean isProjectActivated(String projectId) {
-    Optional<Project> project = findProject(projectId);
-    return project.isPresent() && project.get().isActivated();
+    return findProjectOrCreate(projectId).isActivated();
   }
 
   public Boolean isProjectAutomatic(String projectId) {
-    Optional<Project> project = findProject(projectId);
-    return project.isPresent() && project.get().isAutomatic();
+    return findProjectOrCreate(projectId).isAutomatic();
   }
 
   public String getProjectUsername(String projectId) {
-    Optional<Project> project = findProject(projectId);
-    return project.isPresent() ? project.get().getUsername() : "";
+    return findProjectOrCreate(projectId).getUsername();
   }
 
   private void publishSchedulers() {
@@ -40,23 +43,26 @@ public class ProjectService {
     publisherService.publishProjectSchedulers(projects);
   }
 
-  public Optional<Project> findProject(String projectId) {
-    return projectRepository.findByProjectId(projectId);
+  public Project findProjectOrCreate(String projectId) {
+    if (!projectExists(projectId)) {
+      Project project = new Project(projectId);
+      projectRepository.save(project);
+    }
+    Project project = projectRepository.findByProjectId(projectId).get();
+    if (StringUtils.isEmpty(project.getCustomerId())) {
+      final String customerId = stripeService.createCustomer(projectId);
+      project.setCustomerId(customerId);
+      projectRepository.save(project);
+    }
+    return project;
   }
 
   public Project getProject(String projectId) {
     return projectRepository.findByProjectId(projectId).get();
   }
 
-  private void registerProjectIfNotExists(String projectId, Boolean activated, String username) {
-    if (!projectExists(projectId)) {
-      Project project = new Project(projectId, activated, username);
-      projectRepository.save(project);
-    }
-  }
-
   public boolean projectExists(String projectId) {
-    return findProject(projectId).isPresent();
+    return projectRepository.findByProjectId(projectId).isPresent();
   }
 
   @Transactional
@@ -67,8 +73,7 @@ public class ProjectService {
       String username,
       Integer analysisTimeframe,
       Integer mvMaxPerTable) {
-    registerProjectIfNotExists(projectId, activated, username);
-    Project project = findProject(projectId).get();
+    Project project = findProjectOrCreate(projectId);
     project.setActivated(activated);
     // If automatic has been sent in the payload (or if the project is being deactivated), we need
     // to publish a potential config change on the schedulers
@@ -83,23 +88,18 @@ public class ProjectService {
   }
 
   private Optional<Dataset> getDataset(String projectId, String datasetName) {
-    Optional<Project> projectMetadata = findProject(projectId);
-    if (!projectMetadata.isPresent()) {
-      return Optional.empty();
-    }
-    return datasetRepository.findByProjectAndDatasetName(projectMetadata.get(), datasetName);
+    Project project = findProjectOrCreate(projectId);
+    return datasetRepository.findByProjectAndDatasetName(project, datasetName);
   }
 
-  private boolean datasetExists(Optional<Project> project, String datasetName) {
-    return project
-        .filter(p -> datasetRepository.findByProjectAndDatasetName(p, datasetName).isPresent())
-        .isPresent();
+  private boolean datasetExists(Project project, String datasetName) {
+    return datasetRepository.findByProjectAndDatasetName(project, datasetName).isPresent();
   }
 
   private void registerDatasetIfNotExists(String projectId, String datasetName, Boolean activated) {
-    Optional<Project> project = findProject(projectId);
+    Project project = findProjectOrCreate(projectId);
     if (!datasetExists(project, datasetName)) {
-      Dataset dataset = new Dataset(project.get(), datasetName, activated);
+      Dataset dataset = new Dataset(project, datasetName, activated);
       datasetRepository.save(dataset);
     }
   }
@@ -115,5 +115,19 @@ public class ProjectService {
   public boolean isDatasetActivated(String projectId, String datasetName) {
     Optional<Dataset> dataset = getDataset(projectId, datasetName);
     return dataset.map(Dataset::isActivated).orElse(false);
+  }
+
+  @Transactional
+  public void activateProject(Project project) {
+    project.setActivated(true);
+    projectRepository.save(project);
+  }
+
+  @Transactional
+  public void deactivateProject(Project project) {
+    project.setActivated(false);
+    project.setAutomatic(false);
+    // TODO: Other cleanup action ?
+    projectRepository.save(project);
   }
 }

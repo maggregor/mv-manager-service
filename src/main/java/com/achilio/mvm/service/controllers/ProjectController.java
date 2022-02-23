@@ -22,7 +22,6 @@ import com.achilio.mvm.service.visitors.FieldSetExtractFactory;
 import io.swagger.annotations.ApiOperation;
 import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
@@ -167,10 +166,8 @@ public class ProjectController {
 
   public ProjectResponse toProjectResponse(FetchedProject fetchedProject) {
     final String projectId = fetchedProject.getProjectId();
-    Optional<Project> projectOptional = projectService.findProject(projectId);
-    return projectOptional
-        .map(project -> new ProjectResponse(fetchedProject.getName(), project))
-        .orElse(new ProjectResponse(projectId, fetchedProject.getName()));
+    Project project = projectService.findProjectOrCreate(projectId);
+    return new ProjectResponse(fetchedProject.getName(), project);
   }
 
   public DatasetResponse toDatasetResponse(FetchedDataset dataset) {

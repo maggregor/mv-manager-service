@@ -7,6 +7,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
@@ -30,7 +31,7 @@ public class Project {
   private Boolean automatic = false;
 
   @Column(name = "username", nullable = false, columnDefinition = "varchar(255) default ''")
-  private String username;
+  private String username = Strings.EMPTY;
 
   @Column(name = "mv_max_per_table", nullable = false, columnDefinition = "numeric default 20")
   private Integer mvMaxPerTable = 20;
@@ -38,12 +39,13 @@ public class Project {
   @Column(name = "analysis_timeframe", nullable = false, columnDefinition = "numeric default 30")
   private Integer analysisTimeframe = 30;
 
+  @Column(name = "stripe_customer_id")
+  private String customerId;
+
   public Project() {}
 
-  public Project(String projectId, Boolean activated, String username) {
+  public Project(String projectId) {
     this.projectId = projectId;
-    this.activated = activated;
-    this.username = username;
   }
 
   public Long getId() {
@@ -103,6 +105,16 @@ public class Project {
   public void setAnalysisTimeframe(Integer analysisTimeframe) {
     if (analysisTimeframe != null) {
       this.analysisTimeframe = analysisTimeframe;
+    }
+  }
+
+  public String getCustomerId() {
+    return this.customerId;
+  }
+
+  public void setCustomerId(String customerId) {
+    if (customerId != null) {
+      this.customerId = customerId;
     }
   }
 }

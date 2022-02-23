@@ -15,14 +15,16 @@ public class ProjectTest {
 
   @Test
   public void simpleValidation() {
-    Project project = new Project("myProject", true, "myUser");
+    Project project = new Project("myProject");
     assertEquals("myProject", project.getProjectId());
+    project.setActivated(true);
     assertTrue(project.isActivated());
     project.setActivated(false);
     assertFalse(project.isActivated());
     assertFalse(project.isAutomatic());
     project.setAutomatic(true);
     assertTrue(project.isAutomatic());
+    project.setUsername("myUser");
     assertEquals("myUser", project.getUsername());
   }
 

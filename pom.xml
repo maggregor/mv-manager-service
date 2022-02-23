@@ -239,6 +239,19 @@
       <version>2.7.0</version>
     </dependency>
 
+    <!-- Stripe -->
+    <dependency>
+      <artifactId>stripe-java</artifactId>
+      <groupId>com.stripe</groupId>
+      <version>20.100.0</version>
+    </dependency>
+    <!-- https://mvnrepository.com/artifact/com.google.apis/google-api-services-oauth2 -->
+    <dependency>
+      <artifactId>google-api-services-oauth2</artifactId>
+      <groupId>com.google.apis</groupId>
+      <version>v2-rev157-1.25.0</version>
+    </dependency>
+
   </dependencies>
   <dependencyManagement>
     <dependencies>
