@@ -1,6 +1,6 @@
 package com.achilio.mvm.service;
 
-import static com.achilio.mvm.service.databases.entities.FetchedTableHelper.createFetchedTable;
+import static com.achilio.mvm.service.BigQueryHelper.FetchedTableHelper.createFetchedTable;
 import static com.achilio.mvm.service.visitors.QueryIneligibilityReason.PARSING_FAILED;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
