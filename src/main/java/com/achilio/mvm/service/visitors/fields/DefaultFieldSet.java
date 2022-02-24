@@ -11,7 +11,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DefaultFieldSet implements FieldSet, Cloneable {
+public class DefaultFieldSet implements FieldSet {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(OptimizerApplication.class);
 
@@ -87,16 +87,6 @@ public class DefaultFieldSet implements FieldSet, Cloneable {
   @Override
   public long cost() {
     return this.statistics == null ? 0 : this.statistics.getProcessedBytes();
-  }
-
-  @Override
-  public FieldSet clone() {
-    try {
-      return (FieldSet) super.clone();
-    } catch (CloneNotSupportedException e) {
-      LOGGER.error("Error while FieldSet cloning: {}", e.getMessage());
-      return null;
-    }
   }
 
   @Override

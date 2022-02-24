@@ -38,7 +38,6 @@ public class DefaultFieldSetTest {
   @Test
   public void equals() {
     assertEquals(FIELD_SET_1, FIELD_SET_SAME_AS_1);
-    assertEquals(FIELD_SET_1, FIELD_SET_1.clone());
     assertEquals(FIELD_SET_1, FIELD_SET_SAME_AS_1_DIFF_SORT);
     assertNotEquals(FIELD_SET_1, FIELD_SET_2);
     assertNotEquals(FIELD_SET_1, FIELD_SET_3);
