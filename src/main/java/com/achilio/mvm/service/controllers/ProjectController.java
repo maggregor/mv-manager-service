@@ -61,7 +61,6 @@ public class ProjectController {
   public void updateProject(
       @PathVariable final String projectId,
       @RequestBody final UpdateProjectRequestResponse payload) {
-    if (payload.isAutomatic() != null && payload.isAutomatic()) {}
     projectService.updateProject(
         projectId,
         payload.isAutomatic(),

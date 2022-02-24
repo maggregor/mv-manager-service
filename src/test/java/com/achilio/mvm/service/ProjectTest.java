@@ -34,4 +34,22 @@ public class ProjectTest {
     assertNull(project.getProjectId());
     assertNull(project.getId());
   }
+
+  @Test
+  public void projectPlanSettingsSimpleValidation() {
+    Project project = new Project();
+    assertEquals(false, project.getAutomaticAvailable());
+    project.setAutomaticAvailable(true);
+    assertEquals(true, project.getAutomaticAvailable());
+    project.setAutomaticAvailable(false);
+    assertEquals(false, project.getAutomaticAvailable());
+    project.setAutomaticAvailable(null);
+    assertEquals(false, project.getAutomaticAvailable());
+
+    assertEquals(Integer.valueOf(20), project.getMvMaxPerTableLimit());
+    project.setMvMaxPerTableLimit(15);
+    assertEquals(Integer.valueOf(15), project.getMvMaxPerTableLimit());
+    project.setMvMaxPerTableLimit(null);
+    assertEquals(Integer.valueOf(15), project.getMvMaxPerTableLimit());
+  }
 }

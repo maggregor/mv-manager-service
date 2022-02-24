@@ -46,6 +46,18 @@ public class Project {
   @Column(name = "stripe_customer_id")
   private String customerId;
 
+  @Column(
+      name = "mv_max_per_table_limit",
+      nullable = false,
+      columnDefinition = "numeric default 20")
+  private Integer mvMaxPerTableLimit = 20;
+
+  @Column(
+      name = "automatic_available",
+      nullable = false,
+      columnDefinition = "boolean default false")
+  private Boolean automaticAvailable = false;
+
   public Project() {}
 
   public Project(String projectId) {
@@ -70,6 +82,12 @@ public class Project {
 
   public Boolean setAutomatic(Boolean automatic) {
     if (automatic != null) {
+      if (automatic && !this.automaticAvailable) {
+        String errorMessage =
+            "Cannot set project to automatic mode. Automatic mode is not available on this project";
+        LOGGER.warn(errorMessage);
+        throw new IllegalArgumentException(errorMessage);
+      }
       this.automatic = automatic;
       LOGGER.info("Project {} set automatic mode to {}", projectId, automatic);
       return true;
@@ -99,6 +117,14 @@ public class Project {
 
   public void setMvMaxPerTable(Integer mvMaxPerTable) {
     if (mvMaxPerTable != null) {
+      if (mvMaxPerTable > mvMaxPerTableLimit) {
+        String errorMessage =
+            String.format(
+                "Cannot set max MV per table to %s. Limit is %s",
+                mvMaxPerTable, mvMaxPerTableLimit);
+        LOGGER.warn(errorMessage);
+        throw new IllegalArgumentException(errorMessage);
+      }
       this.mvMaxPerTable = mvMaxPerTable;
     }
   }
@@ -120,6 +146,30 @@ public class Project {
   public void setCustomerId(String customerId) {
     if (customerId != null) {
       this.customerId = customerId;
+    }
+  }
+
+  public Integer getMvMaxPerTableLimit() {
+    return mvMaxPerTableLimit;
+  }
+
+  public void setMvMaxPerTableLimit(Integer mvMaxPerTableLimit) {
+    // We don't automatically update the mvMaxPerTable field intentionally, in case we manually want
+    // certain project to have special settings
+    if (mvMaxPerTableLimit != null) {
+      this.mvMaxPerTableLimit = mvMaxPerTableLimit;
+    }
+  }
+
+  public Boolean getAutomaticAvailable() {
+    return automaticAvailable;
+  }
+
+  public void setAutomaticAvailable(Boolean automaticAvailable) {
+    // We don't automatically update the automatic field intentionally, in case we manually want
+    // certain project to have special settings
+    if (automaticAvailable != null) {
+      this.automaticAvailable = automaticAvailable;
     }
   }
 }

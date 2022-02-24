@@ -134,6 +134,10 @@ public class StripeController {
             customerId);
         stripeService.handleSubscription(subscription, customerId);
         break;
+      case "product.updated":
+        LOGGER.info("Updating all project settings with new product");
+        // TODO: Be able to match a product to a project ?
+        break;
       default:
         // Unhandled event type
         LOGGER.warn("Unhandled event type: {}", event.getType());
