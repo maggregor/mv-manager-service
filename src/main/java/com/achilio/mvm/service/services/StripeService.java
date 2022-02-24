@@ -98,7 +98,7 @@ public class StripeService {
     return Customer.list(CustomerListParams.builder().build()).getData().stream()
         .filter(c -> isCustomerOfProjectId(c, projectId))
         .findFirst()
-        .orElse(createCustomer(projectId));
+        .orElseGet(() -> createCustomer(projectId));
   }
 
   private boolean isCustomerOfProjectId(Customer customer, String projectId) {

@@ -186,8 +186,8 @@ public class FetcherService {
 
   public static class StatEntry {
 
-    long timestamp;
-    long value;
+    private final long timestamp;
+    private final long value;
 
     StatEntry(long timestamp, long value) {
       this.timestamp = timestamp;
@@ -196,6 +196,10 @@ public class FetcherService {
 
     public long getTimestamp() {
       return this.timestamp;
+    }
+
+    public long getValue() {
+      return this.value;
     }
   }
 }

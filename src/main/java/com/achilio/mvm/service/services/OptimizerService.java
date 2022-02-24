@@ -211,9 +211,8 @@ public class OptimizerService {
   }
 
   public List<Optimization> getAllOptimizationByProject(final String projectId) {
-    List<Optimization> optimizations = optimizerRepository.findAllByProjectId(projectId);
     LOGGER.info("Getting all optimizations from project {}", projectId);
-    return optimizations;
+    return optimizerRepository.findAllByProject(projectService.getProject(projectId));
   }
 
   public void destroyAllMaterializedViewsByProject(final String projectId) {
@@ -222,9 +221,9 @@ public class OptimizerService {
   }
 
   public Optimization getOptimization(final String projectId, final Long optimizationId) {
-    Optimization optimization = optimizerRepository.findByProjectIdAndId(projectId, optimizationId);
-    LOGGER.info("Getting optimization id: {} from project {}", optimization.getId(), projectId);
-    return optimization;
+    LOGGER.info("Getting optimization id: {} from project {}", optimizationId, projectId);
+    Project project = projectService.getProject(projectId);
+    return optimizerRepository.findByProjectAndId(project, optimizationId);
   }
 
   public List<OptimizationResult> getOptimizationResults(

@@ -22,6 +22,7 @@ public class ProjectService {
   @Autowired private ProjectRepository projectRepository;
   @Autowired private DatasetRepository datasetRepository;
   @Autowired private GooglePublisherService publisherService;
+  @Autowired private FetcherService fetcherService;
 
   public ProjectService() {}
 
@@ -30,7 +31,7 @@ public class ProjectService {
   }
 
   public Project findProjectOrCreate(String projectId) {
-    return findProject(projectId).orElse(createProject(projectId));
+    return findProject(projectId).orElseGet(() -> createProject(projectId));
   }
 
   public Project createProject(String projectId) {
@@ -58,6 +59,9 @@ public class ProjectService {
     Boolean automaticChanged = project.setAutomatic(automatic);
     project.setAnalysisTimeframe(analysisTimeframe);
     project.setMvMaxPerTable(mvMaxPerTable);
+    if (automaticChanged == Boolean.TRUE) {
+      project.setUsername(fetcherService.getUserInfo().getEmail());
+    }
     projectRepository.save(project);
     if (automaticChanged) {
       publisherService.publishProjectSchedulers(getAllActivatedProjects());
@@ -72,8 +76,8 @@ public class ProjectService {
     return datasetRepository.findByProjectAndDatasetName(project, datasetName);
   }
 
-  private Dataset findDatasetOrCreate(String projectId, String datasetName) {
-    return getDataset(projectId, datasetName).orElse(createDataset(projectId, datasetName));
+  private Dataset findDatasetOrCreate(String projectId, String dataset) {
+    return getDataset(projectId, dataset).orElseGet(() -> createDataset(projectId, dataset));
   }
 
   private Dataset createDataset(String projectId, String datasetName) {
