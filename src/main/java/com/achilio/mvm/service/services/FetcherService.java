@@ -24,7 +24,6 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.oauth2.Oauth2;
 import com.google.api.services.oauth2.model.Userinfo;
-import java.io.IOException;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.TemporalAdjusters;
@@ -153,15 +152,19 @@ public class FetcherService {
     return global;
   }
 
-  public Userinfo getUserInfo() throws IOException {
-    Oauth2 oauth2 =
-        new Oauth2.Builder(
-                HTTP_TRANSPORT,
-                JSON_FACTORY,
-                new GoogleCredential().setAccessToken(getAccessToken()))
-            .setApplicationName(applicationName)
-            .build();
-    return oauth2.userinfo().get().execute();
+  public Userinfo getUserInfo() {
+    try {
+      Oauth2 oauth2 =
+          new Oauth2.Builder(
+                  HTTP_TRANSPORT,
+                  JSON_FACTORY,
+                  new GoogleCredential().setAccessToken(getAccessToken()))
+              .setApplicationName(applicationName)
+              .build();
+      return oauth2.userinfo().get().execute();
+    } catch (Exception e) {
+      throw new RuntimeException("Error while retrieve user info");
+    }
   }
 
   private DatabaseFetcher fetcher() {

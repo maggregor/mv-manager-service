@@ -362,7 +362,7 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
   public FetchedProject fetchProject(String projectId) throws ProjectNotFoundException {
     Project project = resourceManager.get(projectId);
     if (project == null) {
-      throw new ProjectNotFoundException(projectId + " not found");
+      throw new ProjectNotFoundException(projectId);
     }
     return toFetchedProject(project);
   }

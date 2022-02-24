@@ -35,7 +35,6 @@ public class ProjectResponse {
     this(project.getProjectId(), projectName);
     this.activated = project.isActivated();
     this.automatic = project.isAutomatic();
-    this.username = project.getUsername();
     this.mvMaxPerTable = project.getMvMaxPerTable();
     this.analysisTimeframe = project.getAnalysisTimeframe();
   }

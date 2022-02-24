@@ -56,16 +56,9 @@ public class StripeService {
    * @return the stripe customer ID
    */
   public Customer createCustomer(String projectId) {
-    Userinfo userInfo;
-    String email = null;
-    String name = null;
-    try {
-      userInfo = fetcherService.getUserInfo();
-      email = userInfo.getEmail();
-      name = userInfo.getName();
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
+    Userinfo userInfo = fetcherService.getUserInfo();
+    String email = userInfo.getEmail();
+    String name = userInfo.getName();
     return createCustomer(email, name, projectId);
   }
 
@@ -94,7 +87,7 @@ public class StripeService {
   /**
    * Get customer by project id
    *
-   * Check in the customer project-id metadata
+   * <p>Check in the customer project-id metadata
    *
    * @param projectId
    * @return

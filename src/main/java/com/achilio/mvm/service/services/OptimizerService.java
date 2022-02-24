@@ -71,10 +71,8 @@ public class OptimizerService {
             .collect(toList());
     LOGGER.info("Run a new optimization on {} with activated datasets {}", projectId, datasets);
     FetchedProject fetchedProject = fetcherService.fetchProject(projectId);
-    String projectUsername = projectService.getProjectUsername(projectId);
-    Optimization o = createNewOptimization(fetchedProject.getProjectId(), projectUsername);
-    o.setUsername(projectService.getProjectUsername(projectId));
-    LOGGER.info("Username used for optimization {} is {}", o.getId(), projectUsername);
+    Optimization o = createNewOptimization(fetchedProject.getProjectId());
+    LOGGER.info("Username used for optimization {} is {}", o.getId(), o.getUsername());
     o.setMvMaxPlan(DEFAULT_PLAN_MAX_MV);
     o.setMvMaxPerTable(maxMvPerTable);
     // STEP 1 - Fetch all queries of targeted fetchedProject
@@ -204,8 +202,9 @@ public class OptimizerService {
   }
 
   @Transactional
-  public Optimization createNewOptimization(final String projectId, final String projectUsername) {
-    Optimization optimization = new Optimization(projectId, projectUsername);
+  public Optimization createNewOptimization(final String projectId) {
+    Project project = projectService.getProject(projectId);
+    Optimization optimization = new Optimization(project);
     entityManager.persist(optimization);
     LOGGER.info("New optimization created: {}", optimization.getId());
     return optimization;

@@ -7,6 +7,7 @@ import javax.persistence.EntityListeners;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -26,8 +27,7 @@ public class Optimization {
   @Column(name = "created_date", nullable = false)
   private Date createdDate;
 
-  @Column(name = "project_id", nullable = false)
-  private String projectId;
+  @ManyToOne private Project project;
 
   @Column(name = "query_eligible_percentage")
   private Double queryEligiblePercentage;
@@ -49,9 +49,9 @@ public class Optimization {
 
   public Optimization() {}
 
-  public Optimization(String projectId, String username) {
-    this.projectId = projectId;
-    this.username = username;
+  public Optimization(Project project) {
+    this.project = project;
+    this.username = project.getUsername();
   }
 
   public Long getId() {
@@ -59,7 +59,7 @@ public class Optimization {
   }
 
   public String getProjectId() {
-    return this.projectId;
+    return this.project == null ? null : this.project.getProjectId();
   }
 
   public Date getCreatedDate() {

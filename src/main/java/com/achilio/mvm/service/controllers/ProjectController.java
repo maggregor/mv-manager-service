@@ -65,7 +65,6 @@ public class ProjectController {
     projectService.updateProject(
         projectId,
         payload.isAutomatic(),
-        payload.getUsername(),
         payload.getAnalysisTimeframe(),
         payload.getMvMaxPerTable());
   }
