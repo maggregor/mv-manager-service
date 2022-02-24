@@ -13,9 +13,11 @@ import com.stripe.model.StripeObject;
 import com.stripe.model.Subscription;
 import com.stripe.net.Webhook;
 import io.swagger.annotations.ApiOperation;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -90,7 +92,7 @@ public class StripeController {
   @ApiOperation("Receive Stripe events")
   public void receiveStripeWebhook(
       @RequestHeader("Stripe-Signature") String header, @RequestBody String body)
-      throws StripeException {
+      throws StripeException, IOException, ExecutionException, InterruptedException {
     Event event = null;
     try {
       event = Webhook.constructEvent(body, header, endpointSecret);

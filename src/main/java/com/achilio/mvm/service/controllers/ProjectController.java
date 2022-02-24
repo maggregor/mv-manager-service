@@ -15,18 +15,13 @@ import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics;
 import com.achilio.mvm.service.services.FetcherService;
 import com.achilio.mvm.service.services.FetcherService.StatEntry;
-import com.achilio.mvm.service.services.GooglePublisherService;
 import com.achilio.mvm.service.services.ProjectService;
 import com.achilio.mvm.service.visitors.FieldSetAnalyzer;
 import com.achilio.mvm.service.visitors.FieldSetExtractFactory;
 import io.swagger.annotations.ApiOperation;
-import java.io.IOException;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
@@ -43,11 +38,8 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 public class ProjectController {
 
-  private static Logger LOGGER = LoggerFactory.getLogger(ProjectController.class);
-
   @Autowired private ProjectService projectService;
   @Autowired private FetcherService fetcherService;
-  @Autowired private GooglePublisherService googlePublisherService;
 
   @GetMapping(path = "/project", produces = "application/json")
   @ApiOperation("List the project")
@@ -66,25 +58,12 @@ public class ProjectController {
   @PostMapping(path = "/project/{projectId}")
   @ApiOperation("Update metadata of a project")
   @ResponseStatus(HttpStatus.ACCEPTED)
-  // TODO: When (if) next steps are followable somewhere, the response should include a link or
-  // something
-  //  to where the user can follow the steps
   public void updateProject(
-      @PathVariable final String projectId, @RequestBody final UpdateProjectRequestResponse payload)
-      throws IOException, ExecutionException, InterruptedException {
-    if (payload.isActivated() != null && payload.isActivated()) {
-      LOGGER.info("Activating project {}", projectId);
-      googlePublisherService.publishProjectActivation(projectId);
-    }
-    if (payload.isAutomatic() != null && payload.isAutomatic()) {
-      LOGGER.info("Project {} is starting automatic mode", projectId);
-    } else if (payload.isActivated() != null && !payload.isActivated()) {
-      LOGGER.info("Project {} is being deactivated. Turning off automatic mode", projectId);
-      payload.setAutomatic(false);
-    }
+      @PathVariable final String projectId,
+      @RequestBody final UpdateProjectRequestResponse payload) {
+    if (payload.isAutomatic() != null && payload.isAutomatic()) {}
     projectService.updateProject(
         projectId,
-        payload.isActivated(),
         payload.isAutomatic(),
         payload.getUsername(),
         payload.getAnalysisTimeframe(),

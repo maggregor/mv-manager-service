@@ -8,6 +8,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import org.apache.logging.log4j.util.Strings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
@@ -16,6 +18,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 @EnableJpaAuditing
 @EntityListeners(AuditingEntityListener.class)
 public class Project {
+
+  private static Logger LOGGER = LoggerFactory.getLogger(Project.class);
 
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
@@ -67,6 +71,7 @@ public class Project {
   public Boolean setAutomatic(Boolean automatic) {
     if (automatic != null) {
       this.automatic = automatic;
+      LOGGER.info("Project {} set automatic mode to {}", projectId, automatic);
       return true;
     }
     return false;

@@ -29,6 +29,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,13 +40,14 @@ import org.springframework.stereotype.Service;
 @Service
 public class StripeService {
 
-  private static Logger LOGGER = LoggerFactory.getLogger(StripeService.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(StripeService.class);
 
   @Value("${stripe.api.key}")
   private String API_KEY;
 
   @Autowired private FetcherService fetcherService;
   @Autowired private ProjectService projectService;
+  @Autowired private GooglePublisherService googlePublisherService;
 
   /**
    * Create a Stripe customer
@@ -187,13 +189,14 @@ public class StripeService {
   }
 
   public void handleSubscription(Subscription subscription, String customerId)
-      throws StripeException {
+      throws StripeException, IOException, ExecutionException, InterruptedException {
     Stripe.apiKey = API_KEY;
     String projectId =
         Customer.retrieve(customerId).getMetadata().get(CustomerMetadata.PROJECT_ID.getValue());
     Project project = projectService.getProject(projectId);
     if (subscription.getStatus().equals(Status.ACTIVE.getValue())) {
       projectService.activateProject(project);
+      googlePublisherService.publishProjectActivation(projectId);
     } else {
       projectService.deactivateProject(project);
     }
