@@ -154,22 +154,28 @@ public class Project {
   }
 
   public void setMvMaxPerTableLimit(Integer mvMaxPerTableLimit) {
-    // We don't automatically update the mvMaxPerTable field intentionally, in case we manually want
-    // certain project to have special settings
+    // We automatically update the mvMaxPerTable field if it is not compatible with the new
+    // mvMaxPerTableLimit value
     if (mvMaxPerTableLimit != null) {
       this.mvMaxPerTableLimit = mvMaxPerTableLimit;
+      if (mvMaxPerTableLimit < mvMaxPerTable) {
+        setMvMaxPerTable(mvMaxPerTableLimit);
+      }
     }
   }
 
-  public Boolean getAutomaticAvailable() {
+  public Boolean isAutomaticAvailable() {
     return automaticAvailable;
   }
 
   public void setAutomaticAvailable(Boolean automaticAvailable) {
-    // We don't automatically update the automatic field intentionally, in case we manually want
-    // certain project to have special settings
+    // We automatically update the automatic field if it is not compatible with the new
+    // automaticAvailable value
     if (automaticAvailable != null) {
       this.automaticAvailable = automaticAvailable;
+      if (!automaticAvailable) {
+        setAutomatic(false);
+      }
     }
   }
 }

@@ -145,7 +145,7 @@ public class ProjectService {
   @Transactional
   public void updateProjectAutomaticAvailable(Project project, boolean automaticAvailable) {
     project.setAutomaticAvailable(automaticAvailable);
-    if (!project.getAutomaticAvailable()) {
+    if (!project.isAutomaticAvailable()) {
       project.setAutomatic(false);
     }
     projectRepository.save(project);
