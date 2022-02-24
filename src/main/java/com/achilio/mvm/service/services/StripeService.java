@@ -194,6 +194,7 @@ public class StripeService {
     String projectId =
         Customer.retrieve(customerId).getMetadata().get(CustomerMetadata.PROJECT_ID.getValue());
     Project project = projectService.getProject(projectId);
+    Product product = subscription.getItems().getData().get(0).getPlan().getProductObject();
     if (subscription.getStatus().equals(Status.ACTIVE.getValue())) {
       projectService.activateProject(project);
       googlePublisherService.publishProjectActivation(projectId);
