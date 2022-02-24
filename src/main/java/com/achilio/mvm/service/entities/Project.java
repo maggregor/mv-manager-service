@@ -1,5 +1,6 @@
 package com.achilio.mvm.service.entities;
 
+import com.achilio.mvm.service.exceptions.InvalidSettingsException;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
@@ -84,12 +85,14 @@ public class Project {
     if (automatic != null) {
       if (automatic && !this.automaticAvailable) {
         String errorMessage =
-            "Cannot set project to automatic mode. Automatic mode is not available on this project";
+            String.format(
+                "ProjectId %s: Cannot set to automatic mode. Automatic mode is not available on this project",
+                projectId);
         LOGGER.warn(errorMessage);
-        throw new IllegalArgumentException(errorMessage);
+        throw new InvalidSettingsException(errorMessage);
       }
       this.automatic = automatic;
-      LOGGER.info("Project {} set automatic mode to {}", projectId, automatic);
+      LOGGER.info("ProjectId {}: Set automatic mode to {}", projectId, automatic);
       return true;
     }
     return false;
@@ -120,12 +123,13 @@ public class Project {
       if (mvMaxPerTable > mvMaxPerTableLimit) {
         String errorMessage =
             String.format(
-                "Cannot set max MV per table to %s. Limit is %s",
-                mvMaxPerTable, mvMaxPerTableLimit);
+                "ProjectId %s: Cannot set max MV per table to %s. Limit is %s",
+                projectId, mvMaxPerTable, mvMaxPerTableLimit);
         LOGGER.warn(errorMessage);
-        throw new IllegalArgumentException(errorMessage);
+        throw new InvalidSettingsException(errorMessage);
       }
       this.mvMaxPerTable = mvMaxPerTable;
+      LOGGER.info("ProjectId {}: Set mvMaxPerTable to {}", projectId, mvMaxPerTable);
     }
   }
 
