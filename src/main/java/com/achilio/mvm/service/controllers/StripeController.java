@@ -7,6 +7,7 @@ import com.achilio.mvm.service.services.StripeService;
 import com.stripe.exception.EventDataObjectDeserializationException;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.exception.StripeException;
+import com.stripe.model.Customer;
 import com.stripe.model.Event;
 import com.stripe.model.EventDataObjectDeserializer;
 import com.stripe.model.StripeObject;
@@ -45,14 +46,16 @@ public class StripeController {
   private String endpointSecret;
 
   @GetMapping(path = "/plan", produces = "application/json")
-  public List<ProjectPlan> getProjectPlans(@RequestParam String customerId) throws StripeException {
-    return stripeService.getPlans(customerId);
+  public List<ProjectPlan> getProjectPlans(@RequestParam String projectId) throws StripeException {
+    Customer customer = stripeService.getCustomerByProjectId(projectId);
+    return stripeService.getPlans(customer);
   }
 
   @PostMapping(path = "/subscription", produces = "application/json")
   public ProjectSubscription createSubscription(@RequestBody CreateSubscriptionRequest request)
       throws StripeException {
-    return stripeService.createSubscription(request.getCustomerId(), request.getPriceId());
+    Customer customer = stripeService.getCustomerByProjectId(request.getProjectId());
+    return stripeService.createSubscription(customer, request.getPriceId());
   }
 
   @GetMapping(path = "/subscription/{subscriptionId}", produces = "application/json")

@@ -7,7 +7,6 @@ import com.achilio.mvm.service.repositories.ProjectRepository;
 import java.util.List;
 import java.util.Optional;
 import javax.transaction.Transactional;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,17 +21,8 @@ public class ProjectService {
   @Autowired private ProjectRepository projectRepository;
   @Autowired private DatasetRepository datasetRepository;
   @Autowired private GooglePublisherService publisherService;
-  @Autowired private StripeService stripeService;
 
   public ProjectService() {}
-
-  public Boolean isProjectActivated(String projectId) {
-    return findProjectOrCreate(projectId).isActivated();
-  }
-
-  public Boolean isProjectAutomatic(String projectId) {
-    return findProjectOrCreate(projectId).isAutomatic();
-  }
 
   public String getProjectUsername(String projectId) {
     return findProjectOrCreate(projectId).getUsername();
@@ -45,20 +35,18 @@ public class ProjectService {
 
   public Project findProjectOrCreate(String projectId) {
     if (!projectExists(projectId)) {
-      Project project = new Project(projectId);
-      projectRepository.save(project);
+      return createProject(projectId);
     }
-    Project project = projectRepository.findByProjectId(projectId).get();
-    if (StringUtils.isEmpty(project.getCustomerId())) {
-      final String customerId = stripeService.createCustomer(projectId);
-      project.setCustomerId(customerId);
-      projectRepository.save(project);
-    }
-    return project;
+    return getProject(projectId);
+  }
+
+  public Project createProject(String projectId) {
+    Project project = new Project(projectId);
+    return projectRepository.save(project);
   }
 
   public Project getProject(String projectId) {
-    return projectRepository.findByProjectId(projectId).get();
+    return projectRepository.findByProjectId(projectId).orElse(null);
   }
 
   public boolean projectExists(String projectId) {

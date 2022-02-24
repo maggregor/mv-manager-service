@@ -34,8 +34,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -50,8 +48,6 @@ public class FetcherService {
 
   @Value("${application.name}")
   private String applicationName;
-
-  @PersistenceContext private EntityManager entityManager;
 
   public FetcherService() {
     this.statementBuilder = new BigQueryMaterializedViewStatementBuilder();
@@ -69,7 +65,7 @@ public class FetcherService {
     return root.getQueryCount() == 0 ? 0 : root.getProcessedBytes() / root.getQueryCount();
   }
 
-  public List<FetchedProject> fetchAllProjects() throws Exception {
+  public List<FetchedProject> fetchAllProjects() {
     return fetcher().fetchAllProjects();
   }
 
@@ -77,16 +73,12 @@ public class FetcherService {
     return fetcher(projectId).fetchProject(projectId);
   }
 
-  public List<FetchedDataset> fetchAllDatasets(String projectId) throws Exception {
+  public List<FetchedDataset> fetchAllDatasets(String projectId) {
     return fetcher(projectId).fetchAllDatasets(projectId);
   }
 
   public FetchedDataset fetchDataset(String projectId, String datasetName) {
     return fetcher(projectId).fetchDataset(datasetName);
-  }
-
-  public List<FetchedQuery> fetchQueries(String projectId) {
-    return fetcher(projectId).fetchAllQueries();
   }
 
   public List<FetchedQuery> fetchQueriesSince(String projectId, int lastDays) {
@@ -97,17 +89,8 @@ public class FetcherService {
     return fetcher(projectId).fetchAllQueriesFrom(fromTimestamp);
   }
 
-  public FetchedTable fetchTable(String projectId, String datasetName, String tableName)
-      throws Exception {
-    return fetcher(projectId).fetchTable(datasetName, tableName);
-  }
-
   public Set<FetchedTable> fetchAllTables(String projectId) {
     return fetcher(projectId).fetchAllTables();
-  }
-
-  public Set<FetchedTable> fetchTableNamesInDataset(String projectId, String datasetName) {
-    return fetcher(projectId).fetchTableNamesInDataset(datasetName);
   }
 
   public GlobalQueryStatistics getStatistics(String projectId, int lastDays) throws Exception {
@@ -204,7 +187,7 @@ public class FetcherService {
     return System.currentTimeMillis() - (long) days * 24 * 60 * 60 * 1000;
   }
 
-  public class StatEntry {
+  public static class StatEntry {
 
     long timestamp;
     long value;
@@ -216,10 +199,6 @@ public class FetcherService {
 
     public long getTimestamp() {
       return this.timestamp;
-    }
-
-    public long getValue() {
-      return this.value;
     }
   }
 }

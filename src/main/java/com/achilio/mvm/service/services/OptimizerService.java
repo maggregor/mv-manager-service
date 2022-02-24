@@ -60,7 +60,7 @@ public class OptimizerService {
     this.statementBuilder = new BigQueryMaterializedViewStatementBuilder();
   }
 
-  public Optimization optimizeProject(String projectId) throws Exception {
+  public Optimization optimizeProject(String projectId) {
     Project project = projectService.getProject(projectId);
     int days = project.getAnalysisTimeframe();
     int maxMvPerTable = Math.min(GOOGLE_MAX_MV_PER_TABLE, project.getMvMaxPerTable());

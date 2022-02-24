@@ -251,6 +251,11 @@
       <groupId>com.google.apis</groupId>
       <version>v2-rev157-1.25.0</version>
     </dependency>
+    <dependency>
+      <artifactId>h2</artifactId>
+      <groupId>com.h2database</groupId>
+      <scope>test</scope>
+    </dependency>
 
   </dependencies>
   <dependencyManagement>
