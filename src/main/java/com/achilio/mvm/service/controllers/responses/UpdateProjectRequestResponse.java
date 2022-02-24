@@ -7,9 +7,6 @@ public class UpdateProjectRequestResponse {
   @JsonProperty("planName")
   private final String planName;
 
-  @JsonProperty("activated")
-  private final Boolean activated;
-
   @JsonProperty("automatic")
   private Boolean automatic;
 
@@ -24,13 +21,11 @@ public class UpdateProjectRequestResponse {
 
   public UpdateProjectRequestResponse(
       String planName,
-      Boolean activated,
       Boolean automatic,
       String username,
       Integer analysisTimeframe,
       Integer mvMaxPerTable) {
     this.planName = planName;
-    this.activated = activated;
     this.automatic = automatic;
     this.username = username;
     this.analysisTimeframe = analysisTimeframe;
@@ -41,16 +36,8 @@ public class UpdateProjectRequestResponse {
     return planName;
   }
 
-  public Boolean isActivated() {
-    return activated;
-  }
-
   public Boolean isAutomatic() {
     return automatic;
-  }
-
-  public void setAutomatic(Boolean automatic) {
-    this.automatic = automatic;
   }
 
   public String getUsername() {

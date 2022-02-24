@@ -68,13 +68,11 @@ public class ProjectService {
   @Transactional
   public void updateProject(
       String projectId,
-      Boolean activated,
       Boolean automatic,
       String username,
       Integer analysisTimeframe,
       Integer mvMaxPerTable) {
     Project project = findProjectOrCreate(projectId);
-    project.setActivated(activated);
     // If automatic has been sent in the payload (or if the project is being deactivated), we need
     // to publish a potential config change on the schedulers
     Boolean automaticChanged = project.setAutomatic(automatic);
@@ -119,12 +117,15 @@ public class ProjectService {
 
   @Transactional
   public void activateProject(Project project) {
+    LOGGER.info("Project {} is being activated", project.getProjectId());
     project.setActivated(true);
     projectRepository.save(project);
   }
 
   @Transactional
   public void deactivateProject(Project project) {
+    LOGGER.info(
+        "Project {} is being deactivated. Turning off automatic mode", project.getProjectId());
     project.setActivated(false);
     project.setAutomatic(false);
     // TODO: Other cleanup action ?
