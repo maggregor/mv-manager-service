@@ -9,7 +9,6 @@ import com.achilio.mvm.service.databases.DatabaseFetcher;
 import com.achilio.mvm.service.databases.bigquery.BigQueryDatabaseFetcher;
 import com.achilio.mvm.service.databases.bigquery.BigQueryMaterializedViewStatementBuilder;
 import com.achilio.mvm.service.databases.entities.FetchedDataset;
-import com.achilio.mvm.service.databases.entities.FetchedMaterializedViewEvent;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
@@ -94,11 +93,6 @@ public class FetcherService {
 
   public GlobalQueryStatistics getStatistics(String projectId, int lastDays) throws Exception {
     return getStatistics(projectId, lastDays, false);
-  }
-
-  public List<FetchedMaterializedViewEvent> getMaterializedViewEvents(
-      String projectId, int lastDays) {
-    return fetcher(projectId).fetchMaterializedViewEvents(daysToMillis(lastDays));
   }
 
   public GlobalQueryStatistics getStatistics(
