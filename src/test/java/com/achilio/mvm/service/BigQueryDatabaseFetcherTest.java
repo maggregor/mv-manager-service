@@ -74,7 +74,7 @@ public class BigQueryDatabaseFetcherTest {
   public void setUp() {
     mockBigquery = mock(BigQuery.class);
     ResourceManager resourceManager = mock(ResourceManager.class);
-    fetcher = new BigQueryDatabaseFetcher(mockBigquery, resourceManager, "test-project");
+    fetcher = new BigQueryDatabaseFetcher(mockBigquery, resourceManager);
     initializeJobMockDefault();
   }
 

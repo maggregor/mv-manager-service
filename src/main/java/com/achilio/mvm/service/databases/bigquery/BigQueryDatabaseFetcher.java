@@ -48,6 +48,7 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,13 +61,11 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
   private static final String SQL_SELECT_WORD = "SELECT";
   private final BigQuery bigquery;
   private final ResourceManager resourceManager;
-  private final String projectId;
 
   @VisibleForTesting
-  public BigQueryDatabaseFetcher(BigQuery bigquery, ResourceManager rm, String projectId) {
+  public BigQueryDatabaseFetcher(BigQuery bigquery, ResourceManager rm) {
     this.bigquery = bigquery;
     this.resourceManager = rm;
-    this.projectId = projectId;
   }
 
   public BigQueryDatabaseFetcher(final GoogleCredentials credentials, final String projectId)
@@ -81,7 +80,6 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     }
     this.bigquery = bqOptBuilder.build().getService();
     this.resourceManager = rmOptBuilder.build().getService();
-    this.projectId = projectId;
     // Checks if the Google credentials have access.
     if (StringUtils.isNotEmpty(projectId)) {
       fetchProject(projectId);
@@ -139,7 +137,7 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
 
   public boolean isRegularSelectQuery(String query) {
     // Remove comments
-    query = query.replaceAll("--[^\\r\\n]*", "");
+    query = query.replaceAll("--[^\\r\\n]*", Strings.EMPTY);
     query = query.trim();
     return StringUtils.startsWithIgnoreCase(query, SQL_SELECT_WORD)
         && StringUtils.containsIgnoreCase(query, SQL_FROM_WORD)
@@ -258,15 +256,6 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
         .map(dataset -> dataset.getDatasetId().getDataset())
         .map(this::fetchTablesInDataset)
         .flatMap(Set::stream)
-        .collect(Collectors.toSet());
-  }
-
-  @Override
-  public Set<FetchedTable> fetchTableNamesInDataset(String datasetName) {
-    Spliterator<Table> spliterator = bigquery.listTables(datasetName).getValues().spliterator();
-    return StreamSupport.stream(spliterator, true)
-        .filter(this::isValidTable)
-        .map(this::toFetchedTable)
         .collect(Collectors.toSet());
   }
 
