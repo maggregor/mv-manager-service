@@ -37,5 +37,6 @@ public class ProjectResponse {
     this.automatic = project.isAutomatic();
     this.mvMaxPerTable = project.getMvMaxPerTable();
     this.analysisTimeframe = project.getAnalysisTimeframe();
+    this.username = project.getUsername();
   }
 }
