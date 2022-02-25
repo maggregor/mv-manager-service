@@ -21,9 +21,6 @@ public class ProjectTest {
     assertTrue(project.isActivated());
     project.setActivated(false);
     assertFalse(project.isActivated());
-    assertFalse(project.isAutomatic());
-    project.setAutomatic(true);
-    assertTrue(project.isAutomatic());
     project.setUsername("myUser");
     assertEquals("myUser", project.getUsername());
   }
@@ -63,7 +60,8 @@ public class ProjectTest {
     try {
       project.setMvMaxPerTable(12);
     } catch (IllegalArgumentException e) {
-      assertEquals("Cannot set max MV per table to 12. Limit is 10", e.getMessage());
+      assertEquals(
+          "ProjectId projectId: Cannot set max MV per table to 12. Limit is 10", e.getMessage());
     } finally {
       assertEquals(Integer.valueOf(10), project.getMvMaxPerTable());
     }
@@ -86,7 +84,7 @@ public class ProjectTest {
       project.setAutomatic(true);
     } catch (IllegalArgumentException e) {
       assertEquals(
-          "Cannot set project to automatic mode. Automatic mode is not available on this project",
+          "ProjectId projectId: Cannot set to automatic mode. Automatic mode is not available on this project",
           e.getMessage());
     } finally {
       assertEquals(false, project.isAutomatic());
