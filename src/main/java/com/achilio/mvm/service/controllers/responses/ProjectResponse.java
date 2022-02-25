@@ -26,9 +26,6 @@ public class ProjectResponse {
   @JsonProperty("automatic")
   private Boolean automatic;
 
-  @JsonProperty("customerId")
-  private String customerId;
-
   public ProjectResponse(String projectId, String projectName) {
     this.projectId = projectId;
     this.projectName = projectName;
@@ -38,9 +35,8 @@ public class ProjectResponse {
     this(project.getProjectId(), projectName);
     this.activated = project.isActivated();
     this.automatic = project.isAutomatic();
-    this.username = project.getUsername();
     this.mvMaxPerTable = project.getMvMaxPerTable();
     this.analysisTimeframe = project.getAnalysisTimeframe();
-    this.customerId = project.getCustomerId();
+    this.username = project.getUsername();
   }
 }

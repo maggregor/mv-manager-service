@@ -1,6 +1,6 @@
 package com.achilio.mvm.service;
 
-import static com.achilio.mvm.service.databases.entities.FetchedTableHelper.createFetchedTable;
+import static com.achilio.mvm.service.BigQueryHelper.FetchedTableHelper.createFetchedTable;
 import static com.achilio.mvm.service.visitors.QueryIneligibilityReason.PARSING_FAILED;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -16,7 +16,10 @@ import com.achilio.mvm.service.visitors.fields.FieldSetFactory;
 import com.achilio.mvm.service.visitors.fields.FunctionField;
 import com.achilio.mvm.service.visitors.fields.ReferenceField;
 import com.google.zetasql.ZetaSQLType;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import org.assertj.core.util.Sets;
 import org.junit.Assert;
@@ -114,6 +117,33 @@ public abstract class FieldSetAnalyzerTest {
     Assert.assertEquals("myproject", table.getProjectId());
     Assert.assertEquals("mydataset", table.getDatasetName());
     Assert.assertEquals("mytable", table.getTableName());
+  }
+
+  @Test
+  public void discoverNonExistentPath() {
+    Assert.assertNull(extractor.findFetchedTableByPath(new ArrayList<>()));
+    Assert.assertNull(extractor.findFetchedTableByPath(new ArrayList<>(Arrays.asList("", "", ""))));
+  }
+
+  @Test // Extract a list must be the same that extract an element
+  public void extractListTest() {
+    FetchedQuery query1 = new FetchedQuery("SELECT col1 FROM mydataset.mytable");
+    FetchedQuery query2 = new FetchedQuery("SELECT col2 FROM mydataset.mytable GROUP BY col2");
+    List<FetchedQuery> queries = new ArrayList<>(Arrays.asList(query1, query2));
+    List<FieldSet> fieldSets = extractor.extract(queries);
+    assertExpectedFieldSet(extractor.extract(query1), fieldSets.get(0));
+    assertExpectedFieldSet(extractor.extract(query2), fieldSets.get(1));
+  }
+
+  @Test
+  public void eligibleListTest() {
+    FetchedQuery query1 = new FetchedQuery("SELECT col1");
+    FetchedQuery query2 = new FetchedQuery("SELECT col2 FROM mydataset.mytable GROUP BY col2");
+    assertTrue(query1.isEligible());
+    assertTrue(query2.isEligible());
+    extractor.analyzeIneligibleReasons(Arrays.asList(query1, query2));
+    assertFalse(query1.isEligible());
+    assertTrue(query2.isEligible());
   }
 
   @Test

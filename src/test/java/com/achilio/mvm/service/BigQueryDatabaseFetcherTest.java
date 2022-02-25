@@ -8,6 +8,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.achilio.mvm.service.databases.bigquery.BigQueryDatabaseFetcher;
+import com.achilio.mvm.service.databases.entities.FetchedDataset;
+import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.entities.statistics.QueryStatistics;
@@ -19,6 +21,8 @@ import com.google.cloud.bigquery.BigQuery.TableField;
 import com.google.cloud.bigquery.BigQuery.TableOption;
 import com.google.cloud.bigquery.BigQueryError;
 import com.google.cloud.bigquery.CopyJobConfiguration;
+import com.google.cloud.bigquery.Dataset;
+import com.google.cloud.bigquery.DatasetId;
 import com.google.cloud.bigquery.Job;
 import com.google.cloud.bigquery.JobConfiguration;
 import com.google.cloud.bigquery.JobStatistics;
@@ -32,6 +36,7 @@ import com.google.cloud.bigquery.StandardTableDefinition;
 import com.google.cloud.bigquery.Table;
 import com.google.cloud.bigquery.TableDefinition;
 import com.google.cloud.bigquery.TableId;
+import com.google.cloud.resourcemanager.Project;
 import com.google.cloud.resourcemanager.ResourceManager;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,6 +47,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -63,6 +69,8 @@ public class BigQueryDatabaseFetcherTest {
       LoadJobConfiguration.newBuilder(DEFAULT_TABLE_ID, "gs://").build();
   private static final JobConfiguration DEFAULT_COPY_JOB_CONFIGURATION =
       CopyJobConfiguration.newBuilder(DEFAULT_TABLE_ID, DEFAULT_TABLE_ID_2).build();
+  private final Dataset mockedDataset =
+      mockedDataset("myProject", "myDataset", "myDatasetFriendly", "FromParis", 100L, 1000L);
   private BigQueryDatabaseFetcher fetcher;
   private JobStatus status;
   private Job mockJob;
@@ -74,7 +82,7 @@ public class BigQueryDatabaseFetcherTest {
   public void setUp() {
     mockBigquery = mock(BigQuery.class);
     ResourceManager resourceManager = mock(ResourceManager.class);
-    fetcher = new BigQueryDatabaseFetcher(mockBigquery, resourceManager, "test-project");
+    fetcher = new BigQueryDatabaseFetcher(mockBigquery, resourceManager);
     initializeJobMockDefault();
   }
 
@@ -325,6 +333,41 @@ public class BigQueryDatabaseFetcherTest {
     assertListSize(1, queries);
   }
 
+  @Test
+  public void fetchTable() {}
+
+  @Test
+  public void fetchDataset() {
+    when(mockBigquery.getDataset(Mockito.any(String.class))).thenReturn(mockedDataset);
+    FetchedDataset fetchedDataset = fetcher.fetchDataset("myRandomDataset");
+    assertFetchedDatasetHaveTheGoodFields(mockedDataset, fetchedDataset);
+  }
+
+  @Test
+  public void toFetchedProject() {
+    Project project = mock(Project.class);
+    when(project.getProjectId()).thenReturn("myProjectId");
+    when(project.getName()).thenReturn("myProjectName");
+    FetchedProject fetchedProject = fetcher.toFetchedProject(project);
+    assertEquals("myProjectId", fetchedProject.getProjectId());
+    assertEquals("myProjectName", fetchedProject.getName());
+  }
+
+  @Test
+  public void toFetchedDataset() {
+    FetchedDataset fetchedDataset = fetcher.toFetchedDataset(mockedDataset);
+    assertFetchedDatasetHaveTheGoodFields(mockedDataset, fetchedDataset);
+  }
+
+  private void assertFetchedDatasetHaveTheGoodFields(Dataset expected, FetchedDataset actual) {
+    assertEquals(expected.getDatasetId().getProject(), actual.getProjectId());
+    assertEquals(expected.getDatasetId().getDataset(), actual.getDatasetName());
+    assertEquals(expected.getFriendlyName(), actual.getFriendlyName());
+    assertEquals(expected.getLocation(), actual.getLocation());
+    assertEquals(expected.getCreationTime(), actual.getCreatedAt());
+    assertEquals(expected.getLastModified(), actual.getLastModified());
+  }
+
   private void assertListSize(long listSize, List<FetchedQuery> queries) {
     assertEquals(listSize, queries.size());
   }
@@ -356,5 +399,21 @@ public class BigQueryDatabaseFetcherTest {
     when(mockJobStats.getCacheHit()).thenReturn(false);
     jobs = mock(Page.class);
     when(jobs.iterateAll()).thenReturn(Lists.newArrayList(mockJob));
+  }
+
+  private Dataset mockedDataset(
+      String projectId,
+      String datasetName,
+      String friendlyName,
+      String location,
+      long creationTime,
+      Long lastModified) {
+    Dataset dataset = mock(Dataset.class);
+    when(dataset.getDatasetId()).thenReturn(DatasetId.of(projectId, datasetName));
+    when(dataset.getFriendlyName()).thenReturn(friendlyName);
+    when(dataset.getLocation()).thenReturn(location);
+    when(dataset.getCreationTime()).thenReturn(creationTime);
+    when(dataset.getLastModified()).thenReturn(lastModified);
+    return dataset;
   }
 }

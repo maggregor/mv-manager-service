@@ -1,6 +1,7 @@
 package com.achilio.mvm.service.repositories;
 
 import com.achilio.mvm.service.entities.Optimization;
+import com.achilio.mvm.service.entities.Project;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -8,9 +9,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface OptimizerRepository extends JpaRepository<Optimization, Integer> {
 
-  List<Optimization> findAllByProjectId(String projectId);
+  List<Optimization> findAllByProject(Project projectId);
 
-  // List<Optimization> findAllByProjectIdAndDatasetName(String projectId, String datasetName);
-
-  Optimization findByProjectIdAndId(String projectId, Long id);
+  Optimization findByProjectAndId(Project projectId, Long id);
 }

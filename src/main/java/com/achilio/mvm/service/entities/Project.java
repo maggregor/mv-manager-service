@@ -26,7 +26,7 @@ public class Project {
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Long id;
 
-  @Column(name = "project_id", nullable = false)
+  @Column(name = "project_id", nullable = false, unique = true)
   private String projectId;
 
   @Column(name = "activated", nullable = false)
@@ -43,9 +43,6 @@ public class Project {
 
   @Column(name = "analysis_timeframe", nullable = false, columnDefinition = "numeric default 30")
   private Integer analysisTimeframe = 30;
-
-  @Column(name = "stripe_customer_id")
-  private String customerId;
 
   @Column(
       name = "mv_max_per_table_limit",
@@ -140,16 +137,6 @@ public class Project {
   public void setAnalysisTimeframe(Integer analysisTimeframe) {
     if (analysisTimeframe != null) {
       this.analysisTimeframe = analysisTimeframe;
-    }
-  }
-
-  public String getCustomerId() {
-    return this.customerId;
-  }
-
-  public void setCustomerId(String customerId) {
-    if (customerId != null) {
-      this.customerId = customerId;
     }
   }
 

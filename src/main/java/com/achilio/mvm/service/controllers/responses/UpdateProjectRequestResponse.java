@@ -4,14 +4,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class UpdateProjectRequestResponse {
 
-  @JsonProperty("planName")
-  private final String planName;
-
   @JsonProperty("automatic")
   private Boolean automatic;
-
-  @JsonProperty("username")
-  private String username;
 
   @JsonProperty("analysisTimeframe")
   private Integer analysisTimeframe;
@@ -20,28 +14,14 @@ public class UpdateProjectRequestResponse {
   private Integer mvMaxPerTable;
 
   public UpdateProjectRequestResponse(
-      String planName,
-      Boolean automatic,
-      String username,
-      Integer analysisTimeframe,
-      Integer mvMaxPerTable) {
-    this.planName = planName;
+      Boolean automatic, Integer analysisTimeframe, Integer mvMaxPerTable) {
     this.automatic = automatic;
-    this.username = username;
     this.analysisTimeframe = analysisTimeframe;
     this.mvMaxPerTable = mvMaxPerTable;
   }
 
-  public String getPlanName() {
-    return planName;
-  }
-
   public Boolean isAutomatic() {
     return automatic;
-  }
-
-  public String getUsername() {
-    return username;
   }
 
   public Integer getAnalysisTimeframe() {

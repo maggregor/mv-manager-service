@@ -2,13 +2,13 @@ package com.achilio.mvm.service.controllers.requests;
 
 public class CreateSubscriptionRequest {
 
-  private String customerId;
+  private String projectId;
   private String priceId;
 
   public CreateSubscriptionRequest() {}
 
-  public String getCustomerId() {
-    return this.customerId;
+  public String getProjectId() {
+    return this.projectId;
   }
 
   public String getPriceId() {

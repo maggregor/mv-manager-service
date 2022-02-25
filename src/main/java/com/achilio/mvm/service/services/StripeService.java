@@ -16,6 +16,7 @@ import com.stripe.model.Product;
 import com.stripe.model.Subscription;
 import com.stripe.model.SubscriptionItem;
 import com.stripe.param.CustomerCreateParams;
+import com.stripe.param.CustomerListParams;
 import com.stripe.param.PriceListParams;
 import com.stripe.param.ProductListParams;
 import com.stripe.param.SubscriptionCreateParams;
@@ -54,47 +55,71 @@ public class StripeService {
    *
    * @return the stripe customer ID
    */
-  public String createCustomer(String projectId) {
+  public Customer createCustomer(String projectId) {
+    Userinfo userInfo = fetcherService.getUserInfo();
+    String email = userInfo.getEmail();
+    String name = userInfo.getName();
+    return createCustomer(email, name, projectId);
+  }
+
+  public Customer createCustomer(String customerMail, String customerName, String projectId) {
     Stripe.apiKey = API_KEY;
-    Userinfo userinfo;
     try {
-      userinfo = fetcherService.getUserInfo();
-      final String createdByMail = userinfo.getEmail();
-      final String createdByUserId = userinfo.getId();
-      final String createdByName = userinfo.getName();
       Map<String, String> metadata = new HashMap<>();
       metadata.put(CustomerMetadata.PROJECT_ID.getValue(), projectId);
-      metadata.put(CustomerMetadata.CREATED_BY_EMAIL.getValue(), createdByMail);
-      metadata.put(CustomerMetadata.CREATED_BY_USER_ID.getValue(), createdByUserId);
-      metadata.put(CustomerMetadata.CREATED_BY_NAME.getValue(), createdByName);
+      metadata.put(CustomerMetadata.CREATED_BY_EMAIL.getValue(), customerMail);
+      metadata.put(CustomerMetadata.CREATED_BY_NAME.getValue(), customerName);
       CustomerCreateParams params =
           CustomerCreateParams.builder()
               .setMetadata(metadata)
-              .setEmail(createdByMail)
+              .setEmail(customerMail)
               .setName(projectId)
               .build();
-      LOGGER.debug("Creating customer for {}", createdByMail);
-      return Customer.create(params).getId();
-    } catch (IOException e) {
-      LOGGER.error("Error while retrieving user info ", e);
+      Customer customer = Customer.create(params);
+      LOGGER.debug("Creating new customer {} for project {}", customer.getId(), projectId);
+      return customer;
     } catch (StripeException e) {
       LOGGER.error("Error while creating the stripe customer for project {}", projectId, e);
     }
     return null;
   }
 
-  public ProjectSubscription createSubscription(String customerId, String priceId)
+  /**
+   * Get customer by project id
+   *
+   * <p>Check in the customer project-id metadata
+   *
+   * @param projectId
+   * @return
+   * @throws StripeException
+   */
+  public Customer getCustomerByProjectId(String projectId) throws StripeException {
+    Stripe.apiKey = API_KEY;
+    return Customer.list(CustomerListParams.builder().build()).getData().stream()
+        .filter(c -> isCustomerOfProjectId(c, projectId))
+        .findFirst()
+        .orElseGet(() -> createCustomer(projectId));
+  }
+
+  private boolean isCustomerOfProjectId(Customer customer, String projectId) {
+    if (customer.getMetadata().containsKey(CustomerMetadata.PROJECT_ID.getValue())) {
+      return customer.getMetadata().get(CustomerMetadata.PROJECT_ID.getValue()).equals(projectId);
+    }
+    return false;
+  }
+
+  public ProjectSubscription createSubscription(Customer customer, String priceId)
       throws StripeException {
     Stripe.apiKey = API_KEY;
     SubscriptionCreateParams subCreateParams =
         SubscriptionCreateParams.builder()
-            .setCustomer(customerId)
+            .setCustomer(customer.getId())
             .addItem(SubscriptionCreateParams.Item.builder().setPrice(priceId).build())
             .setPaymentBehavior(SubscriptionCreateParams.PaymentBehavior.DEFAULT_INCOMPLETE)
             .addAllExpand(Collections.singletonList("latest_invoice.payment_intent"))
             .build();
     Subscription s = Subscription.create(subCreateParams);
-    LOGGER.info("Create a new subscription {} for customer {}", s.getId(), customerId);
+    LOGGER.info("Create a new subscription {} for customer {}", s.getId(), customer.getId());
     return toProjectSubscription(s);
   }
 
@@ -120,12 +145,12 @@ public class StripeService {
     return subscription == null ? null : toProjectSubscription(subscription);
   }
 
-  public List<ProjectPlan> getPlans(String customerId) throws StripeException {
+  public List<ProjectPlan> getPlans(Customer customer) throws StripeException {
     Stripe.apiKey = API_KEY;
     ProductListParams p = ProductListParams.builder().setActive(true).build();
     List<ProjectPlan> plans =
         Product.list(p).getData().parallelStream()
-            .map(plan -> toProjectPlan(plan, customerId))
+            .map(plan -> toProjectPlan(plan, customer.getId()))
             .collect(Collectors.toList());
     applyPossibleActions(plans);
     return plans;
@@ -260,7 +285,6 @@ public class StripeService {
   enum CustomerMetadata {
     PROJECT_ID,
     CREATED_BY_EMAIL,
-    CREATED_BY_USER_ID,
     CREATED_BY_NAME;
 
     public String getValue() {

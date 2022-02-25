@@ -9,7 +9,6 @@ import com.achilio.mvm.service.databases.DatabaseFetcher;
 import com.achilio.mvm.service.databases.bigquery.BigQueryDatabaseFetcher;
 import com.achilio.mvm.service.databases.bigquery.BigQueryMaterializedViewStatementBuilder;
 import com.achilio.mvm.service.databases.entities.FetchedDataset;
-import com.achilio.mvm.service.databases.entities.FetchedMaterializedViewEvent;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
@@ -24,7 +23,6 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.oauth2.Oauth2;
 import com.google.api.services.oauth2.model.Userinfo;
-import java.io.IOException;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.TemporalAdjusters;
@@ -34,8 +32,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -50,8 +46,6 @@ public class FetcherService {
 
   @Value("${application.name}")
   private String applicationName;
-
-  @PersistenceContext private EntityManager entityManager;
 
   public FetcherService() {
     this.statementBuilder = new BigQueryMaterializedViewStatementBuilder();
@@ -69,7 +63,7 @@ public class FetcherService {
     return root.getQueryCount() == 0 ? 0 : root.getProcessedBytes() / root.getQueryCount();
   }
 
-  public List<FetchedProject> fetchAllProjects() throws Exception {
+  public List<FetchedProject> fetchAllProjects() {
     return fetcher().fetchAllProjects();
   }
 
@@ -77,16 +71,12 @@ public class FetcherService {
     return fetcher(projectId).fetchProject(projectId);
   }
 
-  public List<FetchedDataset> fetchAllDatasets(String projectId) throws Exception {
+  public List<FetchedDataset> fetchAllDatasets(String projectId) {
     return fetcher(projectId).fetchAllDatasets(projectId);
   }
 
   public FetchedDataset fetchDataset(String projectId, String datasetName) {
     return fetcher(projectId).fetchDataset(datasetName);
-  }
-
-  public List<FetchedQuery> fetchQueries(String projectId) {
-    return fetcher(projectId).fetchAllQueries();
   }
 
   public List<FetchedQuery> fetchQueriesSince(String projectId, int lastDays) {
@@ -97,26 +87,12 @@ public class FetcherService {
     return fetcher(projectId).fetchAllQueriesFrom(fromTimestamp);
   }
 
-  public FetchedTable fetchTable(String projectId, String datasetName, String tableName)
-      throws Exception {
-    return fetcher(projectId).fetchTable(datasetName, tableName);
-  }
-
   public Set<FetchedTable> fetchAllTables(String projectId) {
     return fetcher(projectId).fetchAllTables();
   }
 
-  public Set<FetchedTable> fetchTableNamesInDataset(String projectId, String datasetName) {
-    return fetcher(projectId).fetchTableNamesInDataset(datasetName);
-  }
-
   public GlobalQueryStatistics getStatistics(String projectId, int lastDays) throws Exception {
     return getStatistics(projectId, lastDays, false);
-  }
-
-  public List<FetchedMaterializedViewEvent> getMaterializedViewEvents(
-      String projectId, int lastDays) {
-    return fetcher(projectId).fetchMaterializedViewEvents(daysToMillis(lastDays));
   }
 
   public GlobalQueryStatistics getStatistics(
@@ -170,15 +146,19 @@ public class FetcherService {
     return global;
   }
 
-  public Userinfo getUserInfo() throws IOException {
-    Oauth2 oauth2 =
-        new Oauth2.Builder(
-                HTTP_TRANSPORT,
-                JSON_FACTORY,
-                new GoogleCredential().setAccessToken(getAccessToken()))
-            .setApplicationName(applicationName)
-            .build();
-    return oauth2.userinfo().get().execute();
+  public Userinfo getUserInfo() {
+    try {
+      Oauth2 oauth2 =
+          new Oauth2.Builder(
+                  HTTP_TRANSPORT,
+                  JSON_FACTORY,
+                  new GoogleCredential().setAccessToken(getAccessToken()))
+              .setApplicationName(applicationName)
+              .build();
+      return oauth2.userinfo().get().execute();
+    } catch (Exception e) {
+      throw new RuntimeException("Error while retrieve user info");
+    }
   }
 
   private DatabaseFetcher fetcher() {
@@ -204,10 +184,10 @@ public class FetcherService {
     return System.currentTimeMillis() - (long) days * 24 * 60 * 60 * 1000;
   }
 
-  public class StatEntry {
+  public static class StatEntry {
 
-    long timestamp;
-    long value;
+    private final long timestamp;
+    private final long value;
 
     StatEntry(long timestamp, long value) {
       this.timestamp = timestamp;

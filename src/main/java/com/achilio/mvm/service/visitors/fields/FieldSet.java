@@ -52,9 +52,6 @@ public interface FieldSet {
   /** Returns functions fields in the field set */
   Set<Field> functions();
 
-  /** Create a FieldSet clone */
-  FieldSet clone();
-
   /**
    * Returns true if the fieldset doesn't contains any field.
    *

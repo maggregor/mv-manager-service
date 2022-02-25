@@ -7,7 +7,6 @@ import com.achilio.mvm.service.controllers.responses.TableResponse;
 import com.achilio.mvm.service.controllers.responses.UpdateDatasetRequestResponse;
 import com.achilio.mvm.service.controllers.responses.UpdateProjectRequestResponse;
 import com.achilio.mvm.service.databases.entities.FetchedDataset;
-import com.achilio.mvm.service.databases.entities.FetchedMaterializedViewEvent;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
@@ -64,7 +63,6 @@ public class ProjectController {
     projectService.updateProject(
         projectId,
         payload.isAutomatic(),
-        payload.getUsername(),
         payload.getAnalysisTimeframe(),
         payload.getMvMaxPerTable());
   }
@@ -112,15 +110,6 @@ public class ProjectController {
   public List<StatEntry> getDailyStatistics(
       @PathVariable final String projectId, @PathVariable final int days) {
     return fetcherService.getDailyStatistics(projectId, days);
-  }
-
-  @GetMapping(path = "/project/{projectId}/events/{days}", produces = "application/json")
-  @ApiOperation("Get events ")
-  public List<FetchedMaterializedViewEvent> getMaterializedViewEvents(
-      @PathVariable final String projectId, @PathVariable final int days) {
-    List<FetchedMaterializedViewEvent> events =
-        fetcherService.getMaterializedViewEvents(projectId, days);
-    return events;
   }
 
   @GetMapping(
