@@ -23,7 +23,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .csrf()
         .disable()
         .antMatcher("/api/**");
-    //        .addFilterAfter(new AccessTokenFilter(), BasicAuthenticationFilter.class);
   }
 
   @Bean
