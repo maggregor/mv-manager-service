@@ -194,9 +194,18 @@ public class StripeService {
     String projectId =
         Customer.retrieve(customerId).getMetadata().get(CustomerMetadata.PROJECT_ID.getValue());
     Project project = projectService.getProject(projectId);
+    Product product =
+        Product.retrieve(subscription.getItems().getData().get(0).getPrice().getProduct());
+    if (product == null) {
+      String errorMessage =
+          String.format("Product not found for this subscription {}", subscription.getId());
+      LOGGER.error(errorMessage);
+      throw new IllegalArgumentException(errorMessage);
+    }
     if (subscription.getStatus().equals(Status.ACTIVE.getValue())) {
       projectService.activateProject(project);
       googlePublisherService.publishProjectActivation(projectId);
+      projectService.updatePlanSettings(project, product);
     } else {
       projectService.deactivateProject(project);
     }

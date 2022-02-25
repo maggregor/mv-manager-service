@@ -1,5 +1,6 @@
 package com.achilio.mvm.service.entities;
 
+import com.achilio.mvm.service.exceptions.InvalidSettingsException;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
@@ -46,6 +47,18 @@ public class Project {
   @Column(name = "stripe_customer_id")
   private String customerId;
 
+  @Column(
+      name = "mv_max_per_table_limit",
+      nullable = false,
+      columnDefinition = "numeric default 20")
+  private Integer mvMaxPerTableLimit = 20;
+
+  @Column(
+      name = "automatic_available",
+      nullable = false,
+      columnDefinition = "boolean default false")
+  private Boolean automaticAvailable = false;
+
   public Project() {}
 
   public Project(String projectId) {
@@ -70,8 +83,16 @@ public class Project {
 
   public Boolean setAutomatic(Boolean automatic) {
     if (automatic != null) {
+      if (automatic && !this.automaticAvailable) {
+        String errorMessage =
+            String.format(
+                "ProjectId %s: Cannot set to automatic mode. Automatic mode is not available on this project",
+                projectId);
+        LOGGER.warn(errorMessage);
+        throw new InvalidSettingsException(errorMessage);
+      }
       this.automatic = automatic;
-      LOGGER.info("Project {} set automatic mode to {}", projectId, automatic);
+      LOGGER.info("ProjectId {}: Set automatic mode to {}", projectId, automatic);
       return true;
     }
     return false;
@@ -99,7 +120,16 @@ public class Project {
 
   public void setMvMaxPerTable(Integer mvMaxPerTable) {
     if (mvMaxPerTable != null) {
+      if (mvMaxPerTable > mvMaxPerTableLimit) {
+        String errorMessage =
+            String.format(
+                "ProjectId %s: Cannot set max MV per table to %s. Limit is %s",
+                projectId, mvMaxPerTable, mvMaxPerTableLimit);
+        LOGGER.warn(errorMessage);
+        throw new InvalidSettingsException(errorMessage);
+      }
       this.mvMaxPerTable = mvMaxPerTable;
+      LOGGER.info("ProjectId {}: Set mvMaxPerTable to {}", projectId, mvMaxPerTable);
     }
   }
 
@@ -120,6 +150,36 @@ public class Project {
   public void setCustomerId(String customerId) {
     if (customerId != null) {
       this.customerId = customerId;
+    }
+  }
+
+  public Integer getMvMaxPerTableLimit() {
+    return mvMaxPerTableLimit;
+  }
+
+  public void setMvMaxPerTableLimit(Integer mvMaxPerTableLimit) {
+    // We automatically update the mvMaxPerTable field if it is not compatible with the new
+    // mvMaxPerTableLimit value
+    if (mvMaxPerTableLimit != null) {
+      this.mvMaxPerTableLimit = mvMaxPerTableLimit;
+      if (mvMaxPerTableLimit < mvMaxPerTable) {
+        setMvMaxPerTable(mvMaxPerTableLimit);
+      }
+    }
+  }
+
+  public Boolean isAutomaticAvailable() {
+    return automaticAvailable;
+  }
+
+  public void setAutomaticAvailable(Boolean automaticAvailable) {
+    // We automatically update the automatic field if it is not compatible with the new
+    // automaticAvailable value
+    if (automaticAvailable != null) {
+      this.automaticAvailable = automaticAvailable;
+      if (!automaticAvailable) {
+        setAutomatic(false);
+      }
     }
   }
 }

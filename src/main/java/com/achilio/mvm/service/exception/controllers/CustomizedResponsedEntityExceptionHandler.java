@@ -1,5 +1,6 @@
 package com.achilio.mvm.service.exception.controllers;
 
+import com.achilio.mvm.service.exceptions.InvalidSettingsException;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import com.achilio.mvm.service.exceptions.UnauthorizedException;
 import java.util.Date;
@@ -22,14 +23,14 @@ public class CustomizedResponsedEntityExceptionHandler extends ResponseEntityExc
   public final ResponseEntity<Object> handleAllExceptions(Exception ex, WebRequest request) {
     ExceptionResponse exResponse =
         new ExceptionResponse(new Date(), ex.getMessage(), request.getDescription(false));
-    return new ResponseEntity<Object>(exResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+    return new ResponseEntity<>(exResponse, HttpStatus.INTERNAL_SERVER_ERROR);
   }
 
   @ExceptionHandler(ProjectNotFoundException.class)
   public final ResponseEntity<Object> projectNotFoundException(Exception ex, WebRequest request) {
     ExceptionResponse exResponse =
         new ExceptionResponse(new Date(), ex.getMessage(), request.getDescription(false));
-    return new ResponseEntity<Object>(exResponse, HttpStatus.NOT_FOUND);
+    return new ResponseEntity<>(exResponse, HttpStatus.NOT_FOUND);
   }
 
   @ExceptionHandler(UnauthorizedException.class)
@@ -37,7 +38,14 @@ public class CustomizedResponsedEntityExceptionHandler extends ResponseEntityExc
       Exception ex, WebRequest request) {
     ExceptionResponse exResponse =
         new ExceptionResponse(new Date(), ex.getMessage(), request.getDescription(false));
-    return new ResponseEntity<Object>(exResponse, HttpStatus.UNAUTHORIZED);
+    return new ResponseEntity<>(exResponse, HttpStatus.UNAUTHORIZED);
+  }
+
+  @ExceptionHandler(InvalidSettingsException.class)
+  public final ResponseEntity<Object> settingsInvalidException(Exception ex, WebRequest request) {
+    ExceptionResponse exResponse =
+        new ExceptionResponse(new Date(), ex.getMessage(), request.getDescription(false));
+    return new ResponseEntity<>(exResponse, HttpStatus.BAD_REQUEST);
   }
 
   /** Handling invalid User Fields send in the request. */
