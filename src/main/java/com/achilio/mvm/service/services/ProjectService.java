@@ -5,6 +5,7 @@ import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import com.achilio.mvm.service.repositories.DatasetRepository;
 import com.achilio.mvm.service.repositories.ProjectRepository;
+import com.stripe.model.Product;
 import java.util.List;
 import java.util.Optional;
 import javax.transaction.Transactional;
@@ -57,6 +58,7 @@ public class ProjectService {
     // If automatic has been sent in the payload (or if the project is being deactivated), we need
     // to publish a potential config change on the schedulers
     Boolean automaticChanged = project.setAutomatic(automatic);
+    
     project.setAnalysisTimeframe(analysisTimeframe);
     project.setMvMaxPerTable(mvMaxPerTable);
     if (automaticChanged == Boolean.TRUE) {
@@ -114,5 +116,35 @@ public class ProjectService {
     project.setAutomatic(false);
     // TODO: Other cleanup action ?
     projectRepository.save(project);
+  }
+
+  @Transactional
+  public void updateMvMaxPerTableLimit(Project project, Integer mvMaxPerTableLimit) {
+    project.setMvMaxPerTableLimit(mvMaxPerTableLimit);
+    if (project.getMvMaxPerTableLimit() < project.getMvMaxPerTable()) {
+      project.setMvMaxPerTable(project.getMvMaxPerTableLimit());
+    }
+    projectRepository.save(project);
+  }
+
+  @Transactional
+  public void updateProjectAutomaticAvailable(Project project, boolean automaticAvailable) {
+    project.setAutomaticAvailable(automaticAvailable);
+    if (!project.isAutomaticAvailable()) {
+      project.setAutomatic(false);
+    }
+    projectRepository.save(project);
+  }
+
+  // Set and save the plan settings based on the product subscribed to
+  public void updatePlanSettings(Project project, Product product) {
+    String mvMax = product.getMetadata().get("mv_max");
+    String automaticAvailable = product.getMetadata().get("automatic_available");
+    if (mvMax != null) {
+      updateMvMaxPerTableLimit(project, Integer.valueOf(mvMax));
+    }
+    if (automaticAvailable != null) {
+      updateProjectAutomaticAvailable(project, Boolean.parseBoolean(automaticAvailable));
+    }
   }
 }
