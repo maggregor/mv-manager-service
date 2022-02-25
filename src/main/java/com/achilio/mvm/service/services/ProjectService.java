@@ -58,15 +58,16 @@ public class ProjectService {
     // If automatic has been sent in the payload (or if the project is being deactivated), we need
     // to publish a potential config change on the schedulers
     Boolean automaticChanged = project.setAutomatic(automatic);
-    
+
     project.setAnalysisTimeframe(analysisTimeframe);
     project.setMvMaxPerTable(mvMaxPerTable);
-    if (automaticChanged == Boolean.TRUE) {
-      project.setUsername(fetcherService.getUserInfo().getEmail());
-    }
     projectRepository.save(project);
     if (automaticChanged) {
       publisherService.publishProjectSchedulers(getAllActivatedProjects());
+      if (automatic) {
+        // Automatic mode has just been activated by this current user
+        project.setUsername(fetcherService.getUserInfo().getEmail());
+      }
     }
   }
 
