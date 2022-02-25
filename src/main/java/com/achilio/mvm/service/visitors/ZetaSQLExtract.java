@@ -13,6 +13,7 @@ import com.google.zetasql.SimpleCatalog;
 import com.google.zetasql.ZetaSQLOptions.LanguageFeature;
 import com.google.zetasql.resolvedast.ResolvedNodes;
 import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedStatement;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -89,18 +90,23 @@ public class ZetaSQLExtract extends ZetaSQLModelBuilder implements FieldSetAnaly
     }
   }
 
-  private FetchedTable findFetchedTableByPath(List<String> path) {
-    Optional<FetchedTable> optionalFetchedTable = Optional.empty();
-    if (path.size() == 1) {
-      // Have to split
-      List<String> splitPath = Arrays.asList(path.get(0).split("\\."));
-      if (splitPath.size() >= 2) {
-        return findFetchedTableByPath(splitPath);
-      }
-    } else if (path.size() == 2) {
-      optionalFetchedTable = getFetchedTable(path.get(0), path.get(1));
-    } else if (path.size() == 3) {
-      optionalFetchedTable = getFetchedTable(path.get(1), path.get(2));
+  @Override
+  public FetchedTable findFetchedTableByPath(List<String> path) {
+    Optional<FetchedTable> optionalFetchedTable;
+    switch (path.size()) {
+      case 0:
+        return null;
+      case 1:
+        // Is a joined projectName.myDatasetName.myTableName
+        path = new ArrayList<>(Arrays.asList(path.get(0).split("\\.")));
+        if (path.size() > 1) return findFetchedTableByPath(path);
+        return null;
+      case 2:
+        optionalFetchedTable = getFetchedTable(path.get(0), path.get(1));
+        break;
+      default:
+        path.remove(0);
+        return findFetchedTableByPath(path);
     }
     if (optionalFetchedTable.isPresent()) {
       return optionalFetchedTable.get();

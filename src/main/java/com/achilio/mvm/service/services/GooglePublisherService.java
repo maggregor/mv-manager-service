@@ -45,7 +45,6 @@ public class GooglePublisherService {
   private TopicName EXECUTOR_TOPIC_NAME;
   private TopicName SCHEDULER_TOPIC_NAME;
 
-
   public GooglePublisherService() {
     new GooglePublisherService(false, "achilio-dev", "mvExecutorTopic", "mvScheduleManagerTopic");
   }
@@ -57,10 +56,8 @@ public class GooglePublisherService {
       @Value("${publisher.executor-topic-id}") String executorTopicId,
       @Value("${publisher.scheduler-topic-id}") String schedulerTopicId) {
     this.PUBLISHER_ENABLED = publisherEnabled;
-    this.EXECUTOR_TOPIC_NAME =
-        TopicName.of(publisherProjectId, executorTopicId);
-    this.SCHEDULER_TOPIC_NAME =
-        TopicName.of(publisherProjectId, schedulerTopicId);
+    this.EXECUTOR_TOPIC_NAME = TopicName.of(publisherProjectId, executorTopicId);
+    this.SCHEDULER_TOPIC_NAME = TopicName.of(publisherProjectId, schedulerTopicId);
     LOGGER.info(
         "Initialized publisher: PROJECT_ID: {}, EXECUTOR_TOPIC: {}, SCHEDULER_TOPIC: {}",
         publisherProjectId,

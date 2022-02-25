@@ -1,6 +1,7 @@
 package com.achilio.mvm.service.visitors;
 
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
+import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.visitors.fields.FieldSet;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -44,4 +45,6 @@ public interface FieldSetAnalyzer {
   }
 
   void analyzeIneligibleReasons(FetchedQuery fetchedQuery);
+
+  FetchedTable findFetchedTableByPath(List<String> path);
 }

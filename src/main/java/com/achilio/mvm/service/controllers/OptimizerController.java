@@ -38,6 +38,9 @@ public class OptimizerController {
 
   @PostMapping(path = "/optimize/{projectId}", produces = MediaType.APPLICATION_JSON_VALUE)
   @ApiOperation("Trigger an optimization on a projectId")
+  // TODO: When (if) next steps are followable somewhere, the response should include a link or
+  // something
+  //  to where the user can follow the steps
   public OptimizationResponse optimizeProject(@PathVariable("projectId") String projectId)
       throws Exception {
     Optimization optimization = service.optimizeProject(projectId);

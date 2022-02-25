@@ -60,7 +60,7 @@ public class OptimizerService {
     this.statementBuilder = new BigQueryMaterializedViewStatementBuilder();
   }
 
-  public Optimization optimizeProject(String projectId) throws Exception {
+  public Optimization optimizeProject(String projectId) {
     Project project = projectService.getProject(projectId);
     int days = project.getAnalysisTimeframe();
     int maxMvPerTable = Math.min(GOOGLE_MAX_MV_PER_TABLE, project.getMvMaxPerTable());
@@ -71,10 +71,8 @@ public class OptimizerService {
             .collect(toList());
     LOGGER.info("Run a new optimization on {} with activated datasets {}", projectId, datasets);
     FetchedProject fetchedProject = fetcherService.fetchProject(projectId);
-    String projectUsername = projectService.getProjectUsername(projectId);
-    Optimization o = createNewOptimization(fetchedProject.getProjectId(), projectUsername);
-    o.setUsername(projectService.getProjectUsername(projectId));
-    LOGGER.info("Username used for optimization {} is {}", o.getId(), projectUsername);
+    Optimization o = createNewOptimization(fetchedProject.getProjectId());
+    LOGGER.info("Username used for optimization {} is {}", o.getId(), o.getUsername());
     o.setMvMaxPlan(DEFAULT_PLAN_MAX_MV);
     o.setMvMaxPerTable(maxMvPerTable);
     // STEP 1 - Fetch all queries of targeted fetchedProject
@@ -204,17 +202,17 @@ public class OptimizerService {
   }
 
   @Transactional
-  public Optimization createNewOptimization(final String projectId, final String projectUsername) {
-    Optimization optimization = new Optimization(projectId, projectUsername);
+  public Optimization createNewOptimization(final String projectId) {
+    Project project = projectService.getProject(projectId);
+    Optimization optimization = new Optimization(project);
     entityManager.persist(optimization);
     LOGGER.info("New optimization created: {}", optimization.getId());
     return optimization;
   }
 
   public List<Optimization> getAllOptimizationByProject(final String projectId) {
-    List<Optimization> optimizations = optimizerRepository.findAllByProjectId(projectId);
     LOGGER.info("Getting all optimizations from project {}", projectId);
-    return optimizations;
+    return optimizerRepository.findAllByProject(projectService.getProject(projectId));
   }
 
   public void destroyAllMaterializedViewsByProject(final String projectId) {
@@ -223,9 +221,9 @@ public class OptimizerService {
   }
 
   public Optimization getOptimization(final String projectId, final Long optimizationId) {
-    Optimization optimization = optimizerRepository.findByProjectIdAndId(projectId, optimizationId);
-    LOGGER.info("Getting optimization id: {} from project {}", optimization.getId(), projectId);
-    return optimization;
+    LOGGER.info("Getting optimization id: {} from project {}", optimizationId, projectId);
+    Project project = projectService.getProject(projectId);
+    return optimizerRepository.findByProjectAndId(project, optimizationId);
   }
 
   public List<OptimizationResult> getOptimizationResults(

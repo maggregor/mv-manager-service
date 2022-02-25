@@ -1,7 +1,6 @@
 package com.achilio.mvm.service.databases;
 
 import com.achilio.mvm.service.databases.entities.FetchedDataset;
-import com.achilio.mvm.service.databases.entities.FetchedMaterializedViewEvent;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
@@ -68,8 +67,4 @@ public interface DatabaseFetcher {
   Set<FetchedTable> fetchAllTables();
 
   Set<FetchedTable> fetchTablesInDataset(String datasetName);
-
-  Set<FetchedTable> fetchTableNamesInDataset(String datasetName);
-
-  List<FetchedMaterializedViewEvent> fetchMaterializedViewEvents(long fromDate);
 }

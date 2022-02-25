@@ -3,8 +3,11 @@ package com.achilio.mvm.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import com.achilio.mvm.service.entities.Optimization;
+import com.achilio.mvm.service.entities.Project;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -14,7 +17,10 @@ public class OptimizationTest {
 
   @Test
   public void simpleValidation() {
-    Optimization optimization = new Optimization("myProject", "myUser");
+    Project mockedProject = mock(Project.class);
+    when(mockedProject.getProjectId()).thenReturn("myProject");
+    when(mockedProject.getUsername()).thenReturn("myUser");
+    Optimization optimization = new Optimization(mockedProject);
     assertNull(optimization.getId());
     assertNotNull(optimization.getProjectId());
     assertEquals("myProject", optimization.getProjectId());

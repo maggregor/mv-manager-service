@@ -1,7 +1,6 @@
 package com.achilio.mvm.service.configuration;
 
 import com.google.auth.oauth2.AccessToken;
-import com.google.auth.oauth2.GoogleCredentials;
 import com.google.auth.oauth2.UserCredentials;
 import java.util.Collection;
 import org.springframework.security.core.Authentication;
@@ -26,7 +25,7 @@ public class SimpleGoogleCredentialsAuthentication implements Authentication {
   }
 
   @Override
-  public GoogleCredentials getCredentials() {
+  public UserCredentials getCredentials() {
     AccessToken accessToken = new AccessToken(this.accessToken, null);
     return UserCredentials.newBuilder()
         .setClientId(clientId)
