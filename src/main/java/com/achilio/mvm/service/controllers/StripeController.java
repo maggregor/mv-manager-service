@@ -100,7 +100,6 @@ public class StripeController {
     try {
       event = Webhook.constructEvent(body, header, endpointSecret);
     } catch (SignatureVerificationException e) {
-      // Invalid signature
       LOGGER.error("Invalid signature");
     }
 

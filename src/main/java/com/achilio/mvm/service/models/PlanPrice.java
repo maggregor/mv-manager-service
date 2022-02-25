@@ -2,21 +2,19 @@ package com.achilio.mvm.service.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class ProjectPlanPrice {
+/** Represent a stripe price object */
+public class PlanPrice {
 
+  // ie: in cent 9990 for 99.90
+  private final Long amount;
+  // ie: usd, eur
+  private final String currency;
+  // ie: month, year
+  private final String interval;
   @JsonProperty("id")
   private String stripePriceId;
 
-  // ie: in cent 9990 for 99.90
-  private Long amount;
-
-  // ie: usd, eur
-  private String currency;
-
-  // ie: month, year
-  private String interval;
-
-  public ProjectPlanPrice(String stripePriceId, Long amount, String currency, String interval) {
+  public PlanPrice(String stripePriceId, Long amount, String currency, String interval) {
     this.stripePriceId = stripePriceId;
     this.amount = amount;
     this.currency = currency;

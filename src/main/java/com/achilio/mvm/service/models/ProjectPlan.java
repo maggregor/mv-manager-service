@@ -3,21 +3,19 @@ package com.achilio.mvm.service.models;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
-/**
- * A Stripe product as a project plan Hold available pricing on this plan. Link to the current
- * subscription.
- */
+/** Project plan represent a stripe product the current project is subscribed to */
 public class ProjectPlan {
 
-  private String name;
-  // Reference to the stripe product
-  @JsonProperty("id")
-  private String stripeProductId;
+  private final String name;
+  private final String urlImage;
+  private final String description;
 
-  private List<ProjectPlanPrice> prices;
+  @JsonProperty("id")
+  // Reference to the stripe product
+  private final String stripeProductId;
+
+  private List<PlanPrice> prices;
   private ProjectSubscription subscription;
-  private String urlImage;
-  private String description;
   private PossibleAction possibleAction;
 
   public ProjectPlan(String name, String stripeProductId, String urlImage, String description) {
@@ -35,7 +33,7 @@ public class ProjectPlan {
     return stripeProductId;
   }
 
-  public List<ProjectPlanPrice> getPrices() {
+  public List<PlanPrice> getPrices() {
     return prices;
   }
 
@@ -59,7 +57,7 @@ public class ProjectPlan {
     return subscription != null && subscription.isActive();
   }
 
-  public void setPricing(List<ProjectPlanPrice> prices) {
+  public void setPricing(List<PlanPrice> prices) {
     this.prices = prices;
   }
 

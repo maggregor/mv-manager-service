@@ -1,9 +1,9 @@
 package com.achilio.mvm.service.services;
 
 import com.achilio.mvm.service.entities.Project;
+import com.achilio.mvm.service.models.PlanPrice;
 import com.achilio.mvm.service.models.ProjectPlan;
 import com.achilio.mvm.service.models.ProjectPlan.PossibleAction;
-import com.achilio.mvm.service.models.ProjectPlanPrice;
 import com.achilio.mvm.service.models.ProjectSubscription;
 import com.google.api.services.oauth2.model.Userinfo;
 import com.stripe.Stripe;
@@ -238,7 +238,7 @@ public class StripeService {
 
   // Private methods
 
-  private List<ProjectPlanPrice> getPrices(String productId) throws StripeException {
+  private List<PlanPrice> getPrices(String productId) throws StripeException {
     Stripe.apiKey = API_KEY;
     return Price.list(PriceListParams.builder().setProduct(productId).setActive(true).build())
         .getData()
@@ -254,10 +254,10 @@ public class StripeService {
     String id = product.getId();
     ProjectPlan projectPlan = new ProjectPlan(name, id, imageUrl, description);
     try {
-      List<ProjectPlanPrice> prices = getPrices(id);
+      List<PlanPrice> prices = getPrices(id);
       projectPlan.setPricing(prices);
       ProjectSubscription subscription = null;
-      for (ProjectPlanPrice price : prices) {
+      for (PlanPrice price : prices) {
         ProjectSubscription s = getSubscriptionByPriceId(customerId, price.getStripePriceId());
         if (s != null) {
           subscription = s;
@@ -272,10 +272,9 @@ public class StripeService {
     return projectPlan;
   }
 
-  private ProjectPlanPrice toProjectPlanPrice(Price price) {
+  private PlanPrice toProjectPlanPrice(Price price) {
     String interval = price.getRecurring() == null ? null : price.getRecurring().getInterval();
-    return new ProjectPlanPrice(
-        price.getId(), price.getUnitAmount(), price.getCurrency(), interval);
+    return new PlanPrice(price.getId(), price.getUnitAmount(), price.getCurrency(), interval);
   }
 
   private ProjectSubscription toProjectSubscription(Subscription s) {
