@@ -57,14 +57,16 @@ public class ProjectController {
   @PostMapping(path = "/project/{projectId}")
   @ApiOperation("Update metadata of a project")
   @ResponseStatus(HttpStatus.ACCEPTED)
-  public void updateProject(
+  public ProjectResponse updateProject(
       @PathVariable final String projectId,
       @RequestBody final UpdateProjectRequestResponse payload) {
-    projectService.updateProject(
-        projectId,
-        payload.isAutomatic(),
-        payload.getAnalysisTimeframe(),
-        payload.getMvMaxPerTable());
+    Project updatedProject =
+        projectService.updateProject(
+            projectId,
+            payload.isAutomatic(),
+            payload.getAnalysisTimeframe(),
+            payload.getMvMaxPerTable());
+    return new ProjectResponse(updatedProject.getProjectId(), updatedProject);
   }
 
   @PostMapping(path = "/project/{projectId}/dataset/{datasetName}", produces = "application/json")

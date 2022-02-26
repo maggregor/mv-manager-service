@@ -52,7 +52,7 @@ public class ProjectService {
   }
 
   @Transactional
-  public void updateProject(
+  public Project updateProject(
       String projectId, Boolean automatic, Integer analysisTimeframe, Integer mvMaxPerTable) {
     Project project = findProjectOrCreate(projectId);
     // If automatic has been sent in the payload (or if the project is being deactivated), we need
@@ -69,6 +69,7 @@ public class ProjectService {
         project.setUsername(fetcherService.getUserInfo().getEmail());
       }
     }
+    return project;
   }
 
   private Optional<Dataset> getDataset(String projectId, String datasetName) {
@@ -116,6 +117,7 @@ public class ProjectService {
     project.setActivated(false);
     project.setAutomatic(false);
     // TODO: Other cleanup action ?
+    // Maybe set mvMaxLimit and isAutomaticAvailable to 0 and false
     projectRepository.save(project);
   }
 
