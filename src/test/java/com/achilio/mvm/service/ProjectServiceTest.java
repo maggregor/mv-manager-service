@@ -159,9 +159,9 @@ public class ProjectServiceTest {
     service.deactivateProject(project);
     assertFalse(project.isActivated());
     assertFalse(project.isAutomatic());
-    // Uncomment when the feature is done
-    //    assertFalse(project.isAutomaticAvailable());
-    //    assertEquals(0, project.getMvMaxPerTableLimit());
+    assertFalse(project.isAutomaticAvailable());
+    assertEquals(0, project.getMvMaxPerTableLimit());
+    assertEquals(0, project.getMvMaxPerTable());
   }
 
   @Test

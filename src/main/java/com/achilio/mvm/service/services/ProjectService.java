@@ -116,9 +116,8 @@ public class ProjectService {
     LOGGER.info(
         "Project {} is being deactivated. Turning off automatic mode", project.getProjectId());
     project.setActivated(false);
-    project.setAutomatic(false);
-    // TODO: Other cleanup action ?
-    // Maybe set mvMaxLimit and isAutomaticAvailable to 0 and false
+    project.setAutomaticAvailable(false);
+    project.setMvMaxPerTableLimit(0);
     projectRepository.save(project);
   }
 
