@@ -460,6 +460,12 @@ public class GlobalQueryStatisticsTest {
     AggregatedStatisticsResponse response = new AggregatedStatisticsResponse(globalStats);
     assertEquals(125, response.getAverageScannedBytesPerQuery());
     assertEquals(800L, response.getTotalQueries());
-    assertEquals(0.375, response.getPercentQueriesIn(), 0);
+    assertEquals(38.0, response.getPercentQueriesIn(), 0);
+    // Check divide by 0
+    when(totalQueryStats.getTotalQueries()).thenReturn(0);
+    response = new AggregatedStatisticsResponse(globalStats);
+    assertEquals(0, response.getAverageScannedBytesPerQuery());
+    assertEquals(0, response.getTotalQueries());
+    assertEquals(0, response.getPercentQueriesIn(), 0);
   }
 }

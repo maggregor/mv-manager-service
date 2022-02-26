@@ -24,9 +24,11 @@ public class AggregatedStatisticsResponse {
     int totalCached = details.get(Scope.CACHED).getTotalQueries();
     int totalIn = details.get(Scope.IN).getTotalQueries();
     long totalScannedBytes = statistics.getTotalStatistics().getTotalProcessedBytes();
-    this.totalQueries = totalQueries - totalCached;
-    this.percentQueriesIn = totalQueries == 0 ? 0 : Math.round(totalIn * 100.0 / this.totalQueries);
-    this.averageScannedBytesPerQuery = totalScannedBytes / this.totalQueries;
+    this.totalQueries = Math.max(0, totalQueries - totalCached);
+    this.percentQueriesIn =
+        this.totalQueries == 0 ? 0 : Math.round(totalIn * 100.0 / this.totalQueries);
+    this.averageScannedBytesPerQuery =
+        this.totalQueries == 0 ? 0 : totalScannedBytes / this.totalQueries;
   }
 
   public int getTotalQueries() {
