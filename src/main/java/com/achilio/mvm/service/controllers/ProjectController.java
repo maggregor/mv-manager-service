@@ -3,7 +3,6 @@ package com.achilio.mvm.service.controllers;
 import com.achilio.mvm.service.controllers.responses.DatasetResponse;
 import com.achilio.mvm.service.controllers.responses.GlobalQueryStatisticsResponse;
 import com.achilio.mvm.service.controllers.responses.ProjectResponse;
-import com.achilio.mvm.service.controllers.responses.TableResponse;
 import com.achilio.mvm.service.controllers.responses.UpdateDatasetRequestResponse;
 import com.achilio.mvm.service.controllers.responses.UpdateProjectRequestResponse;
 import com.achilio.mvm.service.databases.entities.FetchedDataset;
@@ -129,18 +128,18 @@ public class ProjectController {
     return toGlobalQueryStatisticsResponse(statistics);
   }
 
-  public GlobalQueryStatisticsResponse toGlobalQueryStatisticsResponse(
+  private GlobalQueryStatisticsResponse toGlobalQueryStatisticsResponse(
       GlobalQueryStatistics statistics) {
     return new GlobalQueryStatisticsResponse(statistics);
   }
 
-  public ProjectResponse toProjectResponse(FetchedProject fetchedProject) {
+  private ProjectResponse toProjectResponse(FetchedProject fetchedProject) {
     final String projectId = fetchedProject.getProjectId();
     Project project = projectService.findProjectOrCreate(projectId);
     return new ProjectResponse(fetchedProject.getName(), project);
   }
 
-  public DatasetResponse toDatasetResponse(FetchedDataset dataset) {
+  private DatasetResponse toDatasetResponse(FetchedDataset dataset) {
     final String projectId = dataset.getProjectId();
     final String datasetName = dataset.getDatasetName();
     final String location = dataset.getLocation();
@@ -158,13 +157,6 @@ public class ProjectController {
         createdAt,
         lastModified,
         activated);
-  }
-
-  public TableResponse toTableResponse(FetchedTable table) {
-    final String projectId = table.getProjectId();
-    final String datasetName = table.getDatasetName();
-    final String tableName = table.getTableName();
-    return new TableResponse(projectId, datasetName, tableName);
   }
 }
 
