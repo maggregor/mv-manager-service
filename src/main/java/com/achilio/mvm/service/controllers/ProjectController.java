@@ -1,5 +1,6 @@
 package com.achilio.mvm.service.controllers;
 
+import com.achilio.mvm.service.controllers.responses.AggregatedStatisticsResponse;
 import com.achilio.mvm.service.controllers.responses.DatasetResponse;
 import com.achilio.mvm.service.controllers.responses.GlobalQueryStatisticsResponse;
 import com.achilio.mvm.service.controllers.responses.ProjectResponse;
@@ -113,6 +114,16 @@ public class ProjectController {
   }
 
   @GetMapping(
+      path = "/project/{projectId}/queries/{days}/statistics/kpi",
+      produces = "application/json")
+  @ApiOperation("Get statistics of queries grouped per days for charts")
+  public AggregatedStatisticsResponse getKPIStatistics(
+      @PathVariable final String projectId, @PathVariable final int days) throws Exception {
+    GlobalQueryStatistics statistics = fetcherService.getStatistics(projectId, days);
+    return toAggregatedStatistics(statistics);
+  }
+
+  @GetMapping(
       path = "/project/{projectId}/queries/{days}/statistics/eligible",
       produces = "application/json")
   @ApiOperation("Get statistics of ineligible queries")
@@ -129,6 +140,10 @@ public class ProjectController {
   public GlobalQueryStatisticsResponse toGlobalQueryStatisticsResponse(
       GlobalQueryStatistics statistics) {
     return new GlobalQueryStatisticsResponse(statistics);
+  }
+
+  public AggregatedStatisticsResponse toAggregatedStatistics(GlobalQueryStatistics statistics) {
+    return new AggregatedStatisticsResponse(statistics);
   }
 
   public ProjectResponse toProjectResponse(FetchedProject fetchedProject) {
