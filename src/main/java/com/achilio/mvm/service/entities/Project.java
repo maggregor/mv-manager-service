@@ -81,12 +81,10 @@ public class Project {
   public Boolean setAutomatic(Boolean automatic) {
     if (automatic != null) {
       if (automatic && !this.automaticAvailable) {
-        String errorMessage =
+        throw new InvalidSettingsException(
             String.format(
                 "ProjectId %s: Cannot set to automatic mode. Automatic mode is not available on this project",
-                projectId);
-        LOGGER.warn(errorMessage);
-        throw new InvalidSettingsException(errorMessage);
+                projectId));
       }
       this.automatic = automatic;
       LOGGER.info("ProjectId {}: Set automatic mode to {}", projectId, automatic);
@@ -118,12 +116,10 @@ public class Project {
   public void setMvMaxPerTable(Integer mvMaxPerTable) {
     if (mvMaxPerTable != null) {
       if (mvMaxPerTable > mvMaxPerTableLimit) {
-        String errorMessage =
+        throw new InvalidSettingsException(
             String.format(
                 "ProjectId %s: Cannot set max MV per table to %s. Limit is %s",
-                projectId, mvMaxPerTable, mvMaxPerTableLimit);
-        LOGGER.warn(errorMessage);
-        throw new InvalidSettingsException(errorMessage);
+                projectId, mvMaxPerTable, mvMaxPerTableLimit));
       }
       this.mvMaxPerTable = mvMaxPerTable;
       LOGGER.info("ProjectId {}: Set mvMaxPerTable to {}", projectId, mvMaxPerTable);
