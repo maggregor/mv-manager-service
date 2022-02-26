@@ -95,7 +95,6 @@ public class StripeController {
   public void receiveStripeWebhook(
       @RequestHeader("Stripe-Signature") String header, @RequestBody String body)
       throws StripeException, IOException, ExecutionException, InterruptedException {
-
     Event event = Webhook.constructEvent(body, header, endpointSecret);
 
     // Deserialize the nested object inside the event
