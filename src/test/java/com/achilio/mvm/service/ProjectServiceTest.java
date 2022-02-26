@@ -41,9 +41,11 @@ public class ProjectServiceTest {
   private static final List<Project> mockedActivatedProjects =
       Arrays.asList(mockedProject1, mockedProject2);
   private static final String TEST_DATASET_NAME1 = "nyc_trips";
-  private static final String TEST_DATASET_NAME2 = "other_dataset";
+  private static final String TEST_DATASET_NAME2 = "another_one";
+  private static final String TEST_DATASET_NAME3 = "other_dataset";
   private static final Dataset mockedDataset1 = mock(Dataset.class);
-  private final Dataset realDataset = new Dataset(mockedProject1, TEST_DATASET_NAME2);
+  private static final Dataset mockedDataset2 = mock(Dataset.class);
+  private final Dataset realDataset = new Dataset(mockedProject1, TEST_DATASET_NAME3);
   private final Map<String, String> productMetadata = new HashMap<>();
   private final Map<String, String> errorProductMetadata = new HashMap<>();
   private final Project realProject = new Project(TEST_PROJECT_NAME2);
@@ -59,16 +61,21 @@ public class ProjectServiceTest {
   public void setup() {
     when(mockedProject1.getProjectId()).thenReturn(TEST_PROJECT_NAME1);
     when(mockedProject2.getProjectId()).thenReturn(TEST_PROJECT_NAME2);
-
     when(mockedProjectRepository.save(Mockito.any(Project.class))).thenReturn(mockedProject1);
     when(mockedProjectRepository.findByProjectId(TEST_PROJECT_NAME1))
         .thenReturn(Optional.of(mockedProject1));
     when(mockedProjectRepository.findByProjectId(TEST_PROJECT_NAME2))
         .thenReturn(Optional.of(realProject));
     when(mockedProjectRepository.findAllByActivated(true)).thenReturn(mockedActivatedProjects);
+    when(mockedDataset1.isActivated()).thenReturn(true);
+    when(mockedDataset2.isActivated()).thenReturn(false);
     when(mockedDatasetRepository.save(Mockito.any(Dataset.class))).thenReturn(mockedDataset1);
-    when(mockedDatasetRepository.findByProjectAndDatasetName(mockedProject1, TEST_DATASET_NAME1)).thenReturn(Optional.of(mockedDataset1));
-    when(mockedDatasetRepository.findByProjectAndDatasetName(mockedProject1, TEST_DATASET_NAME2)).thenReturn(Optional.of(realDataset));
+    when(mockedDatasetRepository.findByProjectAndDatasetName(mockedProject1, TEST_DATASET_NAME1))
+        .thenReturn(Optional.of(mockedDataset1));
+    when(mockedDatasetRepository.findByProjectAndDatasetName(mockedProject1, TEST_DATASET_NAME2))
+        .thenReturn(Optional.of(mockedDataset2));
+    when(mockedDatasetRepository.findByProjectAndDatasetName(mockedProject1, TEST_DATASET_NAME3))
+        .thenReturn(Optional.of(realDataset));
     productMetadata.put("mv_max", "10");
     productMetadata.put("automatic_available", "true");
     when(mockedProduct.getMetadata()).thenReturn(productMetadata);
@@ -152,6 +159,7 @@ public class ProjectServiceTest {
     service.deactivateProject(project);
     assertFalse(project.isActivated());
     assertFalse(project.isAutomatic());
+    // Uncomment when the feature is done
     //    assertFalse(project.isAutomaticAvailable());
     //    assertEquals(0, project.getMvMaxPerTableLimit());
   }
@@ -197,9 +205,18 @@ public class ProjectServiceTest {
     assertEquals(10, project.getMvMaxPerTableLimit());
   }
 
-//  @Test
-//  public void updateDataset() {
-//    Dataset dataset = new Dataset(mockedProject1, TEST_DATASET_NAME2);
-//    service.updateDataset(TEST_DATASET_NAME2);
-//  }
+  @Test
+  public void updateDataset() {
+    Dataset dataset = service.updateDataset(TEST_PROJECT_NAME1, TEST_DATASET_NAME3, true);
+    assertTrue(dataset.isActivated());
+    assertEquals(TEST_DATASET_NAME3, "other_dataset");
+    dataset = service.updateDataset(TEST_PROJECT_NAME1, TEST_DATASET_NAME3, false);
+    assertFalse(dataset.isActivated());
+  }
+
+  @Test
+  public void isDatasetActivated() {
+    assertTrue(service.isDatasetActivated(TEST_PROJECT_NAME1, TEST_DATASET_NAME1));
+    assertFalse(service.isDatasetActivated(TEST_PROJECT_NAME1, TEST_DATASET_NAME2));
+  }
 }

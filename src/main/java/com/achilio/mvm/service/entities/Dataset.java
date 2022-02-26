@@ -44,6 +44,10 @@ public class Dataset {
     return id;
   }
 
+  public String getDatasetName() {
+    return datasetName;
+  }
+
   public boolean isActivated() {
     return activated;
   }

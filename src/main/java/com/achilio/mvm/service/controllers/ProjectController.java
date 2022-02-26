@@ -71,11 +71,12 @@ public class ProjectController {
 
   @PostMapping(path = "/project/{projectId}/dataset/{datasetName}", produces = "application/json")
   @ApiOperation("Update metadata of a dataset")
-  public void updateDataset(
+  public UpdateDatasetRequestResponse updateDataset(
       @PathVariable final String projectId,
       @PathVariable final String datasetName,
       @RequestBody final UpdateDatasetRequestResponse payload) {
-    projectService.updateDataset(projectId, datasetName, payload.isActivated());
+    return new UpdateDatasetRequestResponse(
+        projectService.updateDataset(projectId, datasetName, payload.isActivated()));
   }
 
   @GetMapping(path = "/project/{projectId}/dataset", produces = "application/json")

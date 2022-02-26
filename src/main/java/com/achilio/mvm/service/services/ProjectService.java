@@ -93,10 +93,11 @@ public class ProjectService {
   }
 
   @Transactional
-  public void updateDataset(String projectId, String datasetName, Boolean activated) {
+  public Dataset updateDataset(String projectId, String datasetName, Boolean activated) {
     Dataset dataset = findDatasetOrCreate(projectId, datasetName);
     dataset.setActivated(activated);
     datasetRepository.save(dataset);
+    return dataset;
   }
 
   public boolean isDatasetActivated(String projectId, String datasetName) {
