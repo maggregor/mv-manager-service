@@ -1,12 +1,11 @@
 package com.achilio.mvm.service.controllers;
 
+import com.achilio.mvm.service.controllers.requests.UpdateProjectRequest;
 import com.achilio.mvm.service.controllers.responses.AggregatedStatisticsResponse;
 import com.achilio.mvm.service.controllers.responses.DatasetResponse;
 import com.achilio.mvm.service.controllers.responses.GlobalQueryStatisticsResponse;
 import com.achilio.mvm.service.controllers.responses.ProjectResponse;
-import com.achilio.mvm.service.controllers.responses.TableResponse;
 import com.achilio.mvm.service.controllers.responses.UpdateDatasetRequestResponse;
-import com.achilio.mvm.service.controllers.responses.UpdateProjectRequestResponse;
 import com.achilio.mvm.service.databases.entities.FetchedDataset;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
@@ -26,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -42,8 +42,8 @@ public class ProjectController {
   @Autowired private FetcherService fetcherService;
 
   @GetMapping(path = "/project", produces = "application/json")
-  @ApiOperation("List the project")
-  public List<ProjectResponse> getAllProjects() throws Exception {
+  @ApiOperation("List all projects")
+  public List<ProjectResponse> getAllProjects() {
     return fetcherService.fetchAllProjects().stream()
         .map(this::toProjectResponse)
         .collect(Collectors.toList());
@@ -55,33 +55,40 @@ public class ProjectController {
     return toProjectResponse(fetcherService.fetchProject(projectId));
   }
 
+  @Deprecated
   @PostMapping(path = "/project/{projectId}")
   @ApiOperation("Update metadata of a project")
   @ResponseStatus(HttpStatus.ACCEPTED)
-  public void updateProject(
-      @PathVariable final String projectId,
-      @RequestBody final UpdateProjectRequestResponse payload) {
-    projectService.updateProject(
-        projectId,
-        payload.isAutomatic(),
-        payload.getAnalysisTimeframe(),
-        payload.getMvMaxPerTable());
+  public ProjectResponse updateProjectOrCreate(
+      @PathVariable final String projectId, @RequestBody final UpdateProjectRequest payload) {
+    Project updatedProject = projectService.updateProjectOrCreate(projectId, payload);
+    return new ProjectResponse(updatedProject.getProjectId(), updatedProject);
+  }
+
+  @PatchMapping(path = "/project/{projectId}")
+  @ApiOperation("Update metadata of a project")
+  @ResponseStatus(HttpStatus.ACCEPTED)
+  public ProjectResponse updateProject(
+      @PathVariable final String projectId, @RequestBody final UpdateProjectRequest payload) {
+    Project updatedProject = projectService.updateProject(projectId, payload);
+    FetchedProject fetchedProject = fetcherService.fetchProject(projectId);
+    return toProjectResponse(fetchedProject, updatedProject);
   }
 
   @PostMapping(path = "/project/{projectId}/dataset/{datasetName}", produces = "application/json")
   @ApiOperation("Update metadata of a dataset")
-  public void updateDataset(
+  public UpdateDatasetRequestResponse updateDataset(
       @PathVariable final String projectId,
       @PathVariable final String datasetName,
       @RequestBody final UpdateDatasetRequestResponse payload) {
-    projectService.updateDataset(projectId, datasetName, payload.isActivated());
+    return new UpdateDatasetRequestResponse(
+        projectService.updateDataset(projectId, datasetName, payload.isActivated()));
   }
 
   @GetMapping(path = "/project/{projectId}/dataset", produces = "application/json")
   @ApiOperation("Get all dataset for a given projectId")
-  public List<DatasetResponse> getDatasets(@PathVariable final String projectId) throws Exception {
+  public List<DatasetResponse> getAllDatasets(@PathVariable final String projectId) {
     return fetcherService.fetchAllDatasets(projectId).stream()
-        .parallel()
         .map(this::toDatasetResponse)
         .collect(Collectors.toList());
   }
@@ -123,6 +130,7 @@ public class ProjectController {
     return toAggregatedStatistics(statistics);
   }
 
+  @Deprecated
   @GetMapping(
       path = "/project/{projectId}/queries/{days}/statistics/eligible",
       produces = "application/json")
@@ -137,7 +145,7 @@ public class ProjectController {
     return toGlobalQueryStatisticsResponse(statistics);
   }
 
-  public GlobalQueryStatisticsResponse toGlobalQueryStatisticsResponse(
+  private GlobalQueryStatisticsResponse toGlobalQueryStatisticsResponse(
       GlobalQueryStatistics statistics) {
     return new GlobalQueryStatisticsResponse(statistics);
   }
@@ -146,13 +154,16 @@ public class ProjectController {
     return new AggregatedStatisticsResponse(statistics);
   }
 
-  public ProjectResponse toProjectResponse(FetchedProject fetchedProject) {
-    final String projectId = fetchedProject.getProjectId();
-    Project project = projectService.findProjectOrCreate(projectId);
+  private ProjectResponse toProjectResponse(FetchedProject fetchedProject, Project project) {
     return new ProjectResponse(fetchedProject.getName(), project);
   }
 
-  public DatasetResponse toDatasetResponse(FetchedDataset dataset) {
+  private ProjectResponse toProjectResponse(FetchedProject fetchedProject) {
+    Project project = projectService.findProjectOrCreate(fetchedProject.getProjectId());
+    return new ProjectResponse(fetchedProject.getName(), project);
+  }
+
+  private DatasetResponse toDatasetResponse(FetchedDataset dataset) {
     final String projectId = dataset.getProjectId();
     final String datasetName = dataset.getDatasetName();
     final String location = dataset.getLocation();
@@ -170,13 +181,6 @@ public class ProjectController {
         createdAt,
         lastModified,
         activated);
-  }
-
-  public TableResponse toTableResponse(FetchedTable table) {
-    final String projectId = table.getProjectId();
-    final String datasetName = table.getDatasetName();
-    final String tableName = table.getTableName();
-    return new TableResponse(projectId, datasetName, tableName);
   }
 }
 

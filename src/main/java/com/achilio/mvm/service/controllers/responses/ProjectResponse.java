@@ -9,7 +9,7 @@ public class ProjectResponse {
   private final String projectId;
 
   @JsonProperty("projectName")
-  private final String projectName;
+  private String projectName;
 
   @JsonProperty("username")
   private String username;
