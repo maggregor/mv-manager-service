@@ -1,5 +1,7 @@
 package com.achilio.mvm.service.controllers.responses;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class DatasetResponse {
@@ -11,18 +13,23 @@ public class DatasetResponse {
   private final String datasetName;
 
   @JsonProperty("location")
+  @JsonInclude(Include.NON_NULL)
   private final String location;
 
   @JsonProperty("friendlyName")
+  @JsonInclude(Include.NON_NULL)
   private final String friendlyName;
 
   @JsonProperty("description")
+  @JsonInclude(Include.NON_NULL)
   private final String description;
 
   @JsonProperty("createdAt")
+  @JsonInclude(Include.NON_NULL)
   private final Long createdAt;
 
   @JsonProperty("lastModified")
+  @JsonInclude(Include.NON_NULL)
   private final Long lastModified;
 
   @JsonProperty("activated")

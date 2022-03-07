@@ -5,7 +5,6 @@ import com.achilio.mvm.service.models.ProjectPlan;
 import com.achilio.mvm.service.models.ProjectSubscription;
 import com.achilio.mvm.service.services.StripeService;
 import com.stripe.exception.EventDataObjectDeserializationException;
-import com.stripe.exception.SignatureVerificationException;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
 import com.stripe.model.Event;
@@ -39,7 +38,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 public class StripeController {
 
-  private static Logger LOGGER = LoggerFactory.getLogger(StripeController.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(StripeController.class);
   @Autowired private StripeService stripeService;
 
   @Value("${stripe.endpoint.secret}")
@@ -96,12 +95,7 @@ public class StripeController {
   public void receiveStripeWebhook(
       @RequestHeader("Stripe-Signature") String header, @RequestBody String body)
       throws StripeException, IOException, ExecutionException, InterruptedException {
-    Event event = null;
-    try {
-      event = Webhook.constructEvent(body, header, endpointSecret);
-    } catch (SignatureVerificationException e) {
-      LOGGER.error("Invalid signature");
-    }
+    Event event = Webhook.constructEvent(body, header, endpointSecret);
 
     // Deserialize the nested object inside the event
     EventDataObjectDeserializer dataObjectDeserializer = event.getDataObjectDeserializer();
@@ -112,7 +106,6 @@ public class StripeController {
       // Deserialization failed, probably due to an API version mismatch.
       // Refer to the Javadoc documentation on `EventDataObjectDeserializer` for
       // instructions on how to handle this case, or return an error here.
-      LOGGER.error("Deserialization failed");
       throw new EventDataObjectDeserializationException("Deserialization failed", body);
     }
 

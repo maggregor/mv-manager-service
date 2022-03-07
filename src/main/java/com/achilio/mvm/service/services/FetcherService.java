@@ -1,9 +1,5 @@
 package com.achilio.mvm.service.services;
 
-import static com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics.SCOPE_CACHED;
-import static com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics.SCOPE_IN;
-import static com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics.SCOPE_OUT;
-
 import com.achilio.mvm.service.configuration.SimpleGoogleCredentialsAuthentication;
 import com.achilio.mvm.service.databases.DatabaseFetcher;
 import com.achilio.mvm.service.databases.bigquery.BigQueryDatabaseFetcher;
@@ -13,6 +9,7 @@ import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics;
+import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics.Scope;
 import com.achilio.mvm.service.entities.statistics.QueryStatistics;
 import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
@@ -140,9 +137,9 @@ public class FetcherService {
             .filter(q -> !q.isUsingMaterializedView() && !q.isUsingCache())
             .collect(Collectors.toList());
     GlobalQueryStatistics global = new GlobalQueryStatistics(enableIneligibilityStats);
-    global.addStatistic(SCOPE_IN, new QueryStatistics(selectIn, enableIneligibilityStats));
-    global.addStatistic(SCOPE_OUT, new QueryStatistics(selectOut, enableIneligibilityStats));
-    global.addStatistic(SCOPE_CACHED, new QueryStatistics(selectCached, enableIneligibilityStats));
+    global.addStatistic(Scope.IN, new QueryStatistics(selectIn, enableIneligibilityStats));
+    global.addStatistic(Scope.OUT, new QueryStatistics(selectOut, enableIneligibilityStats));
+    global.addStatistic(Scope.CACHED, new QueryStatistics(selectCached, enableIneligibilityStats));
     return global;
   }
 
@@ -189,7 +186,7 @@ public class FetcherService {
     private final long timestamp;
     private final long value;
 
-    StatEntry(long timestamp, long value) {
+    public StatEntry(long timestamp, long value) {
       this.timestamp = timestamp;
       this.value = value;
     }

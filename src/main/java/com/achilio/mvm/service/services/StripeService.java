@@ -90,7 +90,7 @@ public class StripeService {
    * <p>Check in the customer project-id metadata
    *
    * @param projectId
-   * @return
+   * @return Customer
    * @throws StripeException
    */
   public Customer getCustomerByProjectId(String projectId) throws StripeException {
@@ -222,10 +222,8 @@ public class StripeService {
     Product product =
         Product.retrieve(subscription.getItems().getData().get(0).getPrice().getProduct());
     if (product == null) {
-      String errorMessage =
-          String.format("Product not found for this subscription {}", subscription.getId());
-      LOGGER.error(errorMessage);
-      throw new IllegalArgumentException(errorMessage);
+      throw new IllegalArgumentException(
+          String.format("Product not found for this subscription {}", subscription.getId()));
     }
     if (subscription.getStatus().equals(Status.ACTIVE.getValue())) {
       projectService.activateProject(project);

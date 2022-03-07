@@ -1,5 +1,7 @@
 package com.achilio.mvm.service.services;
 
+import com.achilio.mvm.service.controllers.requests.UpdateProjectRequest;
+import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.entities.Dataset;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
@@ -51,28 +53,36 @@ public class ProjectService {
     return projectRepository.findByProjectId(projectId).isPresent();
   }
 
+  @Deprecated
   @Transactional
-  public void updateProject(
-      String projectId, Boolean automatic, Integer analysisTimeframe, Integer mvMaxPerTable) {
-    Project project = findProjectOrCreate(projectId);
+  public Project updateProjectOrCreate(String projectId, UpdateProjectRequest payload) {
+    FetchedProject fetchedProject = fetcherService.fetchProject(projectId);
+    findProjectOrCreate(projectId);
+    return updateProject(projectId, payload);
+  }
+
+  @Transactional
+  public Project updateProject(String projectId, UpdateProjectRequest payload) {
+    Project project = getProject(projectId);
     // If automatic has been sent in the payload (or if the project is being deactivated), we need
     // to publish a potential config change on the schedulers
-    Boolean automaticChanged = project.setAutomatic(automatic);
+    Boolean automaticChanged = project.setAutomatic(payload.isAutomatic());
 
-    project.setAnalysisTimeframe(analysisTimeframe);
-    project.setMvMaxPerTable(mvMaxPerTable);
+    project.setAnalysisTimeframe(payload.getAnalysisTimeframe());
+    project.setMvMaxPerTable(payload.getMvMaxPerTable());
     projectRepository.save(project);
     if (automaticChanged) {
       publisherService.publishProjectSchedulers(getAllActivatedProjects());
-      if (automatic) {
+      if (payload.isAutomatic()) {
         // Automatic mode has just been activated by this current user
         project.setUsername(fetcherService.getUserInfo().getEmail());
       }
     }
+    return project;
   }
 
   private Optional<Dataset> getDataset(String projectId, String datasetName) {
-    return getDataset(findProjectOrCreate(projectId), datasetName);
+    return getDataset(getProject(projectId), datasetName);
   }
 
   private Optional<Dataset> getDataset(Project project, String datasetName) {
@@ -84,7 +94,7 @@ public class ProjectService {
   }
 
   private Dataset createDataset(String projectId, String datasetName) {
-    return createDataset(findProjectOrCreate(projectId), datasetName);
+    return createDataset(getProject(projectId), datasetName);
   }
 
   private Dataset createDataset(Project project, String datasetName) {
@@ -92,10 +102,11 @@ public class ProjectService {
   }
 
   @Transactional
-  public void updateDataset(String projectId, String datasetName, Boolean activated) {
+  public Dataset updateDataset(String projectId, String datasetName, Boolean activated) {
     Dataset dataset = findDatasetOrCreate(projectId, datasetName);
     dataset.setActivated(activated);
     datasetRepository.save(dataset);
+    return dataset;
   }
 
   public boolean isDatasetActivated(String projectId, String datasetName) {
@@ -114,8 +125,8 @@ public class ProjectService {
     LOGGER.info(
         "Project {} is being deactivated. Turning off automatic mode", project.getProjectId());
     project.setActivated(false);
-    project.setAutomatic(false);
-    // TODO: Other cleanup action ?
+    project.setAutomaticAvailable(false);
+    project.setMvMaxPerTableLimit(0);
     projectRepository.save(project);
   }
 
