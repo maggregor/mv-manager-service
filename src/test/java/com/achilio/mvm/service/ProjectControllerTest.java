@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import com.achilio.mvm.service.controllers.ProjectController;
+import com.achilio.mvm.service.controllers.requests.UpdateProjectRequest;
 import com.achilio.mvm.service.controllers.responses.ProjectResponse;
 import com.achilio.mvm.service.databases.entities.DefaultFetchedProject;
 import com.achilio.mvm.service.entities.Project;
@@ -85,12 +86,29 @@ public class ProjectControllerTest {
         new DefaultFetchedProject("achilio-main", "Achilio Main");
     when(mockedFetcherService.fetchAllProjects())
         .thenReturn(Arrays.asList(fetchedProject1, fetchedProject2));
-    when(mockedFetcherService.fetchProject("achilio-dev")).thenReturn(fetchedProject1);
-    when(mockedFetcherService.fetchProject("achilio-main")).thenReturn(fetchedProject2);
     when(mockedProjectService.findProjectOrCreate("achilio-dev")).thenReturn(project1);
     when(mockedProjectService.findProjectOrCreate("achilio-main")).thenReturn(project2);
     List<ProjectResponse> responseEntity = controller.getAllProjects();
     String jsonResponse = objectMapper.writeValueAsString(responseEntity);
     assertEquals(expectedResponse1, jsonResponse);
+  }
+
+  @Test
+  public void updateProject() throws JsonProcessingException {
+    String projectId = "achilio-dev";
+    Project project = new Project("achilio-dev");
+    DefaultFetchedProject fetchedProject = new DefaultFetchedProject("achilio-dev", "Achilio Dev");
+    project.setAnalysisTimeframe(20);
+    project.setMvMaxPerTable(10);
+    project.setAutomaticAvailable(true);
+    project.setAutomatic(true);
+    UpdateProjectRequest payload = new UpdateProjectRequest(true, 20, 10);
+    when(mockedProjectService.updateProject(any(), any())).thenReturn(project);
+    when(mockedFetcherService.fetchProject("achilio-dev")).thenReturn(fetchedProject);
+    ProjectResponse responseEntity = controller.updateProject(projectId, payload);
+    String expectedResponse =
+        "{\"projectId\":\"achilio-dev\",\"projectName\":\"Achilio Dev\",\"username\":\"\",\"mvMaxPerTable\":10,\"analysisTimeframe\":20,\"activated\":false,\"automatic\":true}";
+    String jsonResponse = objectMapper.writeValueAsString(responseEntity);
+    assertEquals(expectedResponse, jsonResponse);
   }
 }

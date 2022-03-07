@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.achilio.mvm.service.controllers.requests.UpdateProjectRequest;
 import com.achilio.mvm.service.entities.Dataset;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
@@ -136,14 +137,19 @@ public class ProjectServiceTest {
   public void updateProject() {
     Integer analysisTimeFrame = 14;
     Integer mvMaxPerTable = 12;
-    Project project =
-        service.updateProject(TEST_PROJECT_NAME2, false, analysisTimeFrame, mvMaxPerTable);
+    UpdateProjectRequest payload1 =
+        new UpdateProjectRequest(false, analysisTimeFrame, mvMaxPerTable);
+    Project project = service.updateProject(TEST_PROJECT_NAME2, payload1);
     assertEquals(TEST_PROJECT_NAME2, project.getProjectId());
     assertFalse(project.isAutomatic());
     assertEquals(14, project.getAnalysisTimeframe());
     assertEquals(12, project.getMvMaxPerTable());
     project.setAutomaticAvailable(true);
-    project = service.updateProject(TEST_PROJECT_NAME2, true, analysisTimeFrame, mvMaxPerTable);
+    analysisTimeFrame = null;
+    mvMaxPerTable = null;
+    UpdateProjectRequest payload2 =
+        new UpdateProjectRequest(true, analysisTimeFrame, mvMaxPerTable);
+    project = service.updateProject(TEST_PROJECT_NAME2, payload2);
     assertTrue(project.isAutomatic());
     assertEquals("myEmail", project.getUsername());
   }

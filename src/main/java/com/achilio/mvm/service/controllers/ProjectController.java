@@ -1,10 +1,10 @@
 package com.achilio.mvm.service.controllers;
 
+import com.achilio.mvm.service.controllers.requests.UpdateProjectRequest;
 import com.achilio.mvm.service.controllers.responses.DatasetResponse;
 import com.achilio.mvm.service.controllers.responses.GlobalQueryStatisticsResponse;
 import com.achilio.mvm.service.controllers.responses.ProjectResponse;
 import com.achilio.mvm.service.controllers.responses.UpdateDatasetRequestResponse;
-import com.achilio.mvm.service.controllers.responses.UpdateProjectRequestResponse;
 import com.achilio.mvm.service.databases.entities.FetchedDataset;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -41,7 +42,7 @@ public class ProjectController {
 
   @GetMapping(path = "/project", produces = "application/json")
   @ApiOperation("List the project")
-  public List<ProjectResponse> getAllProjects() throws Exception {
+  public List<ProjectResponse> getAllProjects() {
     return fetcherService.fetchAllProjects().stream()
         .map(this::toProjectResponse)
         .collect(Collectors.toList());
@@ -53,19 +54,24 @@ public class ProjectController {
     return toProjectResponse(fetcherService.fetchProject(projectId));
   }
 
+  @Deprecated
   @PostMapping(path = "/project/{projectId}")
   @ApiOperation("Update metadata of a project")
   @ResponseStatus(HttpStatus.ACCEPTED)
-  public ProjectResponse updateProject(
-      @PathVariable final String projectId,
-      @RequestBody final UpdateProjectRequestResponse payload) {
-    Project updatedProject =
-        projectService.updateProject(
-            projectId,
-            payload.isAutomatic(),
-            payload.getAnalysisTimeframe(),
-            payload.getMvMaxPerTable());
+  public ProjectResponse updateProjectOrCreate(
+      @PathVariable final String projectId, @RequestBody final UpdateProjectRequest payload) {
+    Project updatedProject = projectService.updateProjectOrCreate(projectId, payload);
     return new ProjectResponse(updatedProject.getProjectId(), updatedProject);
+  }
+
+  @PatchMapping(path = "/project/{projectId}")
+  @ApiOperation("Update metadata of a project")
+  @ResponseStatus(HttpStatus.ACCEPTED)
+  public ProjectResponse updateProject(
+      @PathVariable final String projectId, @RequestBody final UpdateProjectRequest payload) {
+    Project updatedProject = projectService.updateProject(projectId, payload);
+    FetchedProject fetchedProject = fetcherService.fetchProject(projectId);
+    return new ProjectResponse(fetchedProject.getName(), updatedProject);
   }
 
   @PostMapping(path = "/project/{projectId}/dataset/{datasetName}", produces = "application/json")
