@@ -29,6 +29,9 @@ public class Project {
   @Column(name = "project_id", nullable = false, unique = true)
   private String projectId;
 
+  @Column(name = "project_name", nullable = false, columnDefinition = "varchar(255) default ''")
+  private String projectName;
+
   @Column(name = "activated", nullable = false)
   private Boolean activated = false;
 
@@ -58,8 +61,9 @@ public class Project {
 
   public Project() {}
 
-  public Project(String projectId) {
+  public Project(String projectId, String projectName) {
     this.projectId = projectId;
+    this.projectName = projectName;
   }
 
   public Long getId() {
@@ -163,6 +167,16 @@ public class Project {
       if (!automaticAvailable) {
         setAutomatic(false);
       }
+    }
+  }
+
+  public String getProjectName() {
+    return projectName;
+  }
+
+  public void setProjectName(String projectName) {
+    if (projectName != null) {
+      this.projectName = projectName;
     }
   }
 }

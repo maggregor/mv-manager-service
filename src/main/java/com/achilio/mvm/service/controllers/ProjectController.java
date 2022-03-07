@@ -70,8 +70,7 @@ public class ProjectController {
   public ProjectResponse updateProject(
       @PathVariable final String projectId, @RequestBody final UpdateProjectRequest payload) {
     Project updatedProject = projectService.updateProject(projectId, payload);
-    FetchedProject fetchedProject = fetcherService.fetchProject(projectId);
-    return new ProjectResponse(fetchedProject.getName(), updatedProject);
+    return new ProjectResponse(updatedProject);
   }
 
   @PostMapping(path = "/project/{projectId}/dataset/{datasetName}", produces = "application/json")
@@ -141,8 +140,8 @@ public class ProjectController {
 
   private ProjectResponse toProjectResponse(FetchedProject fetchedProject) {
     final String projectId = fetchedProject.getProjectId();
-    Project project = projectService.findProjectOrCreate(projectId);
-    return new ProjectResponse(fetchedProject.getName(), project);
+    Project project = projectService.findProjectOrCreate(projectId, fetchedProject.getName());
+    return new ProjectResponse(project);
   }
 
   private DatasetResponse toDatasetResponse(FetchedDataset dataset) {

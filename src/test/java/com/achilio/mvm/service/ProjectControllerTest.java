@@ -28,6 +28,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @RunWith(MockitoJUnitRunner.class)
 public class ProjectControllerTest {
 
+  private static final String TEST_PROJECT_ID1 = "achilio-dev";
+  private static final String TEST_PROJECT_ID2 = "other-project";
+  private static final String TEST_PROJECT_NAME1 = "Achilio Dev";
+  private static final String TEST_PROJECT_NAME2 = "Other Project";
   private final ObjectMapper objectMapper = new ObjectMapper();
   @InjectMocks ProjectController controller;
   @Mock FetcherService mockedFetcherService;
@@ -42,18 +46,19 @@ public class ProjectControllerTest {
   public void getProject() throws JsonProcessingException {
     String expectedResponse1 =
         "{\"projectId\":\"achilio-dev\",\"projectName\":\"Achilio Dev\",\"username\":\"\",\"mvMaxPerTable\":20,\"analysisTimeframe\":30,\"activated\":false,\"automatic\":false}";
-    Project project = new Project("achilio-dev");
-    DefaultFetchedProject fetchedProject = new DefaultFetchedProject("achilio-dev", "Achilio Dev");
+    Project project = new Project(TEST_PROJECT_ID1, TEST_PROJECT_NAME1);
+    DefaultFetchedProject fetchedProject =
+        new DefaultFetchedProject(TEST_PROJECT_ID1, TEST_PROJECT_NAME1);
     when(mockedFetcherService.fetchProject(any())).thenReturn(fetchedProject);
-    when(mockedProjectService.findProjectOrCreate(any())).thenReturn(project);
-    ProjectResponse responseEntity = controller.getProject("achilio-dev");
+    when(mockedProjectService.findProjectOrCreate(any(), any())).thenReturn(project);
+    ProjectResponse responseEntity = controller.getProject(TEST_PROJECT_ID1);
     String jsonResponse = objectMapper.writeValueAsString(responseEntity);
     assertEquals(expectedResponse1, jsonResponse);
 
     String expectedResponse2 =
         "{\"projectId\":\"achilio-dev\",\"projectName\":\"Achilio Dev\",\"username\":\"myEmail\",\"mvMaxPerTable\":20,\"analysisTimeframe\":30,\"activated\":false,\"automatic\":false}";
     project.setUsername("myEmail");
-    responseEntity = controller.getProject("achilio-dev");
+    responseEntity = controller.getProject(TEST_PROJECT_ID1);
     jsonResponse = objectMapper.writeValueAsString(responseEntity);
     assertEquals(expectedResponse2, jsonResponse);
 
@@ -64,7 +69,7 @@ public class ProjectControllerTest {
     project.setAutomatic(true);
     project.setMvMaxPerTable(10);
     project.setAnalysisTimeframe(14);
-    responseEntity = controller.getProject("achilio-dev");
+    responseEntity = controller.getProject(TEST_PROJECT_ID1);
     jsonResponse = objectMapper.writeValueAsString(responseEntity);
     assertEquals(expectedResponse3, jsonResponse);
   }
@@ -72,22 +77,25 @@ public class ProjectControllerTest {
   @Test
   public void getAllProject() throws Exception {
     String expectedResponse1 =
-        "[{\"projectId\":\"achilio-dev\",\"projectName\":\"Achilio Dev\",\"username\":\"myEmail\",\"mvMaxPerTable\":20,\"analysisTimeframe\":30,\"activated\":false,\"automatic\":false},{\"projectId\":\"achilio-main\",\"projectName\":\"Achilio Main\",\"username\":\"\",\"mvMaxPerTable\":10,\"analysisTimeframe\":14,\"activated\":true,\"automatic\":true}]";
-    Project project1 = new Project("achilio-dev");
-    Project project2 = new Project("achilio-main");
+        "[{\"projectId\":\"achilio-dev\",\"projectName\":\"Achilio Dev\",\"username\":\"myEmail\",\"mvMaxPerTable\":20,\"analysisTimeframe\":30,\"activated\":false,\"automatic\":false},{\"projectId\":\"other-project\",\"projectName\":\"Other Project\",\"username\":\"\",\"mvMaxPerTable\":10,\"analysisTimeframe\":14,\"activated\":true,\"automatic\":true}]";
+    Project project1 = new Project(TEST_PROJECT_ID1, TEST_PROJECT_NAME1);
+    Project project2 = new Project(TEST_PROJECT_ID2, TEST_PROJECT_NAME2);
     project1.setUsername("myEmail");
     project2.setAutomaticAvailable(true);
     project2.setActivated(true);
     project2.setAutomatic(true);
     project2.setMvMaxPerTable(10);
     project2.setAnalysisTimeframe(14);
-    DefaultFetchedProject fetchedProject1 = new DefaultFetchedProject("achilio-dev", "Achilio Dev");
+    DefaultFetchedProject fetchedProject1 =
+        new DefaultFetchedProject(TEST_PROJECT_ID1, TEST_PROJECT_NAME1);
     DefaultFetchedProject fetchedProject2 =
-        new DefaultFetchedProject("achilio-main", "Achilio Main");
+        new DefaultFetchedProject(TEST_PROJECT_ID2, TEST_PROJECT_NAME2);
     when(mockedFetcherService.fetchAllProjects())
         .thenReturn(Arrays.asList(fetchedProject1, fetchedProject2));
-    when(mockedProjectService.findProjectOrCreate("achilio-dev")).thenReturn(project1);
-    when(mockedProjectService.findProjectOrCreate("achilio-main")).thenReturn(project2);
+    when(mockedProjectService.findProjectOrCreate(TEST_PROJECT_ID1, TEST_PROJECT_NAME1))
+        .thenReturn(project1);
+    when(mockedProjectService.findProjectOrCreate(TEST_PROJECT_ID2, TEST_PROJECT_NAME2))
+        .thenReturn(project2);
     List<ProjectResponse> responseEntity = controller.getAllProjects();
     String jsonResponse = objectMapper.writeValueAsString(responseEntity);
     assertEquals(expectedResponse1, jsonResponse);
@@ -95,17 +103,14 @@ public class ProjectControllerTest {
 
   @Test
   public void updateProject() throws JsonProcessingException {
-    String projectId = "achilio-dev";
-    Project project = new Project("achilio-dev");
-    DefaultFetchedProject fetchedProject = new DefaultFetchedProject("achilio-dev", "Achilio Dev");
+    Project project = new Project(TEST_PROJECT_ID1, TEST_PROJECT_NAME1);
     project.setAnalysisTimeframe(20);
     project.setMvMaxPerTable(10);
     project.setAutomaticAvailable(true);
     project.setAutomatic(true);
-    UpdateProjectRequest payload = new UpdateProjectRequest(true, 20, 10);
+    UpdateProjectRequest payload = new UpdateProjectRequest(TEST_PROJECT_NAME1, true, 20, 10);
     when(mockedProjectService.updateProject(any(), any())).thenReturn(project);
-    when(mockedFetcherService.fetchProject("achilio-dev")).thenReturn(fetchedProject);
-    ProjectResponse responseEntity = controller.updateProject(projectId, payload);
+    ProjectResponse responseEntity = controller.updateProject(TEST_PROJECT_ID1, payload);
     String expectedResponse =
         "{\"projectId\":\"achilio-dev\",\"projectName\":\"Achilio Dev\",\"username\":\"\",\"mvMaxPerTable\":10,\"analysisTimeframe\":20,\"activated\":false,\"automatic\":true}";
     String jsonResponse = objectMapper.writeValueAsString(responseEntity);

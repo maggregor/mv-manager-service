@@ -1,6 +1,7 @@
 package com.achilio.mvm.service.services;
 
 import com.achilio.mvm.service.controllers.requests.UpdateProjectRequest;
+import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.entities.Dataset;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
@@ -32,12 +33,12 @@ public class ProjectService {
     return projectRepository.findAllByActivated(true);
   }
 
-  public Project findProjectOrCreate(String projectId) {
-    return findProject(projectId).orElseGet(() -> createProject(projectId));
+  public Project findProjectOrCreate(String projectId, String projectName) {
+    return findProject(projectId).orElseGet(() -> createProject(projectId, projectName));
   }
 
-  public Project createProject(String projectId) {
-    return projectRepository.save(new Project(projectId));
+  public Project createProject(String projectId, String projectName) {
+    return projectRepository.save(new Project(projectId, projectName));
   }
 
   public Optional<Project> findProject(String projectId) {
@@ -55,7 +56,8 @@ public class ProjectService {
   @Deprecated
   @Transactional
   public Project updateProjectOrCreate(String projectId, UpdateProjectRequest payload) {
-    findProjectOrCreate(projectId);
+    FetchedProject fetchedProject = fetcherService.fetchProject(projectId);
+    findProjectOrCreate(projectId, fetchedProject.getName());
     return updateProject(projectId, payload);
   }
 
@@ -66,6 +68,7 @@ public class ProjectService {
     // to publish a potential config change on the schedulers
     Boolean automaticChanged = project.setAutomatic(payload.isAutomatic());
 
+    project.setProjectName(payload.getProjectName());
     project.setAnalysisTimeframe(payload.getAnalysisTimeframe());
     project.setMvMaxPerTable(payload.getMvMaxPerTable());
     projectRepository.save(project);
@@ -79,20 +82,21 @@ public class ProjectService {
     return project;
   }
 
-  private Optional<Dataset> getDataset(String projectId, String datasetName) {
-    return getDataset(findProjectOrCreate(projectId), datasetName);
+  private Optional<Dataset> getDataset(String projectId, String projectName, String datasetName) {
+    return getDataset(findProjectOrCreate(projectId, projectName), datasetName);
   }
 
   private Optional<Dataset> getDataset(Project project, String datasetName) {
     return datasetRepository.findByProjectAndDatasetName(project, datasetName);
   }
 
-  private Dataset findDatasetOrCreate(String projectId, String dataset) {
-    return getDataset(projectId, dataset).orElseGet(() -> createDataset(projectId, dataset));
+  private Dataset findDatasetOrCreate(String projectId, String projectName, String dataset) {
+    return getDataset(projectId, projectName, dataset)
+        .orElseGet(() -> createDataset(projectId, projectName, dataset));
   }
 
-  private Dataset createDataset(String projectId, String datasetName) {
-    return createDataset(findProjectOrCreate(projectId), datasetName);
+  private Dataset createDataset(String projectId, String projectName, String datasetName) {
+    return createDataset(findProjectOrCreate(projectId, projectName), datasetName);
   }
 
   private Dataset createDataset(Project project, String datasetName) {
@@ -101,14 +105,18 @@ public class ProjectService {
 
   @Transactional
   public Dataset updateDataset(String projectId, String datasetName, Boolean activated) {
-    Dataset dataset = findDatasetOrCreate(projectId, datasetName);
+    FetchedProject fetchedProject = fetcherService.fetchProject(projectId);
+    Dataset dataset = findDatasetOrCreate(projectId, fetchedProject.getName(), datasetName);
     dataset.setActivated(activated);
     datasetRepository.save(dataset);
     return dataset;
   }
 
   public boolean isDatasetActivated(String projectId, String datasetName) {
-    return getDataset(projectId, datasetName).map(Dataset::isActivated).orElse(false);
+    FetchedProject project = fetcherService.fetchProject(projectId);
+    return getDataset(projectId, project.getName(), datasetName)
+        .map(Dataset::isActivated)
+        .orElse(false);
   }
 
   @Transactional

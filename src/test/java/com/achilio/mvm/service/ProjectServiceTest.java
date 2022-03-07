@@ -4,10 +4,12 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.achilio.mvm.service.controllers.requests.UpdateProjectRequest;
+import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.entities.Dataset;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
@@ -29,16 +31,18 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ProjectServiceTest {
 
-  private static final String TEST_PROJECT_NAME1 = "achilio-dev";
-  private static final String TEST_PROJECT_NAME2 = "other-project";
+  private static final String TEST_PROJECT_ID1 = "achilio-dev";
+  private static final String TEST_PROJECT_ID2 = "other-project";
+  private static final String TEST_PROJECT_NAME1 = "Achilio Dev";
+  private static final String TEST_PROJECT_NAME2 = "Other Project";
   private static final Project mockedProject1 = mock(Project.class);
   private static final Project mockedProject2 = mock(Project.class);
+  private static final FetchedProject mockedFetchedProject = mock(FetchedProject.class);
   private static final List<Project> mockedActivatedProjects =
       Arrays.asList(mockedProject1, mockedProject2);
   private static final String TEST_DATASET_NAME1 = "nyc_trips";
@@ -49,7 +53,7 @@ public class ProjectServiceTest {
   private final Dataset realDataset = new Dataset(mockedProject1, TEST_DATASET_NAME3);
   private final Map<String, String> productMetadata = new HashMap<>();
   private final Map<String, String> errorProductMetadata = new HashMap<>();
-  private final Project realProject = new Project(TEST_PROJECT_NAME2);
+  private final Project realProject = new Project(TEST_PROJECT_ID2, TEST_PROJECT_NAME2);
   @InjectMocks private ProjectService service;
   @Mock private ProjectRepository mockedProjectRepository;
   @Mock private DatasetRepository mockedDatasetRepository;
@@ -60,17 +64,17 @@ public class ProjectServiceTest {
 
   @Before
   public void setup() {
-    when(mockedProject1.getProjectId()).thenReturn(TEST_PROJECT_NAME1);
-    when(mockedProject2.getProjectId()).thenReturn(TEST_PROJECT_NAME2);
-    when(mockedProjectRepository.save(Mockito.any(Project.class))).thenReturn(mockedProject1);
-    when(mockedProjectRepository.findByProjectId(TEST_PROJECT_NAME1))
+    when(mockedProject1.getProjectId()).thenReturn(TEST_PROJECT_ID1);
+    when(mockedProject2.getProjectId()).thenReturn(TEST_PROJECT_ID2);
+    when(mockedProjectRepository.save(any(Project.class))).thenReturn(mockedProject1);
+    when(mockedProjectRepository.findByProjectId(TEST_PROJECT_ID1))
         .thenReturn(Optional.of(mockedProject1));
-    when(mockedProjectRepository.findByProjectId(TEST_PROJECT_NAME2))
+    when(mockedProjectRepository.findByProjectId(TEST_PROJECT_ID2))
         .thenReturn(Optional.of(realProject));
     when(mockedProjectRepository.findAllByActivated(true)).thenReturn(mockedActivatedProjects);
     when(mockedDataset1.isActivated()).thenReturn(true);
     when(mockedDataset2.isActivated()).thenReturn(false);
-    when(mockedDatasetRepository.save(Mockito.any(Dataset.class))).thenReturn(mockedDataset1);
+    when(mockedDatasetRepository.save(any(Dataset.class))).thenReturn(mockedDataset1);
     when(mockedDatasetRepository.findByProjectAndDatasetName(mockedProject1, TEST_DATASET_NAME1))
         .thenReturn(Optional.of(mockedDataset1));
     when(mockedDatasetRepository.findByProjectAndDatasetName(mockedProject1, TEST_DATASET_NAME2))
@@ -82,19 +86,20 @@ public class ProjectServiceTest {
     when(mockedProduct.getMetadata()).thenReturn(productMetadata);
     when(errorMockedProduct.getMetadata()).thenReturn(errorProductMetadata);
     when(mockedFetcherService.getUserInfo()).thenReturn(new Userinfo().setEmail("myEmail"));
+    when(mockedFetcherService.fetchProject(any())).thenReturn(mockedFetchedProject);
   }
 
   @Test
   public void createProject() {
-    Project project = service.createProject(TEST_PROJECT_NAME1);
+    Project project = service.createProject(TEST_PROJECT_ID1, TEST_PROJECT_NAME1);
     assertEquals(mockedProject1.getProjectId(), project.getProjectId());
   }
 
   @Test
   public void getProject() {
-    when(mockedProjectRepository.findByProjectId(TEST_PROJECT_NAME1))
+    when(mockedProjectRepository.findByProjectId(TEST_PROJECT_ID1))
         .thenReturn(Optional.of(mockedProject1));
-    Assert.assertNotNull(service.getProject(TEST_PROJECT_NAME1));
+    Assert.assertNotNull(service.getProject(TEST_PROJECT_ID1));
     Exception e =
         assertThrows(
             ProjectNotFoundException.class, () -> service.getProject("unknown_project_id"));
@@ -103,31 +108,33 @@ public class ProjectServiceTest {
 
   @Test
   public void findProject() {
-    when(mockedProjectRepository.findByProjectId(TEST_PROJECT_NAME1))
+    when(mockedProjectRepository.findByProjectId(TEST_PROJECT_ID1))
         .thenReturn(Optional.of(mockedProject1));
-    Assert.assertTrue(service.findProject(TEST_PROJECT_NAME1).isPresent());
+    Assert.assertTrue(service.findProject(TEST_PROJECT_ID1).isPresent());
     assertFalse(service.findProject("unknown_project_id").isPresent());
   }
 
   @Test
   public void projectExists() {
-    when(mockedProjectRepository.findByProjectId(TEST_PROJECT_NAME1))
+    when(mockedProjectRepository.findByProjectId(TEST_PROJECT_ID1))
         .thenReturn(Optional.of(mockedProject1));
-    assertTrue(service.projectExists(TEST_PROJECT_NAME1));
+    assertTrue(service.projectExists(TEST_PROJECT_ID1));
     assertFalse(service.projectExists("unknown_project_id"));
   }
 
   @Test
   public void findOrCreateProject() {
     assertEquals(
-        TEST_PROJECT_NAME1, service.findProjectOrCreate(TEST_PROJECT_NAME1).getProjectId());
+        TEST_PROJECT_ID1,
+        service.findProjectOrCreate(TEST_PROJECT_ID1, TEST_PROJECT_NAME1).getProjectId());
     assertEquals(
-        TEST_PROJECT_NAME1, service.findProjectOrCreate(TEST_PROJECT_NAME1).getProjectId());
+        TEST_PROJECT_ID1,
+        service.findProjectOrCreate(TEST_PROJECT_ID1, TEST_PROJECT_NAME1).getProjectId());
   }
 
   @Test
   public void activateProject() {
-    Project project = new Project("myProject");
+    Project project = new Project(TEST_PROJECT_ID1, TEST_PROJECT_NAME1);
     assertFalse(project.isActivated());
     service.activateProject(project);
     assertTrue(project.isActivated());
@@ -138,9 +145,9 @@ public class ProjectServiceTest {
     Integer analysisTimeFrame = 14;
     Integer mvMaxPerTable = 12;
     UpdateProjectRequest payload1 =
-        new UpdateProjectRequest(false, analysisTimeFrame, mvMaxPerTable);
-    Project project = service.updateProject(TEST_PROJECT_NAME2, payload1);
-    assertEquals(TEST_PROJECT_NAME2, project.getProjectId());
+        new UpdateProjectRequest(TEST_PROJECT_NAME1, false, analysisTimeFrame, mvMaxPerTable);
+    Project project = service.updateProject(TEST_PROJECT_ID2, payload1);
+    assertEquals(TEST_PROJECT_ID2, project.getProjectId());
     assertFalse(project.isAutomatic());
     assertEquals(14, project.getAnalysisTimeframe());
     assertEquals(12, project.getMvMaxPerTable());
@@ -148,15 +155,15 @@ public class ProjectServiceTest {
     analysisTimeFrame = null;
     mvMaxPerTable = null;
     UpdateProjectRequest payload2 =
-        new UpdateProjectRequest(true, analysisTimeFrame, mvMaxPerTable);
-    project = service.updateProject(TEST_PROJECT_NAME2, payload2);
+        new UpdateProjectRequest(null, true, analysisTimeFrame, mvMaxPerTable);
+    project = service.updateProject(TEST_PROJECT_ID2, payload2);
     assertTrue(project.isAutomatic());
     assertEquals("myEmail", project.getUsername());
   }
 
   @Test
   public void deactivateProject() {
-    Project project = new Project("myProject");
+    Project project = new Project(TEST_PROJECT_ID1, TEST_PROJECT_NAME1);
     project.setAutomaticAvailable(true);
     project.setActivated(true);
     project.setAutomatic(true);
@@ -172,7 +179,7 @@ public class ProjectServiceTest {
 
   @Test
   public void updateMvMaxPerTableLimit() {
-    Project project = new Project("myProject");
+    Project project = new Project(TEST_PROJECT_ID1, TEST_PROJECT_NAME1);
     assertEquals(20, project.getMvMaxPerTable());
     assertEquals(20, project.getMvMaxPerTableLimit());
     service.updateMvMaxPerTableLimit(project, 10);
@@ -185,7 +192,7 @@ public class ProjectServiceTest {
 
   @Test
   public void updateProjectAutomaticAvailable() {
-    Project project = new Project("myProject");
+    Project project = new Project(TEST_PROJECT_ID1, TEST_PROJECT_NAME1);
     assertFalse(project.isAutomatic());
     assertFalse(project.isAutomaticAvailable());
     service.updateProjectAutomaticAvailable(project, true);
@@ -200,7 +207,7 @@ public class ProjectServiceTest {
 
   @Test
   public void updatePlanSettings() {
-    Project project = new Project("myProject");
+    Project project = new Project(TEST_PROJECT_ID1, TEST_PROJECT_NAME1);
     assertFalse(project.isAutomaticAvailable());
     assertEquals(20, project.getMvMaxPerTableLimit());
     service.updatePlanSettings(project, mockedProduct);
@@ -213,16 +220,16 @@ public class ProjectServiceTest {
 
   @Test
   public void updateDataset() {
-    Dataset dataset = service.updateDataset(TEST_PROJECT_NAME1, TEST_DATASET_NAME3, true);
+    Dataset dataset = service.updateDataset(TEST_PROJECT_ID1, TEST_DATASET_NAME3, true);
     assertTrue(dataset.isActivated());
     assertEquals(TEST_DATASET_NAME3, "other_dataset");
-    dataset = service.updateDataset(TEST_PROJECT_NAME1, TEST_DATASET_NAME3, false);
+    dataset = service.updateDataset(TEST_PROJECT_ID1, TEST_DATASET_NAME3, false);
     assertFalse(dataset.isActivated());
   }
 
   @Test
   public void isDatasetActivated() {
-    assertTrue(service.isDatasetActivated(TEST_PROJECT_NAME1, TEST_DATASET_NAME1));
-    assertFalse(service.isDatasetActivated(TEST_PROJECT_NAME1, TEST_DATASET_NAME2));
+    assertTrue(service.isDatasetActivated(TEST_PROJECT_ID1, TEST_DATASET_NAME1));
+    assertFalse(service.isDatasetActivated(TEST_PROJECT_ID1, TEST_DATASET_NAME2));
   }
 }

@@ -31,6 +31,16 @@ public class ProjectResponse {
     this.projectName = projectName;
   }
 
+  public ProjectResponse(Project project) {
+    this.projectId = project.getProjectId();
+    this.projectName = project.getProjectName();
+    this.activated = project.isActivated();
+    this.automatic = project.isAutomatic();
+    this.username = project.getUsername();
+    this.mvMaxPerTable = project.getMvMaxPerTable();
+    this.analysisTimeframe = project.getAnalysisTimeframe();
+  }
+
   public ProjectResponse(String projectName, Project project) {
     this(project.getProjectId(), projectName);
     this.activated = project.isActivated();

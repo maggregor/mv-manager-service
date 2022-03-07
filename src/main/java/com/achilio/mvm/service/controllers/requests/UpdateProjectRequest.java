@@ -4,6 +4,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class UpdateProjectRequest {
 
+  @JsonProperty("project_name")
+  private String projectName;
+
   @JsonProperty("automatic")
   private Boolean automatic;
 
@@ -13,7 +16,9 @@ public class UpdateProjectRequest {
   @JsonProperty("mvMaxPerTable")
   private Integer mvMaxPerTable;
 
-  public UpdateProjectRequest(Boolean automatic, Integer analysisTimeframe, Integer mvMaxPerTable) {
+  public UpdateProjectRequest(
+      String projectName, Boolean automatic, Integer analysisTimeframe, Integer mvMaxPerTable) {
+    this.projectName = projectName;
     this.automatic = automatic;
     this.analysisTimeframe = analysisTimeframe;
     this.mvMaxPerTable = mvMaxPerTable;
@@ -29,5 +34,9 @@ public class UpdateProjectRequest {
 
   public Integer getMvMaxPerTable() {
     return mvMaxPerTable;
+  }
+
+  public String getProjectName() {
+    return projectName;
   }
 }
