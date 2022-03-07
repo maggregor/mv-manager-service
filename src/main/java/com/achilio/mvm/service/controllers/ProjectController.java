@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -75,7 +76,18 @@ public class ProjectController {
     return toProjectResponse(fetchedProject, updatedProject);
   }
 
+  @Deprecated
   @PostMapping(path = "/project/{projectId}/dataset/{datasetName}", produces = "application/json")
+  @ApiOperation("Update metadata of a dataset")
+  public UpdateDatasetRequestResponse updateDatasetPost(
+      @PathVariable final String projectId,
+      @PathVariable final String datasetName,
+      @RequestBody final UpdateDatasetRequestResponse payload) {
+    return new UpdateDatasetRequestResponse(
+        projectService.updateDataset(projectId, datasetName, payload.isActivated()));
+  }
+
+  @PutMapping(path = "/project/{projectId}/dataset/{datasetName}", produces = "application/json")
   @ApiOperation("Update metadata of a dataset")
   public UpdateDatasetRequestResponse updateDataset(
       @PathVariable final String projectId,
