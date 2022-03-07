@@ -33,12 +33,12 @@ public class ProjectService {
     return projectRepository.findAllByActivated(true);
   }
 
-  public Project findProjectOrCreate(String projectId, String projectName) {
-    return findProject(projectId).orElseGet(() -> createProject(projectId, projectName));
+  public Project findProjectOrCreate(String projectId) {
+    return findProject(projectId).orElseGet(() -> createProject(projectId));
   }
 
-  public Project createProject(String projectId, String projectName) {
-    return projectRepository.save(new Project(projectId, projectName));
+  public Project createProject(String projectId) {
+    return projectRepository.save(new Project(projectId));
   }
 
   public Optional<Project> findProject(String projectId) {
@@ -57,7 +57,7 @@ public class ProjectService {
   @Transactional
   public Project updateProjectOrCreate(String projectId, UpdateProjectRequest payload) {
     FetchedProject fetchedProject = fetcherService.fetchProject(projectId);
-    findProjectOrCreate(projectId, fetchedProject.getName());
+    findProjectOrCreate(projectId);
     return updateProject(projectId, payload);
   }
 
@@ -68,7 +68,6 @@ public class ProjectService {
     // to publish a potential config change on the schedulers
     Boolean automaticChanged = project.setAutomatic(payload.isAutomatic());
 
-    project.setProjectName(payload.getProjectName());
     project.setAnalysisTimeframe(payload.getAnalysisTimeframe());
     project.setMvMaxPerTable(payload.getMvMaxPerTable());
     projectRepository.save(project);
@@ -82,21 +81,20 @@ public class ProjectService {
     return project;
   }
 
-  private Optional<Dataset> getDataset(String projectId, String projectName, String datasetName) {
-    return getDataset(findProjectOrCreate(projectId, projectName), datasetName);
+  private Optional<Dataset> getDataset(String projectId, String datasetName) {
+    return getDataset(getProject(projectId), datasetName);
   }
 
   private Optional<Dataset> getDataset(Project project, String datasetName) {
     return datasetRepository.findByProjectAndDatasetName(project, datasetName);
   }
 
-  private Dataset findDatasetOrCreate(String projectId, String projectName, String dataset) {
-    return getDataset(projectId, projectName, dataset)
-        .orElseGet(() -> createDataset(projectId, projectName, dataset));
+  private Dataset findDatasetOrCreate(String projectId, String dataset) {
+    return getDataset(projectId, dataset).orElseGet(() -> createDataset(projectId, dataset));
   }
 
-  private Dataset createDataset(String projectId, String projectName, String datasetName) {
-    return createDataset(findProjectOrCreate(projectId, projectName), datasetName);
+  private Dataset createDataset(String projectId, String datasetName) {
+    return createDataset(getProject(projectId), datasetName);
   }
 
   private Dataset createDataset(Project project, String datasetName) {
@@ -105,18 +103,14 @@ public class ProjectService {
 
   @Transactional
   public Dataset updateDataset(String projectId, String datasetName, Boolean activated) {
-    FetchedProject fetchedProject = fetcherService.fetchProject(projectId);
-    Dataset dataset = findDatasetOrCreate(projectId, fetchedProject.getName(), datasetName);
+    Dataset dataset = findDatasetOrCreate(projectId, datasetName);
     dataset.setActivated(activated);
     datasetRepository.save(dataset);
     return dataset;
   }
 
   public boolean isDatasetActivated(String projectId, String datasetName) {
-    FetchedProject project = fetcherService.fetchProject(projectId);
-    return getDataset(projectId, project.getName(), datasetName)
-        .map(Dataset::isActivated)
-        .orElse(false);
+    return getDataset(projectId, datasetName).map(Dataset::isActivated).orElse(false);
   }
 
   @Transactional

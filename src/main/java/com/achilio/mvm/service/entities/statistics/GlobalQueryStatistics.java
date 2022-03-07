@@ -9,11 +9,14 @@ public class GlobalQueryStatistics {
   private final Map<Scope, QueryStatistics> details = new HashMap<>();
 
   public GlobalQueryStatistics() {
-    total = new QueryStatistics();
+    this(false);
   }
 
   public GlobalQueryStatistics(boolean computeIneligibilityReasons) {
     total = new QueryStatistics(computeIneligibilityReasons);
+    for (Scope scope : Scope.values()) {
+      details.put(scope, new QueryStatistics());
+    }
   }
 
   public void addStatistic(Scope scope, QueryStatistics statistics) {

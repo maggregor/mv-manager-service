@@ -15,9 +15,8 @@ public class ProjectTest {
 
   @Test
   public void simpleValidation() {
-    Project project = new Project("myProject", "My Project");
+    Project project = new Project("myProject");
     assertEquals("myProject", project.getProjectId());
-    assertEquals("My Project", project.getProjectName());
     project.setActivated(true);
     assertTrue(project.isActivated());
     project.setActivated(false);
@@ -53,7 +52,7 @@ public class ProjectTest {
 
   @Test
   public void projectSettingsInvalidMvMax() {
-    Project project = new Project("projectId", "Project ID");
+    Project project = new Project("projectId");
     project.setMvMaxPerTable(15);
     assertEquals(Integer.valueOf(15), project.getMvMaxPerTable());
     project.setMvMaxPerTableLimit(10);
@@ -72,7 +71,7 @@ public class ProjectTest {
 
   @Test
   public void projectSettingsInvalidAutomatic() {
-    Project project = new Project("projectId", "Project ID");
+    Project project = new Project("projectId");
     assertEquals(false, project.isAutomatic());
     project.setAutomaticAvailable(true);
     project.setAutomatic(true);

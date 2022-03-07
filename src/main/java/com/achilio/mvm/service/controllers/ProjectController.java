@@ -42,7 +42,7 @@ public class ProjectController {
   @Autowired private FetcherService fetcherService;
 
   @GetMapping(path = "/project", produces = "application/json")
-  @ApiOperation("List the project")
+  @ApiOperation("List all projects")
   public List<ProjectResponse> getAllProjects() {
     return fetcherService.fetchAllProjects().stream()
         .map(this::toProjectResponse)
@@ -71,7 +71,8 @@ public class ProjectController {
   public ProjectResponse updateProject(
       @PathVariable final String projectId, @RequestBody final UpdateProjectRequest payload) {
     Project updatedProject = projectService.updateProject(projectId, payload);
-    return new ProjectResponse(updatedProject);
+    FetchedProject fetchedProject = fetcherService.fetchProject(projectId);
+    return toProjectResponse(fetchedProject, updatedProject);
   }
 
   @PostMapping(path = "/project/{projectId}/dataset/{datasetName}", produces = "application/json")
@@ -86,7 +87,7 @@ public class ProjectController {
 
   @GetMapping(path = "/project/{projectId}/dataset", produces = "application/json")
   @ApiOperation("Get all dataset for a given projectId")
-  public List<DatasetResponse> getDatasets(@PathVariable final String projectId) throws Exception {
+  public List<DatasetResponse> getAllDatasets(@PathVariable final String projectId) {
     return fetcherService.fetchAllDatasets(projectId).stream()
         .map(this::toDatasetResponse)
         .collect(Collectors.toList());
@@ -129,6 +130,7 @@ public class ProjectController {
     return toAggregatedStatistics(statistics);
   }
 
+  @Deprecated
   @GetMapping(
       path = "/project/{projectId}/queries/{days}/statistics/eligible",
       produces = "application/json")
@@ -152,10 +154,13 @@ public class ProjectController {
     return new AggregatedStatisticsResponse(statistics);
   }
 
+  private ProjectResponse toProjectResponse(FetchedProject fetchedProject, Project project) {
+    return new ProjectResponse(fetchedProject.getName(), project);
+  }
+
   private ProjectResponse toProjectResponse(FetchedProject fetchedProject) {
-    final String projectId = fetchedProject.getProjectId();
-    Project project = projectService.findProjectOrCreate(projectId, fetchedProject.getName());
-    return new ProjectResponse(project);
+    Project project = projectService.findProjectOrCreate(fetchedProject.getProjectId());
+    return new ProjectResponse(fetchedProject.getName(), project);
   }
 
   private DatasetResponse toDatasetResponse(FetchedDataset dataset) {

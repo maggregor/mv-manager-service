@@ -467,5 +467,12 @@ public class GlobalQueryStatisticsTest {
     assertEquals(0, response.getAverageScannedBytesPerQuery());
     assertEquals(0, response.getTotalQueries());
     assertEquals(0, response.getPercentQueriesIn(), 0);
+
+    // No stats
+    GlobalQueryStatistics stats = new GlobalQueryStatistics(true);
+    response = new AggregatedStatisticsResponse(stats);
+    assertEquals(0, response.getAverageScannedBytesPerQuery());
+    assertEquals(0, response.getTotalQueries());
+    assertEquals(0, response.getPercentQueriesIn(), 0);
   }
 }

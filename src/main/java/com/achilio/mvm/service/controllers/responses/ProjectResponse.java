@@ -9,7 +9,7 @@ public class ProjectResponse {
   private final String projectId;
 
   @JsonProperty("projectName")
-  private final String projectName;
+  private String projectName;
 
   @JsonProperty("username")
   private String username;
@@ -29,16 +29,6 @@ public class ProjectResponse {
   public ProjectResponse(String projectId, String projectName) {
     this.projectId = projectId;
     this.projectName = projectName;
-  }
-
-  public ProjectResponse(Project project) {
-    this.projectId = project.getProjectId();
-    this.projectName = project.getProjectName();
-    this.activated = project.isActivated();
-    this.automatic = project.isAutomatic();
-    this.username = project.getUsername();
-    this.mvMaxPerTable = project.getMvMaxPerTable();
-    this.analysisTimeframe = project.getAnalysisTimeframe();
   }
 
   public ProjectResponse(String projectName, Project project) {

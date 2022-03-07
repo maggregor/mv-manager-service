@@ -53,7 +53,7 @@ public class ProjectServiceTest {
   private final Dataset realDataset = new Dataset(mockedProject1, TEST_DATASET_NAME3);
   private final Map<String, String> productMetadata = new HashMap<>();
   private final Map<String, String> errorProductMetadata = new HashMap<>();
-  private final Project realProject = new Project(TEST_PROJECT_ID2, TEST_PROJECT_NAME2);
+  private final Project realProject = new Project(TEST_PROJECT_ID2);
   @InjectMocks private ProjectService service;
   @Mock private ProjectRepository mockedProjectRepository;
   @Mock private DatasetRepository mockedDatasetRepository;
@@ -86,12 +86,11 @@ public class ProjectServiceTest {
     when(mockedProduct.getMetadata()).thenReturn(productMetadata);
     when(errorMockedProduct.getMetadata()).thenReturn(errorProductMetadata);
     when(mockedFetcherService.getUserInfo()).thenReturn(new Userinfo().setEmail("myEmail"));
-    when(mockedFetcherService.fetchProject(any())).thenReturn(mockedFetchedProject);
   }
 
   @Test
   public void createProject() {
-    Project project = service.createProject(TEST_PROJECT_ID1, TEST_PROJECT_NAME1);
+    Project project = service.createProject(TEST_PROJECT_ID1);
     assertEquals(mockedProject1.getProjectId(), project.getProjectId());
   }
 
@@ -124,17 +123,13 @@ public class ProjectServiceTest {
 
   @Test
   public void findOrCreateProject() {
-    assertEquals(
-        TEST_PROJECT_ID1,
-        service.findProjectOrCreate(TEST_PROJECT_ID1, TEST_PROJECT_NAME1).getProjectId());
-    assertEquals(
-        TEST_PROJECT_ID1,
-        service.findProjectOrCreate(TEST_PROJECT_ID1, TEST_PROJECT_NAME1).getProjectId());
+    assertEquals(TEST_PROJECT_ID1, service.findProjectOrCreate(TEST_PROJECT_ID1).getProjectId());
+    assertEquals(TEST_PROJECT_ID1, service.findProjectOrCreate(TEST_PROJECT_ID1).getProjectId());
   }
 
   @Test
   public void activateProject() {
-    Project project = new Project(TEST_PROJECT_ID1, TEST_PROJECT_NAME1);
+    Project project = new Project(TEST_PROJECT_ID1);
     assertFalse(project.isActivated());
     service.activateProject(project);
     assertTrue(project.isActivated());
@@ -163,7 +158,7 @@ public class ProjectServiceTest {
 
   @Test
   public void deactivateProject() {
-    Project project = new Project(TEST_PROJECT_ID1, TEST_PROJECT_NAME1);
+    Project project = new Project(TEST_PROJECT_ID1);
     project.setAutomaticAvailable(true);
     project.setActivated(true);
     project.setAutomatic(true);
@@ -179,7 +174,7 @@ public class ProjectServiceTest {
 
   @Test
   public void updateMvMaxPerTableLimit() {
-    Project project = new Project(TEST_PROJECT_ID1, TEST_PROJECT_NAME1);
+    Project project = new Project(TEST_PROJECT_ID1);
     assertEquals(20, project.getMvMaxPerTable());
     assertEquals(20, project.getMvMaxPerTableLimit());
     service.updateMvMaxPerTableLimit(project, 10);
@@ -192,7 +187,7 @@ public class ProjectServiceTest {
 
   @Test
   public void updateProjectAutomaticAvailable() {
-    Project project = new Project(TEST_PROJECT_ID1, TEST_PROJECT_NAME1);
+    Project project = new Project(TEST_PROJECT_ID1);
     assertFalse(project.isAutomatic());
     assertFalse(project.isAutomaticAvailable());
     service.updateProjectAutomaticAvailable(project, true);
@@ -207,7 +202,7 @@ public class ProjectServiceTest {
 
   @Test
   public void updatePlanSettings() {
-    Project project = new Project(TEST_PROJECT_ID1, TEST_PROJECT_NAME1);
+    Project project = new Project(TEST_PROJECT_ID1);
     assertFalse(project.isAutomaticAvailable());
     assertEquals(20, project.getMvMaxPerTableLimit());
     service.updatePlanSettings(project, mockedProduct);
