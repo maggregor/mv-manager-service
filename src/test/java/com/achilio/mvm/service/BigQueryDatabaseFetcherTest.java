@@ -256,7 +256,6 @@ public class BigQueryDatabaseFetcherTest {
     when(mockTable.getDefinition()).thenReturn(mockStandardDefinition);
     Schema schema = Schema.of();
     when(mockStandardDefinition.getSchema()).thenReturn(schema);
-    when(mockMVDefinition.getSchema()).thenReturn(schema);
     // Is table exists
     when(mockTable.exists()).thenReturn(true);
     assertTrue(fetcher.isValidTable(mockTable));
