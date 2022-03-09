@@ -23,15 +23,18 @@ import com.google.cloud.bigquery.BigQueryError;
 import com.google.cloud.bigquery.CopyJobConfiguration;
 import com.google.cloud.bigquery.Dataset;
 import com.google.cloud.bigquery.DatasetId;
+import com.google.cloud.bigquery.Field;
 import com.google.cloud.bigquery.Job;
 import com.google.cloud.bigquery.JobConfiguration;
 import com.google.cloud.bigquery.JobStatistics;
 import com.google.cloud.bigquery.JobStatus;
+import com.google.cloud.bigquery.LegacySQLTypeName;
 import com.google.cloud.bigquery.LoadJobConfiguration;
 import com.google.cloud.bigquery.MaterializedViewDefinition;
 import com.google.cloud.bigquery.QueryJobConfiguration;
 import com.google.cloud.bigquery.QueryStage;
 import com.google.cloud.bigquery.QueryStage.QueryStep;
+import com.google.cloud.bigquery.Schema;
 import com.google.cloud.bigquery.StandardTableDefinition;
 import com.google.cloud.bigquery.Table;
 import com.google.cloud.bigquery.TableDefinition;
@@ -251,11 +254,27 @@ public class BigQueryDatabaseFetcherTest {
     StandardTableDefinition mockStandardDefinition = mock(StandardTableDefinition.class);
     MaterializedViewDefinition mockMVDefinition = mock(MaterializedViewDefinition.class);
     when(mockTable.getDefinition()).thenReturn(mockStandardDefinition);
+    Schema schema = Schema.of();
+    when(mockStandardDefinition.getSchema()).thenReturn(schema);
+    // Is table exists
     when(mockTable.exists()).thenReturn(true);
     assertTrue(fetcher.isValidTable(mockTable));
+    // Is a Materialized View
     when(mockTable.getDefinition()).thenReturn(mockMVDefinition);
     assertFalse(fetcher.isValidTable(mockTable));
+    when(mockTable.getDefinition()).thenReturn(mockStandardDefinition);
+    // Table doesn't exists
     when(mockTable.exists()).thenReturn(false);
+    assertFalse(fetcher.isValidTable(mockTable));
+    when(mockTable.exists()).thenReturn(true);
+    // Table contains allowed type field
+    Field field = Field.of("col1", LegacySQLTypeName.STRING);
+    when(mockStandardDefinition.getSchema()).thenReturn(Schema.of(field));
+    assertTrue(fetcher.isValidTable(mockTable));
+    // Table contains refused type field
+    Field subfield = Field.of("subfield1", LegacySQLTypeName.STRING);
+    field = Field.of("col1", LegacySQLTypeName.RECORD, subfield);
+    when(mockStandardDefinition.getSchema()).thenReturn(Schema.of(field));
     assertFalse(fetcher.isValidTable(mockTable));
   }
 
@@ -273,6 +292,7 @@ public class BigQueryDatabaseFetcherTest {
     when(tables.getValues()).thenReturn(Lists.newArrayList(table));
     when(mockBigquery.listTables(DATASET)).thenReturn(tables);
     when(table.getDefinition()).thenReturn(definition);
+    when(definition.getSchema()).thenReturn(Schema.of());
     when(mockBigquery.getTable(tableId, TableOption.fields(TableField.SCHEMA))).thenReturn(table);
     FetchedTable fetchedTable = fetcher.fetchTablesInDataset(DATASET).iterator().next();
     assertEquals(PROJECT, fetchedTable.getProjectId());

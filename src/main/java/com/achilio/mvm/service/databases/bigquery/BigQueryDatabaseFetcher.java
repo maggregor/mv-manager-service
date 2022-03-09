@@ -23,6 +23,7 @@ import com.google.cloud.bigquery.DatasetId;
 import com.google.cloud.bigquery.Field;
 import com.google.cloud.bigquery.Job;
 import com.google.cloud.bigquery.JobStatistics;
+import com.google.cloud.bigquery.LegacySQLTypeName;
 import com.google.cloud.bigquery.QueryJobConfiguration;
 import com.google.cloud.bigquery.QueryStage;
 import com.google.cloud.bigquery.QueryStage.QueryStep;
@@ -249,6 +250,20 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     return new DefaultFetchedTable(projectId, datasetName, tableName, tableColumns);
   }
 
+  /**
+   * Returns true if the table is eligible
+   *
+   * <p>- Don't have RECORD field type
+   *
+   * @param tableDefinition
+   * @return
+   */
+  private boolean isEligibleTableDefinition(StandardTableDefinition tableDefinition) {
+    return tableDefinition.getSchema() != null
+        && tableDefinition.getSchema().getFields().stream()
+            .noneMatch(f -> f.getType().equals(LegacySQLTypeName.RECORD));
+  }
+
   @Override
   public Set<FetchedTable> fetchAllTables() {
     Spliterator<Dataset> spliterator = bigquery.listDatasets().getValues().spliterator();
@@ -277,7 +292,8 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
   public boolean isValidTable(Table table) {
     return table != null
         && table.exists()
-        && table.getDefinition() instanceof StandardTableDefinition;
+        && table.getDefinition() instanceof StandardTableDefinition
+        && isEligibleTableDefinition(table.getDefinition());
   }
 
   private Map<String, String> mapColumnsOrEmptyIfSchemaIsNull(TableDefinition definition) {
