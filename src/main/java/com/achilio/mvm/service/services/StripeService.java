@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -93,12 +94,26 @@ public class StripeService {
    * @return Customer
    * @throws StripeException
    */
-  public Customer getCustomerByProjectId(String projectId) throws StripeException {
+  public Customer getCustomerByProjectId(String projectId)
+      throws StripeException, InterruptedException {
     Stripe.apiKey = API_KEY;
-    return Customer.list(CustomerListParams.builder().build()).getData().stream()
-        .filter(c -> isCustomerOfProjectId(c, projectId))
-        .findFirst()
-        .orElseGet(() -> createCustomer(projectId));
+    // Retry 5 times max if exception is a 429 Status code Exception (too many request)
+    int count = 0;
+    int maxTries = 5;
+    int wait = 5;
+    while (true) {
+      try {
+        return Customer.list(CustomerListParams.builder().build()).getData().stream()
+            .filter(c -> isCustomerOfProjectId(c, projectId))
+            .findFirst()
+            .orElseGet(() -> createCustomer(projectId));
+      } catch (StripeException e) {
+        if (++count == maxTries || e.getStatusCode() != 429) {
+          throw e;
+        }
+        TimeUnit.SECONDS.sleep(wait);
+      }
+    }
   }
 
   private boolean isCustomerOfProjectId(Customer customer, String projectId) {
