@@ -293,6 +293,7 @@ public class BigQueryDatabaseFetcherTest {
     when(tables.getValues()).thenReturn(Lists.newArrayList(table));
     when(mockBigquery.listTables(DATASET)).thenReturn(tables);
     when(table.getDefinition()).thenReturn(definition);
+    when(definition.getSchema()).thenReturn(Schema.of());
     when(mockBigquery.getTable(tableId, TableOption.fields(TableField.SCHEMA))).thenReturn(table);
     FetchedTable fetchedTable = fetcher.fetchTablesInDataset(DATASET).iterator().next();
     assertEquals(PROJECT, fetchedTable.getProjectId());
