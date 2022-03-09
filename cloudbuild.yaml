@@ -31,7 +31,7 @@ steps:
         "--cpu",
         "4",
         "--memory",
-        "2Gi",
+        "8Gi",
         "--allow-unauthenticated",
         "--min-instances=1",
         "--max-instances=8",
