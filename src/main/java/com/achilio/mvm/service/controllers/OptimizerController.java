@@ -41,9 +41,9 @@ public class OptimizerController {
   // TODO: When (if) next steps are followable somewhere, the response should include a link or
   // something
   //  to where the user can follow the steps
-  public OptimizationResponse optimizeProject(@PathVariable("projectId") String projectId)
-      throws Exception {
-    Optimization optimization = service.optimizeProject(projectId);
+  public OptimizationResponse optimizeProject(@PathVariable("projectId") String projectId) {
+    Optimization optimization = service.createNewOptimization(projectId);
+    service.optimizeProject(optimization);
     return new OptimizationResponse(optimization);
   }
 

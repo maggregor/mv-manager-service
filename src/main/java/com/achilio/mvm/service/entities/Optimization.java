@@ -4,6 +4,8 @@ import java.util.Date;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -44,8 +46,15 @@ public class Optimization {
   @Column(name = "mv_proposal_count")
   private Integer mvProposalCount;
 
+  @Column(name = "analysisTimeframe")
+  private Integer analysisTimeframe;
+
   @Column(name = "username", nullable = false, columnDefinition = "varchar(255) default 'unknown'")
   private String username;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "status")
+  private Status status;
 
   public Optimization() {}
 
@@ -112,5 +121,37 @@ public class Optimization {
 
   public void setUsername(String username) {
     this.username = username;
+  }
+
+  public Integer getAnalysisTimeframe() {
+    return analysisTimeframe;
+  }
+
+  public void setAnalysisTimeframe(Integer analysisTimeframe) {
+    this.analysisTimeframe = analysisTimeframe;
+  }
+
+  public Status getStatus() {
+    return this.status == null ? Status.UNKNOWN : status;
+  }
+
+  public void setStatus(Status status) {
+    this.status = status;
+  }
+
+  public enum Status {
+    UNKNOWN("Unknown"),
+    PENDING("Pending"),
+    FINISHED("Finished");
+
+    private String description;
+
+    Status(String description) {
+      this.description = description;
+    }
+
+    public String description() {
+      return this.description;
+    }
   }
 }

@@ -6,7 +6,6 @@ import com.achilio.mvm.service.Optimizer;
 import com.achilio.mvm.service.OptimizerFactory;
 import com.achilio.mvm.service.databases.bigquery.BigQueryMaterializedViewStatementBuilder;
 import com.achilio.mvm.service.databases.entities.FetchedDataset;
-import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.entities.Optimization;
@@ -25,17 +24,18 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 
 /** All the useful services to generate relevant Materialized Views. */
 @EnableJpaAuditing
+@EnableAsync
 @Service
 @Transactional
 public class OptimizerService {
@@ -54,30 +54,28 @@ public class OptimizerService {
   @Autowired private FetcherService fetcherService;
   @Autowired private GooglePublisherService publisherService;
 
-  @PersistenceContext private EntityManager entityManager;
-
   public OptimizerService() {
     this.statementBuilder = new BigQueryMaterializedViewStatementBuilder();
   }
 
-  public Optimization optimizeProject(String projectId) {
-    Project project = projectService.getProject(projectId);
-    int days = project.getAnalysisTimeframe();
-    int maxMvPerTable = Math.min(GOOGLE_MAX_MV_PER_TABLE, project.getMvMaxPerTable());
+  @Async("asyncExecutor")
+  public void optimizeProject(Optimization o) {
+    String projectId = o.getProjectId();
+    int analysisTimeframe = o.getAnalysisTimeframe();
+    int mvMaxPerTable = o.getMvMaxPerTable();
+    int maxMvPerTable = Math.min(GOOGLE_MAX_MV_PER_TABLE, mvMaxPerTable);
     List<FetchedDataset> datasets =
         fetcherService.fetchAllDatasets(projectId).parallelStream()
             .filter(
                 dataset -> projectService.isDatasetActivated(projectId, dataset.getDatasetName()))
             .collect(toList());
     LOGGER.info("Run a new optimization on {} with activated datasets {}", projectId, datasets);
-    FetchedProject fetchedProject = fetcherService.fetchProject(projectId);
-    Optimization o = createNewOptimization(fetchedProject.getProjectId());
     LOGGER.info("Username used for optimization {} is {}", o.getId(), o.getUsername());
     o.setMvMaxPlan(DEFAULT_PLAN_MAX_MV);
     o.setMvMaxPerTable(maxMvPerTable);
     // STEP 1 - Fetch all queries of targeted fetchedProject
     addOptimizationEvent(o, StatusType.FETCHING_QUERIES);
-    List<FetchedQuery> allQueries = fetcherService.fetchQueriesSince(projectId, days);
+    List<FetchedQuery> allQueries = fetcherService.fetchQueriesSince(projectId, analysisTimeframe);
     // STEP 2 - Fetch all tables
     addOptimizationEvent(o, StatusType.FETCHING_TABLES);
     Set<FetchedTable> tables = fetcherService.fetchAllTables(projectId);
@@ -116,6 +114,7 @@ public class OptimizerService {
             results.stream()
                 .filter(r -> !r.getStatus().equals(Status.LIMIT_REACHED_PER_TABLE))
                 .count());
+    o.setStatus(Optimization.Status.FINISHED);
     if (publish(o, resultsToPublish)) {
       addOptimizationEvent(o, StatusType.PUBLISHED);
       LOGGER.info(
@@ -126,7 +125,7 @@ public class OptimizerService {
     } else {
       addOptimizationEvent(o, StatusType.NOT_PUBLISHED);
     }
-    return o;
+    optimizerRepository.save(o);
   }
 
   private void applyStatus(Optimization optimization, List<OptimizationResult> results) {
@@ -186,7 +185,7 @@ public class OptimizerService {
     FetchedTable fetchedTable = fieldSet.getReferenceTables().iterator().next();
     OptimizationResult result =
         new OptimizationResult(o, fetchedTable, statement, fieldSet.getStatistics());
-    entityManager.persist(result);
+    optimizerRepository.save(o);
     return result;
   }
 
@@ -205,7 +204,11 @@ public class OptimizerService {
   public Optimization createNewOptimization(final String projectId) {
     Project project = projectService.getProject(projectId);
     Optimization optimization = new Optimization(project);
-    entityManager.persist(optimization);
+    optimization.setAnalysisTimeframe(project.getAnalysisTimeframe());
+    optimization.setMvMaxPerTable(project.getMvMaxPerTable());
+    optimization.setUsername(fetcherService.getUserInfo().getEmail());
+    optimization.setStatus(Optimization.Status.PENDING);
+    optimizerRepository.save(optimization);
     LOGGER.info("New optimization created: {}", optimization.getId());
     return optimization;
   }
