@@ -97,7 +97,7 @@ public class ProjectServiceTest {
     final String expectedStripeCustomerId = "stripe-id-100";
     Customer customer = mock(Customer.class);
     when(customer.getId()).thenReturn(expectedStripeCustomerId);
-    when(mockedStripeService.createCustomer(any())).thenReturn(customer);
+    when(mockedStripeService.createCustomer(any(), any())).thenReturn(customer);
     Project project = service.createProject(TEST_PROJECT_ID1);
     assertEquals(mockedProject1.getProjectId(), project.getProjectId());
     assertEquals(expectedStripeCustomerId, project.getStripeCustomerId());
