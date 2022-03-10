@@ -5,6 +5,7 @@ import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import com.achilio.mvm.service.exceptions.UnauthorizedException;
 import com.google.cloud.resourcemanager.ResourceManagerException;
 import java.util.Date;
+import org.apache.catalina.connector.ClientAbortException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -30,6 +31,11 @@ public class CustomizedResponseEntityExceptionHandler extends ResponseEntityExce
         new ExceptionResponse(new Date(), ex.getMessage(), request.getDescription(false));
     LOGGER.error(ex.getMessage(), ex);
     return new ResponseEntity<>(exResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+  }
+
+  @ExceptionHandler(ClientAbortException.class)
+  public final void handleClientAbortException(Exception ex) {
+    LOGGER.warn(ex.getMessage());
   }
 
   @ExceptionHandler(ProjectNotFoundException.class)

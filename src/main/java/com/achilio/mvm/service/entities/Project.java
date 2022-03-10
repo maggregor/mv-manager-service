@@ -8,6 +8,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +16,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 @Entity
-@Table(name = "projects_metadata")
+@Table(name = "projects")
 @EnableJpaAuditing
 @EntityListeners(AuditingEntityListener.class)
 public class Project {
@@ -56,10 +57,18 @@ public class Project {
       columnDefinition = "boolean default false")
   private Boolean automaticAvailable = false;
 
+  @Column(name = "stripe_customer_id", nullable = false)
+  private String stripeCustomerId;
+
   public Project() {}
 
   public Project(String projectId) {
+    this(projectId, null);
+  }
+
+  public Project(String projectId, String stripeCustomerId) {
     this.projectId = projectId;
+    this.stripeCustomerId = stripeCustomerId;
   }
 
   public Long getId() {
@@ -163,6 +172,16 @@ public class Project {
       if (!automaticAvailable) {
         setAutomatic(false);
       }
+    }
+  }
+
+  public String getStripeCustomerId() {
+    return this.stripeCustomerId;
+  }
+
+  public void setStripeCustomerId(String stripeCustomerId) {
+    if (StringUtils.isNotEmpty(stripeCustomerId)) {
+      this.stripeCustomerId = stripeCustomerId;
     }
   }
 }

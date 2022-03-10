@@ -7,16 +7,16 @@ import java.util.List;
 
 public class OptimizationResultsResponse {
 
-  @JsonUnwrapped private Optimization optimization;
+  @JsonUnwrapped private OptimizationResponse optimization;
   private List<OptimizationResult> results;
 
   public OptimizationResultsResponse(
       Optimization optimization, List<OptimizationResult> optimizationResults) {
-    this.optimization = optimization;
+    this.optimization = new OptimizationResponse(optimization);
     this.results = optimizationResults;
   }
 
-  public Optimization getOptimization() {
+  public OptimizationResponse getOptimization() {
     return optimization;
   }
 

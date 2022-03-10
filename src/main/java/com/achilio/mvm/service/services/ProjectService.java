@@ -7,6 +7,7 @@ import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import com.achilio.mvm.service.repositories.DatasetRepository;
 import com.achilio.mvm.service.repositories.ProjectRepository;
+import com.stripe.model.Customer;
 import com.stripe.model.Product;
 import java.util.List;
 import java.util.Optional;
@@ -26,6 +27,7 @@ public class ProjectService {
   @Autowired private DatasetRepository datasetRepository;
   @Autowired private GooglePublisherService publisherService;
   @Autowired private FetcherService fetcherService;
+  @Autowired private StripeService stripeService;
 
   public ProjectService() {}
 
@@ -38,7 +40,10 @@ public class ProjectService {
   }
 
   public Project createProject(String projectId) {
-    return projectRepository.save(new Project(projectId));
+    // To date the customerName is the projectId
+    Customer customer = stripeService.createCustomer(projectId, projectId);
+    Project project = new Project(projectId, customer.getId());
+    return projectRepository.save(project);
   }
 
   public Optional<Project> findProject(String projectId) {

@@ -5,15 +5,16 @@ import java.util.Date;
 
 public class OptimizationResponse {
 
-  private Long id;
-  private Date createdDate;
-  private String projectId;
-  private Double eligiblePercent;
-  private Integer mvMaxPlan;
-  private Integer mvAppliedCount;
-  private Integer mvProposalCount;
-  private Integer mvMaxPerTable;
-  private String username;
+  private final Long id;
+  private final Date createdDate;
+  private final String projectId;
+  private final Double eligiblePercent;
+  private final Integer mvMaxPlan;
+  private final Integer mvAppliedCount;
+  private final Integer mvProposalCount;
+  private final Integer mvMaxPerTable;
+  private final String username;
+  private final String status;
 
   public OptimizationResponse(Optimization optimization) {
     this.id = optimization.getId();
@@ -25,77 +26,46 @@ public class OptimizationResponse {
     this.mvProposalCount = optimization.getMvProposalCount();
     this.mvMaxPerTable = optimization.getMvMaxPerTable();
     this.username = optimization.getUsername();
+    this.status = optimization.getStatus().description();
   }
 
   public Long getId() {
     return id;
   }
 
-  public void setId(Long id) {
-    this.id = id;
-  }
-
   public String getProjectId() {
     return projectId;
-  }
-
-  public void setProjectId(String projectId) {
-    this.projectId = projectId;
   }
 
   public Double getEligiblePercent() {
     return this.eligiblePercent;
   }
 
-  public void setEligiblePercent(Double eligiblePercent) {
-    this.eligiblePercent = eligiblePercent;
-  }
-
   public Date getCreatedDate() {
     return createdDate;
-  }
-
-  public void setCreatedDate(Date createdDate) {
-    this.createdDate = createdDate;
   }
 
   public Integer getMvMaxPlan() {
     return mvMaxPlan;
   }
 
-  public void setMvMaxPlan(Integer mvMaxPlan) {
-    this.mvMaxPlan = mvMaxPlan;
-  }
-
   public Integer getMvAppliedCount() {
     return mvAppliedCount;
-  }
-
-  public void setMvAppliedCount(Integer mvAppliedCount) {
-    this.mvAppliedCount = mvAppliedCount;
   }
 
   public Integer getMvProposalCount() {
     return mvProposalCount;
   }
 
-  public void setMvProposalCount(Integer mvProposalCount) {
-    this.mvProposalCount = mvProposalCount;
-  }
-
   public Integer getMvMaxPerTable() {
     return mvMaxPerTable;
-  }
-
-  public void setMvMaxPerTable(Integer mvMaxPerTable) {
-    this.mvMaxPerTable = mvMaxPerTable;
   }
 
   public String getUsername() {
     return username;
   }
 
-  public void setUsername(String username) {
-    this.username = username;
+  public String getStatus() {
+    return this.status;
   }
 }
