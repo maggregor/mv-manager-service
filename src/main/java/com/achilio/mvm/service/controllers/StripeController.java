@@ -45,16 +45,15 @@ public class StripeController {
   private String endpointSecret;
 
   @GetMapping(path = "/plan", produces = "application/json")
-  public List<ProjectPlan> getProjectPlans(@RequestParam String projectId)
-      throws StripeException, InterruptedException {
-    Customer customer = stripeService.getCustomerByProjectId(projectId);
+  public List<ProjectPlan> getProjectPlans(@RequestParam String customerId) throws StripeException {
+    Customer customer = stripeService.getCustomer(customerId);
     return stripeService.getPlans(customer);
   }
 
   @PostMapping(path = "/subscription", produces = "application/json")
   public ProjectSubscription createSubscription(@RequestBody CreateSubscriptionRequest request)
-      throws StripeException, InterruptedException {
-    Customer customer = stripeService.getCustomerByProjectId(request.getProjectId());
+      throws StripeException {
+    Customer customer = stripeService.getCustomer(request.getCustomerId());
     return stripeService.createSubscription(customer, request.getPriceId());
   }
 
