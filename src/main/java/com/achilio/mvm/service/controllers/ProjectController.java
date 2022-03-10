@@ -58,8 +58,8 @@ public class ProjectController {
 
   @GetMapping(path = "/project/{projectId}/permissions", produces = "application/json")
   @ApiOperation("Check permissions for a given projectId")
-  public void checkPermissions(@PathVariable final String projectId) {
-    projectService.checkPermissions(projectId);
+  public List<String> getMissingPermissions(@PathVariable final String projectId) {
+    return fetcherService.fetchMissingPermissions(projectId);
   }
 
   @Deprecated

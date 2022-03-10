@@ -38,6 +38,7 @@ import com.google.cloud.resourcemanager.ResourceManagerOptions;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.zetasql.ZetaSQLType;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -85,6 +86,31 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     if (StringUtils.isNotEmpty(projectId)) {
       fetchProject(projectId);
     }
+  }
+
+  public List<String> fetchMissingPermissions(String projectId) {
+    List<String> REQUIRED_PERMISSIONS =
+        Arrays.asList(
+            "bigquery.jobs.list",
+            "bigquery.datasets.get",
+            "resourcemanager.projects.get");
+    /*
+     * These permissions must be checked at dataset resource level
+     *
+     * "bigquery.tables.get",
+     * "bigquery.tables.create",
+     * "bigquery.tables.delete",
+     * "bigquery.tables.list",
+     */
+    List<String> missingPermissions = new ArrayList<>();
+    List<Boolean> r = resourceManager.testPermissions(projectId, REQUIRED_PERMISSIONS);
+
+    for (int i = 0; i < r.size(); i++) {
+      if (!r.get(i)) {
+        missingPermissions.add(REQUIRED_PERMISSIONS.get(i));
+      }
+    }
+    return missingPermissions;
   }
 
   @Override

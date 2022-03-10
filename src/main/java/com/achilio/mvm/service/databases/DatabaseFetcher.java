@@ -67,4 +67,6 @@ public interface DatabaseFetcher {
   Set<FetchedTable> fetchAllTables();
 
   Set<FetchedTable> fetchTablesInDataset(String datasetName);
+
+  List<String> fetchMissingPermissions(String projectId);
 }

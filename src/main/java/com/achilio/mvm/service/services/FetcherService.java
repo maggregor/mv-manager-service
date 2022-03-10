@@ -181,6 +181,10 @@ public class FetcherService {
     return System.currentTimeMillis() - (long) days * 24 * 60 * 60 * 1000;
   }
 
+  public List<String> fetchMissingPermissions(String projectId) {
+    return fetcher().fetchMissingPermissions(projectId);
+  }
+
   public static class StatEntry {
 
     private final long timestamp;
