@@ -7,6 +7,7 @@ import com.achilio.mvm.service.models.ProjectPlan.PossibleAction;
 import com.achilio.mvm.service.models.ProjectSubscription;
 import com.google.api.services.oauth2.model.Userinfo;
 import com.stripe.Stripe;
+import com.stripe.exception.RateLimitException;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
 import com.stripe.model.Invoice;
@@ -31,6 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -93,12 +95,26 @@ public class StripeService {
    * @return Customer
    * @throws StripeException
    */
-  public Customer getCustomerByProjectId(String projectId) throws StripeException {
+  public Customer getCustomerByProjectId(String projectId)
+      throws StripeException, InterruptedException {
     Stripe.apiKey = API_KEY;
-    return Customer.list(CustomerListParams.builder().build()).getData().stream()
-        .filter(c -> isCustomerOfProjectId(c, projectId))
-        .findFirst()
-        .orElseGet(() -> createCustomer(projectId));
+    // Retry 5 times max if exception is a 429 Status code Exception (RateLimit)
+    int count = 0;
+    int maxTries = 5;
+    int wait = 5;
+    while (true) {
+      try {
+        return Customer.list(CustomerListParams.builder().build()).getData().stream()
+            .filter(c -> isCustomerOfProjectId(c, projectId))
+            .findFirst()
+            .orElseGet(() -> createCustomer(projectId));
+      } catch (RateLimitException e) {
+        if (++count == maxTries) {
+          throw e;
+        }
+        TimeUnit.SECONDS.sleep(wait);
+      }
+    }
   }
 
   private boolean isCustomerOfProjectId(Customer customer, String projectId) {
