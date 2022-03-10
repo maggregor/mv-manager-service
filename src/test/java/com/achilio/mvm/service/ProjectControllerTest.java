@@ -24,6 +24,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
@@ -224,6 +225,37 @@ public class ProjectControllerTest {
         "{\"totalQueries\":0,\"percentQueriesIn\":0.0,\"averageScannedBytes\":0}";
     AggregatedStatisticsResponse responseEntity = controller.getKPIStatistics(TEST_PROJECT_ID1, 30);
     String jsonResponse = objectMapper.writeValueAsString(responseEntity);
+    assertEquals(expectedString, jsonResponse);
+  }
+
+  @Test
+  public void getMissingPermissions() throws JsonProcessingException {
+    /*
+     * permissions in order are:
+     * "bigquery.jobs.list",
+     * "bigquery.datasets.get",
+     * "resourcemanager.projects.get"
+     */
+
+    when(mockedFetcherService.fetchMissingPermissions(TEST_PROJECT_ID1)).thenReturn(
+        Collections.emptyList());
+    String expectedString = "[]";
+    List<String> responseEntity = controller.getMissingPermissions(TEST_PROJECT_ID1);
+    String jsonResponse = objectMapper.writeValueAsString(responseEntity);
+    assertEquals(expectedString, jsonResponse);
+
+    when(mockedFetcherService.fetchMissingPermissions(TEST_PROJECT_ID1)).thenReturn(
+        Collections.singletonList("bigquery.jobs.list"));
+    expectedString = "[\"bigquery.jobs.list\"]";
+    responseEntity = controller.getMissingPermissions(TEST_PROJECT_ID1);
+    jsonResponse = objectMapper.writeValueAsString(responseEntity);
+    assertEquals(expectedString, jsonResponse);
+
+    when(mockedFetcherService.fetchMissingPermissions(TEST_PROJECT_ID1)).thenReturn(
+        Arrays.asList("bigquery.jobs.list", "bigquery.datasets.get"));
+    expectedString = "[\"bigquery.jobs.list\",\"bigquery.datasets.get\"]";
+    responseEntity = controller.getMissingPermissions(TEST_PROJECT_ID1);
+    jsonResponse = objectMapper.writeValueAsString(responseEntity);
     assertEquals(expectedString, jsonResponse);
   }
 }
