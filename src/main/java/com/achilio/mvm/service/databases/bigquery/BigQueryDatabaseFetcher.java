@@ -91,9 +91,7 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
   public List<String> fetchMissingPermissions(String projectId) {
     List<String> REQUIRED_PERMISSIONS =
         Arrays.asList(
-            "bigquery.jobs.list",
-            "bigquery.datasets.get",
-            "resourcemanager.projects.get");
+            "bigquery.jobs.list", "bigquery.datasets.get", "resourcemanager.projects.get");
     /*
      * These permissions must be checked at dataset resource level
      *
@@ -350,18 +348,8 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
   @Override
   public List<FetchedProject> fetchAllProjects() {
     return StreamSupport.stream(resourceManager.list().getValues().spliterator(), true)
-        .filter(this::hasAccessToDatasets)
         .map(this::toFetchedProject)
         .collect(Collectors.toList());
-  }
-
-  private boolean hasAccessToDatasets(Project project) {
-    try {
-      fetchAllDatasets(project.getProjectId());
-      return true;
-    } catch (Exception e) {
-      return false;
-    }
   }
 
   @Override
