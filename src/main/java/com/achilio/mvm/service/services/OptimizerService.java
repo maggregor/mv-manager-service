@@ -185,6 +185,7 @@ public class OptimizerService {
     FetchedTable fetchedTable = fieldSet.getReferenceTables().iterator().next();
     OptimizationResult result =
         new OptimizationResult(o, fetchedTable, statement, fieldSet.getStatistics());
+    optimizerResultRepository.save(result);
     optimizerRepository.save(o);
     return result;
   }
