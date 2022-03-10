@@ -16,7 +16,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 @Entity
-@Table(name = "projects_metadata")
+@Table(name = "projects")
 @EnableJpaAuditing
 @EntityListeners(AuditingEntityListener.class)
 public class Project {

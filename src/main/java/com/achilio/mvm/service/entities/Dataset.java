@@ -14,7 +14,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 @Entity
-@Table(name = "datasets_metadata")
+@Table(name = "datasets")
 @EnableJpaAuditing
 @EntityListeners(AuditingEntityListener.class)
 public class Dataset {
