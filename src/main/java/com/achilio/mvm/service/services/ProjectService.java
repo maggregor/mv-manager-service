@@ -41,7 +41,7 @@ public class ProjectService {
 
   public Project createProject(String projectId) {
     // To date the customerName is the projectId
-    Customer customer = stripeService.createCustomer(projectId);
+    Customer customer = stripeService.createCustomer(projectId, projectId);
     Project project = new Project(projectId, customer.getId());
     return projectRepository.save(project);
   }
