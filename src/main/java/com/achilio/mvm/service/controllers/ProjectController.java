@@ -56,6 +56,12 @@ public class ProjectController {
     return toProjectResponse(fetcherService.fetchProject(projectId));
   }
 
+  @GetMapping(path = "/project/{projectId}/permissions", produces = "application/json")
+  @ApiOperation("Check permissions for a given projectId")
+  public void checkPermissions(@PathVariable final String projectId) {
+    projectService.checkPermissions(projectId);
+  }
+
   @Deprecated
   @PostMapping(path = "/project/{projectId}")
   @ApiOperation("Update metadata of a project")

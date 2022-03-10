@@ -5,15 +5,21 @@ import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.entities.Dataset;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
+import com.achilio.mvm.service.exceptions.UnauthorizedException;
 import com.achilio.mvm.service.repositories.DatasetRepository;
 import com.achilio.mvm.service.repositories.ProjectRepository;
+import com.google.auth.Credentials;
+import com.google.cloud.resourcemanager.ResourceManager;
+import com.google.cloud.resourcemanager.ResourceManagerOptions;
 import com.stripe.model.Product;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import javax.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 /** Services to manage project and dataset resources. */
@@ -31,6 +37,28 @@ public class ProjectService {
 
   private List<Project> getAllActivatedProjects() {
     return projectRepository.findAllByActivated(true);
+  }
+
+  public void checkPermissions(String projectId) {
+    List<String> REQUIRED_PERMISSIONS =
+        Arrays.asList(
+            "bigquery.jobs.list",
+            "bigquery.tables.get",
+            "bigquery.tables.create",
+            "bigquery.tables.delete",
+            "bigquery.tables.list",
+            "bigquery.datasets.get",
+            "resourcemanager.projects.get");
+    Credentials credentials =
+        (Credentials) SecurityContextHolder.getContext().getAuthentication().getCredentials();
+    ResourceManagerOptions.Builder rmOptBuilder =
+        ResourceManagerOptions.newBuilder().setCredentials(credentials);
+    ResourceManager resourceManager = rmOptBuilder.build().getService();
+    List<Boolean> r = resourceManager.testPermissions(projectId, REQUIRED_PERMISSIONS);
+    if (r.stream().anyMatch(e -> !e)) {
+      throw new UnauthorizedException("Invalid permissions");
+    }
+    ;
   }
 
   public Project findProjectOrCreate(String projectId) {
