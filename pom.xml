@@ -114,6 +114,7 @@
       <artifactId>spring-boot-starter-security</artifactId>
       <groupId>org.springframework.boot</groupId>
     </dependency>
+    
     <!-- Dependency for HATEOAS -->
     <dependency>
       <artifactId>spring-boot-starter-hateoas</artifactId>
