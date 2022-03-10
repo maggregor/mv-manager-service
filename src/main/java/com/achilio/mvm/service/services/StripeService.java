@@ -7,6 +7,7 @@ import com.achilio.mvm.service.models.ProjectPlan.PossibleAction;
 import com.achilio.mvm.service.models.ProjectSubscription;
 import com.google.api.services.oauth2.model.Userinfo;
 import com.stripe.Stripe;
+import com.stripe.exception.RateLimitException;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
 import com.stripe.model.Invoice;
@@ -97,7 +98,7 @@ public class StripeService {
   public Customer getCustomerByProjectId(String projectId)
       throws StripeException, InterruptedException {
     Stripe.apiKey = API_KEY;
-    // Retry 5 times max if exception is a 429 Status code Exception (too many request)
+    // Retry 5 times max if exception is a 429 Status code Exception (RateLimit)
     int count = 0;
     int maxTries = 5;
     int wait = 5;
@@ -107,8 +108,8 @@ public class StripeService {
             .filter(c -> isCustomerOfProjectId(c, projectId))
             .findFirst()
             .orElseGet(() -> createCustomer(projectId));
-      } catch (StripeException e) {
-        if (++count == maxTries || e.getStatusCode() != 429) {
+      } catch (RateLimitException e) {
+        if (++count == maxTries) {
           throw e;
         }
         TimeUnit.SECONDS.sleep(wait);
