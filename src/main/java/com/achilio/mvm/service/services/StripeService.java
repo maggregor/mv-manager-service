@@ -7,7 +7,6 @@ import com.achilio.mvm.service.models.ProjectPlan.PossibleAction;
 import com.achilio.mvm.service.models.ProjectSubscription;
 import com.google.api.services.oauth2.model.Userinfo;
 import com.stripe.Stripe;
-import com.stripe.exception.RateLimitException;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
 import com.stripe.model.Invoice;
@@ -17,7 +16,6 @@ import com.stripe.model.Product;
 import com.stripe.model.Subscription;
 import com.stripe.model.SubscriptionItem;
 import com.stripe.param.CustomerCreateParams;
-import com.stripe.param.CustomerListParams;
 import com.stripe.param.PriceListParams;
 import com.stripe.param.ProductListParams;
 import com.stripe.param.SubscriptionCreateParams;
@@ -32,7 +30,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,71 +54,37 @@ public class StripeService {
    *
    * @return the stripe customer ID
    */
-  public Customer createCustomer(String projectId) {
+  public Customer createCustomer(String customerName) {
     Userinfo userInfo = fetcherService.getUserInfo();
-    String email = userInfo.getEmail();
-    String name = userInfo.getName();
-    return createCustomer(email, name, projectId);
+    String userEmail = userInfo.getEmail();
+    String userName = userInfo.getName();
+    return createCustomer(userEmail, userName, customerName);
   }
 
-  public Customer createCustomer(String customerMail, String customerName, String projectId) {
+  private Customer createCustomer(String userEmail, String userName, String customerName) {
     Stripe.apiKey = API_KEY;
     try {
       Map<String, String> metadata = new HashMap<>();
-      metadata.put(CustomerMetadata.PROJECT_ID.getValue(), projectId);
-      metadata.put(CustomerMetadata.CREATED_BY_EMAIL.getValue(), customerMail);
-      metadata.put(CustomerMetadata.CREATED_BY_NAME.getValue(), customerName);
+      metadata.put(CustomerMetadata.CREATED_BY_EMAIL.getValue(), userEmail);
+      metadata.put(CustomerMetadata.CREATED_BY_NAME.getValue(), userName);
       CustomerCreateParams params =
           CustomerCreateParams.builder()
+              .setName(customerName)
               .setMetadata(metadata)
-              .setEmail(customerMail)
-              .setName(projectId)
+              .setEmail(userEmail)
               .build();
       Customer customer = Customer.create(params);
-      LOGGER.debug("Creating new customer {} for project {}", customer.getId(), projectId);
+      LOGGER.debug("Creating new customer {} ({})", customer.getId(), customerName);
       return customer;
     } catch (StripeException e) {
-      LOGGER.error("Error while creating the stripe customer for project {}", projectId, e);
+      LOGGER.error("Error while creating the stripe customer {}", customerName, e);
     }
     return null;
   }
 
-  /**
-   * Get customer by project id
-   *
-   * <p>Check in the customer project-id metadata
-   *
-   * @param projectId
-   * @return Customer
-   * @throws StripeException
-   */
-  public Customer getCustomerByProjectId(String projectId)
-      throws StripeException, InterruptedException {
+  public Customer getCustomer(String customerId) throws StripeException {
     Stripe.apiKey = API_KEY;
-    // Retry 5 times max if exception is a 429 Status code Exception (RateLimit)
-    int count = 0;
-    int maxTries = 5;
-    int wait = 5;
-    while (true) {
-      try {
-        return Customer.list(CustomerListParams.builder().build()).getData().stream()
-            .filter(c -> isCustomerOfProjectId(c, projectId))
-            .findFirst()
-            .orElseGet(() -> createCustomer(projectId));
-      } catch (RateLimitException e) {
-        if (++count == maxTries) {
-          throw e;
-        }
-        TimeUnit.SECONDS.sleep(wait);
-      }
-    }
-  }
-
-  private boolean isCustomerOfProjectId(Customer customer, String projectId) {
-    if (customer.getMetadata().containsKey(CustomerMetadata.PROJECT_ID.getValue())) {
-      return customer.getMetadata().get(CustomerMetadata.PROJECT_ID.getValue()).equals(projectId);
-    }
-    return false;
+    return Customer.retrieve(customerId);
   }
 
   public ProjectSubscription createSubscription(Customer customer, String priceId)

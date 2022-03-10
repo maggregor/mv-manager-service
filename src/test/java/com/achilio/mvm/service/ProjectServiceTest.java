@@ -18,7 +18,9 @@ import com.achilio.mvm.service.repositories.ProjectRepository;
 import com.achilio.mvm.service.services.FetcherService;
 import com.achilio.mvm.service.services.GooglePublisherService;
 import com.achilio.mvm.service.services.ProjectService;
+import com.achilio.mvm.service.services.StripeService;
 import com.google.api.services.oauth2.model.Userinfo;
+import com.stripe.model.Customer;
 import com.stripe.model.Product;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -29,6 +31,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.AdditionalAnswers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -61,12 +64,13 @@ public class ProjectServiceTest {
   @Mock private Product mockedProduct;
   @Mock private Product errorMockedProduct;
   @Mock private FetcherService mockedFetcherService;
+  @Mock private StripeService mockedStripeService;
 
   @Before
   public void setup() {
     when(mockedProject1.getProjectId()).thenReturn(TEST_PROJECT_ID1);
     when(mockedProject2.getProjectId()).thenReturn(TEST_PROJECT_ID2);
-    when(mockedProjectRepository.save(any(Project.class))).thenReturn(mockedProject1);
+    when(mockedProjectRepository.save(any())).then(AdditionalAnswers.returnsFirstArg());
     when(mockedProjectRepository.findByProjectId(TEST_PROJECT_ID1))
         .thenReturn(Optional.of(mockedProject1));
     when(mockedProjectRepository.findByProjectId(TEST_PROJECT_ID2))
@@ -90,8 +94,13 @@ public class ProjectServiceTest {
 
   @Test
   public void createProject() {
+    final String expectedStripeCustomerId = "stripe-id-100";
+    Customer customer = mock(Customer.class);
+    when(customer.getId()).thenReturn(expectedStripeCustomerId);
+    when(mockedStripeService.createCustomer(any())).thenReturn(customer);
     Project project = service.createProject(TEST_PROJECT_ID1);
     assertEquals(mockedProject1.getProjectId(), project.getProjectId());
+    assertEquals(expectedStripeCustomerId, project.getStripeCustomerId());
   }
 
   @Test
