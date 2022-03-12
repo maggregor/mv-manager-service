@@ -62,16 +62,6 @@ public class ProjectController {
     return fetcherService.fetchMissingPermissions(projectId);
   }
 
-  @Deprecated
-  @PostMapping(path = "/project/{projectId}")
-  @ApiOperation("Update metadata of a project")
-  @ResponseStatus(HttpStatus.ACCEPTED)
-  public ProjectResponse updateProjectOrCreate(
-      @PathVariable final String projectId, @RequestBody final UpdateProjectRequest payload) {
-    Project updatedProject = projectService.updateProjectOrCreate(projectId, payload);
-    return new ProjectResponse(updatedProject.getProjectId(), updatedProject);
-  }
-
   @PatchMapping(path = "/project/{projectId}")
   @ApiOperation("Update metadata of a project")
   @ResponseStatus(HttpStatus.ACCEPTED)
