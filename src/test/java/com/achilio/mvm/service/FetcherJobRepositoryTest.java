@@ -1,6 +1,7 @@
 package com.achilio.mvm.service;
 
 import com.achilio.mvm.service.entities.FetcherJob;
+import com.achilio.mvm.service.entities.FetcherJob.FetcherJobStatus;
 import com.achilio.mvm.service.entities.FetcherQueryJob;
 import com.achilio.mvm.service.repositories.FetcherJobRepository;
 import java.util.List;
@@ -51,6 +52,7 @@ public class FetcherJobRepositoryTest {
     Assert.assertEquals(TEST_PROJECT_ID1, job.getProjectId());
     Assert.assertTrue(job instanceof FetcherQueryJob);
     Assert.assertNotNull(job.getCreatedAt());
+    Assert.assertEquals("PENDING", job.getStatus().toString());
   }
 
   @Test
@@ -64,6 +66,27 @@ public class FetcherJobRepositoryTest {
     Assert.assertTrue(job instanceof FetcherQueryJob);
     Assert.assertNotNull(job.getCreatedAt());
     Assert.assertEquals(Long.valueOf(14), ((FetcherQueryJob) job).getTimeframe());
+  }
+
+  @Test
+  public void findFetcherQueryJobsByProjectIdAndStatusTest() {
+    List<FetcherJob> jobs =
+        fetcherJobRepository.findFetcherQueryJobsByProjectIdAndStatus(
+            TEST_PROJECT_ID1, FetcherJobStatus.PENDING);
+    Assert.assertEquals(2, jobs.size());
+  }
+
+  @Test
+  public void findTopFetchedQueryJobByProjectIdAndStatusOrderByCreatedAtDescTest() {
+    Optional<FetcherJob> optionalFetcherJob =
+        fetcherJobRepository.findTopFetchedQueryJobByProjectIdAndStatusOrderByCreatedAtDesc(
+            TEST_PROJECT_ID1, FetcherJobStatus.PENDING);
+    Assert.assertTrue(optionalFetcherJob.isPresent());
+
+    optionalFetcherJob =
+        fetcherJobRepository.findTopFetchedQueryJobByProjectIdAndStatusOrderByCreatedAtDesc(
+            TEST_PROJECT_ID1, FetcherJobStatus.FINISHED);
+    Assert.assertFalse(optionalFetcherJob.isPresent());
   }
 
   @Test

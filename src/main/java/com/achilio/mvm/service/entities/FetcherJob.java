@@ -33,10 +33,14 @@ public class FetcherJob {
   @Column(name = "project_id", nullable = false)
   private String projectId;
 
+  @Column(name = "status")
+  private FetcherJobStatus status;
+
   protected FetcherJob() {}
 
   public FetcherJob(String projectId) {
     this.projectId = projectId;
+    this.status = FetcherJobStatus.PENDING;
   }
 
   public Long getId() {
@@ -49,5 +53,20 @@ public class FetcherJob {
 
   public String getProjectId() {
     return projectId;
+  }
+
+  public FetcherJobStatus getStatus() {
+    return status;
+  }
+
+  public void setStatus(FetcherJobStatus status) {
+    this.status = status;
+  }
+
+  public enum FetcherJobStatus {
+    PENDING,
+    WORKING,
+    FINISHED,
+    ERROR
   }
 }

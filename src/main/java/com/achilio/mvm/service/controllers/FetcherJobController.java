@@ -1,6 +1,7 @@
 package com.achilio.mvm.service.controllers;
 
 import com.achilio.mvm.service.entities.FetcherJob;
+import com.achilio.mvm.service.entities.FetcherJob.FetcherJobStatus;
 import com.achilio.mvm.service.entities.FetcherQueryJob;
 import com.achilio.mvm.service.exceptions.FetcherJobNotFoundException;
 import com.achilio.mvm.service.repositories.FetcherJobRepository;
@@ -30,14 +31,24 @@ public class FetcherJobController {
       "List all fetcher query job for a given projectId.\n"
           + "If last URL Param is passed and set to true, returns a singleton with the latest fetcher query job")
   public List<FetcherJob> getFetcherQueryJobByProjectId(
-      @PathVariable String projectId, @RequestParam(required = false) Boolean last) {
+      @PathVariable String projectId,
+      @RequestParam(required = false) Boolean last,
+      @RequestParam(required = false) String status) {
     if (last != null && last) {
-      Optional<FetcherJob> optionalFetcherJob =
-          fetcherJobRepository.findTopFetchedQueryJobByProjectIdOrderByCreatedAtDesc(projectId);
-      if (!optionalFetcherJob.isPresent()) {
-        throw new FetcherJobNotFoundException("last");
+      Optional<FetcherJob> optionalFetcherJob;
+      if (status != null) {
+        optionalFetcherJob =
+            fetcherJobRepository.findTopFetchedQueryJobByProjectIdAndStatusOrderByCreatedAtDesc(
+                projectId, FetcherJobStatus.valueOf(status.toUpperCase()));
+      } else {
+        optionalFetcherJob =
+            fetcherJobRepository.findTopFetchedQueryJobByProjectIdOrderByCreatedAtDesc(projectId);
       }
-      return Collections.singletonList(optionalFetcherJob.get());
+      return optionalFetcherJob.map(Collections::singletonList).orElse(Collections.EMPTY_LIST);
+    }
+    if (status != null) {
+      return fetcherJobRepository.findFetcherQueryJobsByProjectIdAndStatus(
+          projectId, FetcherJobStatus.valueOf(status.toUpperCase()));
     }
     return fetcherJobRepository.findFetcherQueryJobsByProjectId(projectId);
   }
