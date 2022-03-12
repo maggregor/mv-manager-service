@@ -1,5 +1,6 @@
 package com.achilio.mvm.service.exception.controllers;
 
+import com.achilio.mvm.service.exceptions.FetcherJobNotFoundException;
 import com.achilio.mvm.service.exceptions.InvalidSettingsException;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import com.achilio.mvm.service.exceptions.UnauthorizedException;
@@ -42,7 +43,14 @@ public class CustomizedResponseEntityExceptionHandler extends ResponseEntityExce
   public final ResponseEntity<Object> projectNotFoundException(Exception ex, WebRequest request) {
     ExceptionResponse exResponse =
         new ExceptionResponse(new Date(), ex.getMessage(), request.getDescription(false));
-    LOGGER.warn(ex.getMessage());
+    return new ResponseEntity<>(exResponse, HttpStatus.NOT_FOUND);
+  }
+
+  @ExceptionHandler(FetcherJobNotFoundException.class)
+  public final ResponseEntity<Object> fetcherJobNotFoundException(
+      Exception ex, WebRequest request) {
+    ExceptionResponse exResponse =
+        new ExceptionResponse(new Date(), ex.getMessage(), request.getDescription(false));
     return new ResponseEntity<>(exResponse, HttpStatus.NOT_FOUND);
   }
 
