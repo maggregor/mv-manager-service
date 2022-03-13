@@ -70,9 +70,8 @@ public class FetcherJobController {
 
   @PostMapping(path = "/query/{projectId}", produces = "application/json")
   @ApiOperation("Create and start a new query fetching job")
-  public FetcherQueryJob createNewFetcherQueryJob(@PathVariable String projectId) {
-    FetcherQueryJob job = new FetcherQueryJob(projectId);
-    fetcherJobRepository.save(job);
-    return job;
+  public FetcherJob createNewFetcherQueryJob(@PathVariable String projectId) {
+    FetcherJob currentJob = fetcherJobRepository.save(new FetcherQueryJob(projectId));
+    return currentJob;
   }
 }
