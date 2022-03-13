@@ -28,9 +28,7 @@ public class AchilioQuery {
   @Column(name = "id", nullable = false)
   private Long id;
 
-  @Column(name = "fetcher_job")
-  @ManyToOne
-  private FetcherQueryJob fetcherQueryJob;
+  @ManyToOne private FetcherQueryJob fetcherQueryJob;
 
   @Column(name = "reasons")
   @ElementCollection
