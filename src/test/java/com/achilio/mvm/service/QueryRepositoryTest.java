@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Set;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
+@Ignore
 public class QueryRepositoryTest {
 
   private static boolean setUpIsDone = false;
