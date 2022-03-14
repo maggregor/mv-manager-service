@@ -1,6 +1,5 @@
 package com.achilio.mvm.service.controllers;
 
-import com.achilio.mvm.service.entities.FetcherJob;
 import com.achilio.mvm.service.entities.FetcherJob.FetcherJobStatus;
 import com.achilio.mvm.service.entities.FetcherQueryJob;
 import com.achilio.mvm.service.exceptions.FetcherJobNotFoundException;
@@ -30,12 +29,12 @@ public class FetcherJobController {
   @ApiOperation(
       "List all fetcher query job for a given projectId.\n"
           + "If last URL Param is passed and set to true, returns a singleton with the latest fetcher query job")
-  public List<FetcherJob> getFetcherQueryJobByProjectId(
+  public List<FetcherQueryJob> getFetcherQueryJobByProjectId(
       @PathVariable String projectId,
       @RequestParam(required = false) Boolean last,
       @RequestParam(required = false) String status) {
     if (last != null && last) {
-      Optional<FetcherJob> optionalFetcherJob;
+      Optional<FetcherQueryJob> optionalFetcherJob;
       if (status != null) {
         optionalFetcherJob =
             fetcherJobRepository.findTopFetchedQueryJobByProjectIdAndStatusOrderByCreatedAtDesc(
@@ -57,10 +56,10 @@ public class FetcherJobController {
   @ApiOperation(
       "List all fetcher query job for a given projectId.\n"
           + "If last URL Param is passed and set to true, returns a singleton with the latest fetcher query job")
-  public FetcherJob getFetcherQueryJob(
+  public FetcherQueryJob getFetcherQueryJob(
       @PathVariable String projectId, @PathVariable Long fetcherQueryJobId) {
 
-    Optional<FetcherJob> optionalFetcherJob =
+    Optional<FetcherQueryJob> optionalFetcherJob =
         fetcherJobRepository.findFetcherQueryJobByProjectIdAndId(projectId, fetcherQueryJobId);
     if (!optionalFetcherJob.isPresent()) {
       throw new FetcherJobNotFoundException(fetcherQueryJobId.toString());
@@ -70,8 +69,8 @@ public class FetcherJobController {
 
   @PostMapping(path = "/query/{projectId}", produces = "application/json")
   @ApiOperation("Create and start a new query fetching job")
-  public FetcherJob createNewFetcherQueryJob(@PathVariable String projectId) {
-    FetcherJob currentJob = fetcherJobRepository.save(new FetcherQueryJob(projectId));
+  public FetcherQueryJob createNewFetcherQueryJob(@PathVariable String projectId) {
+    FetcherQueryJob currentJob = fetcherJobRepository.save(new FetcherQueryJob(projectId));
     return currentJob;
   }
 }

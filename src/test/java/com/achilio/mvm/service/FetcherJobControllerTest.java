@@ -59,7 +59,7 @@ public class FetcherJobControllerTest {
             anyString(), ArgumentMatchers.eq(2L)))
         .thenReturn(Optional.of(realFetcherJob2));
     when(mockedFetcherJobRepository.findFetcherQueryJobByProjectIdAndId(
-        anyString(), ArgumentMatchers.eq(3L)))
+            anyString(), ArgumentMatchers.eq(3L)))
         .thenReturn(Optional.empty());
     when(mockedFetcherJobRepository.findFetcherQueryJobsByProjectIdAndStatus(
             anyString(), ArgumentMatchers.eq(FetcherJobStatus.PENDING)))
@@ -72,7 +72,7 @@ public class FetcherJobControllerTest {
   @Test
   public void getFetcherQueryJobByProjectIdNoParamTest() throws JsonProcessingException {
     ObjectMapper mapper = new ObjectMapper();
-    List<FetcherJob> jobResponseEntity =
+    List<FetcherQueryJob> jobResponseEntity =
         controller.getFetcherQueryJobByProjectId(TEST_PROJECT_ID, null, null);
     String jsonResponse = objectMapper.writeValueAsString(jobResponseEntity);
     JsonNode map = mapper.readTree(jsonResponse);
@@ -93,7 +93,7 @@ public class FetcherJobControllerTest {
   @Test
   public void getFetcherQueryJobByProjectIdWithParamLastTest() throws JsonProcessingException {
     ObjectMapper mapper = new ObjectMapper();
-    List<FetcherJob> jobResponseEntity =
+    List<FetcherQueryJob> jobResponseEntity =
         controller.getFetcherQueryJobByProjectId(TEST_PROJECT_ID, true, null);
     String jsonResponse = objectMapper.writeValueAsString(jobResponseEntity);
     JsonNode map = mapper.readTree(jsonResponse);
@@ -110,7 +110,7 @@ public class FetcherJobControllerTest {
   public void getFetcherQueryJobByProjectIdWithParamStatusTest() throws JsonProcessingException {
     ObjectMapper mapper = new ObjectMapper();
     // List of pending
-    List<FetcherJob> jobResponseEntity =
+    List<FetcherQueryJob> jobResponseEntity =
         controller.getFetcherQueryJobByProjectId(TEST_PROJECT_ID, false, "pending");
     String jsonResponse = objectMapper.writeValueAsString(jobResponseEntity);
     JsonNode map = mapper.readTree(jsonResponse);
