@@ -76,11 +76,11 @@ public class FetcherService {
     return fetcher(projectId).fetchDataset(datasetName);
   }
 
-  public List<FetchedQuery> fetchQueriesSince(String projectId, int lastDays) {
-    return fetchQueriesSince(projectId, daysToMillis(lastDays));
+  public List<FetchedQuery> fetchQueriesSinceLastDays(String projectId, int lastDays) {
+    return fetchQueriesSinceTimestamp(projectId, daysToMillis(lastDays));
   }
 
-  public List<FetchedQuery> fetchQueriesSince(String projectId, long fromTimestamp) {
+  public List<FetchedQuery> fetchQueriesSinceTimestamp(String projectId, long fromTimestamp) {
     return fetcher(projectId).fetchAllQueriesFrom(fromTimestamp);
   }
 
@@ -94,12 +94,12 @@ public class FetcherService {
 
   public GlobalQueryStatistics getStatistics(
       String projectId, int lastDays, boolean enableIneligibilityStats) throws Exception {
-    return getStatistics(fetchQueriesSince(projectId, lastDays), enableIneligibilityStats);
+    return getStatistics(fetchQueriesSinceLastDays(projectId, lastDays), enableIneligibilityStats);
   }
 
   public List<StatEntry> getDailyStatistics(String projectId, int lastDays) {
     Map<LocalDate, List<QueryUsageStatistics>> fetched =
-        fetchQueriesSince(projectId, lastDays).parallelStream()
+        fetchQueriesSinceLastDays(projectId, lastDays).parallelStream()
             .collect(
                 Collectors.groupingBy(
                     q -> q.getDate().with(TemporalAdjusters.ofDateAdjuster(d -> d)),

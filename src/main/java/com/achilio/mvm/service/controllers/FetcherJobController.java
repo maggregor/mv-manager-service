@@ -4,11 +4,13 @@ import com.achilio.mvm.service.entities.FetcherJob.FetcherJobStatus;
 import com.achilio.mvm.service.entities.FetcherQueryJob;
 import com.achilio.mvm.service.exceptions.FetcherJobNotFoundException;
 import com.achilio.mvm.service.repositories.FetcherJobRepository;
-import com.achilio.mvm.service.services.FetcherService;
+import com.achilio.mvm.service.services.FetcherJobService;
 import io.swagger.annotations.ApiOperation;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,7 +24,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(path = "${v1API}/fetcher/job")
 @Validated
 public class FetcherJobController {
-  @Autowired private FetcherService fetcherService;
+
+  private static Logger LOGGER = LoggerFactory.getLogger(FetcherJobController.class);
+
+  @Autowired private FetcherJobService fetcherJobService;
   @Autowired private FetcherJobRepository fetcherJobRepository;
 
   @GetMapping(path = "/query/{projectId}", produces = "application/json")
@@ -60,7 +65,7 @@ public class FetcherJobController {
       @PathVariable String projectId, @PathVariable Long fetcherQueryJobId) {
 
     Optional<FetcherQueryJob> optionalFetcherJob =
-        fetcherJobRepository.findFetcherQueryJobByProjectIdAndId(projectId, fetcherQueryJobId);
+        fetcherJobRepository.findFetcherQueryJobByIdAndProjectId(fetcherQueryJobId, projectId);
     if (!optionalFetcherJob.isPresent()) {
       throw new FetcherJobNotFoundException(fetcherQueryJobId.toString());
     }
@@ -71,6 +76,8 @@ public class FetcherJobController {
   @ApiOperation("Create and start a new query fetching job")
   public FetcherQueryJob createNewFetcherQueryJob(@PathVariable String projectId) {
     FetcherQueryJob currentJob = fetcherJobRepository.save(new FetcherQueryJob(projectId));
+    LOGGER.info("Starting FetcherQueryJob {}", currentJob.getId());
+    fetcherJobService.fetchQueriesJob(currentJob);
     return currentJob;
   }
 }

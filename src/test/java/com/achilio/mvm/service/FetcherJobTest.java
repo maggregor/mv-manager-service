@@ -11,7 +11,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 public class FetcherJobTest {
 
   private final String TEST_PROJECT_ID = "myProjectId";
-  private final Long TIMEFRAME = 7L;
+  private final int TIMEFRAME = 7;
 
   @Test
   public void simpleValidation() {

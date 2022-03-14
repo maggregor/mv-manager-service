@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -34,6 +36,7 @@ public class FetcherJob {
   private String projectId;
 
   @Column(name = "status")
+  @Enumerated(EnumType.STRING)
   private FetcherJobStatus status;
 
   protected FetcherJob() {}
@@ -60,6 +63,7 @@ public class FetcherJob {
   }
 
   public void setStatus(FetcherJobStatus status) {
+    LOGGER.info("FetcherJob {} set to {}", this.getId(), status);
     this.status = status;
   }
 

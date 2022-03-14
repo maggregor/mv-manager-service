@@ -1,15 +1,15 @@
 package com.achilio.mvm.service.services;
 
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
-import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.entities.FetcherJob.FetcherJobStatus;
 import com.achilio.mvm.service.entities.FetcherQueryJob;
 import com.achilio.mvm.service.entities.Query;
 import com.achilio.mvm.service.repositories.FetcherJobRepository;
 import com.achilio.mvm.service.repositories.QueryRepository;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -19,6 +19,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class FetcherJobService {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(FetcherJobService.class);
+
   @Autowired private FetcherService fetcherService;
   @Autowired private FetcherJobRepository fetcherJobRepository;
   @Autowired private QueryRepository queryRepository;
@@ -26,10 +28,11 @@ public class FetcherJobService {
   public FetcherJobService() {}
 
   @Async("asyncExecutor")
-  public void fetchQueriesJobSince(FetcherQueryJob fetcherQueryJob) {
+  public void fetchQueriesJob(FetcherQueryJob fetcherQueryJob) {
     updateJobStatus(fetcherQueryJob, FetcherJobStatus.WORKING);
     try {
-      fetchAndSaveQueries(fetcherQueryJob);
+      List<Query> queries = fetchAndSaveQueries(fetcherQueryJob);
+      saveAllQueries(queries);
     } catch (Exception e) {
       updateJobStatus(fetcherQueryJob, FetcherJobStatus.ERROR);
       throw e;
@@ -37,30 +40,29 @@ public class FetcherJobService {
     updateJobStatus(fetcherQueryJob, FetcherJobStatus.FINISHED);
   }
 
-  private void fetchAndSaveQueries(FetcherQueryJob fetcherQueryJob) {
+  private void saveAllQueries(List<Query> queries) {
+    queryRepository.saveAll(queries);
+  }
+
+  private List<Query> fetchAndSaveQueries(FetcherQueryJob fetcherQueryJob) {
     List<FetchedQuery> allQueries =
-        fetcherService.fetchQueriesSince(
+        fetcherService.fetchQueriesSinceLastDays(
             fetcherQueryJob.getProjectId(), fetcherQueryJob.getTimeframe());
-    allQueries.stream().map(q -> toAchilioQuery(q, fetcherQueryJob)).forEach(this::saveQuery);
+    return allQueries.stream()
+        .map(q -> toAchilioQuery(q, fetcherQueryJob))
+        .collect(Collectors.toList());
   }
 
   private Query toAchilioQuery(FetchedQuery fetchedQuery, FetcherQueryJob job) {
-    Set<String> refTables =
-        fetchedQuery.getReferenceTables().stream()
-            .map(FetchedTable::getTableName)
-            .collect(Collectors.toSet());
     return new Query(
         job,
         fetchedQuery.getQuery(),
+        fetchedQuery.getGoogleJobId(),
+        fetchedQuery.getProjectId(),
         fetchedQuery.isUsingMaterializedView(),
         fetchedQuery.isUsingCache(),
         fetchedQuery.getDate(),
-        refTables,
         fetchedQuery.getStatistics());
-  }
-
-  private void saveQuery(Query query) {
-    queryRepository.save(query);
   }
 
   private void updateJobStatus(FetcherQueryJob job, FetcherJobStatus status) {

@@ -19,12 +19,14 @@ public class FetchedQuery implements QueryEligible {
 
   private final Set<QueryIneligibilityReason> reasons = new HashSet<>();
   private final String query;
+  private String googleJobId;
   private boolean useMaterializedView;
   private boolean useCache;
   private LocalDate startTime;
   // Discovered tables in the SQL query
   private Set<FetchedTable> refTables;
   private QueryUsageStatistics statistics;
+  private String projectId;
 
   public FetchedQuery(String query) {
     this.query = query;
@@ -94,7 +96,23 @@ public class FetchedQuery implements QueryEligible {
     this.startTime = Instant.ofEpochMilli(startTime).atZone(ZoneId.systemDefault()).toLocalDate();
   }
 
+  public String getGoogleJobId() {
+    return googleJobId;
+  }
+
+  public void setGoogleJobId(String googleJobId) {
+    this.googleJobId = googleJobId;
+  }
+
   public LocalDate getDate() {
     return this.startTime;
+  }
+
+  public String getProjectId() {
+    return projectId;
+  }
+
+  public void setProjectId(String projectId) {
+    this.projectId = projectId;
   }
 }

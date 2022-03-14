@@ -2,6 +2,7 @@ package com.achilio.mvm.service;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
 import com.achilio.mvm.service.controllers.FetcherJobController;
@@ -10,6 +11,7 @@ import com.achilio.mvm.service.entities.FetcherJob.FetcherJobStatus;
 import com.achilio.mvm.service.entities.FetcherQueryJob;
 import com.achilio.mvm.service.exceptions.FetcherJobNotFoundException;
 import com.achilio.mvm.service.repositories.FetcherJobRepository;
+import com.achilio.mvm.service.services.FetcherJobService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,6 +29,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -35,14 +38,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 public class FetcherJobControllerTest {
 
   private final String TEST_PROJECT_ID = "myProjectId";
-  private final long TIMEFRAME1 = 7L;
-  private final long TIMEFRAME2 = 14L;
+  private final int TIMEFRAME1 = 7;
+  private final int TIMEFRAME2 = 14;
   private final ObjectMapper objectMapper = new ObjectMapper();
   private final FetcherQueryJob realFetcherJob1 = new FetcherQueryJob(TEST_PROJECT_ID);
   private final FetcherQueryJob realFetcherJob2 = new FetcherQueryJob(TEST_PROJECT_ID, TIMEFRAME2);
 
   @InjectMocks FetcherJobController controller;
   @Mock private FetcherJobRepository mockedFetcherJobRepository;
+  @Mock private FetcherJobService mockedFetcherJobService;
 
   @Before
   public void setup() {
@@ -52,14 +56,14 @@ public class FetcherJobControllerTest {
     when(mockedFetcherJobRepository.findTopFetchedQueryJobByProjectIdOrderByCreatedAtDesc(
             anyString()))
         .thenReturn(Optional.of(realFetcherJob1));
-    when(mockedFetcherJobRepository.findFetcherQueryJobByProjectIdAndId(
-            anyString(), ArgumentMatchers.eq(1L)))
+    when(mockedFetcherJobRepository.findFetcherQueryJobByIdAndProjectId(
+            ArgumentMatchers.eq(1L), anyString()))
         .thenReturn(Optional.of(realFetcherJob1));
-    when(mockedFetcherJobRepository.findFetcherQueryJobByProjectIdAndId(
-            anyString(), ArgumentMatchers.eq(2L)))
+    when(mockedFetcherJobRepository.findFetcherQueryJobByIdAndProjectId(
+            ArgumentMatchers.eq(2L), anyString()))
         .thenReturn(Optional.of(realFetcherJob2));
-    when(mockedFetcherJobRepository.findFetcherQueryJobByProjectIdAndId(
-            anyString(), ArgumentMatchers.eq(3L)))
+    when(mockedFetcherJobRepository.findFetcherQueryJobByIdAndProjectId(
+            ArgumentMatchers.eq(3L), anyString()))
         .thenReturn(Optional.empty());
     when(mockedFetcherJobRepository.findFetcherQueryJobsByProjectIdAndStatus(
             anyString(), ArgumentMatchers.eq(FetcherJobStatus.PENDING)))
@@ -67,6 +71,8 @@ public class FetcherJobControllerTest {
     when(mockedFetcherJobRepository.findTopFetchedQueryJobByProjectIdAndStatusOrderByCreatedAtDesc(
             anyString(), ArgumentMatchers.eq(FetcherJobStatus.PENDING)))
         .thenReturn(Optional.of(realFetcherJob2));
+    //    when(mockedFetcherJobService.fetchQueriesJob(any()))
+    doNothing().when(mockedFetcherJobService).fetchQueriesJob(any());
   }
 
   @Test
@@ -185,6 +191,8 @@ public class FetcherJobControllerTest {
   public void createNewFetcherQueryJobTest() throws JsonProcessingException {
     ObjectMapper mapper = new ObjectMapper();
     FetcherJob jobResponseEntity = controller.createNewFetcherQueryJob(TEST_PROJECT_ID);
+    Mockito.verify(mockedFetcherJobService, Mockito.timeout(1000).times(1))
+        .fetchQueriesJob(ArgumentMatchers.any(FetcherQueryJob.class));
     String jsonResponse = objectMapper.writeValueAsString(jobResponseEntity);
     JsonNode map = mapper.readTree(jsonResponse);
     Assert.assertEquals(TEST_PROJECT_ID, map.get("projectId").asText());

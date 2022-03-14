@@ -13,20 +13,20 @@ public class FetcherQueryJob extends FetcherJob {
 
   /** Timeframe is the number of days before today the fetching query job starts from */
   @Column(name = "timeframe", nullable = false)
-  private Long timeframe;
+  private int timeframe;
 
   protected FetcherQueryJob() {}
 
   public FetcherQueryJob(String projectId) {
-    this(projectId, 7L);
+    this(projectId, 7);
   }
 
-  public FetcherQueryJob(String projectId, Long timeframe) {
+  public FetcherQueryJob(String projectId, int timeframe) {
     super(projectId);
     this.timeframe = timeframe;
   }
 
-  public Long getTimeframe() {
+  public int getTimeframe() {
     return timeframe;
   }
 }

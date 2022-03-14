@@ -14,7 +14,7 @@ public interface FetcherJobRepository extends JpaRepository<FetcherQueryJob, Lon
       String projectId, FetcherJobStatus status);
 
   /** Find single job */
-  Optional<FetcherQueryJob> findFetcherQueryJobByProjectIdAndId(String projectId, Long id);
+  Optional<FetcherQueryJob> findFetcherQueryJobByIdAndProjectId(Long id, String projectId);
 
   /** Find last job */
   Optional<FetcherQueryJob> findTopFetchedQueryJobByProjectIdOrderByCreatedAtDesc(String projectId);
