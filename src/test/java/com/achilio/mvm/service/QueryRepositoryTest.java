@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Set;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,12 +20,11 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-@Ignore
 public class QueryRepositoryTest {
 
   private static boolean setUpIsDone = false;
-  private final String TEST_PROJECT_ID1 = "myProjectId";
-  private final String TEST_PROJECT_ID2 = "myOtherProjectId";
+  private final String TEST_PROJECT_ID1 = "queryRepositoryProjectId";
+  private final String TEST_PROJECT_ID2 = "myOtherQueryRepositoryProjectId";
   private final String table1 = "myTable1";
   private final String table2 = "myTable2";
   private final Set<String> refTables = new HashSet<>(Arrays.asList(table1, table1, table2));

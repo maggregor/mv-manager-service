@@ -19,8 +19,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 public class FetcherJobRepositoryTest {
 
   private static boolean setUpIsDone = false;
-  private final String TEST_PROJECT_ID1 = "myProjectId";
-  private final String TEST_PROJECT_ID2 = "myOtherProjectId";
+  private final String TEST_PROJECT_ID1 = "fetcherJobRepositoryProjectId";
+  private final String TEST_PROJECT_ID2 = "myOtherFetcherJobRepositoryProjectId";
   @Autowired FetcherJobRepository fetcherJobRepository;
 
   @Before
