@@ -14,7 +14,12 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 /** Query is finalized fetched query, ready to be used by the Extractor */
 @Entity
-@Table(name = "queries", indexes = @Index(columnList = "fetcher_query_job_id"))
+@Table(
+    name = "queries",
+    indexes = {
+      @Index(name = "job_and_project", columnList = "fetcher_query_job_id,project_id"),
+      @Index(name = "project", columnList = "project_id")
+    })
 @EnableJpaAuditing
 @EntityListeners(AuditingEntityListener.class)
 public class Query {
