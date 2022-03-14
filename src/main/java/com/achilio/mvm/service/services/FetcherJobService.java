@@ -2,11 +2,11 @@ package com.achilio.mvm.service.services;
 
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
-import com.achilio.mvm.service.entities.AchilioQuery;
 import com.achilio.mvm.service.entities.FetcherJob.FetcherJobStatus;
 import com.achilio.mvm.service.entities.FetcherQueryJob;
-import com.achilio.mvm.service.repositories.AchilioQueryRepository;
+import com.achilio.mvm.service.entities.Query;
 import com.achilio.mvm.service.repositories.FetcherJobRepository;
+import com.achilio.mvm.service.repositories.QueryRepository;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -21,7 +21,7 @@ public class FetcherJobService {
 
   @Autowired private FetcherService fetcherService;
   @Autowired private FetcherJobRepository fetcherJobRepository;
-  @Autowired private AchilioQueryRepository achilioQueryRepository;
+  @Autowired private QueryRepository queryRepository;
 
   public FetcherJobService() {}
 
@@ -41,19 +41,15 @@ public class FetcherJobService {
     List<FetchedQuery> allQueries =
         fetcherService.fetchQueriesSince(
             fetcherQueryJob.getProjectId(), fetcherQueryJob.getTimeframe());
-    List<AchilioQuery> achilioQueries =
-        allQueries.stream()
-            .map(q -> toAchilioQuery(q, fetcherQueryJob))
-            .map(this::saveQuery)
-            .collect(Collectors.toList());
+    allQueries.stream().map(q -> toAchilioQuery(q, fetcherQueryJob)).forEach(this::saveQuery);
   }
 
-  private AchilioQuery toAchilioQuery(FetchedQuery fetchedQuery, FetcherQueryJob job) {
+  private Query toAchilioQuery(FetchedQuery fetchedQuery, FetcherQueryJob job) {
     Set<String> refTables =
         fetchedQuery.getReferenceTables().stream()
             .map(FetchedTable::getTableName)
             .collect(Collectors.toSet());
-    return new AchilioQuery(
+    return new Query(
         job,
         fetchedQuery.getQuery(),
         fetchedQuery.isUsingMaterializedView(),
@@ -63,8 +59,8 @@ public class FetcherJobService {
         fetchedQuery.getStatistics());
   }
 
-  private AchilioQuery saveQuery(AchilioQuery achilioQuery) {
-    return achilioQueryRepository.save(achilioQuery);
+  private void saveQuery(Query query) {
+    queryRepository.save(query);
   }
 
   private void updateJobStatus(FetcherQueryJob job, FetcherJobStatus status) {

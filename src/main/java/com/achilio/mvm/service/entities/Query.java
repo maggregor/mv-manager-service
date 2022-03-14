@@ -16,12 +16,12 @@ import javax.persistence.Table;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
-/** AchilioQuery is finalized fetched query, ready to be used by the Extractor */
+/** Query is finalized fetched query, ready to be used by the Extractor */
 @Entity
-@Table(name = "achilio_query")
+@Table(name = "queries")
 @EnableJpaAuditing
 @EntityListeners(AuditingEntityListener.class)
-public class AchilioQuery {
+public class Query {
 
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
@@ -61,7 +61,7 @@ public class AchilioQuery {
   @Column(name = "processed_bytes")
   private long processedBytes = 0;
 
-  public AchilioQuery(
+  public Query(
       FetcherQueryJob fetcherQueryJob,
       String query,
       boolean useMaterializedView,
@@ -80,7 +80,7 @@ public class AchilioQuery {
     this.processedBytes = statistics.getProcessedBytes();
   }
 
-  protected AchilioQuery() {}
+  protected Query() {}
 
   public Long getId() {
     return id;
