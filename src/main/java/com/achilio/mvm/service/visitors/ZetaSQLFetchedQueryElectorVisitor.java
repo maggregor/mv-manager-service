@@ -1,6 +1,6 @@
 package com.achilio.mvm.service.visitors;
 
-import static com.achilio.mvm.service.visitors.QueryIneligibilityReason.DOES_NOT_FILTER_OR_AGGREGATE;
+import static com.achilio.mvm.service.visitors.QueryIneligibilityReason.DOES_NOT_FILTER_OR_GROUP;
 
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.google.zetasql.resolvedast.ResolvedNode;
@@ -24,19 +24,19 @@ public class ZetaSQLFetchedQueryElectorVisitor extends ResolvedNodes.Visitor {
 
   @Override
   public void visit(ResolvedQueryStmt node) {
-    query.addQueryIneligibilityReason(DOES_NOT_FILTER_OR_AGGREGATE);
+    query.addQueryIneligibilityReason(DOES_NOT_FILTER_OR_GROUP);
     super.visit(node);
   }
 
   @Override
   public void visit(ResolvedAggregateScan node) {
-    query.removeQueryIneligibilityReason(DOES_NOT_FILTER_OR_AGGREGATE);
+    query.removeQueryIneligibilityReason(DOES_NOT_FILTER_OR_GROUP);
     super.visit(node);
   }
 
   @Override
   public void visit(ResolvedFilterScan node) {
-    query.removeQueryIneligibilityReason(DOES_NOT_FILTER_OR_AGGREGATE);
+    query.removeQueryIneligibilityReason(DOES_NOT_FILTER_OR_GROUP);
     super.visit(node);
   }
 }

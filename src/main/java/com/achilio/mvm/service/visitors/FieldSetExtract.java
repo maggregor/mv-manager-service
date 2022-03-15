@@ -1,7 +1,6 @@
 package com.achilio.mvm.service.visitors;
 
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
-import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.visitors.fields.FieldSet;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -11,7 +10,7 @@ import java.util.stream.Collectors;
  *
  * @see FieldSet
  */
-public interface FieldSetAnalyzer {
+public interface FieldSetExtract {
 
   /**
    * Extract all fields from each sql statements and returns each FieldSet. Discover tables paths in
@@ -20,6 +19,7 @@ public interface FieldSetAnalyzer {
    * @param fetchedQueries - the queries
    * @return
    */
+  @Deprecated
   default List<FieldSet> extract(List<FetchedQuery> fetchedQueries) {
     return fetchedQueries.stream().map(this::extract).collect(Collectors.toList());
   }
@@ -30,21 +30,12 @@ public interface FieldSetAnalyzer {
    * @param fetchedQueries - the query
    * @return
    */
+  @Deprecated
   FieldSet extract(FetchedQuery fetchedQueries);
 
-  /**
-   * Find table path and map with FetchedTable
-   *
-   * @param fetchedQueries - the query
-   * @return
-   */
-  void discoverFetchedTable(FetchedQuery fetchedQueries);
+  List<FieldSet> extractAll(FetchedQuery fetchedQuery);
 
-  default void analyzeIneligibleReasons(List<FetchedQuery> fetchedQueries) {
-    fetchedQueries.forEach(this::analyzeIneligibleReasons);
-  }
+  List<FieldSet> extractAll(String projectId, String statement);
 
-  void analyzeIneligibleReasons(FetchedQuery fetchedQuery);
-
-  FetchedTable findFetchedTableByPath(List<String> path);
+  List<FieldSet> extractAll(List<FetchedQuery> fetchedQuery);
 }

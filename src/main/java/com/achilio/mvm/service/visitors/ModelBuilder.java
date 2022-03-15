@@ -5,7 +5,9 @@ import java.util.Set;
 
 public interface ModelBuilder {
 
-  void registerTables(Set<FetchedTable> tables);
+  default void registerTables(Set<FetchedTable> tables) {
+    tables.forEach(this::registerTable);
+  }
 
   void registerTable(FetchedTable table);
 

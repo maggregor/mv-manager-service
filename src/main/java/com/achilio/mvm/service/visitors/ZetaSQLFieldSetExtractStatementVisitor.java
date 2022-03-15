@@ -1,6 +1,7 @@
 package com.achilio.mvm.service.visitors;
 
 import com.achilio.mvm.service.visitors.fields.AggregateField;
+import com.achilio.mvm.service.visitors.fields.FieldSet;
 import com.achilio.mvm.service.visitors.fields.FunctionField;
 import com.achilio.mvm.service.visitors.fields.ReferenceField;
 import com.google.common.base.Preconditions;
@@ -8,25 +9,43 @@ import com.google.common.collect.ImmutableList;
 import com.google.zetasql.Analyzer;
 import com.google.zetasql.SimpleCatalog;
 import com.google.zetasql.resolvedast.ResolvedColumn;
+import com.google.zetasql.resolvedast.ResolvedNode;
+import com.google.zetasql.resolvedast.ResolvedNodes;
 import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedAggregateFunctionCall;
 import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedColumnRef;
 import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedComputedColumn;
 import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedExpr;
 import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedFilterScan;
 import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedFunctionCallBase;
+import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedJoinScan;
 import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedOutputColumn;
+import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedScan;
+import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedTableScan;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class ZetaSQLFieldSetExtractGlobalVisitor extends ZetaSQLFieldSetExtractVisitor {
+public class ZetaSQLFieldSetExtractStatementVisitor extends ZetaSQLFieldSetExtractVisitor {
 
+  private static final Logger LOGGER =
+      LoggerFactory.getLogger(ZetaSQLFieldSetExtractStatementVisitor.class);
   private static final String NOT_REGULAR_TABLE_PREFIX = "$";
 
   // Useful to build SQL expression from ResolvedNode.
-  private final SimpleCatalog catalog;
+  private final List<FieldSet> subFieldSets = new ArrayList<>();
+  private final String defaultProjectId;
 
-  ZetaSQLFieldSetExtractGlobalVisitor(SimpleCatalog catalog) {
-    this.catalog = catalog;
+  public ZetaSQLFieldSetExtractStatementVisitor(String defaultProjectId, SimpleCatalog catalog) {
+    super(catalog);
+    this.defaultProjectId = defaultProjectId;
+  }
+
+  @Override
+  public void defaultVisit(ResolvedNode node) {
+    super.defaultVisit(node);
   }
 
   /**
@@ -39,6 +58,43 @@ public class ZetaSQLFieldSetExtractGlobalVisitor extends ZetaSQLFieldSetExtractV
     addReference(node.getColumn());
   }
 
+  @Override
+  public void visit(ResolvedTableScan node) {
+    if (this.getFieldSet().getReferenceTable() != null) {
+      throw new IllegalArgumentException("Can't set more than one reference table");
+    }
+    Optional<TableId> tableId = findTableInResolvedScan(node);
+    tableId.ifPresent(this::setTableReference);
+  }
+
+  @Override
+  public void visit(ResolvedJoinScan node) {
+    Optional<TableId> tableIdLeft = findTableInResolvedScan(node.getLeftScan());
+    if (tableIdLeft.isPresent() && this.getFieldSet().getReferenceTable() == null) {
+      this.setTableReference(tableIdLeft.get());
+    }
+    Optional<TableId> tableIdRight = findTableInResolvedScan(node.getRightScan());
+    tableIdRight.ifPresent(t -> addTableJoin(t, JoinType.valueOf(node.getJoinType().name())));
+  }
+
+  public Optional<TableId> findTableInResolvedScan(ResolvedScan scan) {
+    if (scan instanceof ResolvedTableScan) {
+      return findTableInResolvedScan((ResolvedTableScan) scan);
+    }
+
+    return Optional.empty();
+  }
+
+  public Optional<TableId> findTableInResolvedScan(ResolvedTableScan scan) {
+    TableId tableId = TableId.parse(scan.getTable().getName());
+    if (tableId == null) {
+      return Optional.empty();
+    } else if (tableId.getProject() == null) {
+      tableId = TableId.of(defaultProjectId, tableId.getDataset(), tableId.getTable());
+    }
+    return Optional.of(tableId);
+  }
+
   /**
    * Visit the filter clause and visit nodes in expression. ie: {@code WHERE col = 'token'}
    *
@@ -46,9 +102,9 @@ public class ZetaSQLFieldSetExtractGlobalVisitor extends ZetaSQLFieldSetExtractV
    */
   @Override
   public void visit(ResolvedFilterScan node) {
-    FieldSetExtractVisitor visitor = new ZetaSQLFieldSetExtractFilterVisitor();
+    FieldSetExtractVisitor visitor = new ZetaSQLFieldSetExtractFilterExprVisitor(getCatalog());
     node.getFilterExpr().accept(visitor);
-    this.merge(visitor.fieldSet());
+    this.getFieldSet().merge(visitor.getFieldSet());
     super.visit(node);
   }
 
@@ -66,6 +122,33 @@ public class ZetaSQLFieldSetExtractGlobalVisitor extends ZetaSQLFieldSetExtractV
       addFunction(expr);
     }
     super.visit(node);
+  }
+
+  /**
+   * SubQuery in expression (NOT in FROM)
+   *
+   * @param node
+   */
+  @Override
+  public void visit(ResolvedNodes.ResolvedSubqueryExpr node) {
+    this.extractNewFieldSet(node.getSubquery());
+  }
+
+  /**
+   * WITH clause
+   *
+   * @param node
+   */
+  @Override
+  public void visit(ResolvedNodes.ResolvedWithEntry node) {
+    this.extractNewFieldSet(node.getWithSubquery());
+  }
+
+  private void extractNewFieldSet(ResolvedNodes.ResolvedScan node) {
+    ZetaSQLFieldSetExtractStatementVisitor visitor =
+        new ZetaSQLFieldSetExtractStatementVisitor(defaultProjectId, getCatalog());
+    node.accept(visitor);
+    subFieldSets.addAll(visitor.getAllFieldSets());
   }
 
   /** Add a ResolvedColumn as ReferenceField. Checks if the ResolvedColumn isn't an alias. */
@@ -94,8 +177,24 @@ public class ZetaSQLFieldSetExtractGlobalVisitor extends ZetaSQLFieldSetExtractV
     this.addField(new FunctionField(sql));
   }
 
+  /**
+   * Returns all fieldset discovered in the statement - Remove empty fieldset - Remove fieldset
+   * without reference table
+   *
+   * @return
+   */
+  public List<FieldSet> getAllFieldSets() {
+    List<FieldSet> fieldSets = new ArrayList<>();
+    // Not empty field set
+    fieldSets.add(super.getFieldSet());
+    fieldSets.addAll(this.subFieldSets);
+    return fieldSets.stream()
+        .filter(f -> !f.isEmpty() && f.getReferenceTable() != null)
+        .collect(Collectors.toList());
+  }
+
   private String buildSQLFunction(ResolvedFunctionCallBase func) {
-    String expression = Analyzer.buildExpression(func, catalog);
+    String expression = Analyzer.buildExpression(func, getCatalog());
     return hackMappingColumnsInFunction(expression, func);
   }
 

@@ -47,6 +47,11 @@ public abstract class Field {
   }
 
   @Override
+  public String toString() {
+    return "Field{" + "expression='" + expression + '\'' + ", alias='" + alias + '\'' + '}';
+  }
+
+  @Override
   public int hashCode() {
     return new HashCodeBuilder(17, 37).append(expression).append(alias).toHashCode();
   }

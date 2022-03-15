@@ -16,9 +16,9 @@ import com.achilio.mvm.service.entities.OptimizationResult.Status;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.repositories.OptimizerRepository;
 import com.achilio.mvm.service.repositories.OptimizerResultRepository;
-import com.achilio.mvm.service.visitors.FieldSetAnalyzer;
+import com.achilio.mvm.service.visitors.FieldSetExtract;
 import com.achilio.mvm.service.visitors.FieldSetExtractFactory;
-import com.achilio.mvm.service.visitors.FieldSetMerger;
+import com.achilio.mvm.service.visitors.TableId;
 import com.achilio.mvm.service.visitors.fields.FieldSet;
 import java.util.Comparator;
 import java.util.List;
@@ -60,7 +60,7 @@ public class OptimizerService {
 
   @Async("asyncExecutor")
   public void optimizeProject(Optimization o) {
-    String projectId = o.getProjectId();
+    /* String projectId = o.getProjectId();
     int analysisTimeframe = o.getAnalysisTimeframe();
     int mvMaxPerTable = o.getMvMaxPerTable();
     int maxMvPerTable = Math.min(GOOGLE_MAX_MV_PER_TABLE, mvMaxPerTable);
@@ -81,8 +81,6 @@ public class OptimizerService {
     Set<FetchedTable> tables = fetcherService.fetchAllTables(projectId);
     // STEP 3 - Filter queries from targeted dataset
     addOptimizationEvent(o, StatusType.FILTER_QUERIES_FROM_DATASET);
-    FieldSetAnalyzer analyzer = FieldSetExtractFactory.createFieldSetExtract(projectId, tables);
-    allQueries.forEach(analyzer::discoverFetchedTable);
     List<FetchedQuery> allQueriesOnDataset =
         allQueries.stream().filter(query -> isOnDataset(query, datasets)).collect(toList());
     // STEP 4 - Filter eligible queries
@@ -125,7 +123,7 @@ public class OptimizerService {
     } else {
       addOptimizationEvent(o, StatusType.NOT_PUBLISHED);
     }
-    optimizerRepository.save(o);
+    optimizerRepository.save(o);*/
   }
 
   private void applyStatus(Optimization optimization, List<OptimizationResult> results) {
@@ -162,13 +160,6 @@ public class OptimizerService {
         .allMatch(d -> datasetNames.contains(d.getDatasetName().toLowerCase()));
   }
 
-  private List<FetchedQuery> getEligibleQueries(
-      String projectId, Set<FetchedTable> tables, List<FetchedQuery> queries) {
-    FieldSetAnalyzer extractor = FieldSetExtractFactory.createFieldSetExtract(projectId, tables);
-    extractor.analyzeIneligibleReasons(queries);
-    return queries.stream().filter(FetchedQuery::isEligible).collect(toList());
-  }
-
   private Boolean publish(Optimization o, List<OptimizationResult> results) {
     LOGGER.info("Optimization done with {} results.", results.size());
     return publisherService.publishOptimization(o, results);
@@ -182,9 +173,9 @@ public class OptimizerService {
   public OptimizationResult buildOptimizationResult(Optimization o, FieldSet fieldSet) {
     String statement = statementBuilder.build(fieldSet);
     // To date, get first Table in the set iterator.
-    FetchedTable fetchedTable = fieldSet.getReferenceTables().iterator().next();
+    TableId tableId = fieldSet.getReferenceTable();
     OptimizationResult result =
-        new OptimizationResult(o, fetchedTable, statement, fieldSet.getStatistics());
+        new OptimizationResult(o, tableId, statement, fieldSet.getStatistics());
     optimizerResultRepository.save(result);
     optimizerRepository.save(o);
     return result;
@@ -197,7 +188,7 @@ public class OptimizerService {
 
   private List<FieldSet> extractFields(
       String project, Set<FetchedTable> tables, List<FetchedQuery> queries) {
-    FieldSetAnalyzer extractor = FieldSetExtractFactory.createFieldSetExtract(project, tables);
+    FieldSetExtract extractor = FieldSetExtractFactory.createFieldSetExtract(project, tables);
     return extractor.extract(queries);
   }
 

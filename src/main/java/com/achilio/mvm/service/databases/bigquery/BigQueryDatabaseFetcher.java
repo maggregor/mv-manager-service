@@ -193,7 +193,9 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     Long startTime = stats.getStartTime();
     final boolean useCache = BooleanUtils.isTrue(stats.getCacheHit());
     final boolean usingManagedMV = containsManagedMVUsageInQueryStages(stats.getQueryPlan());
-    FetchedQuery fetchedQuery = FetchedQueryFactory.createFetchedQuery(StringUtils.trim(query));
+    FetchedQuery fetchedQuery =
+        FetchedQueryFactory.createFetchedQuery(
+            job.getJobId().getProject(), StringUtils.trim(query));
     fetchedQuery.setStartTime(startTime);
     fetchedQuery.setStatistics(toQueryUsageStatistics(stats));
     fetchedQuery.setUseMaterializedView(usingManagedMV);

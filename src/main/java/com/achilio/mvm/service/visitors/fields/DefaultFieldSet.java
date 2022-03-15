@@ -1,9 +1,13 @@
 package com.achilio.mvm.service.visitors.fields;
 
 import com.achilio.mvm.service.OptimizerApplication;
-import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
+import com.achilio.mvm.service.visitors.FieldSetIneligibilityReason;
+import com.achilio.mvm.service.visitors.JoinType;
+import com.achilio.mvm.service.visitors.TableId;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -16,7 +20,8 @@ public class DefaultFieldSet implements FieldSet {
   private static final Logger LOGGER = LoggerFactory.getLogger(OptimizerApplication.class);
 
   private final Set<Field> fields;
-  private Set<FetchedTable> referenceTables;
+  private final Map<TableId, JoinType> joinTables = new HashMap<>();
+  private TableId referenceTable;
   private QueryUsageStatistics statistics;
 
   public DefaultFieldSet() {
@@ -33,13 +38,23 @@ public class DefaultFieldSet implements FieldSet {
   }
 
   @Override
-  public Set<FetchedTable> getReferenceTables() {
-    return this.referenceTables;
+  public TableId getReferenceTable() {
+    return this.referenceTable;
   }
 
   @Override
-  public void setReferenceTables(Set<FetchedTable> referenceTables) {
-    this.referenceTables = referenceTables;
+  public void setReferenceTable(TableId referenceTable) {
+    this.referenceTable = referenceTable;
+  }
+
+  @Override
+  public Map<TableId, JoinType> getJoinTables() {
+    return joinTables;
+  }
+
+  @Override
+  public void addJoinTable(TableId joinTable, JoinType type) {
+    this.joinTables.put(joinTable, type);
   }
 
   @Override
@@ -91,7 +106,26 @@ public class DefaultFieldSet implements FieldSet {
 
   @Override
   public boolean isEmpty() {
-    return fields.isEmpty();
+    return fields.isEmpty() || this == FieldSetFactory.EMPTY_FIELD_SET;
+  }
+
+  @Override
+  public void addIneligibilityReason(FieldSetIneligibilityReason ineligibilityReason) {}
+
+  @Override
+  public void removeIneligibilityReason(FieldSetIneligibilityReason ineligibilityReason) {}
+
+  @Override
+  public void clearIneligibilityReasons(FieldSetIneligibilityReason ineligibilityReason) {}
+
+  @Override
+  public Set<FieldSetIneligibilityReason> getIneligibilityReasons() {
+    return null;
+  }
+
+  @Override
+  public boolean isEligible() {
+    return false;
   }
 
   @Override
@@ -104,6 +138,18 @@ public class DefaultFieldSet implements FieldSet {
     }
     DefaultFieldSet that = (DefaultFieldSet) o;
     return new EqualsBuilder().append(fields, that.fields).isEquals();
+  }
+
+  @Override
+  public String toString() {
+    return "DefaultFieldSet{"
+        + "fields="
+        + fields
+        + ", referenceTable="
+        + referenceTable
+        + ", joinTables="
+        + joinTables
+        + '}';
   }
 
   @Override

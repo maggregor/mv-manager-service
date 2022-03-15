@@ -19,10 +19,12 @@ public abstract class ZetaSQLModelBuilder implements ModelBuilder {
   private final SimpleCatalog catalog;
   private final SimpleCatalog catalogProject;
   private final Set<FetchedTable> tables;
+  private final String projectId;
 
-  public ZetaSQLModelBuilder(String projectName, Set<FetchedTable> tables) {
+  public ZetaSQLModelBuilder(String projectId, Set<FetchedTable> tables) {
     this.catalog = new SimpleCatalog("root");
-    catalogProject = this.catalog.addNewSimpleCatalog(projectName);
+    this.projectId = projectId;
+    catalogProject = this.catalog.addNewSimpleCatalog(projectId);
     this.catalog.addZetaSQLFunctions(new ZetaSQLBuiltinFunctionOptions());
     this.tables = tables;
     this.registerTables(tables);
@@ -30,11 +32,6 @@ public abstract class ZetaSQLModelBuilder implements ModelBuilder {
 
   public Set<FetchedTable> tables() {
     return this.tables;
-  }
-
-  @Override
-  public void registerTables(Set<FetchedTable> tables) {
-    tables.forEach(this::registerTable);
   }
 
   @Override
@@ -84,5 +81,9 @@ public abstract class ZetaSQLModelBuilder implements ModelBuilder {
 
   public SimpleCatalog getCatalog() {
     return this.catalog;
+  }
+
+  public String getProjectId() {
+    return this.projectId;
   }
 }

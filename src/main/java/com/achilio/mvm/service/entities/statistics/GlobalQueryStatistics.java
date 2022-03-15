@@ -9,11 +9,7 @@ public class GlobalQueryStatistics {
   private final Map<Scope, QueryStatistics> details = new HashMap<>();
 
   public GlobalQueryStatistics() {
-    this(false);
-  }
-
-  public GlobalQueryStatistics(boolean computeIneligibilityReasons) {
-    total = new QueryStatistics(computeIneligibilityReasons);
+    total = new QueryStatistics();
     for (Scope scope : Scope.values()) {
       details.put(scope, new QueryStatistics());
     }
@@ -24,9 +20,6 @@ public class GlobalQueryStatistics {
     total.addQueries(statistics.getTotalQueries());
     total.addProcessedBytes(statistics.getTotalProcessedBytes());
     total.addBilledBytes(statistics.getTotalBilledBytes());
-    total.addEligible(statistics.getEligible());
-    total.addIneligibles(statistics.getIneligible());
-    total.addIneligibleReasons(statistics.getIneligibleReasons());
     // Add children statistics
     this.details.put(scope, statistics);
   }

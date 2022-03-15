@@ -1,6 +1,6 @@
 package com.achilio.mvm.service;
 
-import static com.achilio.mvm.service.visitors.QueryIneligibilityReason.DOES_NOT_FILTER_OR_AGGREGATE;
+import static com.achilio.mvm.service.visitors.QueryIneligibilityReason.DOES_NOT_FILTER_OR_GROUP;
 import static com.achilio.mvm.service.visitors.QueryIneligibilityReason.PARSING_FAILED;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -65,20 +65,10 @@ public class FetchedQueryTest {
   @Test
   public void clearIneligibleReasons() {
     FetchedQuery query = new FetchedQuery(Strings.EMPTY);
-    query.addQueryIneligibilityReason(DOES_NOT_FILTER_OR_AGGREGATE);
+    query.addQueryIneligibilityReason(DOES_NOT_FILTER_OR_GROUP);
     query.addQueryIneligibilityReason(PARSING_FAILED);
     assertEquals(2, query.getQueryIneligibilityReasons().size());
     query.clearQueryIneligibilityReasons();
     assertEquals(0, query.getQueryIneligibilityReasons().size());
-  }
-
-  @Test
-  public void isEligible() {
-    FetchedQuery query = new FetchedQuery(Strings.EMPTY);
-    assertTrue(query.isEligible());
-    query.addQueryIneligibilityReason(DOES_NOT_FILTER_OR_AGGREGATE);
-    assertFalse(query.isEligible());
-    query.clearQueryIneligibilityReasons();
-    assertTrue(query.isEligible());
   }
 }

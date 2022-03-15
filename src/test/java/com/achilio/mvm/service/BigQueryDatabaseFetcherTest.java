@@ -29,6 +29,7 @@ import com.google.cloud.bigquery.DatasetId;
 import com.google.cloud.bigquery.Field;
 import com.google.cloud.bigquery.Job;
 import com.google.cloud.bigquery.JobConfiguration;
+import com.google.cloud.bigquery.JobId;
 import com.google.cloud.bigquery.JobStatistics;
 import com.google.cloud.bigquery.JobStatus;
 import com.google.cloud.bigquery.LegacySQLTypeName;
@@ -340,6 +341,7 @@ public class BigQueryDatabaseFetcherTest {
     when(mockJob1.getStatus()).thenReturn(status);
     when(mockJob1.getStatus().getError()).thenReturn(null);
     when(mockJob1.getStatistics()).thenReturn(mockJobStats);
+    when(mockJob1.getJobId()).thenReturn(JobId.of("project", "jobId"));
     when(stage1.getSteps()).thenReturn(Lists.newArrayList(steps1));
     when(steps1.getSubsteps()).thenReturn(createSubSteps("st1", "st2"));
     when(mockJobStats.getQueryPlan()).thenReturn(Lists.newArrayList(stage1));
@@ -419,6 +421,7 @@ public class BigQueryDatabaseFetcherTest {
     when(mockJob.getStatus()).thenReturn(status);
     when(mockJob.getStatus().getError()).thenReturn(null);
     when(mockJob.getStatistics()).thenReturn(mockJobStats);
+    when(mockJob.getJobId()).thenReturn(JobId.of("project", "jobId"));
     when(mockJobStats.getCacheHit()).thenReturn(false);
     jobs = mock(Page.class);
     when(jobs.iterateAll()).thenReturn(Lists.newArrayList(mockJob));
