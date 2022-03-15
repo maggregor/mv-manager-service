@@ -19,12 +19,11 @@ public class QueryService {
   @Autowired private FetcherJobRepository fetcherJobRepository;
   @Autowired private QueryRepository queryRepository;
 
-  public List<Query> getAllQueriesByJobIdAndProjectId(String fetcherJobId, String projectId) {
+  public List<Query> getAllQueriesByJobIdAndProjectId(Long fetcherJobId, String projectId) {
     Optional<FetcherQueryJob> job =
-        fetcherJobRepository.findFetcherQueryJobByIdAndProjectId(
-            Long.valueOf(fetcherJobId), projectId);
+        fetcherJobRepository.findFetcherQueryJobByIdAndProjectId(fetcherJobId, projectId);
     if (!job.isPresent()) {
-      throw new FetcherJobNotFoundException(fetcherJobId);
+      throw new FetcherJobNotFoundException(fetcherJobId.toString());
     }
     return queryRepository.findAllByFetcherQueryJobAndFetcherQueryJob_ProjectId(
         job.get(), projectId);
@@ -40,8 +39,9 @@ public class QueryService {
         job.get(), projectId);
   }
 
-  public Query getQuery(String queryId, String projectId) {
-    Optional<Query> query = queryRepository.findQueryByIdAndProjectId(queryId, projectId);
+  public Query getQuery(String projectId, String queryId) {
+    Optional<Query> query =
+        queryRepository.findQueryByIdAndFetcherQueryJob_ProjectId(queryId, projectId);
     if (!query.isPresent()) {
       throw new QueryNotFoundException(queryId);
     }

@@ -37,16 +37,48 @@ public class RepositoriesIntegrationTest {
   private final QueryUsageStatistics stats = new QueryUsageStatistics(1, 10L, 100L);
   private final FetcherQueryJob job1 = new FetcherQueryJob(TEST_PROJECT_ID1);
   private final Query query1 =
-      new Query(job1, "SELECT 1", GOOGLE_JOB_ID1, TEST_PROJECT_ID1, false, false, LocalDate.of(2020, 1, 8), stats);
+      new Query(
+          job1,
+          "SELECT 1",
+          GOOGLE_JOB_ID1,
+          TEST_PROJECT_ID1,
+          false,
+          false,
+          LocalDate.of(2020, 1, 8),
+          stats);
   private final Query query2 =
-      new Query(job1, "SELECT 2", GOOGLE_JOB_ID2, TEST_PROJECT_ID1, false, false, LocalDate.of(2020, 1, 8), stats);
+      new Query(
+          job1,
+          "SELECT 2",
+          GOOGLE_JOB_ID2,
+          TEST_PROJECT_ID1,
+          false,
+          false,
+          LocalDate.of(2020, 1, 8),
+          stats);
   private final FetcherQueryJob job2 = new FetcherQueryJob(TEST_PROJECT_ID1, 14);
   private final Query query3 =
-      new Query(job2, "SELECT 2", GOOGLE_JOB_ID3, TEST_PROJECT_ID1,false, false, LocalDate.of(2020, 1, 8), stats);
+      new Query(
+          job2,
+          "SELECT 2",
+          GOOGLE_JOB_ID3,
+          TEST_PROJECT_ID1,
+          false,
+          false,
+          LocalDate.of(2020, 1, 8),
+          stats);
   private final FetcherQueryJob job3 = new FetcherQueryJob(TEST_PROJECT_ID1, 14);
   private final FetcherQueryJob job4 = new FetcherQueryJob(TEST_PROJECT_ID2, 14);
   private final Query query4 =
-      new Query(job4, "SELECT 1", GOOGLE_JOB_ID4, TEST_PROJECT_ID2, false, false, LocalDate.of(2020, 1, 8), stats);
+      new Query(
+          job4,
+          "SELECT 1",
+          GOOGLE_JOB_ID4,
+          TEST_PROJECT_ID2,
+          false,
+          false,
+          LocalDate.of(2020, 1, 8),
+          stats);
 
   @Autowired FetcherJobRepository fetcherJobRepository;
   @Autowired QueryRepository queryRepository;
@@ -179,7 +211,7 @@ public class RepositoriesIntegrationTest {
   @Test
   public void findFirstByIdAndFetcherQueryJob_ProjectIdTest() {
     Optional<Query> retrievedQuery1 =
-        queryRepository.findFirstByIdAndFetcherQueryJob_ProjectId(
+        queryRepository.findQueryByIdAndFetcherQueryJob_ProjectId(
             query1.getId(), query1.getFetcherQueryJob().getProjectId());
     Assert.assertTrue(retrievedQuery1.isPresent());
     Assert.assertEquals("SELECT 1", retrievedQuery1.get().getQuery());
