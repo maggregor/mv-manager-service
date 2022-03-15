@@ -7,6 +7,7 @@ import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
 import javax.persistence.Id;
 import javax.persistence.Index;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -17,14 +18,18 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 @Table(
     name = "queries",
     indexes = {
-      @Index(name = "job_and_project", columnList = "fetcher_query_job_id,project_id"),
+      @Index(name = "job_and_project", columnList = "last_fetcher_query_job_id,project_id"),
       @Index(name = "project", columnList = "project_id")
     })
 @EnableJpaAuditing
 @EntityListeners(AuditingEntityListener.class)
 public class Query {
 
-  @ManyToOne private FetcherQueryJob fetcherQueryJob;
+  @ManyToOne private FetcherQueryJob lastFetcherQueryJob;
+
+  @ManyToOne
+  @JoinColumn(updatable = false)
+  private FetcherQueryJob initialFetcherQueryJob;
 
   @Column(name = "query_statement", length = 65535)
   private String query;
@@ -53,7 +58,7 @@ public class Query {
   private long processedBytes = 0;
 
   public Query(
-      FetcherQueryJob fetcherQueryJob,
+      FetcherQueryJob lastFetcherQueryJob,
       String query,
       String id,
       String projectId,
@@ -61,7 +66,8 @@ public class Query {
       boolean useCache,
       LocalDate startTime,
       QueryUsageStatistics statistics) {
-    this.fetcherQueryJob = fetcherQueryJob;
+    this.lastFetcherQueryJob = lastFetcherQueryJob;
+    this.initialFetcherQueryJob = lastFetcherQueryJob;
     this.query = query;
     this.id = id;
     this.projectId = projectId;
@@ -106,8 +112,12 @@ public class Query {
     return processedBytes;
   }
 
-  public FetcherQueryJob getFetcherQueryJob() {
-    return fetcherQueryJob;
+  public FetcherQueryJob getLastFetcherQueryJob() {
+    return lastFetcherQueryJob;
+  }
+
+  public void setLastFetcherQueryJob(FetcherQueryJob lastFetcherQueryJob) {
+    this.lastFetcherQueryJob = lastFetcherQueryJob;
   }
 
   public String getProjectId() {
@@ -116,5 +126,13 @@ public class Query {
 
   public void setProjectId(String projectId) {
     this.projectId = projectId;
+  }
+
+  public FetcherQueryJob getInitialFetcherQueryJob() {
+    return initialFetcherQueryJob;
+  }
+
+  public void setInitialFetcherQueryJob(FetcherQueryJob initialFetcherQueryJob) {
+    this.initialFetcherQueryJob = initialFetcherQueryJob;
   }
 }
