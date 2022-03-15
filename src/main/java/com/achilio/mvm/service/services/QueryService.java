@@ -3,6 +3,7 @@ package com.achilio.mvm.service.services;
 import com.achilio.mvm.service.entities.FetcherQueryJob;
 import com.achilio.mvm.service.entities.Query;
 import com.achilio.mvm.service.exceptions.FetcherJobNotFoundException;
+import com.achilio.mvm.service.exceptions.QueryNotFoundException;
 import com.achilio.mvm.service.repositories.FetcherJobRepository;
 import com.achilio.mvm.service.repositories.QueryRepository;
 import java.util.List;
@@ -37,5 +38,13 @@ public class QueryService {
     }
     return queryRepository.findAllByFetcherQueryJobAndFetcherQueryJob_ProjectId(
         job.get(), projectId);
+  }
+
+  public Query getQuery(String queryId, String projectId) {
+    Optional<Query> query = queryRepository.findQueryByIdAndProjectId(queryId, projectId);
+    if (!query.isPresent()) {
+      throw new QueryNotFoundException(queryId);
+    }
+    return query.get();
   }
 }

@@ -3,6 +3,7 @@ package com.achilio.mvm.service.exception.controllers;
 import com.achilio.mvm.service.exceptions.FetcherJobNotFoundException;
 import com.achilio.mvm.service.exceptions.InvalidSettingsException;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
+import com.achilio.mvm.service.exceptions.QueryNotFoundException;
 import com.achilio.mvm.service.exceptions.UnauthorizedException;
 import com.google.cloud.resourcemanager.ResourceManagerException;
 import java.util.Date;
@@ -48,6 +49,14 @@ public class CustomizedResponseEntityExceptionHandler extends ResponseEntityExce
 
   @ExceptionHandler(FetcherJobNotFoundException.class)
   public final ResponseEntity<Object> fetcherJobNotFoundException(
+      Exception ex, WebRequest request) {
+    ExceptionResponse exResponse =
+        new ExceptionResponse(new Date(), ex.getMessage(), request.getDescription(false));
+    return new ResponseEntity<>(exResponse, HttpStatus.NOT_FOUND);
+  }
+
+  @ExceptionHandler(QueryNotFoundException.class)
+  public final ResponseEntity<Object> queryNotFoundException(
       Exception ex, WebRequest request) {
     ExceptionResponse exResponse =
         new ExceptionResponse(new Date(), ex.getMessage(), request.getDescription(false));

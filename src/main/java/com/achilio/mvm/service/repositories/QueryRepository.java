@@ -11,4 +11,6 @@ public interface QueryRepository extends JpaRepository<Query, String> {
       FetcherQueryJob fetcherQueryJob, String projectId);
 
   Optional<Query> findFirstByIdAndFetcherQueryJob_ProjectId(String id, String projectId);
+
+  Optional<Query> findQueryByIdAndProjectId(String id, String projectId);
 }
