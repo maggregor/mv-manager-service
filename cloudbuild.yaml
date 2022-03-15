@@ -21,6 +21,8 @@ steps:
           "${_SERVICE_NAME}",
           "--image",
           "gcr.io/${PROJECT_ID}/${_SERVICE_NAME}",
+          "--add-cloudsql-instances",
+          "${_SPRING_CLOUD_GCP_SQL_INSTANCE_CONNECTION_NAME}",
           "--set-env-vars=SPRING_DATASOURCE_URL=${_SPRING_DATASOURCE_URL},PUBLISHER_ENABLED=${_PUBLISHER_ENABLED},PUBLISHER_GOOGLE_PROJECT_ID=${_PUBLISHER_GOOGLE_PROJECT_ID}",
           "--update-env-vars=SPRING_CLOUD_GCP_SQL_ENABLED=${_SPRING_CLOUD_GCP_SQL_ENABLED}",
           "--update-env-vars=SPRING_CLOUD_GCP_SQL_DATABASE_NAME=${_SPRING_CLOUD_GCP_SQL_DATABASE_NAME}",
@@ -28,7 +30,6 @@ steps:
           "--update-secrets=SPRING_DATASOURCE_PASSWORD=projects/${PROJECT_NUMBER}/secrets/service_db_password/versions/latest",
           "--update-secrets=STRIPE_API_KEY=projects/${PROJECT_NUMBER}/secrets/stripe_api_key/versions/latest",
           "--update-secrets=STRIPE_ENDPOINT_SECRET=projects/${PROJECT_NUMBER}/secrets/stripe_endpoint_secret/versions/latest",
-          ""
           "--region",
           "${_REGION}",
           "--platform",
