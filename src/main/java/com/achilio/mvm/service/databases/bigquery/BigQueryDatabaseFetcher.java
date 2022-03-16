@@ -168,8 +168,12 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
   public QueryUsageStatistics toQueryUsageStatistics(
       JobStatistics.QueryStatistics queryStatistics) {
     QueryUsageStatistics statistics = new QueryUsageStatistics();
-    statistics.setProcessedBytes(queryStatistics.getTotalBytesProcessed());
-    statistics.setBilledBytes(queryStatistics.getTotalBytesBilled());
+    if (queryStatistics.getTotalBytesProcessed() != null) {
+      statistics.setProcessedBytes(queryStatistics.getTotalBytesProcessed());
+    }
+    if (queryStatistics.getTotalBytesBilled() != null) {
+      statistics.setBilledBytes(queryStatistics.getTotalBytesBilled());
+    }
     return statistics;
   }
 
