@@ -1,5 +1,6 @@
 package com.achilio.mvm.service;
 
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -91,5 +92,20 @@ public class ATableIdTest {
     googleTableId = TableId.of(expectedProjectId, expectedDatasetName, expectedTableName);
     actual = ATableId.fromGoogleTableId(googleTableId);
     assertEquals(ATableId.of(expectedProjectId, expectedDatasetName, expectedTableName), actual);
+  }
+
+  @Test
+  public void asPath() {
+    ATableId tableId1 = ATableId.of("dataset", "table");
+    ATableId tableId2 = ATableId.of("project", "dataset", "table");
+    assertEquals("dataset.table", tableId1.asPath());
+    assertEquals("project.dataset.table", tableId2.asPath());
+  }
+
+  @Test
+  public void equals() {
+    ATableId tableId = ATableId.of("dataset", "table");
+    assertEquals(tableId, tableId);
+    assertNotEquals(tableId, null);
   }
 }
