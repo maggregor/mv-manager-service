@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import com.achilio.mvm.service.visitors.ATableId;
+import com.google.cloud.bigquery.TableId;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -73,5 +74,22 @@ public class ATableIdTest {
     tableId = ATableId.parse("`goodProject`.`superDataset`.`niceTable`");
     assertNotNull(tableId);
     assertEquals(expected, tableId);
+  }
+
+  @Test
+  public void convertGoogleTableId() {
+    final String expectedProjectId = "MyProJect";
+    final String expectedDatasetName = "DaTas123";
+    final String expectedTableName = "myTaaaable";
+    TableId googleTableId;
+    ATableId actual;
+    // Dataset, Table
+    googleTableId = TableId.of(expectedDatasetName, expectedTableName);
+    actual = ATableId.fromGoogleTableId(googleTableId);
+    assertEquals(ATableId.of(expectedDatasetName, expectedTableName), actual);
+    // Project, Dataset, Table
+    googleTableId = TableId.of(expectedProjectId, expectedDatasetName, expectedTableName);
+    actual = ATableId.fromGoogleTableId(googleTableId);
+    assertEquals(ATableId.of(expectedProjectId, expectedDatasetName, expectedTableName), actual);
   }
 }
