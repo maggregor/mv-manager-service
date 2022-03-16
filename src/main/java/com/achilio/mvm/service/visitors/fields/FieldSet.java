@@ -70,7 +70,7 @@ public interface FieldSet {
   void removeIneligibilityReason(FieldSetIneligibilityReason ineligibilityReason);
 
   /** Clear ineligibility reasons */
-  void clearIneligibilityReasons(FieldSetIneligibilityReason ineligibilityReason);
+  void clearIneligibilityReasons();
 
   /** Returns ineligibility reasons */
   Set<FieldSetIneligibilityReason> getIneligibilityReasons();

@@ -1,11 +1,14 @@
 package com.achilio.mvm.service;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
+import com.achilio.mvm.service.visitors.FieldSetIneligibilityReason;
 import com.achilio.mvm.service.visitors.fields.AggregateField;
 import com.achilio.mvm.service.visitors.fields.DefaultFieldSet;
 import com.achilio.mvm.service.visitors.fields.FieldSet;
@@ -92,5 +95,35 @@ public class DefaultFieldSetTest {
     assertEquals(20L, fieldSet.cost());
     when(mockStatistics.getProcessedBytes()).thenReturn(100L);
     assertEquals(100L, fieldSet.cost());
+  }
+
+  @Test
+  public void addRemoveEligibleReason() {
+    FieldSet fieldSet = FieldSetHelper.createFieldSet();
+    assertEquals(0, fieldSet.getIneligibilityReasons().size());
+    fieldSet.addIneligibilityReason(FieldSetIneligibilityReason.DOES_NOT_CONTAIN_A_GROUP_BY);
+    assertEquals(1, fieldSet.getIneligibilityReasons().size());
+    fieldSet.removeIneligibilityReason(FieldSetIneligibilityReason.DOES_NOT_CONTAIN_A_GROUP_BY);
+    assertEquals(0, fieldSet.getIneligibilityReasons().size());
+  }
+
+  @Test
+  public void isEligible() {
+    FieldSet fieldSet = FieldSetHelper.createFieldSet();
+    assertTrue(fieldSet.isEligible());
+    fieldSet.addIneligibilityReason(FieldSetIneligibilityReason.DOES_NOT_CONTAIN_A_GROUP_BY);
+    assertFalse(fieldSet.isEligible());
+  }
+
+  @Test
+  public void clearEligibleReasons() {
+    FieldSet fieldSet = FieldSetHelper.createFieldSet();
+    fieldSet.addIneligibilityReason(FieldSetIneligibilityReason.CONTAINS_UNSUPPORTED_JOIN);
+    fieldSet.addIneligibilityReason(FieldSetIneligibilityReason.DOES_NOT_CONTAIN_A_GROUP_BY);
+    assertFalse(fieldSet.isEligible());
+    assertEquals(2, fieldSet.getIneligibilityReasons().size());
+    fieldSet.clearIneligibilityReasons();
+    assertTrue(fieldSet.isEligible());
+    assertEquals(0, fieldSet.getIneligibilityReasons().size());
   }
 }

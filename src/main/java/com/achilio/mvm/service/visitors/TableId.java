@@ -2,6 +2,8 @@ package com.achilio.mvm.service.visitors;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import java.util.StringJoiner;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
@@ -30,6 +32,7 @@ public class TableId {
   }
 
   public static TableId parse(String token) {
+    token = token.replaceAll("`", StringUtils.EMPTY);
     String[] split = token.split("\\.");
     if (split.length == 2) {
       return TableId.of(split[0], split[1]);
@@ -37,6 +40,16 @@ public class TableId {
       return TableId.of(split[0], split[1], split[2]);
     }
     return null;
+  }
+
+  public String asPath() {
+    StringJoiner joiner = new StringJoiner(".");
+    if (StringUtils.isNotEmpty(project)) {
+      joiner.add(project);
+    }
+    joiner.add(dataset);
+    joiner.add(table);
+    return joiner.toString();
   }
 
   public String getProject() {

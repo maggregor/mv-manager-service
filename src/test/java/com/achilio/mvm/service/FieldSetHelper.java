@@ -21,6 +21,14 @@ public enum FieldSetHelper {
     return extractor.extractAll(query);
   }
 
+  static FieldSet createFieldSet() {
+    return createFieldSet(new HashSet<>());
+  }
+
+  static FieldSet createFieldSet(TableId tableId) {
+    return createFieldSet(tableId, new HashSet<>());
+  }
+
   static FieldSet createFieldSet(Field... fields) {
     return createFieldSet(new HashSet<>(Arrays.asList(fields)));
   }

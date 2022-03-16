@@ -5,13 +5,14 @@ import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
 import com.achilio.mvm.service.visitors.FieldSetIneligibilityReason;
 import com.achilio.mvm.service.visitors.JoinType;
 import com.achilio.mvm.service.visitors.TableId;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,6 +22,7 @@ public class DefaultFieldSet implements FieldSet {
 
   private final Set<Field> fields;
   private final Map<TableId, JoinType> joinTables = new HashMap<>();
+  private final Set<FieldSetIneligibilityReason> ineligibilityReasons = new HashSet<>();
   private TableId referenceTable;
   private QueryUsageStatistics statistics;
 
@@ -110,22 +112,28 @@ public class DefaultFieldSet implements FieldSet {
   }
 
   @Override
-  public void addIneligibilityReason(FieldSetIneligibilityReason ineligibilityReason) {}
+  public void addIneligibilityReason(FieldSetIneligibilityReason ineligibilityReason) {
+    ineligibilityReasons.add(ineligibilityReason);
+  }
 
   @Override
-  public void removeIneligibilityReason(FieldSetIneligibilityReason ineligibilityReason) {}
+  public void removeIneligibilityReason(FieldSetIneligibilityReason ineligibilityReason) {
+    ineligibilityReasons.remove(ineligibilityReason);
+  }
 
   @Override
-  public void clearIneligibilityReasons(FieldSetIneligibilityReason ineligibilityReason) {}
+  public void clearIneligibilityReasons() {
+    ineligibilityReasons.clear();
+  }
 
   @Override
   public Set<FieldSetIneligibilityReason> getIneligibilityReasons() {
-    return null;
+    return Collections.unmodifiableSet(ineligibilityReasons);
   }
 
   @Override
   public boolean isEligible() {
-    return false;
+    return ineligibilityReasons.isEmpty();
   }
 
   @Override
@@ -133,11 +141,31 @@ public class DefaultFieldSet implements FieldSet {
     if (this == o) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (!(o instanceof DefaultFieldSet)) {
       return false;
     }
-    DefaultFieldSet that = (DefaultFieldSet) o;
-    return new EqualsBuilder().append(fields, that.fields).isEquals();
+
+    DefaultFieldSet fieldSet = (DefaultFieldSet) o;
+
+    if (!Objects.equals(fields, fieldSet.fields)) {
+      return false;
+    }
+    if (!joinTables.equals(fieldSet.joinTables)) {
+      return false;
+    }
+    if (!ineligibilityReasons.equals(fieldSet.ineligibilityReasons)) {
+      return false;
+    }
+    return Objects.equals(referenceTable, fieldSet.referenceTable);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = fields != null ? fields.hashCode() : 0;
+    result = 31 * result + joinTables.hashCode();
+    result = 31 * result + ineligibilityReasons.hashCode();
+    result = 31 * result + (referenceTable != null ? referenceTable.hashCode() : 0);
+    return result;
   }
 
   @Override
@@ -145,15 +173,12 @@ public class DefaultFieldSet implements FieldSet {
     return "DefaultFieldSet{"
         + "fields="
         + fields
-        + ", referenceTable="
-        + referenceTable
         + ", joinTables="
         + joinTables
+        + ", ineligibilityReasons="
+        + ineligibilityReasons
+        + ", referenceTable="
+        + referenceTable
         + '}';
-  }
-
-  @Override
-  public int hashCode() {
-    return new HashCodeBuilder(17, 37).append(fields()).toHashCode();
   }
 }

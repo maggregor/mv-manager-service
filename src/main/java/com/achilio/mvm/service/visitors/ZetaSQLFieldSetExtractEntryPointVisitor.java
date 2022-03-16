@@ -29,8 +29,8 @@ public class ZetaSQLFieldSetExtractEntryPointVisitor extends Visitor {
     ZetaSQLFieldSetExtractStatementVisitor queryVisitor =
         new ZetaSQLFieldSetExtractStatementVisitor(defaultProjectId, catalog);
     node.accept(queryVisitor);
-    allFieldSets.addAll(queryVisitor.getAllFieldSets());
-    super.defaultVisit(node);
+    List<FieldSet> newFieldSets = queryVisitor.getAllFieldSets();
+    this.allFieldSets.addAll(newFieldSets);
   }
 
   public List<FieldSet> getAllFieldSets() {

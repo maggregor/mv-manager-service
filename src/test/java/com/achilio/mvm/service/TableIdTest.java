@@ -60,4 +60,18 @@ public class TableIdTest {
     assertNull(tableId);
   }
 
+  @Test
+  public void parseWithBackticks() {
+    TableId expected = TableId.of("goodProject", "superDataset", "niceTable");
+    TableId tableId;
+    tableId = TableId.parse("`goodProject.superDataset.niceTable`");
+    assertNotNull(tableId);
+    assertEquals(expected, tableId);
+    tableId = TableId.parse("`goodProject`.superDataset.niceTable");
+    assertNotNull(tableId);
+    assertEquals(expected, tableId);
+    tableId = TableId.parse("`goodProject`.`superDataset`.`niceTable`");
+    assertNotNull(tableId);
+    assertEquals(expected, tableId);
+  }
 }

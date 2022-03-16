@@ -2,12 +2,10 @@ package com.achilio.mvm.service.databases.entities;
 
 import com.achilio.mvm.service.databases.DatabaseFetcher;
 import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
-import com.achilio.mvm.service.visitors.QueryIneligibilityReason;
 import com.achilio.mvm.service.visitors.TableId;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -17,7 +15,6 @@ import java.util.Set;
  */
 public class FetchedQuery {
 
-  private final Set<QueryIneligibilityReason> reasons = new HashSet<>();
   private final String query;
   private final String projectId;
   private boolean useMaterializedView;
@@ -83,26 +80,6 @@ public class FetchedQuery {
 
   public boolean isUsingCache() {
     return this.useCache;
-  }
-
-  @Deprecated
-  public void addQueryIneligibilityReason(QueryIneligibilityReason reason) {
-    this.reasons.add(reason);
-  }
-
-  @Deprecated
-  public void removeQueryIneligibilityReason(QueryIneligibilityReason reason) {
-    this.reasons.remove(reason);
-  }
-
-  @Deprecated
-  public void clearQueryIneligibilityReasons() {
-    this.reasons.clear();
-  }
-
-  @Deprecated
-  public Set<QueryIneligibilityReason> getQueryIneligibilityReasons() {
-    return this.reasons;
   }
 
   public void setStartTime(Long startTime) {

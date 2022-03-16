@@ -1,5 +1,8 @@
 package com.achilio.mvm.service.visitors;
 
+import static com.achilio.mvm.service.visitors.FieldSetIneligibilityReason.CONTAINS_UNSUPPORTED_JOIN;
+import static com.achilio.mvm.service.visitors.FieldSetIneligibilityReason.DOES_NOT_CONTAIN_A_GROUP_BY;
+
 import com.achilio.mvm.service.visitors.fields.AggregateField;
 import com.achilio.mvm.service.visitors.fields.FieldSet;
 import com.achilio.mvm.service.visitors.fields.FunctionField;
@@ -55,6 +58,9 @@ public class ZetaSQLFieldSetExtractStatementVisitor extends ZetaSQLFieldSetExtra
    */
   @Override
   public void visit(ResolvedOutputColumn node) {
+    if (isColumnFromRegularTable(node.getColumn())) {
+      this.getFieldSet().addIneligibilityReason(DOES_NOT_CONTAIN_A_GROUP_BY);
+    }
     addReference(node.getColumn());
   }
 
@@ -73,8 +79,12 @@ public class ZetaSQLFieldSetExtractStatementVisitor extends ZetaSQLFieldSetExtra
     if (tableIdLeft.isPresent() && this.getFieldSet().getReferenceTable() == null) {
       this.setTableReference(tableIdLeft.get());
     }
+    JoinType type = JoinType.valueOf(node.getJoinType().name());
     Optional<TableId> tableIdRight = findTableInResolvedScan(node.getRightScan());
-    tableIdRight.ifPresent(t -> addTableJoin(t, JoinType.valueOf(node.getJoinType().name())));
+    tableIdRight.ifPresent(t -> addTableJoin(t, type));
+    if (!type.equals(JoinType.INNER)) {
+      this.getFieldSet().addIneligibilityReason(CONTAINS_UNSUPPORTED_JOIN);
+    }
   }
 
   public Optional<TableId> findTableInResolvedScan(ResolvedScan scan) {
@@ -113,6 +123,9 @@ public class ZetaSQLFieldSetExtractStatementVisitor extends ZetaSQLFieldSetExtra
    */
   @Override
   public void visit(ResolvedComputedColumn node) {
+    if (node.getColumn().getTableName().startsWith("$groupby")) {
+      this.getFieldSet().removeIneligibilityReason(DOES_NOT_CONTAIN_A_GROUP_BY);
+    }
     final ResolvedExpr expr = node.getExpr();
     if (expr instanceof ResolvedColumnRef) {
       addReference(expr);
@@ -125,7 +138,8 @@ public class ZetaSQLFieldSetExtractStatementVisitor extends ZetaSQLFieldSetExtra
   }
 
   /**
-   * SubQuery in expression (NOT in FROM)
+   * SubQuery in expression (NOT in FROM): creates a new fieldset SELECT a as (SELECT sum() FROM
+   * mytable) FROM mytable
    *
    * @param node
    */
@@ -135,7 +149,7 @@ public class ZetaSQLFieldSetExtractStatementVisitor extends ZetaSQLFieldSetExtra
   }
 
   /**
-   * WITH clause
+   * WITH subQuery: creates a new fieldset
    *
    * @param node
    */
@@ -144,7 +158,15 @@ public class ZetaSQLFieldSetExtractStatementVisitor extends ZetaSQLFieldSetExtra
     this.extractNewFieldSet(node.getWithSubquery());
   }
 
+  /** - ResolvedWithEntry */
+
+  /**
+   * ResolvedQueryStmt
+   *
+   * @param node
+   */
   private void extractNewFieldSet(ResolvedNodes.ResolvedScan node) {
+    //
     ZetaSQLFieldSetExtractStatementVisitor visitor =
         new ZetaSQLFieldSetExtractStatementVisitor(defaultProjectId, getCatalog());
     node.accept(visitor);

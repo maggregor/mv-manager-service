@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 
 import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.visitors.ModelBuilder;
+import com.achilio.mvm.service.visitors.TableId;
 import com.achilio.mvm.service.visitors.ZetaSQLExtract;
 import java.util.HashMap;
 import org.junit.Before;
@@ -22,21 +23,17 @@ public class ModelBuilderTest {
 
   @Before
   public void setUp() {
-    when(mockFetchedTable.getProjectId()).thenReturn("myProject");
-    when(mockFetchedTable.getDatasetName()).thenReturn("myDataset");
-    when(mockFetchedTable.getTableName()).thenReturn("myTable");
+    TableId tableId1 = TableId.of("myProject", "myDataset", "myTable");
+    TableId tableId2 = TableId.of("myProject", "myDataset", "myOtherTable");
+    TableId tableIdWithoutProject = TableId.of("myDataset", "myTable");
+    TableId tableIdSame = TableId.of("same", "same", "myTable");
+    when(mockFetchedTable.getTableId()).thenReturn(tableId1);
     when(mockFetchedTable.getColumns()).thenReturn(new HashMap<>());
-    when(mockFetchedTable2.getProjectId()).thenReturn("myProject");
-    when(mockFetchedTable2.getDatasetName()).thenReturn("myDataset");
-    when(mockFetchedTable2.getTableName()).thenReturn("myOtherTable");
+    when(mockFetchedTable2.getTableId()).thenReturn(tableId2);
     when(mockFetchedTable2.getColumns()).thenReturn(new HashMap<>());
-    when(mockFetchedTableWithoutProject.getProjectId()).thenReturn(null);
-    when(mockFetchedTableWithoutProject.getDatasetName()).thenReturn("myAgainAnotherDataset");
-    when(mockFetchedTableWithoutProject.getTableName()).thenReturn("myAgainAnotherTable");
+    when(mockFetchedTableWithoutProject.getTableId()).thenReturn(tableIdWithoutProject);
     when(mockFetchedTableWithoutProject.getColumns()).thenReturn(new HashMap<>());
-    when(mockFetchedTableSame.getProjectId()).thenReturn("myProject");
-    when(mockFetchedTableSame.getDatasetName()).thenReturn("myProject");
-    when(mockFetchedTableSame.getTableName()).thenReturn("myOtherTable");
+    when(mockFetchedTableSame.getTableId()).thenReturn(tableIdSame);
     when(mockFetchedTableSame.getColumns()).thenReturn(new HashMap<>());
   }
 

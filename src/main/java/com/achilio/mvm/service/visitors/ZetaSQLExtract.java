@@ -15,12 +15,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ZetaSQLExtract extends ZetaSQLModelBuilder implements FieldSetExtract {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ZetaSQLExtract.class);
+  private static final String BACKTICK = "`";
   private final AnalyzerOptions options = defaultAnalyzerOptions();
 
   public ZetaSQLExtract(String projectName) {
@@ -79,10 +81,34 @@ public class ZetaSQLExtract extends ZetaSQLModelBuilder implements FieldSetExtra
   private void resolveStatementAndVisit(String statement, Visitor visitor) {
     final SimpleCatalog catalog = super.getCatalog();
     try {
+      statement = removeTableNamesBackticks(statement);
       ResolvedStatement resolvedStatement = Analyzer.analyzeStatement(statement, options, catalog);
       resolvedStatement.accept(visitor);
     } catch (Exception e) {
       LOGGER.error("Query resolving has failed: {}", e.getMessage());
     }
+  }
+
+  private String removeTableNamesBackticks(String statement) {
+    if (!StringUtils.containsAny(statement, BACKTICK)) {
+      return statement;
+    }
+    List<List<String>> paths = Analyzer.extractTableNamesFromScript(statement, options);
+    for (List<String> path : paths) {
+      if (path.size() != 1) {
+        // Not a full BackTicked path
+        continue;
+      }
+      String tablePath = path.get(0);
+      TableId tableId = TableId.parse(tablePath);
+      if (tableId == null) {
+        // Not a TableId pattern.
+        continue;
+      }
+      String tablePathWithoutBackTicks = tableId.asPath();
+      String tablePathFullyBackTicked = String.format("`%s`", tableId.asPath());
+      statement = statement.replaceAll(tablePathFullyBackTicked, tablePathWithoutBackTicks);
+    }
+    return statement;
   }
 }

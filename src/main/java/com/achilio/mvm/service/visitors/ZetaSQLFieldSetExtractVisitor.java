@@ -6,7 +6,7 @@ import com.google.zetasql.SimpleCatalog;
 public abstract class ZetaSQLFieldSetExtractVisitor extends FieldSetExtractVisitor {
 
   public static final String NOT_REGULAR_COLUMN_PREFIX_TO_SKIP = "$";
-  private SimpleCatalog catalog;
+  private final SimpleCatalog catalog;
 
   public ZetaSQLFieldSetExtractVisitor(SimpleCatalog catalog) {
     this.catalog = catalog;

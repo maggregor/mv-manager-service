@@ -1,10 +1,10 @@
 package com.achilio.mvm.service.visitors;
 
 public enum FieldSetIneligibilityReason {
-  DOES_NOT_FILTER_OR_GROUP("The query doesn't not contains filtering or grouping clause"),
-  CONTAINS_UNSUPPORTED_JOIN("The query is using a JOIN not supported in the MV");
+  DOES_NOT_CONTAIN_A_GROUP_BY("This query require a GROUP BY"),
+  CONTAINS_UNSUPPORTED_JOIN("The query is using a unsupported JOIN for Materialized Views");
 
-  private String details;
+  private final String details;
 
   FieldSetIneligibilityReason(String details) {
     this.details = details;
