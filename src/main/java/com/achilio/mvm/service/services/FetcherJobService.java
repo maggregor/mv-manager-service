@@ -1,8 +1,10 @@
 package com.achilio.mvm.service.services;
 
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
+import com.achilio.mvm.service.entities.FetcherJob;
 import com.achilio.mvm.service.entities.FetcherJob.FetcherJobStatus;
 import com.achilio.mvm.service.entities.FetcherQueryJob;
+import com.achilio.mvm.service.entities.FetcherStructJob;
 import com.achilio.mvm.service.entities.Query;
 import com.achilio.mvm.service.repositories.FetcherJobRepository;
 import com.achilio.mvm.service.repositories.QueryRepository;
@@ -39,6 +41,10 @@ public class FetcherJobService {
     updateJobStatus(fetcherQueryJob, FetcherJobStatus.FINISHED);
   }
 
+  public void fetchStructJob(FetcherStructJob fetcherStructJob) {
+    updateJobStatus(fetcherStructJob, FetcherJobStatus.WORKING);
+  }
+
   @Transactional
   void saveAllQueries(List<Query> queries) {
     queryRepository.saveAll(queries);
@@ -65,7 +71,7 @@ public class FetcherJobService {
         fetchedQuery.getStatistics());
   }
 
-  private void updateJobStatus(FetcherQueryJob job, FetcherJobStatus status) {
+  private void updateJobStatus(FetcherJob job, FetcherJobStatus status) {
     job.setStatus(status);
     fetcherJobRepository.save(job);
   }

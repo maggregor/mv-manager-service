@@ -12,8 +12,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 public class FetcherQueryJob extends FetcherJob {
 
   /** Timeframe is the number of days before today the fetching query job starts from */
-  @Column(name = "timeframe", nullable = false)
-  private int timeframe;
+  @Column private int timeframe;
 
   protected FetcherQueryJob() {}
 
