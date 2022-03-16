@@ -34,6 +34,7 @@ public class RepositoriesIntegrationTest {
   private final String GOOGLE_JOB_ID2 = "google-id2";
   private final String GOOGLE_JOB_ID3 = "google-id3";
   private final String GOOGLE_JOB_ID4 = "google-id4";
+  private final String GOOGLE_JOB_ID5 = "google-id5";
   private final QueryUsageStatistics stats = new QueryUsageStatistics(1, 10L, 100L);
   private final FetcherQueryJob job1 = new FetcherQueryJob(TEST_PROJECT_ID1);
   private final Query query1 =
@@ -46,11 +47,21 @@ public class RepositoriesIntegrationTest {
           false,
           LocalDate.of(2020, 1, 8),
           stats);
-  private Query query2 =
+  private final Query query2 =
       new Query(
           job1,
           "SELECT 2",
           GOOGLE_JOB_ID2,
+          TEST_PROJECT_ID1,
+          false,
+          false,
+          LocalDate.of(2020, 1, 8),
+          stats);
+  private final Query query5 =
+      new Query(
+          job1,
+          "SELECT 1",
+          GOOGLE_JOB_ID5,
           TEST_PROJECT_ID1,
           false,
           false,
@@ -95,17 +106,18 @@ public class RepositoriesIntegrationTest {
     queryRepository.save(query2);
     queryRepository.save(query3);
     queryRepository.save(query4);
-    Query replacingQuery2 =
+    queryRepository.save(query5);
+    Query replacingQuery5 =
         new Query(
-            job4,
+            job2,
             "SELECT 2",
-            GOOGLE_JOB_ID2,
-            TEST_PROJECT_ID2,
+            GOOGLE_JOB_ID5,
+            TEST_PROJECT_ID1,
             false,
             false,
             LocalDate.of(2020, 1, 8),
             stats);
-    queryRepository.saveAndFlush(replacingQuery2);
+    queryRepository.saveAndFlush(replacingQuery5);
   }
 
   @After
@@ -135,14 +147,20 @@ public class RepositoriesIntegrationTest {
   }
 
   @Test
-  public void findLastTest() {
+  public void findLastFetcherQueryJobTest() {
     Optional<FetcherQueryJob> optionalJob =
         fetcherJobRepository.findTopFetchedQueryJobByProjectIdOrderByCreatedAtDesc(
             TEST_PROJECT_ID1);
+    List<FetcherQueryJob> allJobs =
+        fetcherJobRepository.findFetcherQueryJobsByProjectId(TEST_PROJECT_ID1);
     Assert.assertTrue(optionalJob.isPresent());
+    FetcherQueryJob lastJob = allJobs.get(allJobs.size() - 1);
+    allJobs.remove(allJobs.size() - 1);
     FetcherQueryJob job = optionalJob.get();
     Assert.assertEquals(TEST_PROJECT_ID1, job.getProjectId());
     Assert.assertNotNull(job.getCreatedAt());
+    allJobs.forEach(j -> job.getCreatedAt().isAfter(j.getCreatedAt()));
+    job.getCreatedAt().isEqual(lastJob.getCreatedAt());
     Assert.assertEquals(14, job.getTimeframe());
   }
 
@@ -190,60 +208,49 @@ public class RepositoriesIntegrationTest {
   @Test
   public void findAllQueriesByFetcherQueryJobTest() {
     List<Query> queries =
-        queryRepository.findAllByInitialFetcherQueryJobAndLastFetcherQueryJob_ProjectId(
-            job1, TEST_PROJECT_ID1);
-    Assert.assertEquals(1, queries.size());
+        queryRepository.findAllByInitialFetcherQueryJobAndProjectId(job1, TEST_PROJECT_ID1);
+    Assert.assertEquals(3, queries.size());
     queries.forEach(q -> Assert.assertEquals(TEST_PROJECT_ID1, q.getProjectId()));
-    queries =
-        queryRepository.findAllByInitialFetcherQueryJobAndLastFetcherQueryJob_ProjectId(
-            job2, TEST_PROJECT_ID1);
+    queries = queryRepository.findAllByInitialFetcherQueryJobAndProjectId(job2, TEST_PROJECT_ID1);
     Assert.assertEquals(1, queries.size());
     queries.forEach(q -> Assert.assertEquals(TEST_PROJECT_ID1, q.getProjectId()));
 
     // Job has no query
-    queries =
-        queryRepository.findAllByInitialFetcherQueryJobAndLastFetcherQueryJob_ProjectId(
-            job3, TEST_PROJECT_ID1);
+    queries = queryRepository.findAllByInitialFetcherQueryJobAndProjectId(job3, TEST_PROJECT_ID1);
     Assert.assertEquals(0, queries.size());
 
     // Job has queries but projectId doesn't match
-    queries =
-        queryRepository.findAllByInitialFetcherQueryJobAndLastFetcherQueryJob_ProjectId(
-            job4, TEST_PROJECT_ID1);
+    queries = queryRepository.findAllByInitialFetcherQueryJobAndProjectId(job4, TEST_PROJECT_ID1);
     Assert.assertEquals(0, queries.size());
 
-    queries =
-        queryRepository.findAllByInitialFetcherQueryJobAndLastFetcherQueryJob_ProjectId(
-            job4, TEST_PROJECT_ID2);
+    queries = queryRepository.findAllByInitialFetcherQueryJobAndProjectId(job4, TEST_PROJECT_ID2);
     Assert.assertEquals(1, queries.size());
     queries.forEach(q -> Assert.assertEquals(TEST_PROJECT_ID2, q.getProjectId()));
   }
 
   @Test
-  public void findFirstByIdAndFetcherQueryJob_ProjectIdTest() {
+  public void findFirstByIdAndProjectIdTest() {
     Optional<Query> retrievedQuery1 =
-        queryRepository.findQueryByIdAndLastFetcherQueryJob_ProjectId(
+        queryRepository.findQueryByIdAndProjectId(
             query1.getId(), query1.getLastFetcherQueryJob().getProjectId());
     Assert.assertTrue(retrievedQuery1.isPresent());
     Assert.assertEquals("SELECT 1", retrievedQuery1.get().getQuery());
   }
 
   @Test
-  public void findAllByLastFetcherQueryJobAndLastFetcherQueryJob_ProjectIdTest() {
+  public void findAllByLastFetcherQueryJobAndProjectIdTest() {
     List<Query> queries =
-        queryRepository.findAllByLastFetcherQueryJobAndLastFetcherQueryJob_ProjectId(
-            job4, TEST_PROJECT_ID2);
-    Assert.assertEquals(2, queries.size());
+        queryRepository.findAllByLastFetcherQueryJobAndProjectId(job4, TEST_PROJECT_ID2);
+    Assert.assertEquals(1, queries.size());
   }
 
   @Test
   public void updateQueryTest() {
     Optional<Query> unchangedQuery =
-        queryRepository.findQueryByIdAndLastFetcherQueryJob_ProjectId(
-            query2.getId(), TEST_PROJECT_ID2);
+        queryRepository.findQueryByIdAndProjectId(query5.getId(), TEST_PROJECT_ID1);
     Assert.assertTrue(unchangedQuery.isPresent());
     Query finalQuery = unchangedQuery.get();
-    Assert.assertEquals(job4.getId(), finalQuery.getLastFetcherQueryJob().getId());
+    Assert.assertEquals(job2.getId(), finalQuery.getLastFetcherQueryJob().getId());
     Assert.assertEquals(job1.getId(), finalQuery.getInitialFetcherQueryJob().getId());
   }
 }

@@ -7,11 +7,11 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface QueryRepository extends JpaRepository<Query, String> {
-  List<Query> findAllByInitialFetcherQueryJobAndLastFetcherQueryJob_ProjectId(
+  List<Query> findAllByInitialFetcherQueryJobAndProjectId(
       FetcherQueryJob initialFetcherQueryJob, String projectId);
 
-  List<Query> findAllByLastFetcherQueryJobAndLastFetcherQueryJob_ProjectId(
+  List<Query> findAllByLastFetcherQueryJobAndProjectId(
       FetcherQueryJob lastFetcherQueryJob, String projectId);
 
-  Optional<Query> findQueryByIdAndLastFetcherQueryJob_ProjectId(String id, String projectId);
+  Optional<Query> findQueryByIdAndProjectId(String id, String projectId);
 }

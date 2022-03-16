@@ -25,8 +25,7 @@ public class QueryService {
     if (!job.isPresent()) {
       throw new FetcherJobNotFoundException(fetcherJobId.toString());
     }
-    return queryRepository.findAllByInitialFetcherQueryJobAndLastFetcherQueryJob_ProjectId(
-        job.get(), projectId);
+    return queryRepository.findAllByInitialFetcherQueryJobAndProjectId(job.get(), projectId);
   }
 
   public List<Query> getAllQueriesByProjectIdLastJob(String projectId) {
@@ -35,13 +34,11 @@ public class QueryService {
     if (!job.isPresent()) {
       throw new FetcherJobNotFoundException("last");
     }
-    return queryRepository.findAllByInitialFetcherQueryJobAndLastFetcherQueryJob_ProjectId(
-        job.get(), projectId);
+    return queryRepository.findAllByInitialFetcherQueryJobAndProjectId(job.get(), projectId);
   }
 
   public Query getQuery(String projectId, String queryId) {
-    Optional<Query> query =
-        queryRepository.findQueryByIdAndLastFetcherQueryJob_ProjectId(queryId, projectId);
+    Optional<Query> query = queryRepository.findQueryByIdAndProjectId(queryId, projectId);
     if (!query.isPresent()) {
       throw new QueryNotFoundException(queryId);
     }

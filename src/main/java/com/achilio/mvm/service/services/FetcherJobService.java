@@ -8,8 +8,7 @@ import com.achilio.mvm.service.repositories.FetcherJobRepository;
 import com.achilio.mvm.service.repositories.QueryRepository;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -19,7 +18,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class FetcherJobService {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(FetcherJobService.class);
+  //  private static final Logger LOGGER = LoggerFactory.getLogger(FetcherJobService.class);
 
   @Autowired private FetcherService fetcherService;
   @Autowired private FetcherJobRepository fetcherJobRepository;
@@ -31,7 +30,7 @@ public class FetcherJobService {
   public void fetchQueriesJob(FetcherQueryJob fetcherQueryJob) {
     updateJobStatus(fetcherQueryJob, FetcherJobStatus.WORKING);
     try {
-      List<Query> queries = fetchAndSaveQueries(fetcherQueryJob);
+      List<Query> queries = fetchQueries(fetcherQueryJob);
       saveAllQueries(queries);
     } catch (Exception e) {
       updateJobStatus(fetcherQueryJob, FetcherJobStatus.ERROR);
@@ -40,11 +39,12 @@ public class FetcherJobService {
     updateJobStatus(fetcherQueryJob, FetcherJobStatus.FINISHED);
   }
 
-  private void saveAllQueries(List<Query> queries) {
+  @Transactional
+  void saveAllQueries(List<Query> queries) {
     queryRepository.saveAll(queries);
   }
 
-  private List<Query> fetchAndSaveQueries(FetcherQueryJob fetcherQueryJob) {
+  private List<Query> fetchQueries(FetcherQueryJob fetcherQueryJob) {
     List<FetchedQuery> allQueries =
         fetcherService.fetchQueriesSinceLastDays(
             fetcherQueryJob.getProjectId(), fetcherQueryJob.getTimeframe());

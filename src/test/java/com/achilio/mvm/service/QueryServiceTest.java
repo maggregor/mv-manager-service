@@ -55,13 +55,13 @@ public class QueryServiceTest {
         .thenReturn(java.util.Optional.ofNullable(JOB2));
     when(mockFetcherJobRepository.findTopFetchedQueryJobByProjectIdOrderByCreatedAtDesc(any()))
         .thenReturn(java.util.Optional.ofNullable(JOB1));
-    when(mockQueryRepository.findAllByInitialFetcherQueryJobAndLastFetcherQueryJob_ProjectId(
+    when(mockQueryRepository.findAllByInitialFetcherQueryJobAndProjectId(
             ArgumentMatchers.eq(JOB1), any()))
         .thenReturn(Arrays.asList(QUERY1, QUERY2));
-    when(mockQueryRepository.findAllByInitialFetcherQueryJobAndLastFetcherQueryJob_ProjectId(
+    when(mockQueryRepository.findAllByInitialFetcherQueryJobAndProjectId(
             ArgumentMatchers.eq(JOB2), any()))
         .thenReturn(Collections.emptyList());
-    when(mockQueryRepository.findQueryByIdAndLastFetcherQueryJob_ProjectId(any(), any()))
+    when(mockQueryRepository.findQueryByIdAndProjectId(any(), any()))
         .thenReturn(java.util.Optional.ofNullable(QUERY1));
   }
 
