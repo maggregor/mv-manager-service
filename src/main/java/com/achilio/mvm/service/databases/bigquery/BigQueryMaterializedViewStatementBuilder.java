@@ -1,7 +1,7 @@
 package com.achilio.mvm.service.databases.bigquery;
 
 import com.achilio.mvm.service.databases.MaterializedViewStatementBuilder;
-import com.achilio.mvm.service.visitors.TableId;
+import com.achilio.mvm.service.visitors.ATableId;
 import com.achilio.mvm.service.visitors.fields.Field;
 import com.achilio.mvm.service.visitors.fields.FieldSet;
 import com.google.common.base.Preconditions;
@@ -73,7 +73,7 @@ public class BigQueryMaterializedViewStatementBuilder implements MaterializedVie
   }
 
   public String buildTableReference(FieldSet fieldSet) {
-    final TableId table = fieldSet.getReferenceTable();
+    final ATableId table = fieldSet.getReferenceTable();
     final String projectId = table.getProjectId();
     final String datasetName = table.getDatasetName();
     final String tableName = table.getTableName();

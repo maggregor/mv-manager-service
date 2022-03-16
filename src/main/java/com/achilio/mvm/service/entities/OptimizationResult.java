@@ -1,7 +1,7 @@
 package com.achilio.mvm.service.entities;
 
 import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
-import com.achilio.mvm.service.visitors.TableId;
+import com.achilio.mvm.service.visitors.ATableId;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
@@ -58,13 +58,13 @@ public class OptimizationResult {
   private Integer queries;
 
   public OptimizationResult(
-      final Optimization optimization, final TableId referenceTable, final String statement) {
+      final Optimization optimization, final ATableId referenceTable, final String statement) {
     this(optimization, referenceTable, statement, null);
   }
 
   public OptimizationResult(
       final Optimization optimization,
-      final TableId referenceTable,
+      final ATableId referenceTable,
       final String statement,
       final QueryUsageStatistics statistics) {
     this.optimization = optimization;

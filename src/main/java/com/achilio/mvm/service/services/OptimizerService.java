@@ -18,7 +18,7 @@ import com.achilio.mvm.service.repositories.OptimizerRepository;
 import com.achilio.mvm.service.repositories.OptimizerResultRepository;
 import com.achilio.mvm.service.visitors.FieldSetExtract;
 import com.achilio.mvm.service.visitors.FieldSetExtractFactory;
-import com.achilio.mvm.service.visitors.TableId;
+import com.achilio.mvm.service.visitors.ATableId;
 import com.achilio.mvm.service.visitors.fields.FieldSet;
 import java.util.Comparator;
 import java.util.List;
@@ -173,7 +173,7 @@ public class OptimizerService {
   public OptimizationResult buildOptimizationResult(Optimization o, FieldSet fieldSet) {
     String statement = statementBuilder.build(fieldSet);
     // To date, get first Table in the set iterator.
-    TableId tableId = fieldSet.getReferenceTable();
+    ATableId tableId = fieldSet.getReferenceTable();
     OptimizationResult result =
         new OptimizationResult(o, tableId, statement, fieldSet.getStatistics());
     optimizerResultRepository.save(result);

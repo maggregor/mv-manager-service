@@ -10,9 +10,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.visitors.FieldSetExtract;
 import com.achilio.mvm.service.visitors.JoinType;
-import com.achilio.mvm.service.visitors.TableId;
+import com.achilio.mvm.service.visitors.ATableId;
 import com.achilio.mvm.service.visitors.fields.AggregateField;
-import com.achilio.mvm.service.visitors.fields.Field;
 import com.achilio.mvm.service.visitors.fields.FieldSet;
 import com.achilio.mvm.service.visitors.fields.ReferenceField;
 import com.google.zetasql.ZetaSQLType;
@@ -20,10 +19,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.StringJoiner;
 import org.assertj.core.util.Sets;
-import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -40,10 +38,11 @@ public abstract class FieldSetExtractTest {
         {"col4", ZetaSQLType.TypeKind.TYPE_INT64.name()},
         {"ts", ZetaSQLType.TypeKind.TYPE_TIMESTAMP.name()}
       };
-  private static final TableId MAIN_TABLE_ID = TableId.of(PROJECT_ID, "mydataset", "mytable");
-  private static final TableId SECONDARY_TABLE_ID =
-      TableId.of(PROJECT_ID, "mydataset", "myothertable");
-  private static final TableId THIRD_TABLE_ID = TableId.of(PROJECT_ID, "mydataset", "mythirdtable");
+  private static final ATableId MAIN_TABLE_ID = ATableId.of(PROJECT_ID, "mydataset", "mytable");
+  private static final ATableId SECONDARY_TABLE_ID =
+      ATableId.of(PROJECT_ID, "mydataset", "myothertable");
+  private static final ATableId THIRD_TABLE_ID =
+      ATableId.of(PROJECT_ID, "mydataset", "mythirdtable");
   private final FetchedTable MAIN_TABLE = createFetchedTable(MAIN_TABLE_ID, SIMPLE_TABLE_COLUMNS);
   private final FetchedTable SECONDARY_TABLE =
       createFetchedTable(SECONDARY_TABLE_ID, SIMPLE_TABLE_COLUMNS);
@@ -354,8 +353,8 @@ public abstract class FieldSetExtractTest {
   /** UNKNOWN REASON: ZetaSQL returns INNER join type on a CROSS JOIN clause */
   @Test
   public void crossJoin() {
-    final FieldSet EXPECTED = createFieldSet(MAIN_TABLE_ID, new ReferenceField("col1"));
-    EXPECTED.addJoinTable(SECONDARY_TABLE_ID, JoinType.INNER);
+    final FieldSet EXPECTED =
+        fieldSetBuilder().addRef("col1").addJoinTable(SECONDARY_TABLE_ID, JoinType.INNER).build();
     EXPECTED.clearIneligibilityReasons();
     String s =
         "SELECT a.col1 "
@@ -383,17 +382,38 @@ public abstract class FieldSetExtractTest {
   }
 
   @Test
-  @Ignore
   public void script() {
-    final FieldSet EXPECTED_1 = fieldSetBuilder().addRef("col1").build();
-    final FieldSet EXPECTED_2 = fieldSetBuilder().addRef("col2").build();
-    final String query =
-        "SELECT col1 FROM myproject.mydataset.mytable GROUP BY col1;"
-            + " SELECT col2 FROM myproject.mydataset.mytable GROUP BY col2;";
-    assertExpectedFieldSet(query, EXPECTED_1, EXPECTED_2);
+    final FieldSet EXPECTED_1 = fieldSetBuilder(MAIN_TABLE_ID).addRef("col1").build();
+    final FieldSet EXPECTED_2 = fieldSetBuilder(SECONDARY_TABLE_ID).addRef("col2").build();
+    final StringJoiner script = new StringJoiner(";");
+    script.add("SELECT col1 FROM myproject.mydataset.mytable GROUP BY col1");
+    script.add("SELECT col2 FROM myproject.mydataset.myothertable GROUP BY col2");
+    assertExpectedFieldSet(script.toString(), EXPECTED_1, EXPECTED_2);
   }
 
-  private FieldSetBuilder fieldSetBuilder(TableId tableId) {
+  @Test
+  public void scriptIgnoreNotQueryStatement() {
+    final FieldSet EXPECTED_1 = fieldSetBuilder(MAIN_TABLE_ID).addRef("col1").build();
+    final FieldSet EXPECTED_2 = fieldSetBuilder(SECONDARY_TABLE_ID).addRef("col2").build();
+    String script =
+        "SELECT col1 FROM myproject.mydataset.mytable GROUP BY col1;"
+            + "INSERT INTO myproject.mydataset.mytable (col1) VALUES ('');"
+            + "SELECT col2 FROM myproject.mydataset.myothertable GROUP BY col2;";
+    assertExpectedFieldSet(script, EXPECTED_1, EXPECTED_2);
+  }
+
+  @Test(timeout = 10000)
+  public void dontBlockWhenResolvingFail() {
+    final FieldSet EXPECTED_1 = fieldSetBuilder(MAIN_TABLE_ID).addRef("col1").build();
+    String script =
+        "SELECT col1 FROM myproject.mydataset.mytable GROUP BY col1;"
+            + "blablablabla;"
+            + "SELECT col2 FROM myproject.mydataset.myothertable GROUP BY col2;";
+    // Just first query was resolved
+    assertExpectedFieldSet(script, EXPECTED_1);
+  }
+
+  private FieldSetBuilder fieldSetBuilder(ATableId tableId) {
     return new FieldSetBuilder(tableId);
   }
 
@@ -414,36 +434,5 @@ public abstract class FieldSetExtractTest {
   public void assertZeroFields(String query) {
     final List<FieldSet> actual = FieldSetHelper.statementToFieldSet(PROJECT_ID, query, extractor);
     assertTrue("Actual FieldSet should be empty", actual.isEmpty());
-  }
-
-  private void assertContainsFields(String query, Field... fields) {
-    final FieldSet expected = createFieldSet(fields);
-    final List<FieldSet> fieldSets =
-        FieldSetHelper.statementToFieldSet(PROJECT_ID, query, extractor);
-    assertEquals(1, fieldSets.size(), "One FieldSet expected not " + fieldSets.size());
-    FieldSet actual = fieldSets.get(0);
-    for (Field field : expected.fields()) {
-      final String msg =
-          String.format("One field is missing: %s.\nActual fields: %s", field.name(), actual);
-      assertTrue(msg, actual.fields().contains(field));
-    }
-  }
-
-  private void assertExpectedFieldSet(String query, Field... fields) {
-    assertExpectedFields(query, fields);
-  }
-
-  private void assertExpectedFields(String query, Field... fields) {
-    final FieldSet expected = createFieldSet(fields);
-    final List<FieldSet> fieldSets =
-        FieldSetHelper.statementToFieldSet(PROJECT_ID, query, extractor);
-    assertEquals(1, fieldSets.size(), "Only one FieldSet expected not " + fieldSets.size());
-    FieldSet actual = fieldSets.get(0);
-    assertEquals(expected.fields(), actual.fields(), "Unexpected fields");
-  }
-
-  private void assertExpectedFieldSet(FieldSet expected, FieldSet actual) {
-    Assert.assertNotNull("Actual FieldSet is null.", actual);
-    Assert.assertEquals("Actual FieldSet wasn't expected.", expected, actual);
   }
 }

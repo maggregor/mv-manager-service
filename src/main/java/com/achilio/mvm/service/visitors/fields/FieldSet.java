@@ -3,7 +3,7 @@ package com.achilio.mvm.service.visitors.fields;
 import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
 import com.achilio.mvm.service.visitors.FieldSetIneligibilityReason;
 import com.achilio.mvm.service.visitors.JoinType;
-import com.achilio.mvm.service.visitors.TableId;
+import com.achilio.mvm.service.visitors.ATableId;
 import java.util.Map;
 import java.util.Set;
 
@@ -25,20 +25,20 @@ public interface FieldSet {
    *
    * @return
    */
-  TableId getReferenceTable();
+  ATableId getReferenceTable();
 
   /** Define the main table of the query. */
-  void setReferenceTable(TableId referenceTable);
+  void setReferenceTable(ATableId referenceTable);
 
   /**
    * Returns the join tables
    *
    * @return
    */
-  Map<TableId, JoinType> getJoinTables();
+  Map<ATableId, JoinType> getJoinTables();
 
   /** Add join table with the type of join */
-  void addJoinTable(TableId joinTable, JoinType type);
+  void addJoinTable(ATableId joinTable, JoinType type);
 
   /** Returns the statistics of the FieldSet */
   QueryUsageStatistics getStatistics();

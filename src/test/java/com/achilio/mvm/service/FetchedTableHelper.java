@@ -2,19 +2,19 @@ package com.achilio.mvm.service;
 
 import com.achilio.mvm.service.databases.entities.DefaultFetchedTable;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
-import com.achilio.mvm.service.visitors.TableId;
+import com.achilio.mvm.service.visitors.ATableId;
 import java.util.HashMap;
 import java.util.Map;
 
 public class FetchedTableHelper {
 
   public static FetchedTable createFetchedTable(String tableIdString, String[]... columns) {
-    TableId tableId = TableId.parse(tableIdString);
+    ATableId tableId = ATableId.parse(tableIdString);
     return createFetchedTable(
         tableId.getProject(), tableId.getDataset(), tableId.getTable(), columns);
   }
 
-  public static FetchedTable createFetchedTable(TableId tableId, String[]... columns) {
+  public static FetchedTable createFetchedTable(ATableId tableId, String[]... columns) {
     return createFetchedTable(
         tableId.getProject(), tableId.getDataset(), tableId.getTable(), columns);
   }

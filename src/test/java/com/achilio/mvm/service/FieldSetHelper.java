@@ -3,7 +3,7 @@ package com.achilio.mvm.service;
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedQueryFactory;
 import com.achilio.mvm.service.visitors.FieldSetExtract;
-import com.achilio.mvm.service.visitors.TableId;
+import com.achilio.mvm.service.visitors.ATableId;
 import com.achilio.mvm.service.visitors.fields.DefaultFieldSet;
 import com.achilio.mvm.service.visitors.fields.Field;
 import com.achilio.mvm.service.visitors.fields.FieldSet;
@@ -25,7 +25,7 @@ public enum FieldSetHelper {
     return createFieldSet(new HashSet<>());
   }
 
-  static FieldSet createFieldSet(TableId tableId) {
+  static FieldSet createFieldSet(ATableId tableId) {
     return createFieldSet(tableId, new HashSet<>());
   }
 
@@ -37,11 +37,11 @@ public enum FieldSetHelper {
     return new DefaultFieldSet(fields);
   }
 
-  static FieldSet createFieldSet(TableId referenceTable, Field... fields) {
+  static FieldSet createFieldSet(ATableId referenceTable, Field... fields) {
     return createFieldSet(referenceTable, new HashSet<>(Arrays.asList(fields)));
   }
 
-  static FieldSet createFieldSet(TableId referenceTable, Set<Field> fields) {
+  static FieldSet createFieldSet(ATableId referenceTable, Set<Field> fields) {
     FieldSet fieldSet = new DefaultFieldSet(fields);
     fieldSet.setReferenceTable(referenceTable);
     return fieldSet;

@@ -7,7 +7,7 @@ import static org.mockito.Mockito.when;
 
 import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.visitors.ModelBuilder;
-import com.achilio.mvm.service.visitors.TableId;
+import com.achilio.mvm.service.visitors.ATableId;
 import com.achilio.mvm.service.visitors.ZetaSQLExtract;
 import java.util.HashMap;
 import org.junit.Before;
@@ -23,10 +23,10 @@ public class ModelBuilderTest {
 
   @Before
   public void setUp() {
-    TableId tableId1 = TableId.of("myProject", "myDataset", "myTable");
-    TableId tableId2 = TableId.of("myProject", "myDataset", "myOtherTable");
-    TableId tableIdWithoutProject = TableId.of("myDataset", "myTable");
-    TableId tableIdSame = TableId.of("same", "same", "myTable");
+    ATableId tableId1 = ATableId.of("myProject", "myDataset", "myTable");
+    ATableId tableId2 = ATableId.of("myProject", "myDataset", "myOtherTable");
+    ATableId tableIdWithoutProject = ATableId.of("myDataset", "myTable");
+    ATableId tableIdSame = ATableId.of("same", "same", "myTable");
     when(mockFetchedTable.getTableId()).thenReturn(tableId1);
     when(mockFetchedTable.getColumns()).thenReturn(new HashMap<>());
     when(mockFetchedTable2.getTableId()).thenReturn(tableId2);

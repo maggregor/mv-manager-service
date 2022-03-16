@@ -66,10 +66,10 @@ public class ZetaSQLFieldSetExtractStatementVisitor extends ZetaSQLFieldSetExtra
 
   @Override
   public void visit(ResolvedTableScan node) {
-    TableId referenceTableId = this.getFieldSet().getReferenceTable();
+    ATableId referenceTableId = this.getFieldSet().getReferenceTable();
     if (referenceTableId == null) {
       String currentTableName = node.getTable().getName();
-      TableId currentTableId = getTable(node);
+      ATableId currentTableId = getTable(node);
       if (currentTableId == null) {
         throw new IllegalArgumentException(
             "Can't find TableId on ResolvedTableScan: " + currentTableName);
@@ -80,12 +80,12 @@ public class ZetaSQLFieldSetExtractStatementVisitor extends ZetaSQLFieldSetExtra
 
   @Override
   public void visit(ResolvedJoinScan node) {
-    Optional<TableId> tableIdLeft = findTableInResolvedScan(node.getLeftScan());
+    Optional<ATableId> tableIdLeft = findTableInResolvedScan(node.getLeftScan());
     if (tableIdLeft.isPresent() && this.getFieldSet().getReferenceTable() == null) {
       this.setTableReference(tableIdLeft.get());
     }
     JoinType type = JoinType.valueOf(node.getJoinType().name());
-    Optional<TableId> tableIdRight = findTableInResolvedScan(node.getRightScan());
+    Optional<ATableId> tableIdRight = findTableInResolvedScan(node.getRightScan());
     tableIdRight.ifPresent(t -> addTableJoin(t, type));
     if (!type.equals(JoinType.INNER)) {
       this.getFieldSet().addIneligibilityReason(CONTAINS_UNSUPPORTED_JOIN);
@@ -93,7 +93,7 @@ public class ZetaSQLFieldSetExtractStatementVisitor extends ZetaSQLFieldSetExtra
     super.defaultVisit(node);
   }
 
-  public Optional<TableId> findTableInResolvedScan(ResolvedScan scan) {
+  public Optional<ATableId> findTableInResolvedScan(ResolvedScan scan) {
     if (scan instanceof ResolvedTableScan) {
       return Optional.ofNullable(getTable((ResolvedTableScan) scan));
     }
@@ -101,12 +101,12 @@ public class ZetaSQLFieldSetExtractStatementVisitor extends ZetaSQLFieldSetExtra
     return Optional.empty();
   }
 
-  public TableId getTable(ResolvedTableScan scan) {
-    TableId tableId = TableId.parse(scan.getTable().getName());
+  public ATableId getTable(ResolvedTableScan scan) {
+    ATableId tableId = ATableId.parse(scan.getTable().getName());
     if (tableId == null) {
       return null;
     } else if (tableId.getProject() == null) {
-      tableId = TableId.of(defaultProjectId, tableId.getDataset(), tableId.getTable());
+      tableId = ATableId.of(defaultProjectId, tableId.getDataset(), tableId.getTable());
     }
     return tableId;
   }

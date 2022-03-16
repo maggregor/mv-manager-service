@@ -26,11 +26,11 @@ public abstract class FieldSetExtractVisitor extends ResolvedNodes.Visitor {
     }
   }
 
-  public void setTableReference(TableId tableId) {
+  public void setTableReference(ATableId tableId) {
     this.fieldSet.setReferenceTable(tableId);
   }
 
-  public void addTableJoin(TableId tableId, JoinType type) {
+  public void addTableJoin(ATableId tableId, JoinType type) {
     this.fieldSet.addJoinTable(tableId, type);
   }
 

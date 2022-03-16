@@ -1,30 +1,34 @@
 package com.achilio.mvm.service.databases.entities;
 
-import com.achilio.mvm.service.visitors.TableId;
+import com.achilio.mvm.service.visitors.ATableId;
 import java.util.Collections;
 import java.util.Map;
 
 public class DefaultFetchedTable implements FetchedTable {
 
-  private TableId tableId;
+  private ATableId tableId;
 
   private Map<String, String> columns;
 
   @Deprecated
   public DefaultFetchedTable(final String project, final String dataset, final String table) {
-    this(TableId.of(project, dataset, table));
+    this(ATableId.of(project, dataset, table));
   }
 
   @Deprecated
-  public DefaultFetchedTable(final String project, final String dataset, final String table, final Map<String, String> columns) {
-    this(TableId.of(project, dataset, table), columns);
+  public DefaultFetchedTable(
+      final String project,
+      final String dataset,
+      final String table,
+      final Map<String, String> columns) {
+    this(ATableId.of(project, dataset, table), columns);
   }
 
-  public DefaultFetchedTable(TableId tableId) {
+  public DefaultFetchedTable(ATableId tableId) {
     this(tableId, Collections.emptyMap());
   }
 
-  public DefaultFetchedTable(final TableId tableId, final Map<String, String> columns) {
+  public DefaultFetchedTable(final ATableId tableId, final Map<String, String> columns) {
     this.tableId = tableId;
     this.columns = columns;
   }
@@ -45,7 +49,7 @@ public class DefaultFetchedTable implements FetchedTable {
   }
 
   @Override
-  public TableId getTableId() {
+  public ATableId getTableId() {
     return this.tableId;
   }
 

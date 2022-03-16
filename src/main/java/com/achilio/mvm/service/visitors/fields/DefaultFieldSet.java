@@ -4,7 +4,7 @@ import com.achilio.mvm.service.OptimizerApplication;
 import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
 import com.achilio.mvm.service.visitors.FieldSetIneligibilityReason;
 import com.achilio.mvm.service.visitors.JoinType;
-import com.achilio.mvm.service.visitors.TableId;
+import com.achilio.mvm.service.visitors.ATableId;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -21,9 +21,9 @@ public class DefaultFieldSet implements FieldSet {
   private static final Logger LOGGER = LoggerFactory.getLogger(OptimizerApplication.class);
 
   private final Set<Field> fields;
-  private final Map<TableId, JoinType> joinTables = new HashMap<>();
+  private final Map<ATableId, JoinType> joinTables = new HashMap<>();
   private final Set<FieldSetIneligibilityReason> ineligibilityReasons = new HashSet<>();
-  private TableId referenceTable;
+  private ATableId referenceTable;
   private QueryUsageStatistics statistics;
 
   public DefaultFieldSet() {
@@ -40,22 +40,22 @@ public class DefaultFieldSet implements FieldSet {
   }
 
   @Override
-  public TableId getReferenceTable() {
+  public ATableId getReferenceTable() {
     return this.referenceTable;
   }
 
   @Override
-  public void setReferenceTable(TableId referenceTable) {
+  public void setReferenceTable(ATableId referenceTable) {
     this.referenceTable = referenceTable;
   }
 
   @Override
-  public Map<TableId, JoinType> getJoinTables() {
+  public Map<ATableId, JoinType> getJoinTables() {
     return joinTables;
   }
 
   @Override
-  public void addJoinTable(TableId joinTable, JoinType type) {
+  public void addJoinTable(ATableId joinTable, JoinType type) {
     this.joinTables.put(joinTable, type);
   }
 

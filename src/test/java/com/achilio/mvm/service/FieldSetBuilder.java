@@ -4,7 +4,7 @@ import static com.achilio.mvm.service.FieldSetHelper.createFieldSet;
 
 import com.achilio.mvm.service.visitors.FieldSetIneligibilityReason;
 import com.achilio.mvm.service.visitors.JoinType;
-import com.achilio.mvm.service.visitors.TableId;
+import com.achilio.mvm.service.visitors.ATableId;
 import com.achilio.mvm.service.visitors.fields.AggregateField;
 import com.achilio.mvm.service.visitors.fields.FieldSet;
 import com.achilio.mvm.service.visitors.fields.FunctionField;
@@ -19,7 +19,7 @@ public class FieldSetBuilder {
     fieldSet = createFieldSet();
   }
 
-  public FieldSetBuilder(TableId tableId) {
+  public FieldSetBuilder(ATableId tableId) {
     fieldSet = createFieldSet(tableId);
   }
 
@@ -43,7 +43,7 @@ public class FieldSetBuilder {
     return this;
   }
 
-  FieldSetBuilder setRefTable(TableId tableId) {
+  FieldSetBuilder setRefTable(ATableId tableId) {
     this.fieldSet.setReferenceTable(tableId);
     return this;
   }
@@ -52,7 +52,7 @@ public class FieldSetBuilder {
     return fieldSet;
   }
 
-  public FieldSetBuilder addJoinTable(TableId tableId, JoinType joinType) {
+  public FieldSetBuilder addJoinTable(ATableId tableId, JoinType joinType) {
     this.fieldSet.addJoinTable(tableId, joinType);
     return this;
   }

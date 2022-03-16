@@ -36,7 +36,7 @@ public abstract class ZetaSQLModelBuilder implements ModelBuilder {
 
   @Override
   public void registerTable(FetchedTable table) {
-    TableId tableId = table.getTableId();
+    ATableId tableId = table.getTableId();
     SimpleCatalog dataset = createDatasetAndGet(catalog, tableId.getDataset());
     SimpleCatalog datasetInProject = createDatasetAndGet(catalogProject, tableId.getDataset());
     final String tableName = tableId.getTable();
@@ -56,7 +56,7 @@ public abstract class ZetaSQLModelBuilder implements ModelBuilder {
   @Override
   public boolean isTableRegistered(FetchedTable table) {
     try {
-      TableId tableId = table.getTableId();
+      ATableId tableId = table.getTableId();
       List<String> paths = new ArrayList<>();
       if (StringUtils.isNotEmpty(table.getProjectId())) {
         paths.add(tableId.getProject());

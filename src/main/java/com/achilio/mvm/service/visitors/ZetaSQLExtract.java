@@ -8,7 +8,6 @@ import com.google.zetasql.AnalyzerOptions;
 import com.google.zetasql.LanguageOptions;
 import com.google.zetasql.ParseResumeLocation;
 import com.google.zetasql.SimpleCatalog;
-import com.google.zetasql.ZetaSQLOptions.LanguageFeature;
 import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedStatement;
 import com.google.zetasql.resolvedast.ResolvedNodes.Visitor;
 import java.util.Collection;
@@ -38,9 +37,8 @@ public class ZetaSQLExtract extends ZetaSQLModelBuilder implements FieldSetExtra
     AnalyzerOptions options = new AnalyzerOptions();
     LanguageOptions languageOptions = options.getLanguageOptions();
     languageOptions.enableMaximumLanguageFeatures();
-    languageOptions.enableLanguageFeature(LanguageFeature.FEATURE_V_1_3_ALLOW_DASHES_IN_TABLE_NAME);
-    options.setLanguageOptions(new LanguageOptions().enableMaximumLanguageFeatures());
-    options.setPruneUnusedColumns(true);
+    languageOptions.setSupportsAllStatementKinds();
+    options.setLanguageOptions(languageOptions);
     return options;
   }
 
@@ -83,9 +81,11 @@ public class ZetaSQLExtract extends ZetaSQLModelBuilder implements FieldSetExtra
     final SimpleCatalog catalog = super.getCatalog();
     try {
       statement = removeTableNamesBackticks(statement);
-      ParseResumeLocation aParseResumeLocation = new ParseResumeLocation(statement);
-      ResolvedStatement resolvedStatement = Analyzer.analyzeStatement(statement, options, catalog);
-      resolvedStatement.accept(visitor);
+      ParseResumeLocation location = new ParseResumeLocation(statement);
+      while (location.getAllowResume()) {
+        ResolvedStatement resolved = Analyzer.analyzeNextStatement(location, options, catalog);
+        resolved.accept(visitor);
+      }
     } catch (Exception e) {
       LOGGER.error("Query resolving has failed: {}", e.getMessage());
     }
@@ -102,7 +102,7 @@ public class ZetaSQLExtract extends ZetaSQLModelBuilder implements FieldSetExtra
         continue;
       }
       String tablePath = path.get(0);
-      TableId tableId = TableId.parse(tablePath);
+      ATableId tableId = ATableId.parse(tablePath);
       if (tableId == null) {
         // Not a TableId pattern.
         continue;

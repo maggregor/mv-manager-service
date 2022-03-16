@@ -2,7 +2,7 @@ package com.achilio.mvm.service.databases.entities;
 
 import com.achilio.mvm.service.databases.DatabaseFetcher;
 import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
-import com.achilio.mvm.service.visitors.TableId;
+import com.achilio.mvm.service.visitors.ATableId;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -23,7 +23,7 @@ public class FetchedQuery {
   // Discovered tables in the SQL query
   @Deprecated private Set<FetchedTable> refTables;
   // Discovered tables ids in the SQL statement
-  private Set<TableId> tables;
+  private Set<ATableId> tables;
   private QueryUsageStatistics statistics;
 
   public FetchedQuery(String query) {
@@ -53,11 +53,11 @@ public class FetchedQuery {
     this.refTables = refTables;
   }
 
-  public Set<TableId> getTables() {
+  public Set<ATableId> getTables() {
     return this.tables;
   }
 
-  public void setTables(Set<TableId> tables) {
+  public void setTables(Set<ATableId> tables) {
     this.tables = tables;
   }
 

@@ -4,17 +4,17 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-import com.achilio.mvm.service.visitors.TableId;
+import com.achilio.mvm.service.visitors.ATableId;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
-public class TableIdTest {
+public class ATableIdTest {
 
   @Test
   public void datasetTable() {
-    TableId tableId = TableId.of("superDataset", "niceTable");
+    ATableId tableId = ATableId.of("superDataset", "niceTable");
     assertNotNull(tableId);
     assertNull(tableId.getProject());
     assertEquals("superDataset", tableId.getDataset());
@@ -23,7 +23,7 @@ public class TableIdTest {
 
   @Test
   public void projectDatasetTable() {
-    TableId tableId = TableId.of("goodProject", "superDataset", "niceTable");
+    ATableId tableId = ATableId.of("goodProject", "superDataset", "niceTable");
     assertNotNull(tableId);
     assertEquals("goodProject", tableId.getProject());
     assertEquals("superDataset", tableId.getDataset());
@@ -32,7 +32,7 @@ public class TableIdTest {
 
   @Test
   public void parseDatasetTable() {
-    TableId tableId = TableId.parse("superDataset.niceTable");
+    ATableId tableId = ATableId.parse("superDataset.niceTable");
     assertNotNull(tableId);
     assertNull(tableId.getProject());
     assertEquals("superDataset", tableId.getDataset());
@@ -41,7 +41,7 @@ public class TableIdTest {
 
   @Test
   public void parseProjectDatasetTable() {
-    TableId tableId = TableId.parse("goodProject.superDataset.niceTable");
+    ATableId tableId = ATableId.parse("goodProject.superDataset.niceTable");
     assertNotNull(tableId);
     assertEquals("goodProject", tableId.getProject());
     assertEquals("superDataset", tableId.getDataset());
@@ -50,27 +50,27 @@ public class TableIdTest {
 
   @Test
   public void parseTooShort() {
-    TableId tableId = TableId.parse("niceTable");
+    ATableId tableId = ATableId.parse("niceTable");
     assertNull(tableId);
   }
 
   @Test
   public void parseTooLong() {
-    TableId tableId = TableId.parse("prefix.prefix2.prefix3.niceTable");
+    ATableId tableId = ATableId.parse("prefix.prefix2.prefix3.niceTable");
     assertNull(tableId);
   }
 
   @Test
   public void parseWithBackticks() {
-    TableId expected = TableId.of("goodProject", "superDataset", "niceTable");
-    TableId tableId;
-    tableId = TableId.parse("`goodProject.superDataset.niceTable`");
+    ATableId expected = ATableId.of("goodProject", "superDataset", "niceTable");
+    ATableId tableId;
+    tableId = ATableId.parse("`goodProject.superDataset.niceTable`");
     assertNotNull(tableId);
     assertEquals(expected, tableId);
-    tableId = TableId.parse("`goodProject`.superDataset.niceTable");
+    tableId = ATableId.parse("`goodProject`.superDataset.niceTable");
     assertNotNull(tableId);
     assertEquals(expected, tableId);
-    tableId = TableId.parse("`goodProject`.`superDataset`.`niceTable`");
+    tableId = ATableId.parse("`goodProject`.`superDataset`.`niceTable`");
     assertNotNull(tableId);
     assertEquals(expected, tableId);
   }
