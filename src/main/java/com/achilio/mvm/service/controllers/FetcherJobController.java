@@ -12,6 +12,7 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -30,7 +31,7 @@ public class FetcherJobController {
   @Autowired private FetcherJobService fetcherJobService;
   @Autowired private FetcherJobRepository fetcherJobRepository;
 
-  @GetMapping(path = "/query/{projectId}", produces = "application/json")
+  @GetMapping(path = "/query/{projectId}", produces = MediaType.APPLICATION_JSON_VALUE)
   @ApiOperation(
       "List all fetcher query job for a given projectId.\n"
           + "If last URL Param is passed and set to true, returns a singleton with the latest fetcher query job")
@@ -57,7 +58,9 @@ public class FetcherJobController {
     return fetcherJobRepository.findFetcherQueryJobsByProjectId(projectId);
   }
 
-  @GetMapping(path = "/query/{projectId}/{fetcherQueryJobId}", produces = "application/json")
+  @GetMapping(
+      path = "/query/{projectId}/{fetcherQueryJobId}",
+      produces = MediaType.APPLICATION_JSON_VALUE)
   @ApiOperation(
       "List all fetcher query job for a given projectId.\n"
           + "If last URL Param is passed and set to true, returns a singleton with the latest fetcher query job")
@@ -72,7 +75,7 @@ public class FetcherJobController {
     return optionalFetcherJob.get();
   }
 
-  @PostMapping(path = "/query/{projectId}", produces = "application/json")
+  @PostMapping(path = "/query/{projectId}", produces = MediaType.APPLICATION_JSON_VALUE)
   @ApiOperation("Create and start a new query fetching job")
   public FetcherQueryJob createNewFetcherQueryJob(@PathVariable String projectId) {
     FetcherQueryJob currentJob = fetcherJobRepository.save(new FetcherQueryJob(projectId));

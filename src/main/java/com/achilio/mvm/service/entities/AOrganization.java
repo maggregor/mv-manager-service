@@ -11,26 +11,29 @@ public class Organization {
 
   @Id
   @Column(name = "id", nullable = false)
-  private Long id;
+  private String id;
 
   @Column private String name;
 
   @Column(nullable = false)
   private String stripeCustomerId;
 
+  @Column private String googleWorkspaceId;
+
   public Organization() {}
 
-  public Organization(Long id, String name, String stripeCustomerId) {
+  public Organization(String id, String name, String stripeCustomerId, String googleWorkspaceId) {
     this.id = id;
     this.name = name;
     this.stripeCustomerId = stripeCustomerId;
+    this.googleWorkspaceId = googleWorkspaceId;
   }
 
-  public Long getId() {
+  public String getId() {
     return id;
   }
 
-  public void setId(Long id) {
+  public void setId(String id) {
     this.id = id;
   }
 
@@ -48,5 +51,13 @@ public class Organization {
 
   public void setStripeCustomerId(String stripeCustomerId) {
     this.stripeCustomerId = stripeCustomerId;
+  }
+
+  public String getGoogleWorkspaceId() {
+    return googleWorkspaceId;
+  }
+
+  public void setGoogleWorkspaceId(String googleWorkspaceId) {
+    this.googleWorkspaceId = googleWorkspaceId;
   }
 }
