@@ -20,6 +20,7 @@ public class FetchedQuery {
   private boolean useMaterializedView;
   private boolean useCache;
   private LocalDate startTime;
+  private boolean canUseMaterializedViews;
   // Discovered tables in the SQL query
   @Deprecated private Set<FetchedTable> refTables;
   // Discovered tables ids in the SQL statement
@@ -92,5 +93,13 @@ public class FetchedQuery {
 
   public String getProjectId() {
     return this.projectId;
+  }
+
+  public void setCanUseMaterializedViews(boolean canUseMaterializedViews) {
+    this.canUseMaterializedViews = canUseMaterializedViews;
+  }
+
+  public boolean canUseMaterializedViews() {
+    return canUseMaterializedViews;
   }
 }

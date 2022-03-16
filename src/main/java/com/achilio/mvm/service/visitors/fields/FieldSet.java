@@ -1,9 +1,8 @@
 package com.achilio.mvm.service.visitors.fields;
 
-import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
+import com.achilio.mvm.service.visitors.ATableId;
 import com.achilio.mvm.service.visitors.FieldSetIneligibilityReason;
 import com.achilio.mvm.service.visitors.JoinType;
-import com.achilio.mvm.service.visitors.ATableId;
 import java.util.Map;
 import java.util.Set;
 
@@ -14,17 +13,10 @@ import java.util.Set;
  */
 public interface FieldSet {
 
-  /** Returns query cost */
-  long cost();
-
   /** The fields which this set of fields handle. */
   Set<Field> fields();
 
-  /**
-   * Returns the main table
-   *
-   * @return
-   */
+  /** Returns the main table */
   ATableId getReferenceTable();
 
   /** Define the main table of the query. */
@@ -39,11 +31,6 @@ public interface FieldSet {
 
   /** Add join table with the type of join */
   void addJoinTable(ATableId joinTable, JoinType type);
-
-  /** Returns the statistics of the FieldSet */
-  QueryUsageStatistics getStatistics();
-
-  void setStatistics(QueryUsageStatistics statistics);
 
   /** Add new Field to the field set. */
   void add(Field field);

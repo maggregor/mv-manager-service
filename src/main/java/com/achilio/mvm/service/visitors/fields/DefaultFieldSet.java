@@ -1,10 +1,9 @@
 package com.achilio.mvm.service.visitors.fields;
 
 import com.achilio.mvm.service.OptimizerApplication;
-import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
+import com.achilio.mvm.service.visitors.ATableId;
 import com.achilio.mvm.service.visitors.FieldSetIneligibilityReason;
 import com.achilio.mvm.service.visitors.JoinType;
-import com.achilio.mvm.service.visitors.ATableId;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -24,7 +23,6 @@ public class DefaultFieldSet implements FieldSet {
   private final Map<ATableId, JoinType> joinTables = new HashMap<>();
   private final Set<FieldSetIneligibilityReason> ineligibilityReasons = new HashSet<>();
   private ATableId referenceTable;
-  private QueryUsageStatistics statistics;
 
   public DefaultFieldSet() {
     this(new LinkedHashSet<>());
@@ -60,16 +58,6 @@ public class DefaultFieldSet implements FieldSet {
   }
 
   @Override
-  public QueryUsageStatistics getStatistics() {
-    return this.statistics;
-  }
-
-  @Override
-  public void setStatistics(QueryUsageStatistics statistics) {
-    this.statistics = statistics;
-  }
-
-  @Override
   public void add(Field field) {
     this.fields.add(field);
   }
@@ -99,11 +87,6 @@ public class DefaultFieldSet implements FieldSet {
     return this.fields.stream()
         .filter(field -> field instanceof ReferenceField)
         .collect(Collectors.toSet());
-  }
-
-  @Override
-  public long cost() {
-    return this.statistics == null ? 0 : this.statistics.getProcessedBytes();
   }
 
   @Override

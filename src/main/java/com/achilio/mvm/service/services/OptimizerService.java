@@ -16,9 +16,10 @@ import com.achilio.mvm.service.entities.OptimizationResult.Status;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.repositories.OptimizerRepository;
 import com.achilio.mvm.service.repositories.OptimizerResultRepository;
+import com.achilio.mvm.service.visitors.ATableId;
 import com.achilio.mvm.service.visitors.FieldSetExtract;
 import com.achilio.mvm.service.visitors.FieldSetExtractFactory;
-import com.achilio.mvm.service.visitors.ATableId;
+import com.achilio.mvm.service.visitors.FieldSetMerger;
 import com.achilio.mvm.service.visitors.fields.FieldSet;
 import java.util.Comparator;
 import java.util.List;
@@ -60,7 +61,7 @@ public class OptimizerService {
 
   @Async("asyncExecutor")
   public void optimizeProject(Optimization o) {
-    /* String projectId = o.getProjectId();
+    String projectId = o.getProjectId();
     int analysisTimeframe = o.getAnalysisTimeframe();
     int mvMaxPerTable = o.getMvMaxPerTable();
     int maxMvPerTable = Math.min(GOOGLE_MAX_MV_PER_TABLE, mvMaxPerTable);
@@ -83,13 +84,11 @@ public class OptimizerService {
     addOptimizationEvent(o, StatusType.FILTER_QUERIES_FROM_DATASET);
     List<FetchedQuery> allQueriesOnDataset =
         allQueries.stream().filter(query -> isOnDataset(query, datasets)).collect(toList());
-    // STEP 4 - Filter eligible queries
-    addOptimizationEvent(o, StatusType.FILTER_ELIGIBLE_QUERIES);
-    List<FetchedQuery> eligibleQueriesOnDataset =
-        getEligibleQueries(projectId, tables, allQueriesOnDataset);
     // STEP 5 - Extract field from queries
     addOptimizationEvent(o, StatusType.EXTRACTING_FIELD_SETS);
-    List<FieldSet> fieldSets = extractFields(projectId, tables, eligibleQueriesOnDataset);
+    List<FieldSet> allFieldSets = extractFields(projectId, tables, allQueriesOnDataset);
+    // STEP 6 - Filter eligible fieldSets
+    List<FieldSet> fieldSets = allFieldSets.stream().filter(FieldSet::isEligible).collect(toList());
     // STEP 6 - Merging same field sets
     addOptimizationEvent(o, StatusType.MERGING_FIELD_SETS);
     fieldSets = FieldSetMerger.merge(fieldSets);
@@ -101,7 +100,9 @@ public class OptimizerService {
     List<OptimizationResult> results = buildOptimizationsResults(o, optimized);
     // STEP 9 - Publishing optimization
     applyStatus(o, results);
-    Double percent = (double) eligibleQueriesOnDataset.size() / allQueriesOnDataset.size();
+    long eligibleQueries =
+        allQueriesOnDataset.stream().filter(FetchedQuery::canUseMaterializedViews).count();
+    Double percent = (double) eligibleQueries / allQueriesOnDataset.size();
     o.setQueryEligiblePercentage(percent);
     addOptimizationEvent(o, StatusType.PUBLISHING);
     List<OptimizationResult> resultsToPublish =
@@ -123,7 +124,7 @@ public class OptimizerService {
     } else {
       addOptimizationEvent(o, StatusType.NOT_PUBLISHED);
     }
-    optimizerRepository.save(o);*/
+    optimizerRepository.save(o);
   }
 
   private void applyStatus(Optimization optimization, List<OptimizationResult> results) {

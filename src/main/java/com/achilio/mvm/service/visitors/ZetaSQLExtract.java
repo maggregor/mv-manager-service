@@ -10,11 +10,9 @@ import com.google.zetasql.ParseResumeLocation;
 import com.google.zetasql.SimpleCatalog;
 import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedStatement;
 import com.google.zetasql.resolvedast.ResolvedNodes.Visitor;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,7 +52,11 @@ public class ZetaSQLExtract extends ZetaSQLModelBuilder implements FieldSetExtra
 
   @Override
   public List<FieldSet> extractAll(FetchedQuery fetchedQuery) {
-    return extractAll(fetchedQuery.getProjectId(), fetchedQuery.getQuery());
+    List<FieldSet> fieldSets = extractAll(fetchedQuery.getProjectId(), fetchedQuery.getQuery());
+    if (!fieldSets.isEmpty()) {
+      fetchedQuery.setCanUseMaterializedViews(true);
+    }
+    return fieldSets;
   }
 
   @Override
@@ -63,14 +65,6 @@ public class ZetaSQLExtract extends ZetaSQLModelBuilder implements FieldSetExtra
         new ZetaSQLFieldSetExtractEntryPointVisitor(projectId, getCatalog());
     resolveStatementAndVisit(statement, v);
     return v.getAllFieldSets();
-  }
-
-  @Override
-  public List<FieldSet> extractAll(List<FetchedQuery> fetchedQueries) {
-    return fetchedQueries.stream()
-        .map(this::extractAll)
-        .flatMap(Collection::stream)
-        .collect(Collectors.toList());
   }
 
   private void resolveAndVisit(FetchedQuery fetchedQuery, Visitor visitor) {
