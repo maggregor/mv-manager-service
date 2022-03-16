@@ -7,7 +7,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "organization")
-public class Organization {
+public class AOrganization {
 
   @Id
   @Column(name = "id", nullable = false)
@@ -20,9 +20,9 @@ public class Organization {
 
   @Column private String googleWorkspaceId;
 
-  public Organization() {}
+  public AOrganization() {}
 
-  public Organization(String id, String name, String stripeCustomerId, String googleWorkspaceId) {
+  public AOrganization(String id, String name, String stripeCustomerId, String googleWorkspaceId) {
     this.id = id;
     this.name = name;
     this.stripeCustomerId = stripeCustomerId;

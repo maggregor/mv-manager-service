@@ -45,6 +45,7 @@ import com.google.cloud.bigquery.TableDefinition;
 import com.google.cloud.bigquery.TableId;
 import com.google.cloud.resourcemanager.Project;
 import com.google.cloud.resourcemanager.ResourceManager;
+import com.google.cloud.resourcemanager.v3.OrganizationsClient;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -86,13 +87,16 @@ public class BigQueryDatabaseFetcherTest {
   private JobStatistics.QueryStatistics mockJobStats;
   private BigQuery mockBigquery;
   private ResourceManager mockResourceManager;
+  private OrganizationsClient mockOrganizationClient;
   private JobId mockJobId;
 
   @Before
   public void setUp() {
     mockBigquery = mock(BigQuery.class);
     mockResourceManager = mock(ResourceManager.class);
-    fetcher = new BigQueryDatabaseFetcher(mockBigquery, mockResourceManager);
+    mockOrganizationClient = mock(OrganizationsClient.class);
+    fetcher =
+        new BigQueryDatabaseFetcher(mockBigquery, mockResourceManager, mockOrganizationClient);
     initializeJobMockDefault();
   }
 

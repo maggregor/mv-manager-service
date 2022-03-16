@@ -57,7 +57,7 @@ public class Project {
       columnDefinition = "boolean default false")
   private Boolean automaticAvailable = false;
 
-  @Column(name = "stripe_customer_id", nullable = false)
+  @Column(name = "stripe_customer_id")
   private String stripeCustomerId;
 
   public Project() {}

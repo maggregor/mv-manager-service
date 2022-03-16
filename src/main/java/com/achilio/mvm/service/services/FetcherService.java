@@ -20,6 +20,7 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.oauth2.Oauth2;
 import com.google.api.services.oauth2.model.Userinfo;
+import com.google.cloud.resourcemanager.v3.Organization;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.TemporalAdjusters;
@@ -62,6 +63,10 @@ public class FetcherService {
 
   public List<FetchedProject> fetchAllProjects() {
     return fetcher().fetchAllProjects();
+  }
+
+  public List<Organization> fetchAllOrganizations() {
+    return fetcher().fetchAllOrganizations();
   }
 
   public FetchedProject fetchProject(String projectId) throws ProjectNotFoundException {

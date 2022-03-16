@@ -11,6 +11,7 @@ import com.achilio.mvm.service.databases.entities.FetchedQueryFactory;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
+import com.google.api.gax.core.FixedCredentialsProvider;
 import com.google.api.gax.paging.Page;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.bigquery.BigQuery;
@@ -35,8 +36,14 @@ import com.google.cloud.bigquery.TableId;
 import com.google.cloud.resourcemanager.Project;
 import com.google.cloud.resourcemanager.ResourceManager;
 import com.google.cloud.resourcemanager.ResourceManagerOptions;
+import com.google.cloud.resourcemanager.v3.Organization;
+import com.google.cloud.resourcemanager.v3.OrganizationsClient;
+import com.google.cloud.resourcemanager.v3.OrganizationsClient.SearchOrganizationsPagedResponse;
+import com.google.cloud.resourcemanager.v3.OrganizationsSettings;
+import com.google.cloud.resourcemanager.v3.SearchOrganizationsRequest;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.zetasql.ZetaSQLType;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -63,18 +70,33 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
   private static final String SQL_SELECT_WORD = "SELECT";
   private final BigQuery bigquery;
   private final ResourceManager resourceManager;
+  private final OrganizationsClient organizationClient;
 
   @VisibleForTesting
-  public BigQueryDatabaseFetcher(BigQuery bigquery, ResourceManager rm) {
+  public BigQueryDatabaseFetcher(BigQuery bigquery, ResourceManager rm, OrganizationsClient oc) {
     this.bigquery = bigquery;
     this.resourceManager = rm;
+    this.organizationClient = oc;
   }
 
   public BigQueryDatabaseFetcher(final GoogleCredentials credentials, final String projectId)
       throws ProjectNotFoundException {
+    OrganizationsClient organizationClient1;
     BigQueryOptions.Builder bqOptBuilder = BigQueryOptions.newBuilder().setCredentials(credentials);
     ResourceManagerOptions.Builder rmOptBuilder =
         ResourceManagerOptions.newBuilder().setCredentials(credentials);
+    try {
+      OrganizationsSettings organizationsSettings =
+          OrganizationsSettings.newBuilder()
+              .setCredentialsProvider(FixedCredentialsProvider.create(credentials))
+              .build();
+
+      organizationClient1 = OrganizationsClient.create(organizationsSettings);
+    } catch (IOException e) {
+      organizationClient1 = null;
+      LOGGER.warn("Error during creation of organizations settings and client");
+    }
+    this.organizationClient = organizationClient1;
     if (StringUtils.isNotEmpty(projectId)) {
       // Change default project of BigQuery instance
       bqOptBuilder.setProjectId(projectId);
@@ -345,6 +367,14 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
       default:
         return "TYPE_" + statusType;
     }
+  }
+
+  @Override
+  public List<Organization> fetchAllOrganizations() {
+    SearchOrganizationsRequest r = SearchOrganizationsRequest.newBuilder().build();
+    SearchOrganizationsPagedResponse results = this.organizationClient.searchOrganizations(r);
+    return StreamSupport.stream(results.iterateAll().spliterator(), false)
+        .collect(Collectors.toList());
   }
 
   @Override

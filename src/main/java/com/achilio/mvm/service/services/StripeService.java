@@ -54,19 +54,19 @@ public class StripeService {
    *
    * @return the stripe customer ID
    */
-  public Customer createCustomer(String customerName, String projectId) {
+  public Customer createCustomer(String customerName, String organizationId) {
     Userinfo userInfo = fetcherService.getUserInfo();
     String userEmail = userInfo.getEmail();
     String userName = userInfo.getName();
-    return createCustomer(userEmail, userName, customerName, projectId);
+    return createCustomer(userEmail, userName, customerName, organizationId);
   }
 
   private Customer createCustomer(
-      String userEmail, String userName, String customerName, String projectId) {
+      String userEmail, String userName, String customerName, String organizationId) {
     Stripe.apiKey = API_KEY;
     try {
       Map<String, String> metadata = new HashMap<>();
-      metadata.put(CustomerMetadata.PROJECT_ID.getValue(), projectId);
+      metadata.put(CustomerMetadata.ORGANIZATION_ID.getValue(), organizationId);
       metadata.put(CustomerMetadata.CREATED_BY_EMAIL.getValue(), userEmail);
       metadata.put(CustomerMetadata.CREATED_BY_NAME.getValue(), userName);
       CustomerCreateParams params =
@@ -262,6 +262,7 @@ public class StripeService {
 
   enum CustomerMetadata {
     PROJECT_ID,
+    ORGANIZATION_ID,
     CREATED_BY_EMAIL,
     CREATED_BY_NAME;
 

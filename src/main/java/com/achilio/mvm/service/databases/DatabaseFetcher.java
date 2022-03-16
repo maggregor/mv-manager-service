@@ -5,6 +5,7 @@ import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
+import com.google.cloud.resourcemanager.v3.Organization;
 import java.util.List;
 import java.util.Set;
 
@@ -69,4 +70,6 @@ public interface DatabaseFetcher {
   Set<FetchedTable> fetchTablesInDataset(String datasetName);
 
   List<String> fetchMissingPermissions(String projectId);
+
+  List<Organization> fetchAllOrganizations();
 }
