@@ -2,9 +2,9 @@ package com.achilio.mvm.service;
 
 import static com.achilio.mvm.service.FieldSetHelper.createFieldSet;
 
+import com.achilio.mvm.service.visitors.ATableId;
 import com.achilio.mvm.service.visitors.FieldSetIneligibilityReason;
 import com.achilio.mvm.service.visitors.JoinType;
-import com.achilio.mvm.service.visitors.ATableId;
 import com.achilio.mvm.service.visitors.fields.AggregateField;
 import com.achilio.mvm.service.visitors.fields.FieldSet;
 import com.achilio.mvm.service.visitors.fields.FunctionField;
@@ -21,6 +21,10 @@ public class FieldSetBuilder {
 
   public FieldSetBuilder(ATableId tableId) {
     fieldSet = createFieldSet(tableId);
+  }
+
+  public static FieldSetBuilder fsBuilder() {
+    return new FieldSetBuilder();
   }
 
   FieldSetBuilder addRef(String name) {

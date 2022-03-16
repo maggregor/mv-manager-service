@@ -95,7 +95,7 @@ public class DefaultFieldSet implements FieldSet {
 
   @Override
   public boolean isEmpty() {
-    return fields.isEmpty() || this == FieldSetFactory.EMPTY_FIELD_SET;
+    return fields.isEmpty();
   }
 
   @Override
@@ -148,7 +148,7 @@ public class DefaultFieldSet implements FieldSet {
 
   @Override
   public int hashCode() {
-    int result = fields != null ? fields.hashCode() : 0;
+    int result = fields.hashCode();
     result = 31 * result + joinTables.hashCode();
     result = 31 * result + ineligibilityReasons.hashCode();
     result = 31 * result + (referenceTable != null ? referenceTable.hashCode() : 0);
