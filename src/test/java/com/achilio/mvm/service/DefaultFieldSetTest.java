@@ -4,10 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
-import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
 import com.achilio.mvm.service.visitors.FieldSetIneligibilityReason;
 import com.achilio.mvm.service.visitors.fields.AggregateField;
 import com.achilio.mvm.service.visitors.fields.DefaultFieldSet;
@@ -71,30 +68,6 @@ public class DefaultFieldSetTest {
     actual.add(new ReferenceField("a"));
     actual.add(new FunctionField("b"));
     assertEquals(expected, actual);
-  }
-
-  @Test
-  public void statistics() {
-    QueryUsageStatistics mockStatistics = mock(QueryUsageStatistics.class);
-    when(mockStatistics.getBilledBytes()).thenReturn(10L);
-    when(mockStatistics.getProcessedBytes()).thenReturn(20L);
-    FieldSet fieldSet = FieldSetHelper.createFieldSet(new ReferenceField("a"));
-    fieldSet.setStatistics(mockStatistics);
-    assertEquals(mockStatistics, fieldSet.getStatistics());
-    assertEquals(10L, fieldSet.getStatistics().getBilledBytes());
-    assertEquals(20L, fieldSet.getStatistics().getProcessedBytes());
-  }
-
-  @Test
-  public void cost() {
-    FieldSet fieldSet = FieldSetHelper.createFieldSet(new ReferenceField("a"));
-    QueryUsageStatistics mockStatistics = mock(QueryUsageStatistics.class);
-    fieldSet.setStatistics(mockStatistics);
-    assertEquals(0, fieldSet.cost());
-    when(mockStatistics.getProcessedBytes()).thenReturn(20L);
-    assertEquals(20L, fieldSet.cost());
-    when(mockStatistics.getProcessedBytes()).thenReturn(100L);
-    assertEquals(100L, fieldSet.cost());
   }
 
   @Test

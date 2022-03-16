@@ -13,6 +13,9 @@ import java.util.Set;
  */
 public interface FieldSet {
 
+  /** Returns the number of times the fieldset has been used */
+  int getHits();
+
   /** The fields which this set of fields handle. */
   Set<Field> fields();
 

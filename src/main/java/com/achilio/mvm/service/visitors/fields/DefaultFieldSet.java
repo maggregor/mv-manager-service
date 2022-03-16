@@ -19,17 +19,16 @@ public class DefaultFieldSet implements FieldSet {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(OptimizerApplication.class);
 
-  private final Set<Field> fields;
+  private final Set<Field> fields = new LinkedHashSet<>();
   private final Map<ATableId, JoinType> joinTables = new HashMap<>();
   private final Set<FieldSetIneligibilityReason> ineligibilityReasons = new HashSet<>();
   private ATableId referenceTable;
+  private int hits = 0;
 
-  public DefaultFieldSet() {
-    this(new LinkedHashSet<>());
-  }
+  public DefaultFieldSet() {}
 
   public DefaultFieldSet(final Set<Field> fields) {
-    this.fields = fields;
+    addAll(fields);
   }
 
   @Override
@@ -59,12 +58,17 @@ public class DefaultFieldSet implements FieldSet {
 
   @Override
   public void add(Field field) {
+    this.hits++;
     this.fields.add(field);
+  }
+
+  private void addAll(Set<Field> fields) {
+    fields.forEach(this::add);
   }
 
   @Override
   public void merge(FieldSet fieldSet) {
-    fields.addAll(fieldSet.fields());
+    addAll(fieldSet.fields());
   }
 
   @Override
@@ -163,5 +167,10 @@ public class DefaultFieldSet implements FieldSet {
         + ", referenceTable="
         + referenceTable
         + '}';
+  }
+
+  @Override
+  public int getHits() {
+    return this.hits;
   }
 }

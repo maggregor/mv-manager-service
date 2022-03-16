@@ -61,68 +61,82 @@ public class OptimizerService {
 
   @Async("asyncExecutor")
   public void optimizeProject(Optimization o) {
-    String projectId = o.getProjectId();
-    int analysisTimeframe = o.getAnalysisTimeframe();
-    int mvMaxPerTable = o.getMvMaxPerTable();
-    int maxMvPerTable = Math.min(GOOGLE_MAX_MV_PER_TABLE, mvMaxPerTable);
-    List<FetchedDataset> datasets =
-        fetcherService.fetchAllDatasets(projectId).parallelStream()
-            .filter(
-                dataset -> projectService.isDatasetActivated(projectId, dataset.getDatasetName()))
-            .collect(toList());
-    LOGGER.info("Run a new optimization on {} with activated datasets {}", projectId, datasets);
-    LOGGER.info("Username used for optimization {} is {}", o.getId(), o.getUsername());
-    o.setMvMaxPlan(DEFAULT_PLAN_MAX_MV);
-    o.setMvMaxPerTable(maxMvPerTable);
-    // STEP 1 - Fetch all queries of targeted fetchedProject
-    addOptimizationEvent(o, StatusType.FETCHING_QUERIES);
-    List<FetchedQuery> allQueries = fetcherService.fetchQueriesSince(projectId, analysisTimeframe);
-    // STEP 2 - Fetch all tables
-    addOptimizationEvent(o, StatusType.FETCHING_TABLES);
-    Set<FetchedTable> tables = fetcherService.fetchAllTables(projectId);
-    // STEP 3 - Filter queries from targeted dataset
-    addOptimizationEvent(o, StatusType.FILTER_QUERIES_FROM_DATASET);
-    List<FetchedQuery> allQueriesOnDataset =
-        allQueries.stream().filter(query -> isOnDataset(query, datasets)).collect(toList());
-    // STEP 5 - Extract field from queries
-    addOptimizationEvent(o, StatusType.EXTRACTING_FIELD_SETS);
-    List<FieldSet> allFieldSets = extractFields(projectId, tables, allQueriesOnDataset);
-    // STEP 6 - Filter eligible fieldSets
-    List<FieldSet> fieldSets = allFieldSets.stream().filter(FieldSet::isEligible).collect(toList());
-    // STEP 6 - Merging same field sets
-    addOptimizationEvent(o, StatusType.MERGING_FIELD_SETS);
-    fieldSets = FieldSetMerger.merge(fieldSets);
-    // STEP 7 - Optimize field sets
-    addOptimizationEvent(o, StatusType.OPTIMIZING_FIELD_SETS);
-    List<FieldSet> optimized = optimizeFieldSets(fieldSets);
-    // STEP 8 - Build materialized views statements
-    addOptimizationEvent(o, StatusType.BUILD_MATERIALIZED_VIEWS_STATEMENT);
-    List<OptimizationResult> results = buildOptimizationsResults(o, optimized);
-    // STEP 9 - Publishing optimization
-    applyStatus(o, results);
-    long eligibleQueries =
-        allQueriesOnDataset.stream().filter(FetchedQuery::canUseMaterializedViews).count();
-    Double percent = (double) eligibleQueries / allQueriesOnDataset.size();
-    o.setQueryEligiblePercentage(percent);
-    addOptimizationEvent(o, StatusType.PUBLISHING);
-    List<OptimizationResult> resultsToPublish =
-        results.stream().filter(r -> r.getStatus().equals(Status.APPLY)).collect(toList());
-    o.setMvAppliedCount(resultsToPublish.size());
-    o.setMvProposalCount(
-        (int)
-            results.stream()
-                .filter(r -> !r.getStatus().equals(Status.LIMIT_REACHED_PER_TABLE))
-                .count());
-    o.setStatus(Optimization.Status.FINISHED);
-    if (publish(o, resultsToPublish)) {
-      addOptimizationEvent(o, StatusType.PUBLISHED);
-      LOGGER.info(
-          "Optimization {} published with {} MV applied. And as {} proposals.",
-          o.getId(),
-          resultsToPublish.size(),
-          results.size());
-    } else {
-      addOptimizationEvent(o, StatusType.NOT_PUBLISHED);
+    try {
+      String projectId = o.getProjectId();
+      int analysisTimeframe = o.getAnalysisTimeframe();
+      int mvMaxPerTable = o.getMvMaxPerTable();
+      int maxMvPerTable = Math.min(GOOGLE_MAX_MV_PER_TABLE, mvMaxPerTable);
+      List<FetchedDataset> datasets =
+          fetcherService.fetchAllDatasets(projectId).parallelStream()
+              .filter(
+                  dataset -> projectService.isDatasetActivated(projectId, dataset.getDatasetName()))
+              .collect(toList());
+      LOGGER.info("Run a new optimization on {} with activated datasets {}", projectId, datasets);
+      LOGGER.info("Username used for optimization {} is {}", o.getId(), o.getUsername());
+      o.setMvMaxPlan(DEFAULT_PLAN_MAX_MV);
+      o.setMvMaxPerTable(maxMvPerTable);
+      // STEP 1 - Fetch all queries of targeted fetchedProject
+      addOptimizationEvent(o, StatusType.FETCHING_QUERIES);
+      List<FetchedQuery> allQueries =
+          fetcherService.fetchQueriesSince(projectId, analysisTimeframe);
+      // STEP 2 - Fetch all tables
+      addOptimizationEvent(o, StatusType.FETCHING_TABLES);
+      Set<FetchedTable> tables = fetcherService.fetchAllTables(projectId);
+      // STEP 3 - Filter queries from targeted dataset
+      addOptimizationEvent(o, StatusType.FILTER_QUERIES_FROM_DATASET);
+      // STEP 5 - Extract field from queries
+      addOptimizationEvent(o, StatusType.EXTRACTING_FIELD_SETS);
+      List<FieldSet> allFieldSets = extractFields(projectId, tables, allQueries);
+      // STEP 6 - Filter eligible fieldSets
+      List<FieldSet> fieldSets =
+          allFieldSets.stream().filter(FieldSet::isEligible).collect(toList());
+      // STEP 6 - Merging same field sets
+      addOptimizationEvent(o, StatusType.MERGING_FIELD_SETS);
+      List<FieldSet> distinctFieldSets = FieldSetMerger.mergeSame(fieldSets);
+      // STEP 7 - Optimize field sets
+      addOptimizationEvent(o, StatusType.OPTIMIZING_FIELD_SETS);
+      List<FieldSet> optimized = optimizeFieldSets(distinctFieldSets);
+      List<String> datasetNames =
+          datasets.stream()
+              .map(FetchedDataset::getDatasetName)
+              .map(String::toLowerCase)
+              .collect(toList());
+      List<FieldSet> fieldSetOnDataset =
+          optimized.stream()
+              .filter(fieldSet -> datasetNames.contains(fieldSet.getReferenceTable().getDataset()))
+              .collect(toList());
+      // STEP 8 - Build materialized views statements
+      addOptimizationEvent(o, StatusType.BUILD_MATERIALIZED_VIEWS_STATEMENT);
+      List<OptimizationResult> results = buildOptimizationsResults(o, fieldSetOnDataset);
+      // STEP 9 - Publishing optimization
+      applyStatus(o, results);
+      long eligibleQueries =
+          allQueries.stream().filter(FetchedQuery::canUseMaterializedViews).count();
+      Double percent = (double) eligibleQueries / allQueries.size();
+      o.setQueryEligiblePercentage(percent);
+      addOptimizationEvent(o, StatusType.PUBLISHING);
+      List<OptimizationResult> resultsToPublish =
+          results.stream().filter(r -> r.getStatus().equals(Status.APPLY)).collect(toList());
+      o.setMvAppliedCount(resultsToPublish.size());
+      o.setMvProposalCount(
+          (int)
+              results.stream()
+                  .filter(r -> !r.getStatus().equals(Status.LIMIT_REACHED_PER_TABLE))
+                  .count());
+      o.setStatus(Optimization.Status.FINISHED);
+      if (publish(o, resultsToPublish)) {
+        addOptimizationEvent(o, StatusType.PUBLISHED);
+        LOGGER.info(
+            "Optimization {} published with {} MV applied. And as {} proposals.",
+            o.getId(),
+            resultsToPublish.size(),
+            results.size());
+      } else {
+        addOptimizationEvent(o, StatusType.NOT_PUBLISHED);
+      }
+    } catch (Exception e) {
+      o.setStatus(Optimization.Status.ERROR);
+      LOGGER.error("Optimization {} failed", o.getId(), e);
     }
     optimizerRepository.save(o);
   }
@@ -133,8 +147,7 @@ public class OptimizerService {
         .collect(Collectors.groupingBy(OptimizationResult::getTableId))
         .forEach(
             (key, value) -> {
-              value.sort(
-                  Comparator.comparingLong(OptimizationResult::getTotalProcessedBytes).reversed());
+              value.sort(Comparator.comparingInt(OptimizationResult::getHits).reversed());
               value
                   .subList(Math.min(value.size(), optimization.getMvMaxPerTable()), value.size())
                   .forEach(r -> r.setStatus(Status.LIMIT_REACHED_PER_TABLE));
@@ -142,23 +155,13 @@ public class OptimizerService {
     // Apply status for allowed MV.
     results.stream()
         .filter(OptimizationResult::hasUndefinedStatus)
-        .sorted(Comparator.comparingLong(OptimizationResult::getTotalProcessedBytes).reversed())
+        .sorted(Comparator.comparingInt(OptimizationResult::getHits).reversed())
         .limit(DEFAULT_PLAN_MAX_MV)
         .forEach(r -> r.setStatusIfUndefined(Status.APPLY));
     // Others  MV not allowed: limit plan reached.
     results.stream()
         .filter(OptimizationResult::hasUndefinedStatus)
         .forEach(r -> r.setStatus(Status.PLAN_LIMIT_REACHED));
-  }
-
-  private boolean isOnDataset(FetchedQuery query, List<FetchedDataset> datasets) {
-    List<String> datasetNames =
-        datasets.stream()
-            .map(FetchedDataset::getDatasetName)
-            .map(String::toLowerCase)
-            .collect(toList());
-    return query.getReferenceTables().stream()
-        .allMatch(d -> datasetNames.contains(d.getDatasetName().toLowerCase()));
   }
 
   private Boolean publish(Optimization o, List<OptimizationResult> results) {
@@ -175,8 +178,7 @@ public class OptimizerService {
     String statement = statementBuilder.build(fieldSet);
     // To date, get first Table in the set iterator.
     ATableId tableId = fieldSet.getReferenceTable();
-    OptimizationResult result =
-        new OptimizationResult(o, tableId, statement, fieldSet.getStatistics());
+    OptimizationResult result = new OptimizationResult(o, tableId, statement, fieldSet.getHits());
     optimizerResultRepository.save(result);
     optimizerRepository.save(o);
     return result;
@@ -190,7 +192,7 @@ public class OptimizerService {
   private List<FieldSet> extractFields(
       String project, Set<FetchedTable> tables, List<FetchedQuery> queries) {
     FieldSetExtract extractor = FieldSetExtractFactory.createFieldSetExtract(project, tables);
-    return extractor.extract(queries);
+    return extractor.extractAll(queries);
   }
 
   @Transactional
