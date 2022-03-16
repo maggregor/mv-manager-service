@@ -283,11 +283,9 @@ public abstract class FieldSetExtractTest {
 
   @Test
   public void with() {
-    final FieldSet EXPECTED = createFieldSet(MAIN_TABLE_ID, new ReferenceField("col3"));
+    final FieldSet EXPECTED = fieldSetBuilder().addRef("col3").build();
     String q = "WITH a AS (SELECT col3 FROM mydataset.mytable GROUP BY 1) SELECT SUM(col3) FROM a";
-    List<FieldSet> fieldSetList = extractor.extractAll(PROJECT_ID, q);
-    assertEquals(1, fieldSetList.size());
-    assertEquals(EXPECTED, fieldSetList.get(0));
+    assertExpectedFieldSet(q, EXPECTED);
   }
 
   @Test

@@ -66,11 +66,16 @@ public class ZetaSQLFieldSetExtractStatementVisitor extends ZetaSQLFieldSetExtra
 
   @Override
   public void visit(ResolvedTableScan node) {
-    if (this.getFieldSet().getReferenceTable() != null) {
-      throw new IllegalArgumentException("Can't set more than one reference table");
+    TableId referenceTableId = this.getFieldSet().getReferenceTable();
+    if (referenceTableId == null) {
+      String currentTableName = node.getTable().getName();
+      TableId currentTableId = getTable(node);
+      if (currentTableId == null) {
+        throw new IllegalArgumentException(
+            "Can't find TableId on ResolvedTableScan: " + currentTableName);
+      }
+      this.getFieldSet().setReferenceTable(currentTableId);
     }
-    Optional<TableId> tableId = findTableInResolvedScan(node);
-    tableId.ifPresent(this::setTableReference);
   }
 
   @Override
@@ -85,24 +90,25 @@ public class ZetaSQLFieldSetExtractStatementVisitor extends ZetaSQLFieldSetExtra
     if (!type.equals(JoinType.INNER)) {
       this.getFieldSet().addIneligibilityReason(CONTAINS_UNSUPPORTED_JOIN);
     }
+    super.defaultVisit(node);
   }
 
   public Optional<TableId> findTableInResolvedScan(ResolvedScan scan) {
     if (scan instanceof ResolvedTableScan) {
-      return findTableInResolvedScan((ResolvedTableScan) scan);
+      return Optional.ofNullable(getTable((ResolvedTableScan) scan));
     }
 
     return Optional.empty();
   }
 
-  public Optional<TableId> findTableInResolvedScan(ResolvedTableScan scan) {
+  public TableId getTable(ResolvedTableScan scan) {
     TableId tableId = TableId.parse(scan.getTable().getName());
     if (tableId == null) {
-      return Optional.empty();
+      return null;
     } else if (tableId.getProject() == null) {
       tableId = TableId.of(defaultProjectId, tableId.getDataset(), tableId.getTable());
     }
-    return Optional.of(tableId);
+    return tableId;
   }
 
   /**

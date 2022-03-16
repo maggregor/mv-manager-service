@@ -6,6 +6,7 @@ import com.achilio.mvm.service.visitors.fields.FieldSet;
 import com.google.zetasql.Analyzer;
 import com.google.zetasql.AnalyzerOptions;
 import com.google.zetasql.LanguageOptions;
+import com.google.zetasql.ParseResumeLocation;
 import com.google.zetasql.SimpleCatalog;
 import com.google.zetasql.ZetaSQLOptions.LanguageFeature;
 import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedStatement;
@@ -82,6 +83,7 @@ public class ZetaSQLExtract extends ZetaSQLModelBuilder implements FieldSetExtra
     final SimpleCatalog catalog = super.getCatalog();
     try {
       statement = removeTableNamesBackticks(statement);
+      ParseResumeLocation aParseResumeLocation = new ParseResumeLocation(statement);
       ResolvedStatement resolvedStatement = Analyzer.analyzeStatement(statement, options, catalog);
       resolvedStatement.accept(visitor);
     } catch (Exception e) {
