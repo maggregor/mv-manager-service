@@ -65,7 +65,8 @@ public class FetcherJobService {
         fetchedQuery.getStatistics());
   }
 
-  private void updateJobStatus(FetcherQueryJob job, FetcherJobStatus status) {
+  @Transactional
+  void updateJobStatus(FetcherQueryJob job, FetcherJobStatus status) {
     job.setStatus(status);
     fetcherJobRepository.save(job);
   }

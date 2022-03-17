@@ -28,8 +28,8 @@ public class SimpleGoogleCredentialsAuthentication implements Authentication {
   public UserCredentials getCredentials() {
     AccessToken accessToken = new AccessToken(this.accessToken, null);
     return UserCredentials.newBuilder()
-        .setClientId(clientId)
-        .setClientSecret(clientSecret)
+        .setClientId("")
+        .setClientSecret("")
         .setAccessToken(accessToken)
         .build();
   }
