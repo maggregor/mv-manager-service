@@ -1,7 +1,9 @@
 package com.achilio.mvm.service.visitors.fields;
 
-import com.achilio.mvm.service.databases.entities.FetchedTable;
-import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
+import com.achilio.mvm.service.visitors.ATableId;
+import com.achilio.mvm.service.visitors.FieldSetIneligibilityReason;
+import com.achilio.mvm.service.visitors.JoinType;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -11,36 +13,32 @@ import java.util.Set;
  */
 public interface FieldSet {
 
-  /** Returns query cost */
-  long cost();
+  /** Returns the number of times the fieldset has been used */
+  int getHits();
 
-  /**
-   * The fields which this set of fields handle.
-   *
-   * @return the fields this set of fields handle.
-   */
+  /** The fields which this set of fields handle. */
   Set<Field> fields();
 
-  Set<FetchedTable> getReferenceTables();
+  /** Returns the main table */
+  ATableId getReferenceTable();
 
-  void setReferenceTables(Set<FetchedTable> referenceTables);
-
-  QueryUsageStatistics getStatistics();
-
-  void setStatistics(QueryUsageStatistics statistics);
+  /** Define the main table of the query. */
+  void setReferenceTable(ATableId referenceTable);
 
   /**
-   * Add new Field to the field set.
+   * Returns the join tables
    *
    * @return
    */
+  Map<ATableId, JoinType> getJoinTables();
+
+  /** Add join table with the type of join */
+  void addJoinTable(ATableId joinTable, JoinType type);
+
+  /** Add new Field to the field set. */
   void add(Field field);
 
-  /**
-   * Merge fields from a given FieldSet
-   *
-   * @param fieldSet
-   */
+  /** Merge fields from a given FieldSet */
   void merge(FieldSet fieldSet);
 
   /** Returns aggregate fields in the field set */
@@ -52,10 +50,21 @@ public interface FieldSet {
   /** Returns functions fields in the field set */
   Set<Field> functions();
 
-  /**
-   * Returns true if the fieldset doesn't contains any field.
-   *
-   * @return
-   */
+  /** Returns true if the fieldset doesn't contain any field. */
   boolean isEmpty();
+
+  /** Add ineligibility reason */
+  void addIneligibilityReason(FieldSetIneligibilityReason ineligibilityReason);
+
+  /** Remove ineligibility reason */
+  void removeIneligibilityReason(FieldSetIneligibilityReason ineligibilityReason);
+
+  /** Clear ineligibility reasons */
+  void clearIneligibilityReasons();
+
+  /** Returns ineligibility reasons */
+  Set<FieldSetIneligibilityReason> getIneligibilityReasons();
+
+  /** Returns true if the fieldset is eligible */
+  boolean isEligible();
 }

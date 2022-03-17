@@ -142,7 +142,8 @@ public class Optimization {
   public enum Status {
     UNKNOWN("Unknown"),
     PENDING("Pending"),
-    FINISHED("Finished");
+    FINISHED("Finished"),
+    ERROR("Error");
 
     private String description;
 

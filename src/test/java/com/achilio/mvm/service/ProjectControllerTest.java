@@ -2,8 +2,6 @@ package com.achilio.mvm.service;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -177,7 +175,7 @@ public class ProjectControllerTest {
   @Test
   public void getQueryStatistics() throws Exception {
     ObjectMapper mapper = new ObjectMapper();
-    GlobalQueryStatistics statistics1 = new GlobalQueryStatistics(true);
+    GlobalQueryStatistics statistics1 = new GlobalQueryStatistics();
     when(mockedFetcherService.getStatistics(TEST_PROJECT_ID1, 30)).thenReturn(statistics1);
     GlobalQueryStatisticsResponse responseEntity1 =
         controller.getQueryStatistics(TEST_PROJECT_ID1, 30);
@@ -186,11 +184,8 @@ public class ProjectControllerTest {
     assertEquals(0, map1.get("global").get("totalQueries").asInt());
     assertEquals(0, map1.get("global").get("totalBilledBytes").asInt());
     assertEquals(0, map1.get("global").get("totalProcessedBytes").asInt());
-    assertEquals(0, map1.get("global").get("eligible").asInt());
-    assertEquals(0, map1.get("global").get("ineligible").asInt());
-    assertFalse(map1.get("global").get("ineligibleReasons").isEmpty());
 
-    GlobalQueryStatistics statistics2 = new GlobalQueryStatistics(false);
+    GlobalQueryStatistics statistics2 = new GlobalQueryStatistics();
     when(mockedFetcherService.getStatistics(TEST_PROJECT_ID2, 30)).thenReturn(statistics2);
     GlobalQueryStatisticsResponse responseEntity2 =
         controller.getQueryStatistics(TEST_PROJECT_ID2, 30);
@@ -200,9 +195,6 @@ public class ProjectControllerTest {
     assertEquals(0, map2.get("global").get("totalQueries").asInt());
     assertEquals(0, map2.get("global").get("totalBilledBytes").asInt());
     assertEquals(0, map2.get("global").get("totalProcessedBytes").asInt());
-    assertEquals(-1, map2.get("global").get("eligible").asInt());
-    assertEquals(-1, map2.get("global").get("ineligible").asInt());
-    assertTrue(map2.get("global").get("ineligibleReasons").isEmpty());
   }
 
   @Test
@@ -219,7 +211,7 @@ public class ProjectControllerTest {
 
   @Test
   public void getKPIStatistics() throws Exception {
-    GlobalQueryStatistics statistics = new GlobalQueryStatistics(true);
+    GlobalQueryStatistics statistics = new GlobalQueryStatistics();
     when(mockedFetcherService.getStatistics(TEST_PROJECT_ID1, 30)).thenReturn(statistics);
     String expectedString =
         "{\"totalQueries\":0,\"percentQueriesIn\":0.0,\"averageScannedBytes\":0}";

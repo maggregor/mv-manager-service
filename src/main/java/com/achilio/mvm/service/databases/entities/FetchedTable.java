@@ -1,5 +1,6 @@
 package com.achilio.mvm.service.databases.entities;
 
+import com.achilio.mvm.service.visitors.ATableId;
 import java.util.Map;
 
 /** Represents a single table from database with metadata. */
@@ -10,6 +11,7 @@ public interface FetchedTable {
    *
    * @return the project name of the table on which metadata was retrieved.
    */
+  @Deprecated
   String getProjectId();
 
   /**
@@ -17,6 +19,7 @@ public interface FetchedTable {
    *
    * @return the dataset name of the table on which metadata was retrieved.
    */
+  @Deprecated
   String getDatasetName();
 
   /**
@@ -24,7 +27,10 @@ public interface FetchedTable {
    *
    * @return the name of the table on which metadata was retrieved.
    */
+  @Deprecated
   String getTableName();
+
+  ATableId getTableId();
 
   /**
    * The name and type of the columns of the table. Example: {@code [{col1, STRING}, {col2,
