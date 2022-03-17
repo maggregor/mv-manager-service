@@ -11,6 +11,7 @@ import com.achilio.mvm.service.databases.entities.FetchedQueryFactory;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
+import com.achilio.mvm.service.visitors.ATableId;
 import com.google.api.gax.paging.Page;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.bigquery.BigQuery;
@@ -50,7 +51,6 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -125,31 +125,14 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
   @Override
   public List<FetchedQuery> fetchAllQueriesFrom(long fromCreationTime) {
     return fetchJobs(fromCreationTime)
-        .filter(this::fetchQueryFilter)
+        .filter(this::isValidQueryJob)
         .map(this::toFetchedQuery)
         .collect(Collectors.toList());
   }
 
-  /**
-   * Returns true if a job is a query job. Only SELECT finished queries on regular tables.
-   *
-   * @param job - A Job from BigQuery job history
-   * @return
-   */
-  public boolean fetchQueryFilter(Job job) {
-    if (Objects.nonNull(job) && isQueryJob(job)) {
-      QueryJobConfiguration configuration = job.getConfiguration();
-      final String query = configuration.getQuery();
-      // Exclude SQL script
-      return !isSQLScript(query)
-          // Exclude not finished queries
-          //  && job.isDone()
-          // Exclude errors
-          && notInError(job)
-          // Keep only SELECT queries
-          && isRegularSelectQuery(query);
-    }
-    return false;
+  /** Returns true if a job is a query job */
+  public boolean isValidQueryJob(Job job) {
+    return Objects.nonNull(job) && isQueryJob(job) && notInError(job);
   }
 
   public boolean notInError(Job job) {
@@ -160,30 +143,9 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     return job.getConfiguration() instanceof QueryJobConfiguration;
   }
 
-  public boolean isRegularSelectQuery(String query) {
-    // Remove comments
-    query = query.replaceAll("--[^\\r\\n]*", Strings.EMPTY);
-    query = query.trim();
-    return StringUtils.startsWithIgnoreCase(query, SQL_SELECT_WORD)
-        && StringUtils.containsIgnoreCase(query, SQL_FROM_WORD)
-        && !StringUtils.containsIgnoreCase(query, UNSUPPORTED_TABLE_TOKEN);
-  }
-
-  /**
-   * Returns true if the query job contains more than one query
-   *
-   * @return
-   */
-  public boolean isSQLScript(final String query) {
-    return StringUtils.isNotEmpty(query) && query.trim().split(";").length > 1;
-  }
-
   /**
    * Convert a QueryJob (Google) to a FetchedQuery. Retrieve some metrics google side (processed
    * bytes, cache using...)
-   *
-   * @param job
-   * @return
    */
   private FetchedQuery toFetchedQuery(Job job) {
     String query;
@@ -193,21 +155,26 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     Long startTime = stats.getStartTime();
     final boolean useCache = BooleanUtils.isTrue(stats.getCacheHit());
     final boolean usingManagedMV = containsManagedMVUsageInQueryStages(stats.getQueryPlan());
-    FetchedQuery fetchedQuery = FetchedQueryFactory.createFetchedQuery(StringUtils.trim(query));
+    FetchedQuery fetchedQuery =
+        FetchedQueryFactory.createFetchedQuery(
+            job.getJobId().getProject(), StringUtils.trim(query));
     fetchedQuery.setStartTime(startTime);
     fetchedQuery.setStatistics(toQueryUsageStatistics(stats));
     fetchedQuery.setUseMaterializedView(usingManagedMV);
     fetchedQuery.setUseCache(useCache);
     fetchedQuery.setGoogleJobId(job.getJobId().getJob());
-    fetchedQuery.setProjectId(job.getJobId().getProject());
     return fetchedQuery;
   }
 
   public QueryUsageStatistics toQueryUsageStatistics(
       JobStatistics.QueryStatistics queryStatistics) {
     QueryUsageStatistics statistics = new QueryUsageStatistics();
-    statistics.setProcessedBytes(queryStatistics.getTotalBytesProcessed());
-    statistics.setBilledBytes(queryStatistics.getTotalBytesBilled());
+    if (queryStatistics.getTotalBytesProcessed() != null) {
+      statistics.setProcessedBytes(queryStatistics.getTotalBytesProcessed());
+    }
+    if (queryStatistics.getTotalBytesBilled() != null) {
+      statistics.setBilledBytes(queryStatistics.getTotalBytesBilled());
+    }
     return statistics;
   }
 
@@ -234,12 +201,7 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
    */
   public boolean containsSubStepUsingMVM(QueryStep step) {
     return step.getSubsteps().stream()
-        .anyMatch(
-            subStep ->
-                subStep.contains(SQL_FROM_WORD)
-                    && (subStep.contains("mvm_")
-                        || subStep.contains("achilio_")
-                        || subStep.contains("mmv_")));
+        .anyMatch(subStep -> subStep.contains(SQL_FROM_WORD) && (subStep.contains("achilio_")));
   }
 
   private List<BigQuery.JobListOption> getJobListOptions(long fromCreationTime) {
@@ -269,11 +231,8 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
   private FetchedTable toFetchedTable(Table table) {
     StandardTableDefinition tableDefinition = table.getDefinition();
     Map<String, String> tableColumns = mapColumnsOrEmptyIfSchemaIsNull(tableDefinition);
-    TableId tableId = table.getTableId();
-    String projectId = tableId.getProject();
-    String datasetName = tableId.getDataset();
-    String tableName = tableId.getTable();
-    return new DefaultFetchedTable(projectId, datasetName, tableName, tableColumns);
+    ATableId aTableId = ATableId.fromGoogleTableId(table.getTableId());
+    return new DefaultFetchedTable(aTableId, tableColumns);
   }
 
   /**

@@ -7,8 +7,8 @@ import java.util.List;
 
 public class OptimizationResultsResponse {
 
-  @JsonUnwrapped private OptimizationResponse optimization;
-  private List<OptimizationResult> results;
+  @JsonUnwrapped private final OptimizationResponse optimization;
+  private final List<OptimizationResult> results;
 
   public OptimizationResultsResponse(
       Optimization optimization, List<OptimizationResult> optimizationResults) {

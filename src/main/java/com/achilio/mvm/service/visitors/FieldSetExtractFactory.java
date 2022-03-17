@@ -6,11 +6,11 @@ import java.util.Set;
 
 public class FieldSetExtractFactory {
 
-  public static FieldSetAnalyzer createFieldSetExtract(String projectId) {
+  public static FieldSetExtract createFieldSetExtract(String projectId) {
     return createFieldSetExtract(projectId, Collections.emptySet());
   }
 
-  public static FieldSetAnalyzer createFieldSetExtract(String projectId, Set<FetchedTable> tables) {
+  public static FieldSetExtract createFieldSetExtract(String projectId, Set<FetchedTable> tables) {
     return new ZetaSQLExtract(projectId, tables);
   }
 }

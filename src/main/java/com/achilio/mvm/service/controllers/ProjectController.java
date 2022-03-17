@@ -8,18 +8,13 @@ import com.achilio.mvm.service.controllers.responses.ProjectResponse;
 import com.achilio.mvm.service.controllers.responses.UpdateDatasetRequestResponse;
 import com.achilio.mvm.service.databases.entities.FetchedDataset;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
-import com.achilio.mvm.service.databases.entities.FetchedQuery;
-import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics;
 import com.achilio.mvm.service.services.FetcherService;
 import com.achilio.mvm.service.services.FetcherService.StatEntry;
 import com.achilio.mvm.service.services.ProjectService;
-import com.achilio.mvm.service.visitors.FieldSetAnalyzer;
-import com.achilio.mvm.service.visitors.FieldSetExtractFactory;
 import io.swagger.annotations.ApiOperation;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -136,21 +131,6 @@ public class ProjectController {
       @PathVariable final String projectId, @PathVariable final int days) throws Exception {
     GlobalQueryStatistics statistics = fetcherService.getStatistics(projectId, days);
     return toAggregatedStatistics(statistics);
-  }
-
-  @Deprecated
-  @GetMapping(
-      path = "/project/{projectId}/queries/{days}/statistics/eligible",
-      produces = "application/json")
-  @ApiOperation("Get statistics of ineligible queries")
-  public GlobalQueryStatisticsResponse getEligibleQueryStatistics(
-      @PathVariable final String projectId, @PathVariable final int days) {
-    List<FetchedQuery> queries = fetcherService.fetchQueriesSinceLastDays(projectId, days);
-    Set<FetchedTable> tables = fetcherService.fetchAllTables(projectId);
-    FieldSetAnalyzer extractor = FieldSetExtractFactory.createFieldSetExtract(projectId, tables);
-    extractor.analyzeIneligibleReasons(queries);
-    GlobalQueryStatistics statistics = fetcherService.getStatistics(queries, true);
-    return toGlobalQueryStatisticsResponse(statistics);
   }
 
   private GlobalQueryStatisticsResponse toGlobalQueryStatisticsResponse(

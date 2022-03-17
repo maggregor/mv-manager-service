@@ -1,7 +1,6 @@
 package com.achilio.mvm.service.visitors.fields;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
+import java.util.Objects;
 
 /** Represents a field in sql query. Can be a function, an aggregate or reference to a column. */
 public abstract class Field {
@@ -33,21 +32,27 @@ public abstract class Field {
     if (this == o) {
       return true;
     }
-
-    if (o == null || getClass() != o.getClass()) {
+    if (!(o instanceof Field)) {
       return false;
     }
 
     Field field = (Field) o;
 
-    return new EqualsBuilder()
-        .append(expression, field.expression)
-        .append(alias, field.alias)
-        .isEquals();
+    if (!Objects.equals(expression, field.expression)) {
+      return false;
+    }
+    return Objects.equals(alias, field.alias);
   }
 
   @Override
   public int hashCode() {
-    return new HashCodeBuilder(17, 37).append(expression).append(alias).toHashCode();
+    int result = expression != null ? expression.hashCode() : 0;
+    result = 31 * result + (alias != null ? alias.hashCode() : 0);
+    return result;
+  }
+
+  @Override
+  public String toString() {
+    return "Field{" + "expression='" + expression + '\'' + ", alias='" + alias + '\'' + '}';
   }
 }
