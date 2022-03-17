@@ -393,6 +393,39 @@ public abstract class FieldSetExtractTest {
   }
 
   @Test
+  public void queryWithInlineComments() {
+    final FieldSet EXPECTED_1 = fieldSetBuilder(MAIN_TABLE_ID).addRef("col1").build();
+    final FieldSet EXPECTED_2 = fieldSetBuilder(SECONDARY_TABLE_ID).addRef("col2").build();
+    final StringJoiner script = new StringJoiner("\n");
+    script.add("-- I am a comment");
+    script.add("SELECT col1 FROM myproject.mydataset.mytable GROUP BY col1;");
+    script.add("   -- I am a comment and I start with a blank");
+    script.add("SELECT col2 FROM myproject.mydataset.myothertable GROUP BY col2;");
+    script.add("\n-- I am a comment");
+    assertExpectedFieldSet(script.toString(), EXPECTED_1, EXPECTED_2);
+  }
+
+  @Test
+  public void queryWithMultipleLinesComments() {
+    final FieldSet EXPECTED_1 = fieldSetBuilder(MAIN_TABLE_ID).addRef("col1").build();
+    final FieldSet EXPECTED_2 = fieldSetBuilder(SECONDARY_TABLE_ID).addRef("col2").build();
+    final StringJoiner script = new StringJoiner("\n");
+    script.add("/* I am a comment */");
+    script.add("SELECT col1 FROM myproject.mydataset.mytable GROUP BY col1;");
+    script.add("/* \n\n\n I am a comment and I start with a blank \n\n\n*/");
+    script.add("SELECT col2 FROM myproject.mydataset.myothertable GROUP BY col2;");
+    script.add("/* I am a comment */");
+    assertExpectedFieldSet(script.toString(), EXPECTED_1, EXPECTED_2);
+  }
+
+  @Test
+  public void queryInlineCommentWithoutSemicolonAtTheEndOfStatement() {
+    final StringJoiner script = new StringJoiner("\n");
+    script.add("-- I am a comment");
+    assertZeroFields(script.toString());
+  }
+
+  @Test
   public void multipleExtracts() {
     final FieldSet EXPECTED_1 = fieldSetBuilder(MAIN_TABLE_ID).addRef("col1").build();
     final FieldSet EXPECTED_2 = fieldSetBuilder(SECONDARY_TABLE_ID).addRef("col2").build();

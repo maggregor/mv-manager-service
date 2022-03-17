@@ -59,15 +59,15 @@ public class ZetaSQLExtract extends ZetaSQLModelBuilder implements FieldSetExtra
 
   private void resolveStatementAndVisit(String statement, Visitor visitor) {
     final SimpleCatalog catalog = super.getCatalog();
+    statement = removeTableNamesBackticks(statement);
     try {
-      statement = removeTableNamesBackticks(statement);
       ParseResumeLocation location = new ParseResumeLocation(statement);
-      while (location.getAllowResume()) {
+      while (location.getBytePosition() < statement.getBytes().length) {
         ResolvedStatement resolved = Analyzer.analyzeNextStatement(location, options, catalog);
         resolved.accept(visitor);
       }
     } catch (Exception e) {
-      LOGGER.error("Query resolving has failed: {}", e.getMessage());
+      LOGGER.error("Statement analyze has failed: {}", e.getMessage());
     }
   }
 
