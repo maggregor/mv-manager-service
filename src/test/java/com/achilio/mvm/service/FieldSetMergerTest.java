@@ -39,7 +39,7 @@ public class FieldSetMergerTest {
     List<FieldSet> sortedMerge =
         FieldSetMerger.mergeSame(Arrays.asList(mockFieldSet1, mockFieldSet1Copy, mockFieldSet2))
             .stream()
-            .sorted(Comparator.comparingInt(Object::hashCode))
+            .sorted(Comparator.comparingInt(FieldSet::getHits))
             .collect(toList());
     assertEquals(2, sortedMerge.size());
     assertEquals(1, sortedMerge.get(0).getHits());
