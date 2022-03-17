@@ -1,14 +1,16 @@
 package com.achilio.mvm.service;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.achilio.mvm.service.databases.entities.FetchedTable;
-import com.achilio.mvm.service.visitors.ModelBuilder;
 import com.achilio.mvm.service.visitors.ATableId;
+import com.achilio.mvm.service.visitors.ModelBuilder;
 import com.achilio.mvm.service.visitors.ZetaSQLExtract;
+import com.achilio.mvm.service.visitors.ZetaSQLModelBuilder;
 import java.util.HashMap;
 import org.junit.Before;
 import org.junit.Test;
@@ -45,6 +47,12 @@ public class ModelBuilderTest {
     builder.registerTable(mockFetchedTable2);
     assertTrue(builder.isTableRegistered(mockFetchedTable));
     assertTrue(builder.isTableRegistered(mockFetchedTable2));
+  }
+
+  @Test
+  public void getters() {
+    assertTrue(builder.getTables().isEmpty());
+    assertEquals("myProject", ((ZetaSQLModelBuilder) builder).getProjectId());
   }
 
   @Test

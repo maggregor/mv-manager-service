@@ -5,7 +5,6 @@ import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.Set;
 
 /**
  * Represent a fetched query from data warehouse fetching process.
@@ -20,8 +19,6 @@ public class FetchedQuery {
   private boolean useCache;
   private LocalDate startTime;
   private boolean canUseMaterializedViews;
-  // Discovered tables in the SQL query
-  @Deprecated private Set<FetchedTable> refTables;
   private QueryUsageStatistics statistics;
 
   public FetchedQuery(String query) {
@@ -39,16 +36,6 @@ public class FetchedQuery {
 
   public boolean isUsingMaterializedView() {
     return this.useMaterializedView;
-  }
-
-  @Deprecated
-  public Set<FetchedTable> getReferenceTables() {
-    return this.refTables;
-  }
-
-  @Deprecated
-  public void setReferenceTables(Set<FetchedTable> refTables) {
-    this.refTables = refTables;
   }
 
   public QueryUsageStatistics getStatistics() {

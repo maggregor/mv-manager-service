@@ -2,12 +2,16 @@ package com.achilio.mvm.service;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
@@ -34,9 +38,7 @@ public class FetchedQueryTest {
     FetchedQuery query = new FetchedQuery(SIMPLE_QUERY);
     assertEquals(query.getQuery(), SIMPLE_QUERY);
     query.setStatistics(statistics);
-    query.setReferenceTables(fetchedTables);
     assertEquals(query.getStatistics(), statistics);
-    assertEquals(query.getReferenceTables(), fetchedTables);
     query.setUseMaterializedView(false);
     query.setUseCache(false);
     assertFalse(query.isUsingMaterializedView());
@@ -45,5 +47,13 @@ public class FetchedQueryTest {
     query.setUseCache(true);
     assertTrue(query.isUsingMaterializedView());
     assertTrue(query.isUsingCache());
+    assertFalse(query.canUseMaterializedViews());
+    query.setCanUseMaterializedViews(true);
+    assertTrue(query.canUseMaterializedViews());
+    assertNull(query.getDate());
+    query.setStartTime(100L);
+    assertNotNull(query.getDate());
+    assertEquals(
+        Instant.ofEpochMilli(100L).atZone(ZoneId.systemDefault()).toLocalDate(), query.getDate());
   }
 }

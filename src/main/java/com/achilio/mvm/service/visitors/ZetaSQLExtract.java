@@ -41,16 +41,6 @@ public class ZetaSQLExtract extends ZetaSQLModelBuilder implements FieldSetExtra
   }
 
   @Override
-  @Deprecated
-  public FieldSet extract(FetchedQuery fetchedQuery) {
-    final String projectId = getProjectId();
-    final SimpleCatalog catalog = getCatalog();
-    FieldSetExtractVisitor v = new ZetaSQLFieldSetExtractStatementVisitor(projectId, catalog);
-    resolveAndVisit(fetchedQuery, v);
-    return v.getFieldSet();
-  }
-
-  @Override
   public List<FieldSet> extractAll(FetchedQuery fetchedQuery) {
     List<FieldSet> fieldSets = extractAll(fetchedQuery.getProjectId(), fetchedQuery.getQuery());
     if (!fieldSets.isEmpty()) {
@@ -65,10 +55,6 @@ public class ZetaSQLExtract extends ZetaSQLModelBuilder implements FieldSetExtra
         new ZetaSQLFieldSetExtractEntryPointVisitor(projectId, getCatalog());
     resolveStatementAndVisit(statement, v);
     return v.getAllFieldSets();
-  }
-
-  private void resolveAndVisit(FetchedQuery fetchedQuery, Visitor visitor) {
-    resolveStatementAndVisit(fetchedQuery.getQuery(), visitor);
   }
 
   private void resolveStatementAndVisit(String statement, Visitor visitor) {

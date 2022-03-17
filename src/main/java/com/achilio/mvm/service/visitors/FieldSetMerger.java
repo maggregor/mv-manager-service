@@ -7,7 +7,8 @@ import java.util.List;
 import java.util.Map;
 
 /** Merge FieldSet statistics. */
-public class FieldSetMerger {
+public enum FieldSetMerger {
+  ;
 
   /**
    * Merge QueryUsageStatistics

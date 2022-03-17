@@ -13,27 +13,6 @@ import java.util.stream.Collectors;
  */
 public interface FieldSetExtract {
 
-  /**
-   * Extract all fields from each sql statements and returns each FieldSet. Discover tables paths in
-   * the statements
-   *
-   * @param fetchedQueries - the queries
-   * @return
-   */
-  @Deprecated
-  default List<FieldSet> extract(List<FetchedQuery> fetchedQueries) {
-    return fetchedQueries.stream().map(this::extract).collect(Collectors.toList());
-  }
-
-  /**
-   * Extract all fields from the sql statement and returns FieldSet.
-   *
-   * @param fetchedQueries - the query
-   * @return
-   */
-  @Deprecated
-  FieldSet extract(FetchedQuery fetchedQueries);
-
   List<FieldSet> extractAll(FetchedQuery fetchedQuery);
 
   List<FieldSet> extractAll(String projectId, String statement);

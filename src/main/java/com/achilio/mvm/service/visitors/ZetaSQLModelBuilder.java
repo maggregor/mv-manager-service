@@ -88,4 +88,9 @@ public abstract class ZetaSQLModelBuilder implements ModelBuilder {
   public String getProjectId() {
     return this.projectId;
   }
+
+  @Override
+  public Set<FetchedTable> getTables() {
+    return tables;
+  }
 }

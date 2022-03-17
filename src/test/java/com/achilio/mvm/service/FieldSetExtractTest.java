@@ -7,10 +7,11 @@ import static com.achilio.mvm.service.visitors.FieldSetIneligibilityReason.DOES_
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
+import com.achilio.mvm.service.visitors.ATableId;
 import com.achilio.mvm.service.visitors.FieldSetExtract;
 import com.achilio.mvm.service.visitors.JoinType;
-import com.achilio.mvm.service.visitors.ATableId;
 import com.achilio.mvm.service.visitors.fields.AggregateField;
 import com.achilio.mvm.service.visitors.fields.FieldSet;
 import com.achilio.mvm.service.visitors.fields.ReferenceField;
@@ -389,6 +390,17 @@ public abstract class FieldSetExtractTest {
     script.add("SELECT col1 FROM myproject.mydataset.mytable GROUP BY col1");
     script.add("SELECT col2 FROM myproject.mydataset.myothertable GROUP BY col2");
     assertExpectedFieldSet(script.toString(), EXPECTED_1, EXPECTED_2);
+  }
+
+  @Test
+  public void multipleExtracts() {
+    final FieldSet EXPECTED_1 = fieldSetBuilder(MAIN_TABLE_ID).addRef("col1").build();
+    final FieldSet EXPECTED_2 = fieldSetBuilder(SECONDARY_TABLE_ID).addRef("col2").build();
+    FetchedQuery q1 =
+        new FetchedQuery(PROJECT_ID, "SELECT col1 FROM myproject.mydataset.mytable GROUP BY 1");
+    FetchedQuery q2 =
+        new FetchedQuery(PROJECT_ID, "SELECT col2 FROM mydataset.myothertable GROUP BY 1");
+    assertExpectedFieldSet(extractor.extractAll(Arrays.asList(q1, q2)), EXPECTED_1, EXPECTED_2);
   }
 
   @Test
