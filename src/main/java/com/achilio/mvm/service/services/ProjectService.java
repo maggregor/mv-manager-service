@@ -1,7 +1,6 @@
 package com.achilio.mvm.service.services;
 
 import com.achilio.mvm.service.controllers.requests.UpdateProjectRequest;
-import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.entities.Dataset;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
@@ -56,14 +55,6 @@ public class ProjectService {
 
   public boolean projectExists(String projectId) {
     return projectRepository.findByProjectId(projectId).isPresent();
-  }
-
-  @Deprecated
-  @Transactional
-  public Project updateProjectOrCreate(String projectId, UpdateProjectRequest payload) {
-    FetchedProject fetchedProject = fetcherService.fetchProject(projectId);
-    findProjectOrCreate(projectId);
-    return updateProject(projectId, payload);
   }
 
   @Transactional

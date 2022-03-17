@@ -78,7 +78,7 @@ public class OptimizerService {
       // STEP 1 - Fetch all queries of targeted fetchedProject
       addOptimizationEvent(o, StatusType.FETCHING_QUERIES);
       List<FetchedQuery> allQueries =
-          fetcherService.fetchQueriesSince(projectId, analysisTimeframe);
+          fetcherService.fetchQueriesSinceLastDays(projectId, analysisTimeframe);
       // STEP 2 - Fetch all tables
       addOptimizationEvent(o, StatusType.FETCHING_TABLES);
       Set<FetchedTable> tables = fetcherService.fetchAllTables(projectId);

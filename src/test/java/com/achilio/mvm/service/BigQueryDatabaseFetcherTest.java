@@ -72,13 +72,16 @@ public class BigQueryDatabaseFetcherTest {
       CopyJobConfiguration.newBuilder(DEFAULT_TABLE_ID, DEFAULT_TABLE_ID_2).build();
   private final Dataset mockedDataset =
       mockedDataset("myProject", "myDataset", "myDatasetFriendly", "FromParis", 100L, 1000L);
+  private final String googleJobId1 = "google-id1";
+  private final String projectId1 = "myProjectId1";
   private BigQueryDatabaseFetcher fetcher;
   private JobStatus status;
-  private Job mockJob;
   private Page<Job> jobs;
+  private Job mockJob;
   private JobStatistics.QueryStatistics mockJobStats;
   private BigQuery mockBigquery;
   private ResourceManager mockResourceManager;
+  private JobId mockJobId;
 
   @Before
   public void setUp() {
@@ -285,7 +288,7 @@ public class BigQueryDatabaseFetcherTest {
     when(mockJob1.getStatus()).thenReturn(status);
     when(mockJob1.getStatus().getError()).thenReturn(null);
     when(mockJob1.getStatistics()).thenReturn(mockJobStats);
-    when(mockJob1.getJobId()).thenReturn(JobId.of("project", "jobId"));
+    when(mockJob1.getJobId()).thenReturn(mockJobId);
     when(stage1.getSteps()).thenReturn(Lists.newArrayList(steps1));
     when(steps1.getSubsteps()).thenReturn(createSubSteps("st1", "st2"));
     when(mockJobStats.getQueryPlan()).thenReturn(Lists.newArrayList(stage1));
@@ -358,11 +361,15 @@ public class BigQueryDatabaseFetcherTest {
     status = mock(JobStatus.class);
     mockJobStats = mock(JobStatistics.QueryStatistics.class);
     mockJob = mock(Job.class);
+    mockJobId = mock(JobId.class);
     when(mockJob.getConfiguration()).thenReturn(DEFAULT_QUERY_JOB_CONFIGURATION);
     when(mockJob.getStatus()).thenReturn(status);
     when(mockJob.getStatus().getError()).thenReturn(null);
     when(mockJob.getStatistics()).thenReturn(mockJobStats);
     when(mockJob.getJobId()).thenReturn(JobId.of("project", "jobId"));
+    when(mockJob.getJobId()).thenReturn(mockJobId);
+    when(mockJobId.getJob()).thenReturn(googleJobId1);
+    when(mockJobId.getProject()).thenReturn(projectId1);
     when(mockJobStats.getCacheHit()).thenReturn(false);
     jobs = mock(Page.class);
     when(jobs.iterateAll()).thenReturn(Lists.newArrayList(mockJob));

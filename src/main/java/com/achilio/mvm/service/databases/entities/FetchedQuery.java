@@ -14,6 +14,7 @@ import java.time.ZoneId;
 public class FetchedQuery {
 
   private final String query;
+  private String googleJobId;
   private final String projectId;
   private boolean useMaterializedView;
   private boolean useCache;
@@ -61,6 +62,14 @@ public class FetchedQuery {
 
   public void setStartTime(Long startTime) {
     this.startTime = Instant.ofEpochMilli(startTime).atZone(ZoneId.systemDefault()).toLocalDate();
+  }
+
+  public String getGoogleJobId() {
+    return googleJobId;
+  }
+
+  public void setGoogleJobId(String googleJobId) {
+    this.googleJobId = googleJobId;
   }
 
   public LocalDate getDate() {

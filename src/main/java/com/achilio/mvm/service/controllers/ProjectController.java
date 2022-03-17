@@ -57,16 +57,6 @@ public class ProjectController {
     return fetcherService.fetchMissingPermissions(projectId);
   }
 
-  @Deprecated
-  @PostMapping(path = "/project/{projectId}")
-  @ApiOperation("Update metadata of a project")
-  @ResponseStatus(HttpStatus.ACCEPTED)
-  public ProjectResponse updateProjectOrCreate(
-      @PathVariable final String projectId, @RequestBody final UpdateProjectRequest payload) {
-    Project updatedProject = projectService.updateProjectOrCreate(projectId, payload);
-    return new ProjectResponse(updatedProject.getProjectId(), updatedProject);
-  }
-
   @PatchMapping(path = "/project/{projectId}")
   @ApiOperation("Update metadata of a project")
   @ResponseStatus(HttpStatus.ACCEPTED)
@@ -141,17 +131,6 @@ public class ProjectController {
       @PathVariable final String projectId, @PathVariable final int days) throws Exception {
     GlobalQueryStatistics statistics = fetcherService.getStatistics(projectId, days);
     return toAggregatedStatistics(statistics);
-  }
-
-  @Deprecated
-  @GetMapping(
-      path = "/project/{projectId}/queries/{days}/statistics/eligible",
-      produces = "application/json")
-  @ApiOperation("Get statistics of ineligible queries")
-  public GlobalQueryStatisticsResponse getEligibleQueryStatistics(
-      @PathVariable final String projectId, @PathVariable final int days) throws Exception {
-    GlobalQueryStatistics statistics = fetcherService.getStatistics(projectId, days);
-    return toGlobalQueryStatisticsResponse(statistics);
   }
 
   private GlobalQueryStatisticsResponse toGlobalQueryStatisticsResponse(

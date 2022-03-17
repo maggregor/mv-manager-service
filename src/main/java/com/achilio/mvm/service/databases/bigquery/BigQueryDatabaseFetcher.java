@@ -162,6 +162,7 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     fetchedQuery.setStatistics(toQueryUsageStatistics(stats));
     fetchedQuery.setUseMaterializedView(usingManagedMV);
     fetchedQuery.setUseCache(useCache);
+    fetchedQuery.setGoogleJobId(job.getJobId().getJob());
     return fetchedQuery;
   }
 
