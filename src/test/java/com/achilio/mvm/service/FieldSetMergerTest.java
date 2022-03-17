@@ -1,5 +1,6 @@
 package com.achilio.mvm.service;
 
+import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 
@@ -8,6 +9,7 @@ import com.achilio.mvm.service.visitors.fields.DefaultFieldSet;
 import com.achilio.mvm.service.visitors.fields.Field;
 import com.achilio.mvm.service.visitors.fields.FieldSet;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
@@ -34,10 +36,13 @@ public class FieldSetMergerTest {
 
   @Test
   public void simpleMerge() {
-    List<FieldSet> merged =
-        FieldSetMerger.mergeSame(Arrays.asList(mockFieldSet1, mockFieldSet1Copy, mockFieldSet2));
-    assertEquals(2, merged.size());
-    assertEquals(1, merged.get(0).getHits());
-    assertEquals(4, merged.get(1).getHits());
+    List<FieldSet> sortedMerge =
+        FieldSetMerger.mergeSame(Arrays.asList(mockFieldSet1, mockFieldSet1Copy, mockFieldSet2))
+            .stream()
+            .sorted(Comparator.comparingInt(Object::hashCode))
+            .collect(toList());
+    assertEquals(2, sortedMerge.size());
+    assertEquals(1, sortedMerge.get(0).getHits());
+    assertEquals(4, sortedMerge.get(1).getHits());
   }
 }
