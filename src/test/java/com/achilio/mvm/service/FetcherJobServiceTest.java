@@ -42,7 +42,7 @@ public class FetcherJobServiceTest {
   public void setup() {
     when(fetcherService.fetchQueriesSinceLastDays(any(), anyInt()))
         .thenReturn(Arrays.asList(fetchedQuery1, fetchedQuery2));
-    when(mockQueryRepository.save(any())).thenReturn(null);
+    when(mockQueryRepository.saveAll(any())).thenReturn(null);
     when(mockFetcherJobRepository.save(any())).thenReturn(null);
     fetchedQuery1.setStatistics(stats1);
     fetchedQuery2.setStatistics(stats1);
