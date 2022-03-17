@@ -6,6 +6,8 @@ import static org.mockito.Mockito.when;
 import com.achilio.mvm.service.entities.FetcherQueryJob;
 import com.achilio.mvm.service.entities.Query;
 import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
+import com.achilio.mvm.service.exceptions.FetcherJobNotFoundException;
+import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import com.achilio.mvm.service.exceptions.QueryNotFoundException;
 import com.achilio.mvm.service.repositories.FetcherJobRepository;
 import com.achilio.mvm.service.repositories.QueryRepository;
@@ -53,6 +55,9 @@ public class QueryServiceTest {
     when(mockFetcherJobRepository.findFetcherQueryJobByIdAndProjectId(
             ArgumentMatchers.eq(2L), any()))
         .thenReturn(java.util.Optional.ofNullable(JOB2));
+    when(mockFetcherJobRepository.findFetcherQueryJobByIdAndProjectId(
+            ArgumentMatchers.eq(-1L), any()))
+        .thenReturn(java.util.Optional.empty());
     when(mockFetcherJobRepository.findTopFetchedQueryJobByProjectIdOrderByCreatedAtDesc(any()))
         .thenReturn(java.util.Optional.ofNullable(JOB1));
     when(mockQueryRepository.findAllByInitialFetcherQueryJobAndProjectId(
@@ -63,6 +68,9 @@ public class QueryServiceTest {
         .thenReturn(Collections.emptyList());
     when(mockQueryRepository.findQueryByIdAndProjectId(any(), any()))
         .thenReturn(java.util.Optional.ofNullable(QUERY1));
+    when(mockQueryRepository.findQueryByIdAndProjectId(
+            ArgumentMatchers.eq("unknownQueryId"), any()))
+        .thenReturn(java.util.Optional.empty());
   }
 
   @Test
@@ -74,14 +82,26 @@ public class QueryServiceTest {
 
     queries = service.getAllQueriesByJobIdAndProjectId(JOB2.getId(), PROJECT_ID1);
     Assert.assertEquals(0, queries.size());
+
+    Assert.assertThrows(
+        FetcherJobNotFoundException.class,
+        () -> service.getAllQueriesByJobIdAndProjectId(-1L, PROJECT_ID1));
   }
 
   @Test
   public void getAllQueriesByProjectIdLastJobTest() {
+    when(mockFetcherJobRepository.findTopFetchedQueryJobByProjectIdOrderByCreatedAtDesc(
+            "unknownProjectId"))
+        .thenReturn(java.util.Optional.empty());
+
     List<Query> queries = service.getAllQueriesByProjectIdLastJob(PROJECT_ID1);
     Assert.assertEquals(2, queries.size());
     Assert.assertEquals("SELECT 1", queries.get(0).getQuery());
     Assert.assertEquals("SELECT 2", queries.get(1).getQuery());
+
+    Assert.assertThrows(
+        ProjectNotFoundException.class,
+        () -> service.getAllQueriesByProjectIdLastJob("unknownProjectId"));
   }
 
   @Test
@@ -90,10 +110,8 @@ public class QueryServiceTest {
     Assert.assertEquals(QUERY_ID1, query.getId());
     Assert.assertEquals(PROJECT_ID1, query.getProjectId());
     Assert.assertEquals("SELECT 1", query.getQuery());
-    try {
-      service.getQuery("unknownId", PROJECT_ID1);
-    } catch (QueryNotFoundException e) {
-      Assert.assertEquals("Query unknownId not found", e.getMessage());
-    }
+
+    Assert.assertThrows(
+        QueryNotFoundException.class, () -> service.getQuery("unknownQueryId", PROJECT_ID1));
   }
 }

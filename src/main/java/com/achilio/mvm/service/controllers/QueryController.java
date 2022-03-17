@@ -30,13 +30,13 @@ public class QueryController {
 
   @GetMapping(path = "/query/{projectId}", produces = MediaType.APPLICATION_JSON_VALUE)
   @ApiOperation("List all queries for a given projectId and the last fetcherQueryJobId.\n")
-  public List<Query> getQueriesOfLastFetcherQueryJobByProjectId(@PathVariable String projectId) {
+  public List<Query> getAllQueriesOfLastFetcherQueryJobByProjectId(@PathVariable String projectId) {
     return queryService.getAllQueriesByProjectIdLastJob(projectId);
   }
 
   @GetMapping(path = "/query/{projectId}/{queryId}", produces = MediaType.APPLICATION_JSON_VALUE)
   @ApiOperation("Retrieve a single query by projectId and queryId")
-  public Query getQuery(@PathVariable String projectId, @PathVariable String queryId) {
-    return queryService.getQuery(projectId, queryId);
+  public Query getSingleQuery(@PathVariable String projectId, @PathVariable String queryId) {
+    return queryService.getQuery(queryId, projectId);
   }
 }

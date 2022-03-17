@@ -1,13 +1,16 @@
 package com.achilio.mvm.service;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.achilio.mvm.service.databases.entities.FetchedTable;
+import com.achilio.mvm.service.visitors.ATableId;
 import com.achilio.mvm.service.visitors.ModelBuilder;
 import com.achilio.mvm.service.visitors.ZetaSQLExtract;
+import com.achilio.mvm.service.visitors.ZetaSQLModelBuilder;
 import java.util.HashMap;
 import org.junit.Before;
 import org.junit.Test;
@@ -22,21 +25,17 @@ public class ModelBuilderTest {
 
   @Before
   public void setUp() {
-    when(mockFetchedTable.getProjectId()).thenReturn("myProject");
-    when(mockFetchedTable.getDatasetName()).thenReturn("myDataset");
-    when(mockFetchedTable.getTableName()).thenReturn("myTable");
+    ATableId tableId1 = ATableId.of("myProject", "myDataset", "myTable");
+    ATableId tableId2 = ATableId.of("myProject", "myDataset", "myOtherTable");
+    ATableId tableIdWithoutProject = ATableId.of("myDataset", "myTable");
+    ATableId tableIdSame = ATableId.of("same", "same", "myTable");
+    when(mockFetchedTable.getTableId()).thenReturn(tableId1);
     when(mockFetchedTable.getColumns()).thenReturn(new HashMap<>());
-    when(mockFetchedTable2.getProjectId()).thenReturn("myProject");
-    when(mockFetchedTable2.getDatasetName()).thenReturn("myDataset");
-    when(mockFetchedTable2.getTableName()).thenReturn("myOtherTable");
+    when(mockFetchedTable2.getTableId()).thenReturn(tableId2);
     when(mockFetchedTable2.getColumns()).thenReturn(new HashMap<>());
-    when(mockFetchedTableWithoutProject.getProjectId()).thenReturn(null);
-    when(mockFetchedTableWithoutProject.getDatasetName()).thenReturn("myAgainAnotherDataset");
-    when(mockFetchedTableWithoutProject.getTableName()).thenReturn("myAgainAnotherTable");
+    when(mockFetchedTableWithoutProject.getTableId()).thenReturn(tableIdWithoutProject);
     when(mockFetchedTableWithoutProject.getColumns()).thenReturn(new HashMap<>());
-    when(mockFetchedTableSame.getProjectId()).thenReturn("myProject");
-    when(mockFetchedTableSame.getDatasetName()).thenReturn("myProject");
-    when(mockFetchedTableSame.getTableName()).thenReturn("myOtherTable");
+    when(mockFetchedTableSame.getTableId()).thenReturn(tableIdSame);
     when(mockFetchedTableSame.getColumns()).thenReturn(new HashMap<>());
   }
 
@@ -48,6 +47,12 @@ public class ModelBuilderTest {
     builder.registerTable(mockFetchedTable2);
     assertTrue(builder.isTableRegistered(mockFetchedTable));
     assertTrue(builder.isTableRegistered(mockFetchedTable2));
+  }
+
+  @Test
+  public void getters() {
+    assertTrue(builder.getTables().isEmpty());
+    assertEquals("myProject", ((ZetaSQLModelBuilder) builder).getProjectId());
   }
 
   @Test

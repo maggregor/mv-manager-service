@@ -84,20 +84,8 @@ public class Query {
     return id;
   }
 
-  public void setId(String id) {
-    this.id = id;
-  }
-
   public String getQuery() {
     return query;
-  }
-
-  public boolean isUseMaterializedView() {
-    return useMaterializedView;
-  }
-
-  public boolean isUseCache() {
-    return useCache;
   }
 
   public LocalDate getStartTime() {
@@ -116,23 +104,11 @@ public class Query {
     return lastFetcherQueryJob;
   }
 
-  public void setLastFetcherQueryJob(FetcherQueryJob lastFetcherQueryJob) {
-    this.lastFetcherQueryJob = lastFetcherQueryJob;
-  }
-
   public String getProjectId() {
     return projectId;
   }
 
-  public void setProjectId(String projectId) {
-    this.projectId = projectId;
-  }
-
   public FetcherQueryJob getInitialFetcherQueryJob() {
     return initialFetcherQueryJob;
-  }
-
-  public void setInitialFetcherQueryJob(FetcherQueryJob initialFetcherQueryJob) {
-    this.initialFetcherQueryJob = initialFetcherQueryJob;
   }
 }

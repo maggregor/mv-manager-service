@@ -8,6 +8,10 @@ public enum FieldSetFactory {
 
   public static final FieldSet EMPTY_FIELD_SET = createFieldSet(new HashSet<>());
 
+  public static FieldSet createFieldSet() {
+    return new DefaultFieldSet();
+  }
+
   public static FieldSet createFieldSet(Set<Field> fields) {
     return new DefaultFieldSet(fields);
   }

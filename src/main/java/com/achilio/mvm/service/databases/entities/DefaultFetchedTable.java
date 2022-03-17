@@ -1,62 +1,60 @@
 package com.achilio.mvm.service.databases.entities;
 
+import com.achilio.mvm.service.visitors.ATableId;
+import java.util.Collections;
 import java.util.Map;
-import java.util.Objects;
 
 public class DefaultFetchedTable implements FetchedTable {
 
-  /**
-   * Table Metadata object.
-   *
-   * @attribute datasetName - the targeted dataset
-   * @attribute tableName - the targeted table
-   * @attribute colums - map of the columns: key is the column name, value is the data statusType
-   */
-  private final String project;
+  private ATableId tableId;
 
-  private final String dataset;
-  private final String table;
   private Map<String, String> columns;
 
-  public DefaultFetchedTable(final String project, final String schema, final String table) {
-    this.project = project;
-    this.dataset = schema;
-    this.table = table;
+  @Deprecated
+  public DefaultFetchedTable(final String project, final String dataset, final String table) {
+    this(ATableId.of(project, dataset, table));
   }
 
+  @Deprecated
   public DefaultFetchedTable(
       final String project,
-      final String schema,
+      final String dataset,
       final String table,
       final Map<String, String> columns) {
-    this.project = project;
-    this.dataset = schema;
-    this.table = table;
+    this(ATableId.of(project, dataset, table), columns);
+  }
+
+  public DefaultFetchedTable(ATableId tableId) {
+    this(tableId, Collections.emptyMap());
+  }
+
+  public DefaultFetchedTable(final ATableId tableId, final Map<String, String> columns) {
+    this.tableId = tableId;
     this.columns = columns;
   }
 
   @Override
   public String getProjectId() {
-    return this.project;
+    return this.tableId.getProject();
   }
 
   @Override
   public String getDatasetName() {
-    return this.dataset;
+    return this.tableId.getDataset();
   }
 
   @Override
   public String getTableName() {
-    return this.table;
+    return this.tableId.getTable();
+  }
+
+  @Override
+  public ATableId getTableId() {
+    return this.tableId;
   }
 
   @Override
   public Map<String, String> getColumns() {
     return this.columns;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(project, dataset, table, columns);
   }
 }

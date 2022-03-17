@@ -49,7 +49,6 @@ import com.google.cloud.resourcemanager.v3.OrganizationsClient;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import org.apache.logging.log4j.util.Strings;
 import org.assertj.core.util.Lists;
 import org.junit.Before;
 import org.junit.Test;
@@ -64,10 +63,6 @@ public class BigQueryDatabaseFetcherTest {
       QueryJobConfiguration.of("SELECT * FROM toto");
   private static final QueryJobConfiguration COUNT_QUERY_JOB_CONFIGURATION =
       QueryJobConfiguration.of("SELECT COUNT(*) FROM toto");
-  private static final QueryJobConfiguration SUM_QUERY_JOB_CONFIGURATION =
-      QueryJobConfiguration.of("SELECT SUM(a) FROM toto GROUP BY a");
-  private static final QueryJobConfiguration INFO_QUERY_JOB_CONFIGURATION =
-      QueryJobConfiguration.of("SELECT a FROM INFORMATION_SCHEMA");
   private static final TableId DEFAULT_TABLE_ID =
       TableId.of("test-project", "test-dataset", "test-table");
   private static final TableId DEFAULT_TABLE_ID_2 =
@@ -118,16 +113,9 @@ public class BigQueryDatabaseFetcherTest {
   }
 
   @Test
-  public void fetchingMetadataSelectQuery() {
-    when(mockJob.getConfiguration())
-        .thenReturn(QueryJobConfiguration.of("SELECT a FROM INFORMATION_SCHEMA"));
-    assertDoNotPassTheFetchingFilter(mockJob);
-  }
-
-  @Test
   public void fetchingRefuseNonSelectQuery() {
     when(mockJob.getConfiguration()).thenReturn(QueryJobConfiguration.of("CALL.BQ myTest"));
-    assertDoNotPassTheFetchingFilter(mockJob);
+    assertPassTheFetchingFilter(mockJob);
   }
 
   @Test
@@ -141,7 +129,7 @@ public class BigQueryDatabaseFetcherTest {
     when(mockJob.getConfiguration())
         .thenReturn(
             QueryJobConfiguration.of("SELECT * FROM myTest; SELECT COUNT(*) FROM besancon"));
-    assertDoNotPassTheFetchingFilter(mockJob);
+    assertPassTheFetchingFilter(mockJob);
   }
 
   @Test
@@ -154,15 +142,6 @@ public class BigQueryDatabaseFetcherTest {
   public void fetchingPassNonQueryJob() {
     when(mockJob.getConfiguration()).thenReturn(DEFAULT_QUERY_JOB_CONFIGURATION);
     assertPassTheFetchingFilter(mockJob);
-  }
-
-  @Test
-  public void isSQLScript() {
-    assertFalse(fetcher.isSQLScript(Strings.EMPTY));
-    assertTrue(fetcher.isSQLScript("SELECT 1; SELECT 2;"));
-    assertTrue(fetcher.isSQLScript("SELECT COUNT(*) FROM myTable; SELECT 2"));
-    assertFalse(fetcher.isSQLScript("SELECT COUNT(*) FROM myTable"));
-    assertFalse(fetcher.isSQLScript(" SELECT 1; ")); // with spaces
   }
 
   @Test
@@ -181,41 +160,6 @@ public class BigQueryDatabaseFetcherTest {
     assertFalse(fetcher.notInError(mockJob));
     when(mockJob.getStatus().getError()).thenReturn(null);
     assertTrue(fetcher.notInError(mockJob));
-  }
-
-  @Test
-  public void isRegularSelectQuery() {
-    assertFalse(fetcher.isRegularSelectQuery("SELECT 1"));
-    assertFalse(fetcher.isRegularSelectQuery("CALL.BQ...."));
-    assertFalse(fetcher.isRegularSelectQuery("SELECT * FROM INFORMATION_SCHEMA"));
-    assertTrue(fetcher.isRegularSelectQuery("SELECT COUNT(*) FROM myTable"));
-    assertTrue(fetcher.isRegularSelectQuery(" SELECT COUNT(*) FROM myTable"));
-    assertTrue(fetcher.isRegularSelectQuery("\nSELECT COUNT(*) FROM myTable"));
-    assertTrue(fetcher.isRegularSelectQuery("\rSELECT COUNT(*) FROM myTable"));
-  }
-
-  @Test
-  public void queryContainsComments() {
-    final String REGULAR_SUPERSET_QUERY =
-        "-- 6dcd92a04feb50f14bbcf07c661680ba\n"
-            + "SELECT TIMESTAMP_TRUNC(`pickup_datetime`, WEEK) AS `__timestamp`,\n"
-            + "       `passenger_count` AS `passenger_count`,\n"
-            + "       sum(`tip_amount`) AS `SUM_tip_amount__f2041`\n"
-            + "FROM `nyc_trips`.`tlc_yellow_trips_2015_small`\n"
-            + "WHERE `payment_type` IN ('2',\n"
-            + "                         '3')\n"
-            + "  AND `passenger_count` IN (2,\n"
-            + "                            4,\n"
-            + "                            0,\n"
-            + "                            6,\n"
-            + "                            1)\n"
-            + "  AND `rate_code` <= 41\n"
-            + "GROUP BY `passenger_count`,\n"
-            + "         `__timestamp`\n"
-            + "ORDER BY SUM_tip_amount__f2041 DESC\n"
-            + "LIMIT 10000\n"
-            + "-- 6dcd92a04feb50f14bbcf07c661680ba";
-    assertTrue(fetcher.isRegularSelectQuery(REGULAR_SUPERSET_QUERY));
   }
 
   @Test
@@ -239,7 +183,7 @@ public class BigQueryDatabaseFetcherTest {
     assertFalse(fetcher.containsSubStepUsingMVM(step));
     when(step.getSubsteps()).thenReturn(createSubSteps("sub1", "FROM myTable", "sub3"));
     assertFalse(fetcher.containsSubStepUsingMVM(step));
-    when(step.getSubsteps()).thenReturn(createSubSteps("sub1", "FROM mvm_", "sub3"));
+    when(step.getSubsteps()).thenReturn(createSubSteps("sub1", "FROM achilio_", "sub3"));
     assertTrue(fetcher.containsSubStepUsingMVM(step));
   }
 
@@ -253,7 +197,7 @@ public class BigQueryDatabaseFetcherTest {
     when(stage1.getSteps()).thenReturn(Lists.newArrayList(steps1));
     when(stage2.getSteps()).thenReturn(Lists.newArrayList(steps2));
     when(steps1.getSubsteps()).thenReturn(createSubSteps("st1", "st2"));
-    when(steps2.getSubsteps()).thenReturn(createSubSteps("FROM mvm_", "st2"));
+    when(steps2.getSubsteps()).thenReturn(createSubSteps("FROM achilio_", "st2"));
     assertFalse(fetcher.containsManagedMVUsageInQueryStages(Lists.newArrayList(stage1)));
     assertTrue(fetcher.containsManagedMVUsageInQueryStages(Lists.newArrayList(stage2)));
   }
@@ -360,9 +304,6 @@ public class BigQueryDatabaseFetcherTest {
     when(mockBigquery.listJobs(options.toArray(new BigQuery.JobListOption[0]))).thenReturn(jobs);
     List<FetchedQuery> queries = fetcher.fetchAllQueries();
     assertListSize(2, queries);
-    when(mockJob1.getConfiguration()).thenReturn(INFO_QUERY_JOB_CONFIGURATION);
-    queries = fetcher.fetchAllQueries();
-    assertListSize(1, queries);
   }
 
   @Test
@@ -409,11 +350,11 @@ public class BigQueryDatabaseFetcherTest {
   }
 
   private void assertPassTheFetchingFilter(Job job) {
-    assertTrue("This job does not pass the filter", fetcher.fetchQueryFilter(job));
+    assertTrue("This job does not pass the filter", fetcher.isValidQueryJob(job));
   }
 
   private void assertDoNotPassTheFetchingFilter(Job job) {
-    assertFalse("This job does pass the filter", fetcher.fetchQueryFilter(job));
+    assertFalse("This job does pass the filter", fetcher.isValidQueryJob(job));
   }
 
   private List<String> createSubSteps(String... subSteps) {
@@ -429,6 +370,7 @@ public class BigQueryDatabaseFetcherTest {
     when(mockJob.getStatus()).thenReturn(status);
     when(mockJob.getStatus().getError()).thenReturn(null);
     when(mockJob.getStatistics()).thenReturn(mockJobStats);
+    when(mockJob.getJobId()).thenReturn(JobId.of("project", "jobId"));
     when(mockJob.getJobId()).thenReturn(mockJobId);
     when(mockJobId.getJob()).thenReturn(googleJobId1);
     when(mockJobId.getProject()).thenReturn(projectId1);

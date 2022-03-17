@@ -203,6 +203,11 @@
       <version>1.2.5</version>
     </dependency>
     <dependency>
+      <artifactId>spring-cloud-gcp-starter-sql-postgresql</artifactId>
+      <groupId>org.springframework.cloud</groupId>
+      <version>1.2.8.RELEASE</version>
+    </dependency>
+    <dependency>
       <artifactId>google-cloud-pubsub</artifactId>
       <groupId>com.google.cloud</groupId>
     </dependency>

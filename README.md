@@ -1,4 +1,6 @@
-###### Main [![codecov](https://codecov.io/gh/achilio/mv-manager-service/branch/main/graph/badge.svg?token=SAABWG9HJO)](https://codecov.io/gh/achilio/mv-manager-service) Dev [![codecov](https://codecov.io/gh/achilio/mv-manager-service/branch/dev/graph/badge.svg?token=SAABWG9HJO)](https://codecov.io/gh/achilio/mv-manager-service)
+###### Main [![codecov](https://codecov.io/gh/achilio/mv-manager-service/branch/main/graph/badge.svg?token=SAABWG9HJO)](https://codecov.io/gh/achilio/mv-manager-service)
+
+###### Dev  [![codecov](https://codecov.io/gh/achilio/mv-manager-service/branch/dev/graph/badge.svg?token=SAABWG9HJO)](https://codecov.io/gh/achilio/mv-manager-service)
 
 # mv-manager-service
 

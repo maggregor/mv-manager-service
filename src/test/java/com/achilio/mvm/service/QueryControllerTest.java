@@ -74,9 +74,9 @@ public class QueryControllerTest {
         .thenReturn(Arrays.asList(query1, query2));
     when(mockQueryService.getAllQueriesByProjectIdLastJob(TEST_PROJECT_ID))
         .thenReturn(Arrays.asList(query1, query2));
-    when(mockQueryService.getQuery(TEST_PROJECT_ID, googleJobId)).thenReturn(query1);
-    when(mockQueryService.getQuery(TEST_PROJECT_ID, "unknownId"))
-        .thenThrow(new QueryNotFoundException("unknownId"));
+    when(mockQueryService.getQuery(googleJobId, TEST_PROJECT_ID)).thenReturn(query1);
+    when(mockQueryService.getQuery("unknownQueryId", TEST_PROJECT_ID))
+        .thenThrow(new QueryNotFoundException("unknownQueryId"));
   }
 
   @Test
@@ -95,7 +95,7 @@ public class QueryControllerTest {
   public void getQueriesOfLastFetcherQueryJobByProjectIdTest() throws JsonProcessingException {
     ObjectMapper mapper = new ObjectMapper();
     List<Query> jobResponseEntity =
-        controller.getQueriesOfLastFetcherQueryJobByProjectId(TEST_PROJECT_ID);
+        controller.getAllQueriesOfLastFetcherQueryJobByProjectId(TEST_PROJECT_ID);
     String jsonResponse = objectMapper.writeValueAsString(jobResponseEntity);
     JsonNode map = mapper.readTree(jsonResponse);
     Assert.assertTrue(map instanceof ArrayNode);
@@ -106,17 +106,16 @@ public class QueryControllerTest {
   @Test
   public void getQueryTesT() throws JsonProcessingException {
     ObjectMapper mapper = new ObjectMapper();
-    Query jobResponseEntity = controller.getQuery(TEST_PROJECT_ID, googleJobId);
+    Query jobResponseEntity = controller.getSingleQuery(TEST_PROJECT_ID, googleJobId);
     String jsonResponse = objectMapper.writeValueAsString(jobResponseEntity);
     JsonNode map = mapper.readTree(jsonResponse);
     Assert.assertTrue(map instanceof ObjectNode);
     Assert.assertEquals(queryStatement1, map.get("query").asText());
 
-    try {
-    controller.getQuery(TEST_PROJECT_ID, "unknownId");
-
-    } catch (QueryNotFoundException e) {
-      Assert.assertEquals("Query unknownId not found", e.getMessage());
-    }
+    Assert.assertThrows(
+        QueryNotFoundException.class,
+        () -> {
+          controller.getSingleQuery(TEST_PROJECT_ID, "unknownQueryId");
+        });
   }
 }

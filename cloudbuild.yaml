@@ -3,44 +3,59 @@ steps:
   - name: maven:3-openjdk-8
     id: "mvn-test"
     entrypoint: mvn
-    args: ["test"]
+    args: [ "test" ]
   # Build the container image
   - name: "gcr.io/cloud-builders/docker"
-    args: ["build", "-t", "gcr.io/${PROJECT_ID}/mvm-service", "."]
+    args: [ "build", "-t", "gcr.io/${PROJECT_ID}/${_SERVICE_NAME}", "." ]
   # Push the container image to Container Registry
   - name: "gcr.io/cloud-builders/docker"
-    args: ["push", "gcr.io/${PROJECT_ID}/mvm-service"]
+    args: [ "push", "gcr.io/${PROJECT_ID}/${_SERVICE_NAME}" ]
   # Deploy container image to Cloud Run
   - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
     entrypoint: gcloud
     args:
       [
-        "beta",
-        "run",
-        "deploy",
-        "mvm-service",
-        "--image",
-        "gcr.io/${PROJECT_ID}/mvm-service",
-        "--set-env-vars=SPRING_DATASOURCE_URL=${_SPRING_DATASOURCE_URL},PUBLISHER_ENABLED=${_PUBLISHER_ENABLED},PUBLISHER_GOOGLE_PROJECT_ID=${_PUBLISHER_GOOGLE_PROJECT_ID}",
-        "--update-secrets=STRIPE_API_KEY=projects/${PROJECT_NUMBER}/secrets/stripe_api_key/versions/latest",
-        "--update-secrets=STRIPE_ENDPOINT_SECRET=projects/${PROJECT_NUMBER}/secrets/stripe_endpoint_secret/versions/latest",
-        "--region",
-        "europe-west1",
-        "--platform",
-        "managed",
-        "--cpu",
-        "4",
-        "--memory",
-        "8Gi",
-        "--allow-unauthenticated",
-        "--min-instances=1",
-        "--max-instances=8",
-        "--service-account",
-        "service-cloudrun@${PROJECT_ID}.iam.gserviceaccount.com",
+          "beta",
+          "run",
+          "deploy",
+          "${_SERVICE_NAME}",
+          "--image",
+          "gcr.io/${PROJECT_ID}/${_SERVICE_NAME}",
+          "--add-cloudsql-instances",
+          "${_SPRING_CLOUD_GCP_SQL_INSTANCE_CONNECTION_NAME}",
+          "--update-env-vars=PUBLISHER_ENABLED=${_PUBLISHER_ENABLED}",
+          "--update-env-vars=PUBLISHER_GOOGLE_PROJECT_ID=${_PUBLISHER_GOOGLE_PROJECT_ID}",
+          "--update-env-vars=SPRING_CLOUD_GCP_SQL_ENABLED=${_SPRING_CLOUD_GCP_SQL_ENABLED}",
+          "--update-env-vars=SPRING_CLOUD_GCP_SQL_DATABASE_NAME=${_SPRING_CLOUD_GCP_SQL_DATABASE_NAME}",
+          "--update-env-vars=SPRING_CLOUD_GCP_SQL_INSTANCE_CONNECTION_NAME=${_SPRING_CLOUD_GCP_SQL_INSTANCE_CONNECTION_NAME}",
+          "--update-secrets=SPRING_DATASOURCE_PASSWORD=projects/${PROJECT_NUMBER}/secrets/service_db_password/versions/latest",
+          "--update-secrets=STRIPE_API_KEY=projects/${PROJECT_NUMBER}/secrets/stripe_api_key/versions/latest",
+          "--update-secrets=STRIPE_ENDPOINT_SECRET=projects/${PROJECT_NUMBER}/secrets/stripe_endpoint_secret/versions/latest",
+          "--region",
+          "${_REGION}",
+          "--platform",
+          "managed",
+          "--execution-environment",
+          "gen2",
+          "--no-cpu-throttling",
+          "--cpu",
+          "4",
+          "--memory",
+          "8Gi",
+          "--allow-unauthenticated",
+          "--min-instances=0",
+          "--max-instances=8",
+          "--service-account",
+          "service-cloudrun@${PROJECT_ID}.iam.gserviceaccount.com",
       ]
 substitutions:
   _ENV: "dev"
-  _SPRING_DATASOURCE_URL: "jdbc:postgresql://34.140.78.47:5432/optimizer_${_ENV}"
+  _DB_INSTANCE_NAME: ${PROJECT_ID}-db-instance
+  _REGION: europe-west1
+  _SPRING_CLOUD_GCP_SQL_ENABLED: "true"
+  _SPRING_CLOUD_GCP_SQL_DATABASE_NAME: "optimizer_${_ENV}"
+  _SPRING_CLOUD_GCP_SQL_INSTANCE_CONNECTION_NAME: "${PROJECT_ID}:${_REGION}:${_DB_INSTANCE_NAME}"
+  _SERVICE_NAME: mvm-service
   _PUBLISHER_ENABLED: "true"
   _PUBLISHER_GOOGLE_PROJECT_ID: ${PROJECT_ID}
-images: ["gcr.io/${PROJECT_ID}/mvm-service"]
+images: [ "gcr.io/${PROJECT_ID}/${_SERVICE_NAME}" ]

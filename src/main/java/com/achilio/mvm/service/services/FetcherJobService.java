@@ -41,10 +41,6 @@ public class FetcherJobService {
     updateJobStatus(fetcherQueryJob, FetcherJobStatus.FINISHED);
   }
 
-  public void fetchStructJob(FetcherStructJob fetcherStructJob) {
-    updateJobStatus(fetcherStructJob, FetcherJobStatus.WORKING);
-  }
-
   @Transactional
   void saveAllQueries(List<Query> queries) {
     queryRepository.saveAll(queries);
@@ -71,7 +67,8 @@ public class FetcherJobService {
         fetchedQuery.getStatistics());
   }
 
-  private void updateJobStatus(FetcherJob job, FetcherJobStatus status) {
+  @Transactional
+  void updateJobStatus(FetcherQueryJob job, FetcherJobStatus status) {
     job.setStatus(status);
     fetcherJobRepository.save(job);
   }
