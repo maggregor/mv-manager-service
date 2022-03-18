@@ -24,7 +24,6 @@ import com.google.cloud.bigquery.DatasetId;
 import com.google.cloud.bigquery.Field;
 import com.google.cloud.bigquery.Job;
 import com.google.cloud.bigquery.JobStatistics;
-import com.google.cloud.bigquery.LegacySQLTypeName;
 import com.google.cloud.bigquery.QueryJobConfiguration;
 import com.google.cloud.bigquery.QueryStage;
 import com.google.cloud.bigquery.QueryStage.QueryStep;
@@ -37,7 +36,6 @@ import com.google.cloud.resourcemanager.Project;
 import com.google.cloud.resourcemanager.ResourceManager;
 import com.google.cloud.resourcemanager.ResourceManagerOptions;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.zetasql.ZetaSQLType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -235,20 +233,6 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     return new DefaultFetchedTable(aTableId, tableColumns);
   }
 
-  /**
-   * Returns true if the table is eligible
-   *
-   * <p>- Don't have RECORD field type
-   *
-   * @param tableDefinition
-   * @return
-   */
-  private boolean isEligibleTableDefinition(StandardTableDefinition tableDefinition) {
-    return tableDefinition.getSchema() != null
-        && tableDefinition.getSchema().getFields().stream()
-            .noneMatch(f -> f.getType().equals(LegacySQLTypeName.RECORD));
-  }
-
   @Override
   public Set<FetchedTable> fetchAllTables() {
     Spliterator<Dataset> spliterator = bigquery.listDatasets().getValues().spliterator();
@@ -277,8 +261,7 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
   public boolean isValidTable(Table table) {
     return table != null
         && table.exists()
-        && table.getDefinition() instanceof StandardTableDefinition
-        && isEligibleTableDefinition(table.getDefinition());
+        && table.getDefinition() instanceof StandardTableDefinition;
   }
 
   private Map<String, String> mapColumnsOrEmptyIfSchemaIsNull(TableDefinition definition) {
@@ -288,22 +271,11 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
       return new HashMap<>();
     }
     List<Field> fields = schema.getFields();
-    return fields.stream().collect(Collectors.toMap(Field::getName, this::toZetaSQLStringType));
+    return fields.stream().collect(Collectors.toMap(Field::getName, this::toZetaSQLColumnTypeName));
   }
 
-  private String toZetaSQLStringType(Field field) {
-    final String statusType = field.getType().toString();
-    switch (statusType) {
-      case "DOUBLE":
-      case "FLOAT":
-        return ZetaSQLType.TypeKind.TYPE_NUMERIC.name();
-      case "INTEGER":
-        return ZetaSQLType.TypeKind.TYPE_INT64.name();
-      case "BOOLEAN":
-        return ZetaSQLType.TypeKind.TYPE_BOOL.name();
-      default:
-        return "TYPE_" + statusType;
-    }
+  private String toZetaSQLColumnTypeName(Field field) {
+    return "TYPE_" + field.getType().getStandardType().name();
   }
 
   @Override

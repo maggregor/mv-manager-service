@@ -17,6 +17,7 @@ import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.entities.statistics.QueryStatistics;
 import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
+import com.achilio.mvm.service.visitors.ATableId;
 import com.google.api.gax.paging.Page;
 import com.google.api.gax.paging.Pages;
 import com.google.cloud.bigquery.BigQuery;
@@ -45,6 +46,7 @@ import com.google.cloud.bigquery.TableDefinition;
 import com.google.cloud.bigquery.TableId;
 import com.google.cloud.resourcemanager.Project;
 import com.google.cloud.resourcemanager.ResourceManager;
+import com.google.zetasql.ZetaSQLType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -70,6 +72,9 @@ public class BigQueryDatabaseFetcherTest {
       LoadJobConfiguration.newBuilder(DEFAULT_TABLE_ID, "gs://").build();
   private static final JobConfiguration DEFAULT_COPY_JOB_CONFIGURATION =
       CopyJobConfiguration.newBuilder(DEFAULT_TABLE_ID, DEFAULT_TABLE_ID_2).build();
+  private static final Table MOCKED_TABLE = mock(Table.class);
+  private static final TableDefinition MOCKED_TABLE_DEFINITION =
+      mock(StandardTableDefinition.class);
   private final Dataset mockedDataset =
       mockedDataset("myProject", "myDataset", "myDatasetFriendly", "FromParis", 100L, 1000L);
   private final String googleJobId1 = "google-id1";
@@ -88,6 +93,9 @@ public class BigQueryDatabaseFetcherTest {
     mockBigquery = mock(BigQuery.class);
     mockResourceManager = mock(ResourceManager.class);
     fetcher = new BigQueryDatabaseFetcher(mockBigquery, mockResourceManager);
+    when(MOCKED_TABLE.getDefinition()).thenReturn(MOCKED_TABLE_DEFINITION);
+    when(MOCKED_TABLE.exists()).thenReturn(true);
+    when(MOCKED_TABLE.getTableId()).thenReturn(TableId.of("always", "smart"));
     initializeJobMockDefault();
   }
 
@@ -204,10 +212,8 @@ public class BigQueryDatabaseFetcherTest {
     Table mockTable = mock(Table.class);
     StandardTableDefinition mockStandardDefinition = mock(StandardTableDefinition.class);
     MaterializedViewDefinition mockMVDefinition = mock(MaterializedViewDefinition.class);
-    when(mockTable.getDefinition()).thenReturn(mockStandardDefinition);
-    Schema schema = Schema.of();
-    when(mockStandardDefinition.getSchema()).thenReturn(schema);
     // Is table exists
+    when(mockTable.getDefinition()).thenReturn(mockStandardDefinition);
     when(mockTable.exists()).thenReturn(true);
     assertTrue(fetcher.isValidTable(mockTable));
     // Is a Materialized View
@@ -218,15 +224,6 @@ public class BigQueryDatabaseFetcherTest {
     when(mockTable.exists()).thenReturn(false);
     assertFalse(fetcher.isValidTable(mockTable));
     when(mockTable.exists()).thenReturn(true);
-    // Table contains allowed type field
-    Field field = Field.of("col1", LegacySQLTypeName.STRING);
-    when(mockStandardDefinition.getSchema()).thenReturn(Schema.of(field));
-    assertTrue(fetcher.isValidTable(mockTable));
-    // Table contains refused type field
-    Field subfield = Field.of("subfield1", LegacySQLTypeName.STRING);
-    field = Field.of("col1", LegacySQLTypeName.RECORD, subfield);
-    when(mockStandardDefinition.getSchema()).thenReturn(Schema.of(field));
-    assertFalse(fetcher.isValidTable(mockTable));
   }
 
   @Test
@@ -234,6 +231,7 @@ public class BigQueryDatabaseFetcherTest {
     final String PROJECT = "myProject";
     final String DATASET = "myDataset";
     final String TABLE = "myTable";
+    ATableId aTableId = ATableId.of(PROJECT, DATASET, TABLE);
     Page<Table> tables = mock(Page.class);
     Table table = mock(Table.class);
     TableDefinition definition = mock(StandardTableDefinition.class);
@@ -246,9 +244,46 @@ public class BigQueryDatabaseFetcherTest {
     when(definition.getSchema()).thenReturn(Schema.of());
     when(mockBigquery.getTable(tableId, TableOption.fields(TableField.SCHEMA))).thenReturn(table);
     FetchedTable fetchedTable = fetcher.fetchTablesInDataset(DATASET).iterator().next();
-    assertEquals(PROJECT, fetchedTable.getProjectId());
-    assertEquals(DATASET, fetchedTable.getDatasetName());
-    assertEquals(TABLE, fetchedTable.getTableName());
+    assertEquals(aTableId, fetchedTable.getTableId());
+  }
+
+  @Test
+  public void columnTypesMapping() {
+    when(mockBigquery.getTable(any())).thenReturn(MOCKED_TABLE);
+    for (LegacySQLTypeName type : LegacySQLTypeName.values()) {
+      if (type.equals(LegacySQLTypeName.RECORD)) {
+        //
+        continue;
+      }
+      String columnName = "myCol";
+      Schema schema = Schema.of(Field.of(columnName, type));
+      when(MOCKED_TABLE_DEFINITION.getSchema()).thenReturn(schema);
+      FetchedTable fetchedTable = fetcher.fetchTable("foo", "bar");
+      assertFalse(fetchedTable.getColumns().isEmpty());
+      assertTrue(fetchedTable.getColumns().containsKey(columnName));
+      assertTrue(fetchedTable.getColumns().get(columnName).contains(type.getStandardType().name()));
+    }
+  }
+
+  @Test
+  public void recordColumnTypeMapping() {
+    when(mockBigquery.getTable(any())).thenReturn(MOCKED_TABLE);
+    String columnName = "myCol";
+    Schema schema =
+        Schema.of(
+            Field.of(
+                columnName,
+                LegacySQLTypeName.RECORD,
+                Field.of("foobar", LegacySQLTypeName.STRING)));
+    when(MOCKED_TABLE_DEFINITION.getSchema()).thenReturn(schema);
+    FetchedTable fetchedTable = fetcher.fetchTable("foo", "bar");
+    assertFalse(fetchedTable.getColumns().isEmpty());
+    assertTrue(fetchedTable.getColumns().containsKey(columnName));
+    assertTrue(
+        fetchedTable
+            .getColumns()
+            .get(columnName)
+            .contains(ZetaSQLType.TypeKind.TYPE_STRUCT.name()));
   }
 
   @Test
@@ -301,9 +336,6 @@ public class BigQueryDatabaseFetcherTest {
     List<FetchedQuery> queries = fetcher.fetchAllQueries();
     assertListSize(2, queries);
   }
-
-  @Test
-  public void fetchTable() {}
 
   @Test
   public void fetchDataset() {
