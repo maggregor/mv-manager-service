@@ -1,5 +1,6 @@
 package com.achilio.mvm.service.controllers;
 
+import com.achilio.mvm.service.controllers.requests.FetcherQueryJobRequest;
 import com.achilio.mvm.service.entities.FetcherJob.FetcherJobStatus;
 import com.achilio.mvm.service.entities.FetcherQueryJob;
 import com.achilio.mvm.service.exceptions.FetcherJobNotFoundException;
@@ -17,6 +18,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -26,7 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 public class FetcherJobController {
 
-  private static Logger LOGGER = LoggerFactory.getLogger(FetcherJobController.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(FetcherJobController.class);
 
   @Autowired private FetcherJobService fetcherJobService;
   @Autowired private FetcherJobRepository fetcherJobRepository;
@@ -43,19 +45,18 @@ public class FetcherJobController {
       Optional<FetcherQueryJob> optionalFetcherJob;
       if (status != null) {
         optionalFetcherJob =
-            fetcherJobRepository.findTopFetchedQueryJobByProjectIdAndStatusOrderByCreatedAtDesc(
+            fetcherJobService.getLastFetcherQueryJob(
                 projectId, FetcherJobStatus.valueOf(status.toUpperCase()));
       } else {
-        optionalFetcherJob =
-            fetcherJobRepository.findTopFetchedQueryJobByProjectIdOrderByCreatedAtDesc(projectId);
+        optionalFetcherJob = fetcherJobService.getLastFetcherQueryJob(projectId);
       }
       return optionalFetcherJob.map(Collections::singletonList).orElse(Collections.EMPTY_LIST);
     }
     if (status != null) {
-      return fetcherJobRepository.findFetcherQueryJobsByProjectIdAndStatus(
+      return fetcherJobService.getAllQueryJobs(
           projectId, FetcherJobStatus.valueOf(status.toUpperCase()));
     }
-    return fetcherJobRepository.findFetcherQueryJobsByProjectId(projectId);
+    return fetcherJobService.getAllQueryJobs(projectId);
   }
 
   @GetMapping(
@@ -68,7 +69,7 @@ public class FetcherJobController {
       @PathVariable String projectId, @PathVariable Long fetcherQueryJobId) {
 
     Optional<FetcherQueryJob> optionalFetcherJob =
-        fetcherJobRepository.findFetcherQueryJobByIdAndProjectId(fetcherQueryJobId, projectId);
+        fetcherJobService.getFetcherQueryJob(fetcherQueryJobId, projectId);
     if (!optionalFetcherJob.isPresent()) {
       throw new FetcherJobNotFoundException(fetcherQueryJobId.toString());
     }
@@ -77,10 +78,12 @@ public class FetcherJobController {
 
   @PostMapping(path = "/query/{projectId}", produces = MediaType.APPLICATION_JSON_VALUE)
   @ApiOperation("Create and start a new query fetching job")
-  public FetcherQueryJob createNewFetcherQueryJob(@PathVariable String projectId) {
-    FetcherQueryJob currentJob = fetcherJobRepository.save(new FetcherQueryJob(projectId));
+  public FetcherQueryJob createNewFetcherQueryJob(
+      @PathVariable String projectId, @RequestBody FetcherQueryJobRequest payload) {
+    FetcherQueryJob currentJob = fetcherJobService.createNewFetcherQueryJob(projectId, payload);
+    fetcherJobRepository.save(new FetcherQueryJob(projectId));
     LOGGER.info("Starting FetcherQueryJob {}", currentJob.getId());
-    fetcherJobService.fetchQueriesJob(currentJob);
+    fetcherJobService.fetchAllQueriesJob(currentJob);
     return currentJob;
   }
 }

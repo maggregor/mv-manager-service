@@ -1,14 +1,14 @@
 package com.achilio.mvm.service.services;
 
+import com.achilio.mvm.service.controllers.requests.FetcherQueryJobRequest;
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
-import com.achilio.mvm.service.entities.FetcherJob;
 import com.achilio.mvm.service.entities.FetcherJob.FetcherJobStatus;
 import com.achilio.mvm.service.entities.FetcherQueryJob;
-import com.achilio.mvm.service.entities.FetcherStructJob;
 import com.achilio.mvm.service.entities.Query;
 import com.achilio.mvm.service.repositories.FetcherJobRepository;
 import com.achilio.mvm.service.repositories.QueryRepository;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,8 +28,41 @@ public class FetcherJobService {
 
   public FetcherJobService() {}
 
+  public Optional<FetcherQueryJob> getLastFetcherQueryJob(String projectId) {
+    return fetcherJobRepository.findTopFetchedQueryJobByProjectIdOrderByCreatedAtDesc(projectId);
+  }
+
+  public Optional<FetcherQueryJob> getLastFetcherQueryJob(
+      String projectId, FetcherJobStatus status) {
+    return fetcherJobRepository.findTopFetchedQueryJobByProjectIdAndStatusOrderByCreatedAtDesc(
+        projectId, status);
+  }
+
+  public List<FetcherQueryJob> getAllQueryJobs(String projectId, FetcherJobStatus status) {
+    return fetcherJobRepository.findFetcherQueryJobsByProjectIdAndStatus(projectId, status);
+  }
+
+  public List<FetcherQueryJob> getAllQueryJobs(String projectId) {
+    return fetcherJobRepository.findFetcherQueryJobsByProjectId(projectId);
+  }
+
+  public Optional<FetcherQueryJob> getFetcherQueryJob(Long fetcherQueryJobId, String projectId) {
+    return fetcherJobRepository.findFetcherQueryJobByIdAndProjectId(fetcherQueryJobId, projectId);
+  }
+
+  public FetcherQueryJob createNewFetcherQueryJob(
+      String projectId, FetcherQueryJobRequest payload) {
+    FetcherQueryJob job;
+    if (payload.getTimeframe() != null) {
+      job = new FetcherQueryJob(projectId, payload.getTimeframe());
+    } else {
+      job = new FetcherQueryJob(projectId);
+    }
+    return fetcherJobRepository.save(job);
+  }
+
   @Async("asyncExecutor")
-  public void fetchQueriesJob(FetcherQueryJob fetcherQueryJob) {
+  public void fetchAllQueriesJob(FetcherQueryJob fetcherQueryJob) {
     updateJobStatus(fetcherQueryJob, FetcherJobStatus.WORKING);
     try {
       List<Query> queries = fetchQueries(fetcherQueryJob);
