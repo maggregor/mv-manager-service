@@ -151,6 +151,7 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     String query;
     final QueryJobConfiguration configuration = job.getConfiguration();
     query = StringUtils.trim(configuration.getQuery());
+    DatasetId dataset = configuration.getDefaultDataset();
     final JobStatistics.QueryStatistics stats = job.getStatistics();
     Long startTime = stats.getStartTime();
     final boolean useCache = BooleanUtils.isTrue(stats.getCacheHit());
@@ -163,6 +164,7 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     fetchedQuery.setUseMaterializedView(usingManagedMV);
     fetchedQuery.setUseCache(useCache);
     fetchedQuery.setGoogleJobId(job.getJobId().getJob());
+    fetchedQuery.setDefaultDataset(dataset == null ? null : dataset.getDataset());
     return fetchedQuery;
   }
 
