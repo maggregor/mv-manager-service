@@ -14,13 +14,14 @@ import java.time.ZoneId;
 public class FetchedQuery {
 
   private final String query;
-  private String googleJobId;
   private final String projectId;
+  private String googleJobId;
   private boolean useMaterializedView;
   private boolean useCache;
   private LocalDate startTime;
   private boolean canUseMaterializedViews;
   private QueryUsageStatistics statistics;
+  private String defaultDataset;
 
   public FetchedQuery(String query) {
     this(null, query);
@@ -86,5 +87,13 @@ public class FetchedQuery {
 
   public boolean canUseMaterializedViews() {
     return canUseMaterializedViews;
+  }
+
+  public String getDefaultDataset() {
+    return defaultDataset;
+  }
+
+  public void setDefaultDataset(String defaultDataset) {
+    this.defaultDataset = defaultDataset;
   }
 }

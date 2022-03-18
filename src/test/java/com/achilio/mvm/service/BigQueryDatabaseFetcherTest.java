@@ -58,8 +58,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class BigQueryDatabaseFetcherTest {
 
-  private static final QueryJobConfiguration DEFAULT_QUERY_JOB_CONFIGURATION =
-      QueryJobConfiguration.of("SELECT * FROM toto");
+  private static final String defaultDatasetName = "defaultDataset";
   private static final QueryJobConfiguration COUNT_QUERY_JOB_CONFIGURATION =
       QueryJobConfiguration.of("SELECT COUNT(*) FROM toto");
   private static final TableId DEFAULT_TABLE_ID =
@@ -70,6 +69,10 @@ public class BigQueryDatabaseFetcherTest {
       LoadJobConfiguration.newBuilder(DEFAULT_TABLE_ID, "gs://").build();
   private static final JobConfiguration DEFAULT_COPY_JOB_CONFIGURATION =
       CopyJobConfiguration.newBuilder(DEFAULT_TABLE_ID, DEFAULT_TABLE_ID_2).build();
+  private static QueryJobConfiguration DEFAULT_QUERY_JOB_CONFIGURATION =
+      QueryJobConfiguration.newBuilder("SELECT * FROM toto")
+          .setDefaultDataset(defaultDatasetName)
+          .build();
   private final Dataset mockedDataset =
       mockedDataset("myProject", "myDataset", "myDatasetFriendly", "FromParis", 100L, 1000L);
   private final String googleJobId1 = "google-id1";
@@ -284,7 +287,7 @@ public class BigQueryDatabaseFetcherTest {
     QueryStage stage1 = mock(QueryStage.class);
     QueryStep steps1 = mock(QueryStep.class);
     Job mockJob1 = mock(Job.class);
-    when(mockJob1.getConfiguration()).thenReturn(COUNT_QUERY_JOB_CONFIGURATION);
+    when(mockJob1.getConfiguration()).thenReturn(DEFAULT_QUERY_JOB_CONFIGURATION);
     when(mockJob1.getStatus()).thenReturn(status);
     when(mockJob1.getStatus().getError()).thenReturn(null);
     when(mockJob1.getStatistics()).thenReturn(mockJobStats);
