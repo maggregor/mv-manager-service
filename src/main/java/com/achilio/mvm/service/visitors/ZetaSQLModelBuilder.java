@@ -39,6 +39,12 @@ public abstract class ZetaSQLModelBuilder implements ModelBuilder {
     ATableId tableId = table.getTableId();
     SimpleCatalog dataset = createDatasetAndGet(catalog, tableId.getDataset());
     SimpleCatalog datasetInProject = createDatasetAndGet(catalogProject, tableId.getDataset());
+    registerTable(dataset, table);
+    registerTable(datasetInProject, table);
+  }
+
+  public void registerTable(SimpleCatalog catalog, FetchedTable table) {
+    ATableId tableId = table.getTableId();
     final String tableName = tableId.getTable();
     final String fullTableName = tableId.getDataset() + "." + tableName;
     final SimpleTable simpleTable = new SimpleTable(fullTableName);
@@ -49,8 +55,14 @@ public abstract class ZetaSQLModelBuilder implements ModelBuilder {
       final Type statusType = TypeFactory.createSimpleType(typeKind);
       simpleTable.addSimpleColumn(name, statusType);
     }
-    dataset.addSimpleTable(tableName, simpleTable);
-    datasetInProject.addSimpleTable(tableName, simpleTable);
+    catalog.addSimpleTable(tableName, simpleTable);
+  }
+
+  public void setDefaultDataset(String datasetName) {
+    getCatalog().getTableNameList().forEach(name -> getCatalog().removeSimpleTable(name));
+    tables.stream()
+        .filter(table -> table.getTableId().getDataset().equalsIgnoreCase(datasetName))
+        .forEach(table -> registerTable(getCatalog(), table));
   }
 
   @Override

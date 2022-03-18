@@ -15,8 +15,6 @@ public interface FieldSetExtract {
 
   List<FieldSet> extractAll(FetchedQuery fetchedQuery);
 
-  List<FieldSet> extractAll(String projectId, String statement);
-
   default List<FieldSet> extractAll(List<FetchedQuery> fetchedQueries) {
     return fetchedQueries.stream()
         .map(this::extractAll)

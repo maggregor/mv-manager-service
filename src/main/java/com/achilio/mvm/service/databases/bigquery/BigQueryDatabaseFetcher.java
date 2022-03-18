@@ -12,7 +12,6 @@ import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import com.achilio.mvm.service.visitors.ATableId;
-import com.google.api.gax.core.FixedCredentialsProvider;
 import com.google.api.gax.paging.Page;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.bigquery.BigQuery;
@@ -152,7 +151,7 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     String query;
     final QueryJobConfiguration configuration = job.getConfiguration();
     query = StringUtils.trim(configuration.getQuery());
-    String dataset = configuration.getDefaultDataset().getDataset();
+    DatasetId dataset = configuration.getDefaultDataset();
     final JobStatistics.QueryStatistics stats = job.getStatistics();
     Long startTime = stats.getStartTime();
     final boolean useCache = BooleanUtils.isTrue(stats.getCacheHit());
@@ -165,7 +164,7 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     fetchedQuery.setUseMaterializedView(usingManagedMV);
     fetchedQuery.setUseCache(useCache);
     fetchedQuery.setGoogleJobId(job.getJobId().getJob());
-    fetchedQuery.setDefaultDataset(dataset);
+    fetchedQuery.setDefaultDataset(dataset == null ? null : dataset.getDataset());
     return fetchedQuery;
   }
 
