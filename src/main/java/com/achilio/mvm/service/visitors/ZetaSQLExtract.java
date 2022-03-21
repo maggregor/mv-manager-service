@@ -64,7 +64,10 @@ public class ZetaSQLExtract extends ZetaSQLModelBuilder implements FieldSetExtra
         resolved.accept(visitor);
       }
     } catch (Exception e) {
-      LOGGER.error("Statement analyze has failed: {} - {}", e.getMessage(), statement.trim());
+      LOGGER.error(
+          "Statement analyze has failed: {} - {}",
+          e.getMessage(),
+          statement.trim().replaceAll("[\r\n]+", ""));
     }
   }
 
