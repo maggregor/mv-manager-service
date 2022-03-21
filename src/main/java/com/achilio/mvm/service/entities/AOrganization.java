@@ -49,15 +49,7 @@ public class AOrganization {
     return stripeCustomerId;
   }
 
-  public void setStripeCustomerId(String stripeCustomerId) {
-    this.stripeCustomerId = stripeCustomerId;
-  }
-
   public String getGoogleWorkspaceId() {
     return googleWorkspaceId;
-  }
-
-  public void setGoogleWorkspaceId(String googleWorkspaceId) {
-    this.googleWorkspaceId = googleWorkspaceId;
   }
 }
