@@ -26,7 +26,7 @@ public class ImportedColumnTest {
   @Test
   public void simpleValidationConstructor1Test() {
     ImportedColumn column = new ImportedColumn(table, columnName, columnType);
-    Assert.assertEquals("myProjectId:myDataset:myTable#myCol", column.getId());
+    Assert.assertEquals("myProjectId:myDataset.myTable#myCol", column.getId());
     Assert.assertEquals(columnName, column.getName());
     Assert.assertEquals(columnType, column.getType());
     Assert.assertEquals(project.getProjectId(), column.getTable().getProject().getProjectId());
