@@ -1,14 +1,17 @@
 package com.achilio.mvm.service.visitors;
 
-import com.achilio.mvm.service.visitors.fields.DefaultFieldSet;
 import com.achilio.mvm.service.visitors.fields.Field;
 import com.achilio.mvm.service.visitors.fields.FieldSet;
-import com.google.zetasql.resolvedast.ResolvedNode;
+import com.achilio.mvm.service.visitors.fields.FieldSetFactory;
 import com.google.zetasql.resolvedast.ResolvedNodes;
 
 public abstract class FieldSetExtractVisitor extends ResolvedNodes.Visitor {
 
-  private final FieldSet fieldSet = new DefaultFieldSet();
+  private final FieldSet fieldSet;
+
+  public FieldSetExtractVisitor() {
+    this.fieldSet = FieldSetFactory.createFieldSet();
+  }
 
   /**
    * Allow the children class to specify special filter
@@ -17,22 +20,21 @@ public abstract class FieldSetExtractVisitor extends ResolvedNodes.Visitor {
    */
   public abstract boolean filterAllowAddField(Field field);
 
-  @Override
-  protected void defaultVisit(ResolvedNode node) {
-    super.defaultVisit(node);
-  }
-
   public void addField(Field field) {
     if (filterAllowAddField(field)) {
       this.fieldSet.add(field);
     }
   }
 
-  public void merge(FieldSet fieldSet) {
-    this.fieldSet.merge(fieldSet);
+  public void setTableReference(ATableId tableId) {
+    this.fieldSet.setReferenceTable(tableId);
   }
 
-  public FieldSet fieldSet() {
+  public void addTableJoin(ATableId tableId, JoinType type) {
+    this.fieldSet.addJoinTable(tableId, type);
+  }
+
+  public FieldSet getFieldSet() {
     return fieldSet;
   }
 }

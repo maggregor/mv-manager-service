@@ -30,12 +30,7 @@ public class BigQueryMaterializedViewStatementBuilderTest {
     fieldSet = new DefaultFieldSet();
     Set<FetchedTable> tables = new HashSet<>();
     tables.add(new DefaultFetchedTable("myproject", "mydataset", "mytable"));
-    fieldSet.setReferenceTables(tables);
-  }
-
-  @Test
-  public void tableReferenceSerialization() {
-    Assert.assertEquals("`myproject`.`mydataset`.`mytable`", builder.buildTableReference(fieldSet));
+    fieldSet.setReferenceTable(tables.iterator().next().getTableId());
   }
 
   @Test

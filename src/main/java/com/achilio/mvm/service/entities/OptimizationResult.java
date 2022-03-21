@@ -1,7 +1,6 @@
 package com.achilio.mvm.service.entities;
 
-import com.achilio.mvm.service.databases.entities.FetchedTable;
-import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
+import com.achilio.mvm.service.visitors.ATableId;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
@@ -51,33 +50,27 @@ public class OptimizationResult {
       columnDefinition = "varchar(255) default 'PLAN_LIMIT_REACHED'")
   private Status status;
 
-  @Column(name = "totalProcessedBytes", nullable = false, columnDefinition = "bigint default 0")
-  private Long totalProcessedBytes;
-
-  @Column(name = "queries", nullable = false, columnDefinition = "integer default 0")
-  private Integer queries;
+  @Column(name = "hits", nullable = false, columnDefinition = "integer default 0")
+  private Integer hits;
 
   public OptimizationResult(
-      final Optimization optimization, final FetchedTable referenceTable, final String statement) {
-    this(optimization, referenceTable, statement, null);
+      final Optimization optimization, final ATableId referenceTable, final String statement) {
+    this(optimization, referenceTable, statement, 0);
   }
 
   public OptimizationResult(
       final Optimization optimization,
-      final FetchedTable referenceTable,
+      final ATableId referenceTable,
       final String statement,
-      final QueryUsageStatistics statistics) {
+      final int hits) {
     this.optimization = optimization;
     this.projectId = referenceTable.getProjectId();
     this.datasetName = referenceTable.getDatasetName();
     this.tableName = referenceTable.getTableName();
     this.status = Status.UNDEFINED;
     this.statement = statement;
-    this.mvName = MV_NAME_PREFIX + Math.abs(statement.hashCode());
-    if (statistics != null) {
-      this.totalProcessedBytes = statistics.getProcessedBytes();
-      this.queries = statistics.getQueryCount();
-    }
+    this.mvName = this.tableName + "_" + MV_NAME_PREFIX + Math.abs(statement.hashCode());
+    this.hits = hits;
   }
 
   public OptimizationResult() {}
@@ -106,12 +99,8 @@ public class OptimizationResult {
     return this.datasetName + "." + this.tableName;
   }
 
-  public Long getTotalProcessedBytes() {
-    return this.totalProcessedBytes;
-  }
-
-  public Integer getQueries() {
-    return this.queries;
+  public Integer getHits() {
+    return this.hits;
   }
 
   public String getDatasetName() {

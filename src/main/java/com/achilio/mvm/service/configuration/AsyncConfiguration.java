@@ -17,7 +17,7 @@ public class AsyncConfiguration {
     executor.setCorePoolSize(2);
     executor.setMaxPoolSize(2);
     executor.setQueueCapacity(100);
-    executor.setThreadNamePrefix("OptimizeAsyncThread-");
+    executor.setThreadNamePrefix("zeAsyncThread-");
     executor.initialize();
 
     return new DelegatingSecurityContextAsyncTaskExecutor(executor);
