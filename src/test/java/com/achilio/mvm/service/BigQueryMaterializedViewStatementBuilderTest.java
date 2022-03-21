@@ -34,11 +34,6 @@ public class BigQueryMaterializedViewStatementBuilderTest {
   }
 
   @Test
-  public void tableReferenceSerialization() {
-    Assert.assertEquals("`myproject`.`mydataset`.`mytable`", builder.buildTableReference(fieldSet));
-  }
-
-  @Test
   public void simpleSelectColumnFunctionGroupBy() {
     fieldSet.add(new ReferenceField("col1", "a"));
     fieldSet.add(new FunctionField("TIMESTAMP_TRUNC(ts, DAY)", "b"));

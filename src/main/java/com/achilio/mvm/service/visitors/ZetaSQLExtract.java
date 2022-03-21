@@ -42,18 +42,15 @@ public class ZetaSQLExtract extends ZetaSQLModelBuilder implements FieldSetExtra
 
   @Override
   public List<FieldSet> extractAll(FetchedQuery fetchedQuery) {
-    List<FieldSet> fieldSets = extractAll(fetchedQuery.getProjectId(), fetchedQuery.getQuery());
-    if (!fieldSets.isEmpty()) {
+    if (fetchedQuery.hasDefaultDataset()) {
+      setDefaultDataset(fetchedQuery.getDefaultDataset());
+    }
+    ZetaSQLFieldSetExtractEntryPointVisitor v =
+        new ZetaSQLFieldSetExtractEntryPointVisitor(fetchedQuery.getProjectId(), getCatalog());
+    resolveStatementAndVisit(fetchedQuery.getQuery(), v);
+    if (!v.getAllFieldSets().isEmpty()) {
       fetchedQuery.setCanUseMaterializedViews(true);
     }
-    return fieldSets;
-  }
-
-  @Override
-  public List<FieldSet> extractAll(String projectId, String statement) {
-    ZetaSQLFieldSetExtractEntryPointVisitor v =
-        new ZetaSQLFieldSetExtractEntryPointVisitor(projectId, getCatalog());
-    resolveStatementAndVisit(statement, v);
     return v.getAllFieldSets();
   }
 
@@ -67,7 +64,10 @@ public class ZetaSQLExtract extends ZetaSQLModelBuilder implements FieldSetExtra
         resolved.accept(visitor);
       }
     } catch (Exception e) {
-      LOGGER.error("Statement analyze has failed: {}", e.getMessage());
+      LOGGER.error(
+          "Statement analyze has failed: {} - {}",
+          e.getMessage(),
+          statement.trim().replaceAll("[\r\n]+", ""));
     }
   }
 

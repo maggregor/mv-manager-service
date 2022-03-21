@@ -69,7 +69,7 @@ public class OptimizationResult {
     this.tableName = referenceTable.getTableName();
     this.status = Status.UNDEFINED;
     this.statement = statement;
-    this.mvName = MV_NAME_PREFIX + Math.abs(statement.hashCode());
+    this.mvName = this.tableName + "_" + MV_NAME_PREFIX + Math.abs(statement.hashCode());
     this.hits = hits;
   }
 

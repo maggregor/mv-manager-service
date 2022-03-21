@@ -142,26 +142,18 @@ public class OptimizerService {
   }
 
   private void applyStatus(Optimization optimization, List<OptimizationResult> results) {
-    // Apply status limit by tables
     results.stream()
         .collect(Collectors.groupingBy(OptimizationResult::getTableId))
         .forEach(
             (key, value) -> {
               value.sort(Comparator.comparingInt(OptimizationResult::getHits).reversed());
-              value
-                  .subList(Math.min(value.size(), optimization.getMvMaxPerTable()), value.size())
-                  .forEach(r -> r.setStatus(Status.LIMIT_REACHED_PER_TABLE));
+              value.stream()
+                  .limit(optimization.getMvMaxPerTable())
+                  .forEach(o -> o.setStatus(Status.APPLY));
             });
-    // Apply status for allowed MV.
     results.stream()
         .filter(OptimizationResult::hasUndefinedStatus)
-        .sorted(Comparator.comparingInt(OptimizationResult::getHits).reversed())
-        .limit(DEFAULT_PLAN_MAX_MV)
-        .forEach(r -> r.setStatusIfUndefined(Status.APPLY));
-    // Others  MV not allowed: limit plan reached.
-    results.stream()
-        .filter(OptimizationResult::hasUndefinedStatus)
-        .forEach(r -> r.setStatus(Status.PLAN_LIMIT_REACHED));
+        .forEach(o -> o.setStatus(Status.LIMIT_REACHED_PER_TABLE));
   }
 
   private Boolean publish(Optimization o, List<OptimizationResult> results) {

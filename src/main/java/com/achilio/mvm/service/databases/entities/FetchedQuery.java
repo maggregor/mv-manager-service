@@ -5,6 +5,7 @@ import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Represent a fetched query from data warehouse fetching process.
@@ -14,13 +15,14 @@ import java.time.ZoneId;
 public class FetchedQuery {
 
   private final String query;
-  private String googleJobId;
   private final String projectId;
+  private String googleJobId;
   private boolean useMaterializedView;
   private boolean useCache;
   private LocalDate startTime;
   private boolean canUseMaterializedViews;
   private QueryUsageStatistics statistics;
+  private String defaultDataset;
 
   public FetchedQuery(String query) {
     this(null, query);
@@ -86,5 +88,17 @@ public class FetchedQuery {
 
   public boolean canUseMaterializedViews() {
     return canUseMaterializedViews;
+  }
+
+  public boolean hasDefaultDataset() {
+    return StringUtils.isNotEmpty(defaultDataset);
+  }
+
+  public String getDefaultDataset() {
+    return defaultDataset;
+  }
+
+  public void setDefaultDataset(String defaultDataset) {
+    this.defaultDataset = defaultDataset;
   }
 }
