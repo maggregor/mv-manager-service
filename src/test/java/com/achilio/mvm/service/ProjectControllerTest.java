@@ -139,10 +139,10 @@ public class ProjectControllerTest {
   public void getAllDatasets() throws JsonProcessingException {
     DefaultFetchedDataset dataset1 =
         new DefaultFetchedDataset(
-            TEST_PROJECT_ID1, TEST_DATASET_NAME1, null, null, null, null, null);
+            TEST_PROJECT_ID1, TEST_DATASET_NAME1, null, null, null, null, null, null);
     DefaultFetchedDataset dataset2 =
         new DefaultFetchedDataset(
-            TEST_PROJECT_ID1, TEST_DATASET_NAME2, null, null, null, null, null);
+            TEST_PROJECT_ID1, TEST_DATASET_NAME2, null, null, null, null, null, null);
     when(mockedFetcherService.fetchAllDatasets(TEST_PROJECT_ID1))
         .thenReturn(Arrays.asList(dataset1, dataset2));
     when(mockedProjectService.isDatasetActivated(TEST_PROJECT_ID1, TEST_DATASET_NAME1))
@@ -160,7 +160,7 @@ public class ProjectControllerTest {
   public void getDataset() throws JsonProcessingException {
     DefaultFetchedDataset dataset =
         new DefaultFetchedDataset(
-            TEST_PROJECT_ID1, TEST_DATASET_NAME1, null, null, null, null, null);
+            TEST_PROJECT_ID1, TEST_DATASET_NAME1, null, null, null, null, null, null);
     when(mockedFetcherService.fetchDataset(TEST_PROJECT_ID1, TEST_DATASET_NAME1))
         .thenReturn(dataset);
     when(mockedProjectService.isDatasetActivated(TEST_PROJECT_ID1, TEST_DATASET_NAME1))

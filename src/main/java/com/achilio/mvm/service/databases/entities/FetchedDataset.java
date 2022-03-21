@@ -17,6 +17,8 @@ public interface FetchedDataset {
    */
   String getDatasetName();
 
+  String getDatasetId();
+
   String getLocation();
 
   String getFriendlyName();

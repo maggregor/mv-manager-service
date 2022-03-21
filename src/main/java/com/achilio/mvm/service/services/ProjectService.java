@@ -62,7 +62,6 @@ public class ProjectService {
     // If automatic has been sent in the payload (or if the project is being deactivated), we need
     // to publish a potential config change on the schedulers
     Boolean automaticChanged = project.setAutomatic(payload.isAutomatic());
-
     project.setAnalysisTimeframe(payload.getAnalysisTimeframe());
     project.setMvMaxPerTable(payload.getMvMaxPerTable());
     projectRepository.save(project);

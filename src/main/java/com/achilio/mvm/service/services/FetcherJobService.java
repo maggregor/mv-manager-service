@@ -1,12 +1,16 @@
 package com.achilio.mvm.service.services;
 
 import com.achilio.mvm.service.controllers.requests.FetcherQueryJobRequest;
+import com.achilio.mvm.service.databases.entities.FetchedDataset;
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
+import com.achilio.mvm.service.entities.Dataset;
 import com.achilio.mvm.service.entities.FetcherJob;
 import com.achilio.mvm.service.entities.FetcherJob.FetcherJobStatus;
 import com.achilio.mvm.service.entities.FetcherQueryJob;
 import com.achilio.mvm.service.entities.FetcherStructJob;
+import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.entities.Query;
+import com.achilio.mvm.service.repositories.DatasetRepository;
 import com.achilio.mvm.service.repositories.FetcherJobRepository;
 import com.achilio.mvm.service.repositories.QueryRepository;
 import java.util.List;
@@ -25,8 +29,10 @@ public class FetcherJobService {
   //  private static final Logger LOGGER = LoggerFactory.getLogger(FetcherJobService.class);
 
   @Autowired private FetcherService fetcherService;
+  @Autowired private ProjectService projectService;
   @Autowired private FetcherJobRepository fetcherJobRepository;
   @Autowired private QueryRepository queryRepository;
+  @Autowired private DatasetRepository datasetRepository;
 
   public FetcherJobService() {}
 
@@ -138,16 +144,58 @@ public class FetcherJobService {
     return fetcherJobRepository.save(job);
   }
 
-  //  @Async("asyncExecutor")
-  //  public void fetchAllStructsJob(FetcherStructJob fetcherStructJob) {
-  //    updateJobStatus(fetcherStructJob, FetcherJobStatus.WORKING);
-  //    try {
-  //      List<Query> queries = fetchQueries(fetcherStructJob);
-  //      saveAllQueries(queries);
-  //    } catch (Exception e) {
-  //      updateJobStatus(fetcherStructJob, FetcherJobStatus.ERROR);
-  //      throw e;
-  //    }
-  //    updateJobStatus(fetcherStructJob, FetcherJobStatus.FINISHED);
-  //  }
+  @Async("asyncExecutor")
+  public void fetchAllStructsJob(FetcherStructJob fetcherStructJob) {
+    updateJobStatus(fetcherStructJob, FetcherJobStatus.WORKING);
+    try {
+      List<Dataset> datasets = fetchDatasets(fetcherStructJob);
+      saveAllDatasets(datasets);
+    } catch (Exception e) {
+      updateJobStatus(fetcherStructJob, FetcherJobStatus.ERROR);
+      throw e;
+    }
+    updateJobStatus(fetcherStructJob, FetcherJobStatus.FINISHED);
+  }
+
+  private List<Dataset> fetchDatasets(FetcherStructJob fetcherStructJob) {
+    List<FetchedDataset> allDatasets =
+        fetcherService.fetchAllDatasets(fetcherStructJob.getProjectId());
+    allDatasets.stream()
+        .map(d -> toAchilioDataset(d, fetcherStructJob))
+        .filter(this::datasetExists)
+        .forEach(this::updateDataset);
+    return allDatasets.stream()
+        .map(d -> toAchilioDataset(d, fetcherStructJob))
+        .filter(d -> !datasetExists(d))
+        .collect(Collectors.toList());
+  }
+
+  private void updateDataset(Dataset dataset) {
+    Dataset existingDataset =
+        datasetRepository
+            .findByProjectAndDatasetName(dataset.getProject(), dataset.getDatasetName())
+            .get();
+    if (existingDataset.getInitialFetcherStructJob() == null) {
+      existingDataset.setInitialFetcherStructJob(dataset.getLastFetcherStructJob());
+    }
+    existingDataset.setDatasetId(dataset.getDatasetId());
+    existingDataset.setLastFetcherStructJob(dataset.getLastFetcherStructJob());
+    datasetRepository.save(existingDataset);
+  }
+
+  private boolean datasetExists(Dataset d) {
+    Optional<Dataset> dataset =
+        datasetRepository.findByProjectAndDatasetName(d.getProject(), d.getDatasetName());
+    return dataset.isPresent();
+  }
+
+  private Dataset toAchilioDataset(FetchedDataset dataset, FetcherStructJob fetcherStructJob) {
+    Project project = projectService.getProject(dataset.getProjectId());
+    return new Dataset(fetcherStructJob, project, dataset.getDatasetName());
+  }
+
+  @Transactional
+  void saveAllDatasets(List<Dataset> datasets) {
+    datasetRepository.saveAll(datasets);
+  }
 }

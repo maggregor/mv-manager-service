@@ -11,8 +11,8 @@ import com.achilio.mvm.service.databases.entities.FetchedQueryFactory;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
-import com.google.api.gax.core.FixedCredentialsProvider;
 import com.achilio.mvm.service.visitors.ATableId;
+import com.google.api.gax.core.FixedCredentialsProvider;
 import com.google.api.gax.paging.Page;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.bigquery.BigQuery;
@@ -383,6 +383,7 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     return new DefaultFetchedDataset(
         datasetId.getProject(),
         datasetId.getDataset(),
+        datasetId.toString(),
         location,
         friendlyName,
         description,

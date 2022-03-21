@@ -3,14 +3,14 @@ package com.achilio.mvm.service.entities;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.Index;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 @Entity
 @Table(
-    name = "imported_tables",
-    indexes = {@Index(name = "dataset_index", columnList = "dataset_id")})
+    name = "imported_tables"
+    //    indexes = {@Index(name = "dataset_index", columnList = "dataset_id")}
+    )
 public class ImportedTable {
 
   @ManyToOne Dataset dataset;

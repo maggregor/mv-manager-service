@@ -139,7 +139,7 @@ public class FetcherJobController {
   public FetcherStructJob createNewFetcherStructJob(@PathVariable String projectId) {
     FetcherStructJob currentJob = fetcherJobService.createNewFetcherStructJob(projectId);
     LOGGER.info("Starting FetcherQueryJob {}", currentJob.getId());
-    //    fetcherJobService.fetchAllStructsJob(currentJob);
+    fetcherJobService.fetchAllStructsJob(currentJob);
     return currentJob;
   }
 }

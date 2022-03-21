@@ -28,9 +28,7 @@ public class ImportedColumn {
 
   @ManyToOne ImportedTable table;
 
-  @Id
-  @Column(name = "id", nullable = false)
-  private String id;
+  @Id private String id;
 
   @Column private String name;
 
