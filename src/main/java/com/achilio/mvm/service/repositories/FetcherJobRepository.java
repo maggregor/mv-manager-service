@@ -24,12 +24,33 @@ public interface FetcherJobRepository extends JpaRepository<FetcherJob, Long> {
   List<FetcherStructJob> findFetcherStructJobsByProjectIdAndStatus(
       String projectId, FetcherJobStatus status);
 
+  // Query
   /** Find single job */
   Optional<FetcherQueryJob> findFetcherQueryJobByIdAndProjectId(Long id, String projectId);
 
   /** Find last job */
-  Optional<FetcherQueryJob> findTopFetchedQueryJobByProjectIdOrderByCreatedAtDesc(String projectId);
+  Optional<FetcherQueryJob> findTopFetcherQueryJobByProjectIdOrderByCreatedAtDesc(String projectId);
 
-  Optional<FetcherQueryJob> findTopFetchedQueryJobByProjectIdAndStatusOrderByCreatedAtDesc(
+  Optional<FetcherQueryJob> findTopFetcherQueryJobByProjectIdAndStatusOrderByCreatedAtDesc(
+      String projectId, FetcherJobStatus status);
+
+  // Struct
+  /** Find single job */
+  Optional<FetcherStructJob> findFetcherStructJobByIdAndProjectId(Long id, String projectId);
+
+  /** Find last job */
+  Optional<FetcherStructJob> findTopFetcherStructJobByProjectIdOrderByCreatedAtDesc(String projectId);
+
+  Optional<FetcherStructJob> findTopFetcherStructJobByProjectIdAndStatusOrderByCreatedAtDesc(
+      String projectId, FetcherJobStatus status);
+
+  // Any
+  /** Find single job */
+  Optional<FetcherJob> findFetcherJobByIdAndProjectId(Long id, String projectId);
+
+  /** Find last job */
+  Optional<FetcherJob> findTopFetcherJobByProjectIdOrderByCreatedAtDesc(String projectId);
+
+  Optional<FetcherJob> findTopFetcherJobByProjectIdAndStatusOrderByCreatedAtDesc(
       String projectId, FetcherJobStatus status);
 }

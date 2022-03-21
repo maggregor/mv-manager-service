@@ -2,8 +2,10 @@ package com.achilio.mvm.service.services;
 
 import com.achilio.mvm.service.controllers.requests.FetcherQueryJobRequest;
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
+import com.achilio.mvm.service.entities.FetcherJob;
 import com.achilio.mvm.service.entities.FetcherJob.FetcherJobStatus;
 import com.achilio.mvm.service.entities.FetcherQueryJob;
+import com.achilio.mvm.service.entities.FetcherStructJob;
 import com.achilio.mvm.service.entities.Query;
 import com.achilio.mvm.service.repositories.FetcherJobRepository;
 import com.achilio.mvm.service.repositories.QueryRepository;
@@ -29,12 +31,12 @@ public class FetcherJobService {
   public FetcherJobService() {}
 
   public Optional<FetcherQueryJob> getLastFetcherQueryJob(String projectId) {
-    return fetcherJobRepository.findTopFetchedQueryJobByProjectIdOrderByCreatedAtDesc(projectId);
+    return fetcherJobRepository.findTopFetcherQueryJobByProjectIdOrderByCreatedAtDesc(projectId);
   }
 
   public Optional<FetcherQueryJob> getLastFetcherQueryJob(
       String projectId, FetcherJobStatus status) {
-    return fetcherJobRepository.findTopFetchedQueryJobByProjectIdAndStatusOrderByCreatedAtDesc(
+    return fetcherJobRepository.findTopFetcherQueryJobByProjectIdAndStatusOrderByCreatedAtDesc(
         projectId, status);
   }
 
@@ -101,8 +103,51 @@ public class FetcherJobService {
   }
 
   @Transactional
-  void updateJobStatus(FetcherQueryJob job, FetcherJobStatus status) {
+  void updateJobStatus(FetcherJob job, FetcherJobStatus status) {
     job.setStatus(status);
     fetcherJobRepository.save(job);
   }
+
+  // Struct
+
+  public Optional<FetcherStructJob> getLastFetcherStructJob(
+      String projectId, FetcherJobStatus status) {
+    return fetcherJobRepository.findTopFetcherStructJobByProjectIdAndStatusOrderByCreatedAtDesc(
+        projectId, status);
+  }
+
+  public Optional<FetcherStructJob> getLastFetcherStructJob(String projectId) {
+    return fetcherJobRepository.findTopFetcherStructJobByProjectIdOrderByCreatedAtDesc(projectId);
+  }
+
+  public List<FetcherStructJob> getAllStructJobs(String projectId, FetcherJobStatus status) {
+    return fetcherJobRepository.findFetcherStructJobsByProjectIdAndStatus(projectId, status);
+  }
+
+  public List<FetcherStructJob> getAllStructJobs(String projectId) {
+    return fetcherJobRepository.findFetcherStructJobsByProjectId(projectId);
+  }
+
+  public Optional<FetcherStructJob> getFetcherStructJob(Long fetcherQueryJobId, String projectId) {
+    return fetcherJobRepository.findFetcherStructJobByIdAndProjectId(fetcherQueryJobId, projectId);
+  }
+
+  public FetcherStructJob createNewFetcherStructJob(String projectId) {
+    FetcherStructJob job;
+    job = new FetcherStructJob(projectId);
+    return fetcherJobRepository.save(job);
+  }
+
+  //  @Async("asyncExecutor")
+  //  public void fetchAllStructsJob(FetcherStructJob fetcherStructJob) {
+  //    updateJobStatus(fetcherStructJob, FetcherJobStatus.WORKING);
+  //    try {
+  //      List<Query> queries = fetchQueries(fetcherStructJob);
+  //      saveAllQueries(queries);
+  //    } catch (Exception e) {
+  //      updateJobStatus(fetcherStructJob, FetcherJobStatus.ERROR);
+  //      throw e;
+  //    }
+  //    updateJobStatus(fetcherStructJob, FetcherJobStatus.FINISHED);
+  //  }
 }

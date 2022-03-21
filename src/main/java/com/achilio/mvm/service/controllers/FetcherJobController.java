@@ -3,6 +3,7 @@ package com.achilio.mvm.service.controllers;
 import com.achilio.mvm.service.controllers.requests.FetcherQueryJobRequest;
 import com.achilio.mvm.service.entities.FetcherJob.FetcherJobStatus;
 import com.achilio.mvm.service.entities.FetcherQueryJob;
+import com.achilio.mvm.service.entities.FetcherStructJob;
 import com.achilio.mvm.service.exceptions.FetcherJobNotFoundException;
 import com.achilio.mvm.service.repositories.FetcherJobRepository;
 import com.achilio.mvm.service.services.FetcherJobService;
@@ -33,11 +34,13 @@ public class FetcherJobController {
   @Autowired private FetcherJobService fetcherJobService;
   @Autowired private FetcherJobRepository fetcherJobRepository;
 
+  // Fetcher for Queries
+
   @GetMapping(path = "/query/{projectId}", produces = MediaType.APPLICATION_JSON_VALUE)
   @ApiOperation(
       "List all fetcher query job for a given projectId.\n"
           + "If last URL Param is passed and set to true, returns a singleton with the latest fetcher query job")
-  public List<FetcherQueryJob> getFetcherQueryJobByProjectId(
+  public List<FetcherQueryJob> getAllFetcherQueryJobsByProjectId(
       @PathVariable String projectId,
       @RequestParam(required = false) Boolean last,
       @RequestParam(required = false) String status) {
@@ -81,9 +84,62 @@ public class FetcherJobController {
   public FetcherQueryJob createNewFetcherQueryJob(
       @PathVariable String projectId, @RequestBody FetcherQueryJobRequest payload) {
     FetcherQueryJob currentJob = fetcherJobService.createNewFetcherQueryJob(projectId, payload);
-    fetcherJobRepository.save(new FetcherQueryJob(projectId));
     LOGGER.info("Starting FetcherQueryJob {}", currentJob.getId());
     fetcherJobService.fetchAllQueriesJob(currentJob);
+    return currentJob;
+  }
+
+  // Fetcher for Structs
+
+  @GetMapping(path = "/struct/{projectId}", produces = MediaType.APPLICATION_JSON_VALUE)
+  @ApiOperation(
+      "List all fetcher query job for a given projectId.\n"
+          + "If last URL Param is passed and set to true, returns a singleton with the latest fetcher query job")
+  public List<FetcherStructJob> getAllFetcherStructJobsByProjectId(
+      @PathVariable String projectId,
+      @RequestParam(required = false) Boolean last,
+      @RequestParam(required = false) String status) {
+    if (last != null && last) {
+      Optional<FetcherStructJob> optionalFetcherJob;
+      if (status != null) {
+        optionalFetcherJob =
+            fetcherJobService.getLastFetcherStructJob(
+                projectId, FetcherJobStatus.valueOf(status.toUpperCase()));
+      } else {
+        optionalFetcherJob = fetcherJobService.getLastFetcherStructJob(projectId);
+      }
+      return optionalFetcherJob.map(Collections::singletonList).orElse(Collections.EMPTY_LIST);
+    }
+    if (status != null) {
+      return fetcherJobService.getAllStructJobs(
+          projectId, FetcherJobStatus.valueOf(status.toUpperCase()));
+    }
+    return fetcherJobService.getAllStructJobs(projectId);
+  }
+
+  @GetMapping(
+      path = "/struct/{projectId}/{fetcherQueryJobId}",
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  @ApiOperation(
+      "List all fetcher query job for a given projectId.\n"
+          + "If last URL Param is passed and set to true, returns a singleton with the latest fetcher query job")
+  public FetcherStructJob getFetcherStructJob(
+      @PathVariable String projectId, @PathVariable Long fetcherQueryJobId) {
+
+    Optional<FetcherStructJob> optionalFetcherJob =
+        fetcherJobService.getFetcherStructJob(fetcherQueryJobId, projectId);
+    if (!optionalFetcherJob.isPresent()) {
+      throw new FetcherJobNotFoundException(fetcherQueryJobId.toString());
+    }
+    return optionalFetcherJob.get();
+  }
+
+  @PostMapping(path = "/struct/{projectId}", produces = MediaType.APPLICATION_JSON_VALUE)
+  @ApiOperation("Create and start a new query fetching job")
+  public FetcherStructJob createNewFetcherStructJob(@PathVariable String projectId) {
+    FetcherStructJob currentJob = fetcherJobService.createNewFetcherStructJob(projectId);
+    LOGGER.info("Starting FetcherQueryJob {}", currentJob.getId());
+    //    fetcherJobService.fetchAllStructsJob(currentJob);
     return currentJob;
   }
 }

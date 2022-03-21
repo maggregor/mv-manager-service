@@ -159,7 +159,7 @@ public class RepositoriesIntegrationTest {
   @Test
   public void findLastFetcherQueryJobTest() {
     Optional<FetcherQueryJob> optionalJob =
-        fetcherJobRepository.findTopFetchedQueryJobByProjectIdOrderByCreatedAtDesc(
+        fetcherJobRepository.findTopFetcherQueryJobByProjectIdOrderByCreatedAtDesc(
             TEST_PROJECT_ID1);
     List<FetcherQueryJob> allJobs =
         fetcherJobRepository.findFetcherQueryJobsByProjectId(TEST_PROJECT_ID1);
@@ -195,12 +195,12 @@ public class RepositoriesIntegrationTest {
   @Test
   public void findTopFetchedQueryJobByProjectIdAndStatusOrderByCreatedAtDescTest() {
     Optional<FetcherQueryJob> optionalFetcherJob =
-        fetcherJobRepository.findTopFetchedQueryJobByProjectIdAndStatusOrderByCreatedAtDesc(
+        fetcherJobRepository.findTopFetcherQueryJobByProjectIdAndStatusOrderByCreatedAtDesc(
             TEST_PROJECT_ID1, FetcherJobStatus.PENDING);
     Assert.assertTrue(optionalFetcherJob.isPresent());
 
     optionalFetcherJob =
-        fetcherJobRepository.findTopFetchedQueryJobByProjectIdAndStatusOrderByCreatedAtDesc(
+        fetcherJobRepository.findTopFetcherQueryJobByProjectIdAndStatusOrderByCreatedAtDesc(
             TEST_PROJECT_ID1, FetcherJobStatus.WORKING);
     Assert.assertFalse(optionalFetcherJob.isPresent());
   }

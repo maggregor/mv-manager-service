@@ -57,7 +57,7 @@ public class Dataset {
       this.activated = activated;
       LOGGER.info(
           "Update dataset {} activated={}",
-          String.format("%s.%s", project.getProjectId(), datasetName),
+          String.format("%s:%s", project.getProjectId(), datasetName),
           activated);
     }
   }

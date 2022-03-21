@@ -31,7 +31,7 @@ public class QueryService {
 
   public List<Query> getAllQueriesByProjectIdLastJob(String projectId) {
     Optional<FetcherQueryJob> job =
-        fetcherJobRepository.findTopFetchedQueryJobByProjectIdOrderByCreatedAtDesc(projectId);
+        fetcherJobRepository.findTopFetcherQueryJobByProjectIdOrderByCreatedAtDesc(projectId);
     if (!job.isPresent()) {
       throw new ProjectNotFoundException(projectId);
     }

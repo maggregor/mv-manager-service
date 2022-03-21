@@ -83,7 +83,7 @@ public class FetcherJobControllerTest {
   public void getFetcherQueryJobByProjectIdNoParamTest() throws JsonProcessingException {
     ObjectMapper mapper = new ObjectMapper();
     List<FetcherQueryJob> jobResponseEntity =
-        controller.getFetcherQueryJobByProjectId(TEST_PROJECT_ID, null, null);
+        controller.getAllFetcherQueryJobsByProjectId(TEST_PROJECT_ID, null, null);
     String jsonResponse = objectMapper.writeValueAsString(jobResponseEntity);
     JsonNode map = mapper.readTree(jsonResponse);
     Assert.assertTrue(map instanceof ArrayNode);
@@ -112,7 +112,7 @@ public class FetcherJobControllerTest {
   public void getFetcherQueryJobByProjectIdWithParamLastTest() throws JsonProcessingException {
     ObjectMapper mapper = new ObjectMapper();
     List<FetcherQueryJob> jobResponseEntity =
-        controller.getFetcherQueryJobByProjectId(TEST_PROJECT_ID, true, null);
+        controller.getAllFetcherQueryJobsByProjectId(TEST_PROJECT_ID, true, null);
     String jsonResponse = objectMapper.writeValueAsString(jobResponseEntity);
     JsonNode map = mapper.readTree(jsonResponse);
     Assert.assertTrue(map instanceof ArrayNode);
@@ -129,7 +129,7 @@ public class FetcherJobControllerTest {
     ObjectMapper mapper = new ObjectMapper();
     // List of pending
     List<FetcherQueryJob> jobResponseEntity =
-        controller.getFetcherQueryJobByProjectId(TEST_PROJECT_ID, false, "pending");
+        controller.getAllFetcherQueryJobsByProjectId(TEST_PROJECT_ID, false, "pending");
     String jsonResponse = objectMapper.writeValueAsString(jobResponseEntity);
     JsonNode map = mapper.readTree(jsonResponse);
     Assert.assertTrue(map instanceof ArrayNode);
@@ -147,21 +147,23 @@ public class FetcherJobControllerTest {
 
     // No job with status
     jobResponseEntity =
-        controller.getFetcherQueryJobByProjectId(TEST_PROJECT_ID, false, "finished");
+        controller.getAllFetcherQueryJobsByProjectId(TEST_PROJECT_ID, false, "finished");
     jsonResponse = objectMapper.writeValueAsString(jobResponseEntity);
     map = mapper.readTree(jsonResponse);
     Assert.assertTrue(map instanceof ArrayNode);
     Assert.assertEquals(1, map.size());
 
     // Last job with status
-    jobResponseEntity = controller.getFetcherQueryJobByProjectId(TEST_PROJECT_ID, true, "pending");
+    jobResponseEntity =
+        controller.getAllFetcherQueryJobsByProjectId(TEST_PROJECT_ID, true, "pending");
     jsonResponse = objectMapper.writeValueAsString(jobResponseEntity);
     map = mapper.readTree(jsonResponse);
     Assert.assertTrue(map instanceof ArrayNode);
     Assert.assertEquals(1, map.size());
 
     // No Last job with status
-    jobResponseEntity = controller.getFetcherQueryJobByProjectId(TEST_PROJECT_ID, true, "finished");
+    jobResponseEntity =
+        controller.getAllFetcherQueryJobsByProjectId(TEST_PROJECT_ID, true, "finished");
     jsonResponse = objectMapper.writeValueAsString(jobResponseEntity);
     map = mapper.readTree(jsonResponse);
     Assert.assertTrue(map instanceof ArrayNode);
@@ -212,7 +214,6 @@ public class FetcherJobControllerTest {
     Assert.assertEquals(FetcherJobStatus.PENDING.toString(), map.get("status").asText());
     Assert.assertTrue(map.get("id") instanceof NullNode);
     Assert.assertTrue(map.get("createdAt") instanceof NullNode);
-
   }
 
   @Test
@@ -230,5 +231,5 @@ public class FetcherJobControllerTest {
     Assert.assertEquals(FetcherJobStatus.PENDING.toString(), map.get("status").asText());
     Assert.assertTrue(map.get("id") instanceof NullNode);
     Assert.assertTrue(map.get("createdAt") instanceof NullNode);
-    }
+  }
 }

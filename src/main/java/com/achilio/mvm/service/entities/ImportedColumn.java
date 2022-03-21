@@ -61,7 +61,13 @@ public class ImportedColumn {
   }
 
   public void setId(ImportedTable table, String name) {
-    this.id = format("%s:%s:%s#%s", table.getProject().getProjectId(), table.getDataset().getDatasetName(), table.getTableName(), name);
+    this.id =
+        format(
+            "%s:%s.%s#%s",
+            table.getProject().getProjectId(),
+            table.getDataset().getDatasetName(),
+            table.getTableName(),
+            name);
   }
 
   public ImportedTable getTable() {
