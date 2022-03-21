@@ -81,7 +81,7 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
 
   public BigQueryDatabaseFetcher(final GoogleCredentials credentials, final String projectId)
       throws ProjectNotFoundException {
-    OrganizationsClient organizationClient1;
+    OrganizationsClient organizationClient1 = null;
     BigQueryOptions.Builder bqOptBuilder = BigQueryOptions.newBuilder().setCredentials(credentials);
     ResourceManagerOptions.Builder rmOptBuilder =
         ResourceManagerOptions.newBuilder().setCredentials(credentials);
@@ -93,7 +93,6 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
 
       organizationClient1 = OrganizationsClient.create(organizationsSettings);
     } catch (IOException e) {
-      organizationClient1 = null;
       LOGGER.warn("Error during creation of organizations settings and client");
     }
     this.organizationClient = organizationClient1;
@@ -389,5 +388,9 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
         description,
         createdAt,
         lastModified);
+  }
+
+  public void close() {
+    this.organizationClient.shutdown();
   }
 }

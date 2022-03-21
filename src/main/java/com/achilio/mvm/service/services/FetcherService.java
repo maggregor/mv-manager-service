@@ -74,7 +74,10 @@ public class FetcherService {
   }
 
   public List<FetchedDataset> fetchAllDatasets(String projectId) {
-    return fetcher(projectId).fetchAllDatasets(projectId);
+    DatabaseFetcher fetcher = fetcher(projectId);
+    List<FetchedDataset> datasetList = fetcher.fetchAllDatasets(projectId);
+    fetcher.close();
+    return datasetList;
   }
 
   public FetchedDataset fetchDataset(String projectId, String datasetName) {
@@ -90,7 +93,8 @@ public class FetcherService {
   }
 
   public Set<FetchedTable> fetchAllTables(String projectId) {
-    return fetcher(projectId).fetchAllTables();
+    DatabaseFetcher fetcher = fetcher(projectId);
+    return fetcher.fetchAllTables();
   }
 
   public GlobalQueryStatistics getStatistics(String projectId, int lastDays) throws Exception {

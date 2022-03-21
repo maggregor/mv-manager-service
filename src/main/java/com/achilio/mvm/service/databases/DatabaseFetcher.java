@@ -72,4 +72,6 @@ public interface DatabaseFetcher {
   List<String> fetchMissingPermissions(String projectId);
 
   List<Organization> fetchAllOrganizations();
+
+  void close();
 }
