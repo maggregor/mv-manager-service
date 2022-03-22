@@ -81,7 +81,7 @@ public class AOrganizationServiceTest {
 
   @Test
   public void getAllOrgOrUpdateExistTest() {
-    List<AOrganization> organizationList = service.getAllOrgOrUpdate();
+    List<AOrganization> organizationList = service.getAllOrgOrCreate();
     Assert.assertEquals(2, organizationList.size());
     assertOrganizationEquals(organization1, organizationList.get(0));
     assertOrganizationEquals(organization2, organizationList.get(1));
@@ -92,7 +92,7 @@ public class AOrganizationServiceTest {
     when(fetcherService.fetchAllOrganizations())
         .thenReturn(
             Arrays.asList(fetchedOrganization1, fetchedOrganization2, fetchedOrganization3));
-    List<AOrganization> organizationList = service.getAllOrgOrUpdate();
+    List<AOrganization> organizationList = service.getAllOrgOrCreate();
     Assert.assertEquals(3, organizationList.size());
     assertOrganizationEquals(organization1, organizationList.get(0));
     assertOrganizationEquals(organization2, organizationList.get(1));

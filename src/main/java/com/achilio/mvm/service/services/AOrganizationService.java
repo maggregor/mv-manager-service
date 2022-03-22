@@ -18,18 +18,19 @@ public class AOrganizationService {
   @Autowired private StripeService stripeService;
   @Autowired private AOrganizationRepository organizationRepository;
 
-  public List<AOrganization> getAllOrgOrUpdate() {
+  public List<AOrganization> getAllOrgOrCreate() {
     List<FetchedOrganization> fetchedOrganizations = fetcherService.fetchAllOrganizations();
-    return fetchedOrganizations.stream().map(this::findOrgOrUpdate).collect(Collectors.toList());
+    return fetchedOrganizations.stream().map(this::findOrgOrCreate).collect(Collectors.toList());
   }
 
-  public AOrganization findOrgOrUpdate(FetchedOrganization fetchedOrganization) {
+  public AOrganization findOrgOrCreate(FetchedOrganization fetchedOrganization) {
     return findAOrganization(fetchedOrganization.getName())
         .orElseGet(() -> createOrganization(fetchedOrganization));
   }
 
   public AOrganization createOrganization(FetchedOrganization fetchedOrganization) {
-    // From 17th March 2022, the customerName is the organizationName (Not display name)
+    // the customerName is the FetchedOrganization.getName() (Not display
+    // name)
     Customer customer =
         stripeService.createCustomer(
             fetchedOrganization.getDisplayName(), fetchedOrganization.getName());

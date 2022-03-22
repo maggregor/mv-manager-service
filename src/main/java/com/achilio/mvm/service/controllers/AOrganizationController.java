@@ -16,28 +16,11 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 public class AOrganizationController {
 
-  @Autowired
-  AOrganizationService aOrganizationService;
+  @Autowired AOrganizationService aOrganizationService;
 
   @GetMapping(path = "/organization", produces = "application/json")
   @ApiOperation("List all organizations")
   public List<AOrganization> getAllOrganizations() throws IOException {
-    //    SimpleGoogleCredentialsAuthentication authentication =
-    //        (SimpleGoogleCredentialsAuthentication)
-    //            SecurityContextHolder.getContext().getAuthentication();
-    //    OrganizationsSettings organizationsSettings =
-    //        OrganizationsSettings.newBuilder()
-    //            .setCredentialsProvider(
-    //                FixedCredentialsProvider.create(authentication.getCredentials()))
-    //            .build();
-//    try (OrganizationsClient organizationsClient =
-//        OrganizationsClient.create(organizationsSettings)) {
-//      SearchOrganizationsRequest r = SearchOrganizationsRequest.newBuilder().build();
-//      SearchOrganizationsPagedResponse results = organizationsClient.searchOrganizations(r);
-//      return StreamSupport.stream(results.iterateAll().spliterator(), false)
-//          .map(Organization::getDirectoryCustomerId)
-//          .collect(Collectors.toList());
-//    }
-    return aOrganizationService.getAllOrgOrUpdate();
+    return aOrganizationService.getAllOrgOrCreate();
   }
 }
