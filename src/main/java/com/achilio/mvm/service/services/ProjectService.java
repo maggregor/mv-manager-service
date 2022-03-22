@@ -1,7 +1,7 @@
 package com.achilio.mvm.service.services;
 
 import com.achilio.mvm.service.controllers.requests.UpdateProjectRequest;
-import com.achilio.mvm.service.entities.Dataset;
+import com.achilio.mvm.service.entities.ADataset;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import com.achilio.mvm.service.repositories.DatasetRepository;
@@ -75,36 +75,36 @@ public class ProjectService {
     return project;
   }
 
-  private Optional<Dataset> getDataset(String projectId, String datasetName) {
+  private Optional<ADataset> getDataset(String projectId, String datasetName) {
     return getDataset(getProject(projectId), datasetName);
   }
 
-  private Optional<Dataset> getDataset(Project project, String datasetName) {
+  private Optional<ADataset> getDataset(Project project, String datasetName) {
     return datasetRepository.findByProjectAndDatasetName(project, datasetName);
   }
 
-  private Dataset findDatasetOrCreate(String projectId, String dataset) {
+  private ADataset findDatasetOrCreate(String projectId, String dataset) {
     return getDataset(projectId, dataset).orElseGet(() -> createDataset(projectId, dataset));
   }
 
-  private Dataset createDataset(String projectId, String datasetName) {
+  private ADataset createDataset(String projectId, String datasetName) {
     return createDataset(getProject(projectId), datasetName);
   }
 
-  private Dataset createDataset(Project project, String datasetName) {
-    return datasetRepository.save(new Dataset(project, datasetName));
+  private ADataset createDataset(Project project, String datasetName) {
+    return datasetRepository.save(new ADataset(project, datasetName));
   }
 
   @Transactional
-  public Dataset updateDataset(String projectId, String datasetName, Boolean activated) {
-    Dataset dataset = findDatasetOrCreate(projectId, datasetName);
+  public ADataset updateDataset(String projectId, String datasetName, Boolean activated) {
+    ADataset dataset = findDatasetOrCreate(projectId, datasetName);
     dataset.setActivated(activated);
     datasetRepository.save(dataset);
     return dataset;
   }
 
   public boolean isDatasetActivated(String projectId, String datasetName) {
-    return getDataset(projectId, datasetName).map(Dataset::isActivated).orElse(false);
+    return getDataset(projectId, datasetName).map(ADataset::isActivated).orElse(false);
   }
 
   @Transactional

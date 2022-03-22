@@ -1,6 +1,6 @@
 package com.achilio.mvm.service.controllers.responses;
 
-import com.achilio.mvm.service.entities.Dataset;
+import com.achilio.mvm.service.entities.ADataset;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class UpdateDatasetRequestResponse {
@@ -13,7 +13,7 @@ public class UpdateDatasetRequestResponse {
 
   public UpdateDatasetRequestResponse() {}
 
-  public UpdateDatasetRequestResponse(Dataset dataset) {
+  public UpdateDatasetRequestResponse(ADataset dataset) {
     new UpdateDatasetRequestResponse(dataset.getDatasetName(), dataset.isActivated());
   }
 

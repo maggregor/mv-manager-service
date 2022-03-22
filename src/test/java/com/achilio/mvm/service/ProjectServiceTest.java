@@ -10,7 +10,7 @@ import static org.mockito.Mockito.when;
 
 import com.achilio.mvm.service.controllers.requests.UpdateProjectRequest;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
-import com.achilio.mvm.service.entities.Dataset;
+import com.achilio.mvm.service.entities.ADataset;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import com.achilio.mvm.service.repositories.DatasetRepository;
@@ -51,9 +51,9 @@ public class ProjectServiceTest {
   private static final String TEST_DATASET_NAME1 = "nyc_trips";
   private static final String TEST_DATASET_NAME2 = "another_one";
   private static final String TEST_DATASET_NAME3 = "other_dataset";
-  private static final Dataset mockedDataset1 = mock(Dataset.class);
-  private static final Dataset mockedDataset2 = mock(Dataset.class);
-  private final Dataset realDataset = new Dataset(mockedProject1, TEST_DATASET_NAME3);
+  private static final ADataset mockedDataset1 = mock(ADataset.class);
+  private static final ADataset mockedDataset2 = mock(ADataset.class);
+  private final ADataset realDataset = new ADataset(mockedProject1, TEST_DATASET_NAME3);
   private final Map<String, String> productMetadata = new HashMap<>();
   private final Map<String, String> errorProductMetadata = new HashMap<>();
   private final Project realProject = new Project(TEST_PROJECT_ID2);
@@ -78,7 +78,7 @@ public class ProjectServiceTest {
     when(mockedProjectRepository.findAllByActivated(true)).thenReturn(mockedActivatedProjects);
     when(mockedDataset1.isActivated()).thenReturn(true);
     when(mockedDataset2.isActivated()).thenReturn(false);
-    when(mockedDatasetRepository.save(any(Dataset.class))).thenReturn(mockedDataset1);
+    when(mockedDatasetRepository.save(any(ADataset.class))).thenReturn(mockedDataset1);
     when(mockedDatasetRepository.findByProjectAndDatasetName(mockedProject1, TEST_DATASET_NAME1))
         .thenReturn(Optional.of(mockedDataset1));
     when(mockedDatasetRepository.findByProjectAndDatasetName(mockedProject1, TEST_DATASET_NAME2))
@@ -224,7 +224,7 @@ public class ProjectServiceTest {
 
   @Test
   public void updateDataset() {
-    Dataset dataset = service.updateDataset(TEST_PROJECT_ID1, TEST_DATASET_NAME3, true);
+    ADataset dataset = service.updateDataset(TEST_PROJECT_ID1, TEST_DATASET_NAME3, true);
     assertTrue(dataset.isActivated());
     assertEquals(TEST_DATASET_NAME3, "other_dataset");
     dataset = service.updateDataset(TEST_PROJECT_ID1, TEST_DATASET_NAME3, false);

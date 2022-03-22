@@ -1,6 +1,6 @@
 package com.achilio.mvm.service;
 
-import com.achilio.mvm.service.entities.Dataset;
+import com.achilio.mvm.service.entities.ADataset;
 import com.achilio.mvm.service.entities.ImportedTable;
 import com.achilio.mvm.service.entities.Project;
 import org.junit.Assert;
@@ -16,7 +16,7 @@ public class ImportedTableTest {
   private final String datasetName = "myDataset";
   private final String tableId = "myTableId";
   private final Project project = new Project(projectId);
-  private final Dataset dataset = new Dataset(project, datasetName);
+  private final ADataset dataset = new ADataset(project, datasetName);
 
   @Test
   public void simpleValidationConstructorTest() {

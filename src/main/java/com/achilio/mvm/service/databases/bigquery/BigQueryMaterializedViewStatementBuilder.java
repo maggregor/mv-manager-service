@@ -79,7 +79,7 @@ public class BigQueryMaterializedViewStatementBuilder implements MaterializedVie
     final String tableName = table.getTableName();
     Preconditions.checkNotNull(table, "Table is required");
     Preconditions.checkNotNull(projectId, "Project ID is required");
-    Preconditions.checkNotNull(datasetName, "Dataset name is required");
+    Preconditions.checkNotNull(datasetName, "ADataset name is required");
     Preconditions.checkNotNull(tableName, "Table name is required.");
     return String.format("`%s`.`%s`.`%s`", projectId, datasetName, tableName);
   }

@@ -21,9 +21,9 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
     uniqueConstraints = {@UniqueConstraint(columnNames = {"project_id", "dataset_name"})})
 @EnableJpaAuditing
 @EntityListeners(AuditingEntityListener.class)
-public class Dataset {
+public class ADataset {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(Dataset.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(ADataset.class);
 
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
@@ -44,14 +44,14 @@ public class Dataset {
   @Column(name = "activated", nullable = false)
   private Boolean activated = false;
 
-  public Dataset() {}
+  public ADataset() {}
 
-  public Dataset(Project project, String datasetName) {
+  public ADataset(Project project, String datasetName) {
     this.project = project;
     this.datasetName = datasetName;
   }
 
-  public Dataset(FetcherStructJob lastFetcherStructJob, Project project, String datasetName) {
+  public ADataset(FetcherStructJob lastFetcherStructJob, Project project, String datasetName) {
     this.lastFetcherStructJob = lastFetcherStructJob;
     this.initialFetcherStructJob = lastFetcherStructJob;
     this.project = project;

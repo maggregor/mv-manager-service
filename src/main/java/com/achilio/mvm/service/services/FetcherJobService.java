@@ -3,7 +3,7 @@ package com.achilio.mvm.service.services;
 import com.achilio.mvm.service.controllers.requests.FetcherQueryJobRequest;
 import com.achilio.mvm.service.databases.entities.FetchedDataset;
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
-import com.achilio.mvm.service.entities.Dataset;
+import com.achilio.mvm.service.entities.ADataset;
 import com.achilio.mvm.service.entities.FetcherJob;
 import com.achilio.mvm.service.entities.FetcherJob.FetcherJobStatus;
 import com.achilio.mvm.service.entities.FetcherQueryJob;
@@ -148,7 +148,7 @@ public class FetcherJobService {
   public void fetchAllStructsJob(FetcherStructJob fetcherStructJob) {
     updateJobStatus(fetcherStructJob, FetcherJobStatus.WORKING);
     try {
-      List<Dataset> datasets = fetchDatasets(fetcherStructJob);
+      List<ADataset> datasets = fetchDatasets(fetcherStructJob);
       saveAllDatasets(datasets);
     } catch (Exception e) {
       updateJobStatus(fetcherStructJob, FetcherJobStatus.ERROR);
@@ -157,7 +157,7 @@ public class FetcherJobService {
     updateJobStatus(fetcherStructJob, FetcherJobStatus.FINISHED);
   }
 
-  private List<Dataset> fetchDatasets(FetcherStructJob fetcherStructJob) {
+  private List<ADataset> fetchDatasets(FetcherStructJob fetcherStructJob) {
     List<FetchedDataset> allDatasets =
         fetcherService.fetchAllDatasets(fetcherStructJob.getProjectId());
     allDatasets.stream()
@@ -170,8 +170,8 @@ public class FetcherJobService {
         .collect(Collectors.toList());
   }
 
-  private void updateDataset(Dataset dataset) {
-    Dataset existingDataset =
+  private void updateDataset(ADataset dataset) {
+    ADataset existingDataset =
         datasetRepository
             .findByProjectAndDatasetName(dataset.getProject(), dataset.getDatasetName())
             .get();
@@ -183,19 +183,19 @@ public class FetcherJobService {
     datasetRepository.save(existingDataset);
   }
 
-  private boolean datasetExists(Dataset d) {
-    Optional<Dataset> dataset =
+  private boolean datasetExists(ADataset d) {
+    Optional<ADataset> dataset =
         datasetRepository.findByProjectAndDatasetName(d.getProject(), d.getDatasetName());
     return dataset.isPresent();
   }
 
-  private Dataset toAchilioDataset(FetchedDataset dataset, FetcherStructJob fetcherStructJob) {
+  private ADataset toAchilioDataset(FetchedDataset dataset, FetcherStructJob fetcherStructJob) {
     Project project = projectService.getProject(dataset.getProjectId());
-    return new Dataset(fetcherStructJob, project, dataset.getDatasetName());
+    return new ADataset(fetcherStructJob, project, dataset.getDatasetName());
   }
 
   @Transactional
-  void saveAllDatasets(List<Dataset> datasets) {
+  void saveAllDatasets(List<ADataset> datasets) {
     datasetRepository.saveAll(datasets);
   }
 }

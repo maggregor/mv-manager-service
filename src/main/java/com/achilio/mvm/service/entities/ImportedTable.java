@@ -13,7 +13,7 @@ import javax.persistence.Table;
     )
 public class ImportedTable {
 
-  @ManyToOne Dataset dataset;
+  @ManyToOne ADataset dataset;
   @ManyToOne Project project;
 
   @Id
@@ -24,7 +24,7 @@ public class ImportedTable {
 
   public ImportedTable() {}
 
-  public ImportedTable(String id, Project project, Dataset dataset, String tableName) {
+  public ImportedTable(String id, Project project, ADataset dataset, String tableName) {
     this.id = id;
     this.project = project;
     this.dataset = dataset;
@@ -39,11 +39,11 @@ public class ImportedTable {
     this.id = id;
   }
 
-  public Dataset getDataset() {
+  public ADataset getDataset() {
     return dataset;
   }
 
-  public void setDataset(Dataset dataset) {
+  public void setDataset(ADataset dataset) {
     this.dataset = dataset;
   }
 
