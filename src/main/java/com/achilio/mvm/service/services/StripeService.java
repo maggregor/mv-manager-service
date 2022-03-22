@@ -1,5 +1,7 @@
 package com.achilio.mvm.service.services;
 
+import static java.util.stream.Collectors.toList;
+
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.models.PlanPrice;
 import com.achilio.mvm.service.models.ProjectPlan;
@@ -19,7 +21,6 @@ import com.stripe.param.CustomerCreateParams;
 import com.stripe.param.PriceListParams;
 import com.stripe.param.ProductListParams;
 import com.stripe.param.SubscriptionCreateParams;
-import com.stripe.param.SubscriptionListParams;
 import com.stripe.param.SubscriptionListParams.Status;
 import com.stripe.param.SubscriptionUpdateParams;
 import com.stripe.param.SubscriptionUpdateParams.ProrationBehavior;
@@ -29,8 +30,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,9 +67,9 @@ public class StripeService {
     Stripe.apiKey = API_KEY;
     try {
       Map<String, String> metadata = new HashMap<>();
-      metadata.put(CustomerMetadata.ORGANIZATION_ID.getValue(), organizationId);
-      metadata.put(CustomerMetadata.CREATED_BY_EMAIL.getValue(), userEmail);
-      metadata.put(CustomerMetadata.CREATED_BY_NAME.getValue(), userName);
+      metadata.put(StripeMetadata.ORGANIZATION_ID.getValue(), organizationId);
+      metadata.put(StripeMetadata.CREATED_BY_EMAIL.getValue(), userEmail);
+      metadata.put(StripeMetadata.CREATED_BY_NAME.getValue(), userName);
       CustomerCreateParams params =
           CustomerCreateParams.builder()
               .setName(customerName)
@@ -89,50 +90,61 @@ public class StripeService {
     return Customer.retrieve(customerId);
   }
 
-  public ProjectSubscription createSubscription(Customer customer, String priceId)
+  public ProjectSubscription createSubscription(Customer customer, String priceId, String projectId)
       throws StripeException {
+    Project project = projectService.getProject(projectId);
     Stripe.apiKey = API_KEY;
+    Map<String, String> metadata = new HashMap<>();
+    metadata.put(StripeMetadata.PROJECT_ID.getValue(), projectId);
     SubscriptionCreateParams subCreateParams =
         SubscriptionCreateParams.builder()
             .setCustomer(customer.getId())
+            .setMetadata(metadata)
             .addItem(SubscriptionCreateParams.Item.builder().setPrice(priceId).build())
             .setPaymentBehavior(SubscriptionCreateParams.PaymentBehavior.DEFAULT_INCOMPLETE)
             .addAllExpand(Collections.singletonList("latest_invoice.payment_intent"))
             .build();
     Subscription s = Subscription.create(subCreateParams);
+    projectService.updateProjectSubscription(project, s.getId());
     LOGGER.info("Create a new subscription {} for customer {}", s.getId(), customer.getId());
     return toProjectSubscription(s);
   }
 
-  public ProjectSubscription getSubscription(String subscriptionId) throws StripeException {
-    Stripe.apiKey = API_KEY;
-    return toProjectSubscription(Subscription.retrieve(subscriptionId));
+  public ProjectSubscription getSubscription(String subscriptionId) {
+    return findSubscription(subscriptionId)
+        .orElseThrow(() -> new IllegalArgumentException("Subscription not found"));
   }
 
-  public ProjectSubscription getSubscriptionByPriceId(String customerId, String priceId)
-      throws StripeException {
+  public Optional<ProjectSubscription> findSubscription(String subscriptionId) {
+    if (subscriptionId == null) {
+      return Optional.empty();
+    }
     Stripe.apiKey = API_KEY;
-    Subscription subscription =
-        Subscription.list(
-                SubscriptionListParams.builder()
-                    .setCustomer(customerId)
-                    .setPrice(priceId)
-                    .setStatus(Status.ACTIVE)
-                    .build())
-            .getData()
-            .stream()
-            .findFirst()
-            .orElse(null);
-    return subscription == null ? null : toProjectSubscription(subscription);
+    try {
+      return Optional.of(toProjectSubscription(Subscription.retrieve(subscriptionId)));
+    } catch (Exception e) {
+      return Optional.empty();
+    }
   }
 
-  public List<ProjectPlan> getPlans(Customer customer) throws StripeException {
+  public List<ProjectPlan> getPlans(String projectId) throws StripeException {
     Stripe.apiKey = API_KEY;
+    Project project = projectService.getProject(projectId);
     ProductListParams p = ProductListParams.builder().setActive(true).build();
+    // Retrieve product as project plans
     List<ProjectPlan> plans =
-        Product.list(p).getData().parallelStream()
-            .map(plan -> toProjectPlan(plan, customer.getId()))
-            .collect(Collectors.toList());
+        Product.list(p).getData().parallelStream().map(this::toProjectPlan).collect(toList());
+    // Find subscription
+    Optional<ProjectSubscription> activeSubscription =
+        findSubscription(project.getStripeSubscriptionId());
+    if (activeSubscription.isPresent()) {
+      // Find for the associated plan
+      Optional<ProjectPlan> activePlan =
+          plans.stream()
+              .filter(plan -> plan.hasPriceId(activeSubscription.get().getPriceId()))
+              .findFirst();
+      activePlan.ifPresent(projectPlan -> projectPlan.setSubscription(activeSubscription.get()));
+    }
     applyPossibleActions(plans);
     return plans;
   }
@@ -198,7 +210,7 @@ public class StripeService {
       throws StripeException, IOException, ExecutionException, InterruptedException {
     Stripe.apiKey = API_KEY;
     String projectId =
-        Customer.retrieve(customerId).getMetadata().get(CustomerMetadata.PROJECT_ID.getValue());
+        Customer.retrieve(customerId).getMetadata().get(StripeMetadata.PROJECT_ID.getValue());
     Project project = projectService.getProject(projectId);
     Product product =
         Product.retrieve(subscription.getItems().getData().get(0).getPrice().getProduct());
@@ -223,10 +235,10 @@ public class StripeService {
         .getData()
         .stream()
         .map(this::toProjectPlanPrice)
-        .collect(Collectors.toList());
+        .collect(toList());
   }
 
-  private ProjectPlan toProjectPlan(Product product, String customerId) {
+  private ProjectPlan toProjectPlan(Product product) {
     String imageUrl = product.getImages().isEmpty() ? null : product.getImages().get(0);
     String description = product.getDescription();
     String name = product.getName();
@@ -235,18 +247,8 @@ public class StripeService {
     try {
       List<PlanPrice> prices = getPrices(id);
       projectPlan.setPricing(prices);
-      ProjectSubscription subscription = null;
-      for (PlanPrice price : prices) {
-        ProjectSubscription s = getSubscriptionByPriceId(customerId, price.getStripePriceId());
-        if (s != null) {
-          subscription = s;
-        }
-      }
-      if (subscription != null) {
-        projectPlan.setSubscription(subscription);
-      }
     } catch (StripeException e) {
-      LOGGER.error("Error while fetching product {} ({}) ", name, id, e);
+      LOGGER.error("Error while fetching pricing for product {}", id, e);
     }
     return projectPlan;
   }
@@ -257,10 +259,14 @@ public class StripeService {
   }
 
   private ProjectSubscription toProjectSubscription(Subscription s) {
-    return new ProjectSubscription(s.getId(), s.getStatus());
+    List<SubscriptionItem> items = s.getItems().getData();
+    if (!items.isEmpty()) {
+      return new ProjectSubscription(s.getId(), s.getStatus(), items.get(0).getId());
+    }
+    throw new IllegalArgumentException("No subscription item found in subscription " + s.getId());
   }
 
-  enum CustomerMetadata {
+  enum StripeMetadata {
     PROJECT_ID,
     ORGANIZATION_ID,
     CREATED_BY_EMAIL,

@@ -26,8 +26,11 @@ public class ProjectResponse {
   @JsonProperty("automatic")
   private Boolean automatic;
 
-  @JsonProperty("stripeCustomerId")
-  private String stripeCustomerId;
+  @JsonProperty("stripeSubscriptionId")
+  private String stripeSubscriptionId;
+
+  @JsonProperty("organizationId")
+  private String organizationId;
 
   public ProjectResponse(String projectId, String projectName) {
     this.projectId = projectId;
@@ -41,6 +44,11 @@ public class ProjectResponse {
     this.username = project.getUsername();
     this.mvMaxPerTable = project.getMvMaxPerTable();
     this.analysisTimeframe = project.getAnalysisTimeframe();
-    this.stripeCustomerId = project.getStripeCustomerId();
+    this.stripeSubscriptionId = project.getStripeSubscriptionId();
+    if (project.getOrganization() != null) {
+      this.organizationId = project.getOrganization().getId();
+    } else {
+      this.organizationId = null;
+    }
   }
 }

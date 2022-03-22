@@ -62,7 +62,10 @@ public class FetcherService {
   }
 
   public List<FetchedProject> fetchAllProjects() {
-    return fetcher().fetchAllProjects();
+    DatabaseFetcher fetcher = fetcher();
+    List<FetchedProject> projectList = fetcher.fetchAllProjects();
+    fetcher.close();
+    return projectList;
   }
 
   public List<FetchedOrganization> fetchAllOrganizations() {
@@ -73,7 +76,10 @@ public class FetcherService {
   }
 
   public FetchedProject fetchProject(String projectId) throws ProjectNotFoundException {
-    return fetcher(projectId).fetchProject(projectId);
+    DatabaseFetcher fetcher = fetcher();
+    FetchedProject fetchedProject = fetcher.fetchProject(projectId);
+    fetcher.close();
+    return fetchedProject;
   }
 
   public List<FetchedDataset> fetchAllDatasets(String projectId) {
@@ -84,7 +90,10 @@ public class FetcherService {
   }
 
   public FetchedDataset fetchDataset(String projectId, String datasetName) {
-    return fetcher(projectId).fetchDataset(datasetName);
+    DatabaseFetcher fetcher = fetcher(projectId);
+    FetchedDataset fetchedDataset = fetcher.fetchDataset(datasetName);
+    fetcher.close();
+    return fetchedDataset;
   }
 
   public List<FetchedQuery> fetchQueriesSinceLastDays(String projectId, int lastDays) {
@@ -92,12 +101,17 @@ public class FetcherService {
   }
 
   public List<FetchedQuery> fetchQueriesSinceTimestamp(String projectId, long fromTimestamp) {
-    return fetcher(projectId).fetchAllQueriesFrom(fromTimestamp);
+    DatabaseFetcher fetcher = fetcher(projectId);
+    List<FetchedQuery> queryList = fetcher.fetchAllQueriesFrom(fromTimestamp);
+    fetcher.close();
+    return queryList;
   }
 
   public Set<FetchedTable> fetchAllTables(String projectId) {
     DatabaseFetcher fetcher = fetcher(projectId);
-    return fetcher.fetchAllTables();
+    Set<FetchedTable> fetchedTableSet = fetcher.fetchAllTables();
+    fetcher.close();
+    return fetchedTableSet;
   }
 
   public GlobalQueryStatistics getStatistics(String projectId, int lastDays) throws Exception {

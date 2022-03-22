@@ -18,9 +18,8 @@ import com.achilio.mvm.service.repositories.ProjectRepository;
 import com.achilio.mvm.service.services.FetcherService;
 import com.achilio.mvm.service.services.GooglePublisherService;
 import com.achilio.mvm.service.services.ProjectService;
-import com.achilio.mvm.service.services.StripeService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.api.services.oauth2.model.Userinfo;
-import com.stripe.model.Customer;
 import com.stripe.model.Product;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -60,14 +59,13 @@ public class ProjectServiceTest {
   @InjectMocks private ProjectService service;
   @Mock private ProjectRepository mockedProjectRepository;
   @Mock private DatasetRepository mockedDatasetRepository;
-  @Mock private GooglePublisherService mockedPublisherService;
   @Mock private Product mockedProduct;
   @Mock private Product errorMockedProduct;
   @Mock private FetcherService mockedFetcherService;
-  @Mock private StripeService mockedStripeService;
+  @Mock private GooglePublisherService mockedPublisherService;
 
   @Before
-  public void setup() {
+  public void setup() throws JsonProcessingException {
     when(mockedProject1.getProjectId()).thenReturn(TEST_PROJECT_ID1);
     when(mockedProject2.getProjectId()).thenReturn(TEST_PROJECT_ID2);
     when(mockedProjectRepository.save(any())).then(AdditionalAnswers.returnsFirstArg());
@@ -94,13 +92,8 @@ public class ProjectServiceTest {
 
   @Test
   public void createProject() {
-    final String expectedStripeCustomerId = "stripe-id-100";
-    Customer customer = mock(Customer.class);
-    when(customer.getId()).thenReturn(expectedStripeCustomerId);
-    when(mockedStripeService.createCustomer(any(), any())).thenReturn(customer);
     Project project = service.createProject(TEST_PROJECT_ID1);
     assertEquals(mockedProject1.getProjectId(), project.getProjectId());
-    assertEquals(expectedStripeCustomerId, project.getStripeCustomerId());
   }
 
   @Test

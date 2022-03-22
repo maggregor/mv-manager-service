@@ -65,6 +65,13 @@ public class ProjectPlan {
     this.possibleAction = possibleAction;
   }
 
+  public boolean hasPriceId(String priceId) {
+    if (prices == null || prices.isEmpty()) {
+      return false;
+    }
+    return prices.stream().anyMatch(p -> p.getStripePriceId().equals(priceId));
+  }
+
   public enum PossibleAction {
     UPGRADE,
     DOWNGRADE,

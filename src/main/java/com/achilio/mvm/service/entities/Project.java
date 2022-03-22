@@ -7,6 +7,7 @@ import javax.persistence.EntityListeners;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.util.Strings;
@@ -22,6 +23,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 public class Project {
 
   private static Logger LOGGER = LoggerFactory.getLogger(Project.class);
+  @ManyToOne AOrganization organization;
 
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
@@ -57,8 +59,8 @@ public class Project {
       columnDefinition = "boolean default false")
   private Boolean automaticAvailable = false;
 
-  @Column(name = "stripe_customer_id")
-  private String stripeCustomerId;
+  @Column(name = "stripe_subscription_id")
+  private String stripeSubscriptionId;
 
   public Project() {}
 
@@ -66,9 +68,14 @@ public class Project {
     this(projectId, null);
   }
 
-  public Project(String projectId, String stripeCustomerId) {
+  public Project(String projectId, String stripeSubscriptionId) {
+    this(projectId, stripeSubscriptionId, null);
+  }
+
+  public Project(String projectId, String stripeSubscriptionId, AOrganization organization) {
     this.projectId = projectId;
-    this.stripeCustomerId = stripeCustomerId;
+    this.stripeSubscriptionId = stripeSubscriptionId;
+    this.organization = organization;
   }
 
   public Long getId() {
@@ -175,13 +182,17 @@ public class Project {
     }
   }
 
-  public String getStripeCustomerId() {
-    return this.stripeCustomerId;
+  public String getStripeSubscriptionId() {
+    return this.stripeSubscriptionId;
   }
 
-  public void setStripeCustomerId(String stripeCustomerId) {
+  public void setStripeSubscriptionId(String stripeCustomerId) {
     if (StringUtils.isNotEmpty(stripeCustomerId)) {
-      this.stripeCustomerId = stripeCustomerId;
+      this.stripeSubscriptionId = stripeCustomerId;
     }
+  }
+
+  public AOrganization getOrganization() {
+    return organization;
   }
 }

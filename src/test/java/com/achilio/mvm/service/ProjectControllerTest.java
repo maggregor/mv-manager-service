@@ -13,6 +13,8 @@ import com.achilio.mvm.service.controllers.responses.GlobalQueryStatisticsRespon
 import com.achilio.mvm.service.controllers.responses.ProjectResponse;
 import com.achilio.mvm.service.databases.entities.DefaultFetchedDataset;
 import com.achilio.mvm.service.databases.entities.DefaultFetchedProject;
+import com.achilio.mvm.service.databases.entities.FetchedProject;
+import com.achilio.mvm.service.entities.AOrganization;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics;
 import com.achilio.mvm.service.services.FetcherService;
@@ -21,9 +23,11 @@ import com.achilio.mvm.service.services.ProjectService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -43,6 +47,11 @@ public class ProjectControllerTest {
   private static final String TEST_PROJECT_NAME2 = "Other Project";
   private static final String TEST_DATASET_NAME1 = "myDataset1";
   private static final String TEST_DATASET_NAME2 = "myDataset2";
+  private static final String STRIPE_SUBSCRIPTION_ID1 = "stripeSubscription1";
+  private static final String STRIPE_SUBSCRIPTION_ID2 = "stripeSubscription2";
+  private static final String STRIPE_SUBSCRIPTION_ID3 = "stripeSubscription3";
+  private static final AOrganization ORGANIZATION =
+      new AOrganization("organization/12345", "example.com", "stripeCustomerId", "workspaceId");
   private static final Project realProject = new Project("achilio-dev");
   private static final DefaultFetchedProject realFetchedProject =
       new DefaultFetchedProject(TEST_PROJECT_ID1, TEST_PROJECT_NAME1);
@@ -52,7 +61,7 @@ public class ProjectControllerTest {
   @Mock ProjectService mockedProjectService;
 
   @Before
-  public void setup() {
+  public void setup() throws JsonProcessingException {
     when(mockedProjectService.findProjectOrCreate(any())).thenReturn(realProject);
     when(mockedFetcherService.fetchProject(any())).thenReturn(realFetchedProject);
   }
@@ -64,42 +73,33 @@ public class ProjectControllerTest {
 
   @Test
   public void getProject() throws JsonProcessingException {
-    String expectedResponse1 =
-        "{\"projectId\":\"achilio-dev\",\"projectName\":\"Achilio Dev\",\"username\":\"\",\"mvMaxPerTable\":20,\"analysisTimeframe\":30,\"activated\":false,\"automatic\":false,\"stripeCustomerId\":null}";
-    Project project = new Project(TEST_PROJECT_ID1);
-    DefaultFetchedProject fetchedProject =
-        new DefaultFetchedProject(TEST_PROJECT_ID1, TEST_PROJECT_NAME1);
+    Project project = new Project(TEST_PROJECT_ID1, STRIPE_SUBSCRIPTION_ID1, ORGANIZATION);
+    FetchedProject fetchedProject = new DefaultFetchedProject(TEST_PROJECT_ID1, TEST_PROJECT_NAME1);
     when(mockedFetcherService.fetchProject(any())).thenReturn(fetchedProject);
     when(mockedProjectService.findProjectOrCreate(any())).thenReturn(project);
-    ProjectResponse responseEntity = controller.getProject(TEST_PROJECT_ID1);
-    String jsonResponse = objectMapper.writeValueAsString(responseEntity);
-    assertEquals(expectedResponse1, jsonResponse);
-
-    String expectedResponse2 =
-        "{\"projectId\":\"achilio-dev\",\"projectName\":\"Achilio Dev\",\"username\":\"myEmail\",\"mvMaxPerTable\":20,\"analysisTimeframe\":30,\"activated\":false,\"automatic\":false,\"stripeCustomerId\":null}";
-    project.setUsername("myEmail");
+    ProjectResponse responseEntity;
+    // Project 1
     responseEntity = controller.getProject(TEST_PROJECT_ID1);
-    jsonResponse = objectMapper.writeValueAsString(responseEntity);
-    assertEquals(expectedResponse2, jsonResponse);
+    assertProjectResponseEquals(project, responseEntity);
 
-    String expectedResponse3 =
-        "{\"projectId\":\"achilio-dev\",\"projectName\":\"Achilio Dev\",\"username\":\"myEmail\",\"mvMaxPerTable\":10,\"analysisTimeframe\":14,\"activated\":true,\"automatic\":true,\"stripeCustomerId\":null}";
+    // Project 2
+    responseEntity = controller.getProject(TEST_PROJECT_ID1);
+    assertProjectResponseEquals(project, responseEntity);
+
+    // Project 3
     project.setAutomaticAvailable(true);
     project.setActivated(true);
     project.setAutomatic(true);
     project.setMvMaxPerTable(10);
     project.setAnalysisTimeframe(14);
     responseEntity = controller.getProject(TEST_PROJECT_ID1);
-    jsonResponse = objectMapper.writeValueAsString(responseEntity);
-    assertEquals(expectedResponse3, jsonResponse);
+    assertProjectResponseEquals(project, responseEntity);
   }
 
   @Test
   public void getAllProject() throws Exception {
-    String expectedResponse1 =
-        "[{\"projectId\":\"achilio-dev\",\"projectName\":\"Achilio Dev\",\"username\":\"myEmail\",\"mvMaxPerTable\":20,\"analysisTimeframe\":30,\"activated\":false,\"automatic\":false,\"stripeCustomerId\":null},{\"projectId\":\"other-project\",\"projectName\":\"Other Project\",\"username\":\"\",\"mvMaxPerTable\":10,\"analysisTimeframe\":14,\"activated\":true,\"automatic\":true,\"stripeCustomerId\":null}]";
-    Project project1 = new Project(TEST_PROJECT_ID1);
-    Project project2 = new Project(TEST_PROJECT_ID2);
+    Project project1 = new Project(TEST_PROJECT_ID1, STRIPE_SUBSCRIPTION_ID1, ORGANIZATION);
+    Project project2 = new Project(TEST_PROJECT_ID2, STRIPE_SUBSCRIPTION_ID2, ORGANIZATION);
     project1.setUsername("myEmail");
     project2.setAutomaticAvailable(true);
     project2.setActivated(true);
@@ -115,13 +115,12 @@ public class ProjectControllerTest {
     when(mockedProjectService.findProjectOrCreate(TEST_PROJECT_ID1)).thenReturn(project1);
     when(mockedProjectService.findProjectOrCreate(TEST_PROJECT_ID2)).thenReturn(project2);
     List<ProjectResponse> responseEntity = controller.getAllProjects();
-    String jsonResponse = objectMapper.writeValueAsString(responseEntity);
-    assertEquals(expectedResponse1, jsonResponse);
+    assertProjectResponseListEquals(Arrays.asList(project1, project2), responseEntity);
   }
 
   @Test
   public void updateProject() throws JsonProcessingException {
-    Project project = new Project(TEST_PROJECT_ID1);
+    Project project = new Project(TEST_PROJECT_ID1, STRIPE_SUBSCRIPTION_ID1, ORGANIZATION);
     project.setAnalysisTimeframe(20);
     project.setMvMaxPerTable(10);
     project.setAutomaticAvailable(true);
@@ -129,10 +128,7 @@ public class ProjectControllerTest {
     UpdateProjectRequest payload = new UpdateProjectRequest(TEST_PROJECT_NAME1, true, 20, 10);
     when(mockedProjectService.updateProject(any(), any())).thenReturn(project);
     ProjectResponse responseEntity = controller.updateProject(TEST_PROJECT_ID1, payload);
-    String expectedResponse =
-        "{\"projectId\":\"achilio-dev\",\"projectName\":\"Achilio Dev\",\"username\":\"\",\"mvMaxPerTable\":10,\"analysisTimeframe\":20,\"activated\":false,\"automatic\":true,\"stripeCustomerId\":null}";
-    String jsonResponse = objectMapper.writeValueAsString(responseEntity);
-    assertEquals(expectedResponse, jsonResponse);
+    assertProjectResponseEquals(project, responseEntity);
   }
 
   @Test
@@ -249,5 +245,34 @@ public class ProjectControllerTest {
     responseEntity = controller.getMissingPermissions(TEST_PROJECT_ID1);
     jsonResponse = objectMapper.writeValueAsString(responseEntity);
     assertEquals(expectedString, jsonResponse);
+  }
+
+  private void assertProjectResponseEquals(Project expected, ProjectResponse actualProjectResponse)
+      throws JsonProcessingException {
+    String actualJson = objectMapper.writeValueAsString(actualProjectResponse);
+    JsonNode jsonNode = objectMapper.readTree(actualJson);
+    assertEquals(expected.getProjectId(), jsonNode.get("projectId").asText());
+    assertEquals(expected.getUsername(), jsonNode.get("username").asText());
+    assertEquals(
+        expected.getMvMaxPerTable(), Integer.valueOf(jsonNode.get("mvMaxPerTable").asInt()));
+    assertEquals(
+        expected.getAnalysisTimeframe(),
+        Integer.valueOf(jsonNode.get("analysisTimeframe").asInt()));
+    assertEquals(expected.isActivated(), jsonNode.get("activated").asBoolean());
+    assertEquals(expected.isAutomatic(), jsonNode.get("automatic").asBoolean());
+    assertEquals(expected.getStripeSubscriptionId(), jsonNode.get("stripeSubscriptionId").asText());
+    assertEquals(expected.getOrganization().getId(), jsonNode.get("organizationId").asText());
+  }
+
+  private void assertProjectResponseListEquals(
+      List<Project> expected, List<ProjectResponse> actualProjectResponseList)
+      throws JsonProcessingException {
+    Assert.assertEquals(expected.size(), actualProjectResponseList.size());
+    String actualJson = objectMapper.writeValueAsString(actualProjectResponseList);
+    JsonNode jsonNode = objectMapper.readTree(actualJson);
+    Assert.assertTrue(jsonNode instanceof ArrayNode);
+    for (int i = 0; i < expected.size(); i++) {
+      assertProjectResponseEquals(expected.get(i), actualProjectResponseList.get(i));
+    }
   }
 }
