@@ -2,9 +2,11 @@ package com.achilio.mvm.service.databases.bigquery;
 
 import com.achilio.mvm.service.databases.DatabaseFetcher;
 import com.achilio.mvm.service.databases.entities.DefaultFetchedDataset;
+import com.achilio.mvm.service.databases.entities.DefaultFetchedOrganization;
 import com.achilio.mvm.service.databases.entities.DefaultFetchedProject;
 import com.achilio.mvm.service.databases.entities.DefaultFetchedTable;
 import com.achilio.mvm.service.databases.entities.FetchedDataset;
+import com.achilio.mvm.service.databases.entities.FetchedOrganization;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedQueryFactory;
@@ -330,10 +332,11 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
   }
 
   @Override
-  public List<Organization> fetchAllOrganizations() {
+  public List<FetchedOrganization> fetchAllOrganizations() {
     SearchOrganizationsRequest r = SearchOrganizationsRequest.newBuilder().build();
     SearchOrganizationsPagedResponse results = this.organizationClient.searchOrganizations(r);
     return StreamSupport.stream(results.iterateAll().spliterator(), false)
+        .map(this::toFetchedOrganization)
         .collect(Collectors.toList());
   }
 
@@ -388,6 +391,13 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
         description,
         createdAt,
         lastModified);
+  }
+
+  private FetchedOrganization toFetchedOrganization(Organization organization) {
+    return new DefaultFetchedOrganization(
+        organization.getName(),
+        organization.getDisplayName(),
+        organization.getDirectoryCustomerId());
   }
 
   public void close() {

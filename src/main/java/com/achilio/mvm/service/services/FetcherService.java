@@ -5,6 +5,7 @@ import com.achilio.mvm.service.databases.DatabaseFetcher;
 import com.achilio.mvm.service.databases.bigquery.BigQueryDatabaseFetcher;
 import com.achilio.mvm.service.databases.bigquery.BigQueryMaterializedViewStatementBuilder;
 import com.achilio.mvm.service.databases.entities.FetchedDataset;
+import com.achilio.mvm.service.databases.entities.FetchedOrganization;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
@@ -20,7 +21,6 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.oauth2.Oauth2;
 import com.google.api.services.oauth2.model.Userinfo;
-import com.google.cloud.resourcemanager.v3.Organization;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.TemporalAdjusters;
@@ -65,8 +65,11 @@ public class FetcherService {
     return fetcher().fetchAllProjects();
   }
 
-  public List<Organization> fetchAllOrganizations() {
-    return fetcher().fetchAllOrganizations();
+  public List<FetchedOrganization> fetchAllOrganizations() {
+    DatabaseFetcher fetcher = fetcher();
+    List<FetchedOrganization> organizationList = fetcher.fetchAllOrganizations();
+    fetcher.close();
+    return organizationList;
   }
 
   public FetchedProject fetchProject(String projectId) throws ProjectNotFoundException {
