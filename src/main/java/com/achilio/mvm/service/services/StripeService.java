@@ -209,8 +209,7 @@ public class StripeService {
   public void handleSubscription(Subscription subscription, String customerId)
       throws StripeException, IOException, ExecutionException, InterruptedException {
     Stripe.apiKey = API_KEY;
-    String projectId =
-        Customer.retrieve(customerId).getMetadata().get(StripeMetadata.PROJECT_ID.getValue());
+    String projectId = subscription.getMetadata().get(StripeMetadata.PROJECT_ID.getValue());
     Project project = projectService.getProject(projectId);
     Product product =
         Product.retrieve(subscription.getItems().getData().get(0).getPrice().getProduct());
