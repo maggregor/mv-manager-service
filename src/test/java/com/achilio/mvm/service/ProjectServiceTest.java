@@ -177,13 +177,13 @@ public class ProjectServiceTest {
   @Test
   public void updateMvMaxPerTableLimit() {
     Project project = new Project(TEST_PROJECT_ID1);
-    assertEquals(20, project.getMvMaxPerTable());
+    assertEquals(5, project.getMvMaxPerTable());
     assertEquals(20, project.getMvMaxPerTableLimit());
-    service.updateMvMaxPerTableLimit(project, 10);
-    assertEquals(10, project.getMvMaxPerTable());
-    assertEquals(10, project.getMvMaxPerTableLimit());
+    service.updateMvMaxPerTableLimit(project, 3);
+    assertEquals(3, project.getMvMaxPerTable());
+    assertEquals(3, project.getMvMaxPerTableLimit());
     service.updateMvMaxPerTableLimit(project, 12);
-    assertEquals(10, project.getMvMaxPerTable());
+    assertEquals(3, project.getMvMaxPerTable());
     assertEquals(12, project.getMvMaxPerTableLimit());
   }
 

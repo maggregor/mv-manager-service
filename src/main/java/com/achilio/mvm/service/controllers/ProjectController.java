@@ -41,7 +41,7 @@ public class ProjectController {
   @GetMapping(path = "/project", produces = MediaType.APPLICATION_JSON_VALUE)
   @ApiOperation("List all projects")
   public List<ProjectResponse> getAllProjects() {
-    return fetcherService.fetchAllProjects().stream()
+    return projectService.findAllProjects().stream()
         .map(this::toProjectResponse)
         .collect(Collectors.toList());
   }
@@ -66,8 +66,7 @@ public class ProjectController {
   public ProjectResponse updateProject(
       @PathVariable final String projectId, @RequestBody final UpdateProjectRequest payload) {
     Project updatedProject = projectService.updateProject(projectId, payload);
-    FetchedProject fetchedProject = fetcherService.fetchProject(projectId);
-    return toProjectResponse(fetchedProject, updatedProject);
+    return toProjectResponse(updatedProject);
   }
 
   @Deprecated
@@ -158,6 +157,10 @@ public class ProjectController {
   private ProjectResponse toProjectResponse(FetchedProject fetchedProject) {
     Project project = projectService.findProjectOrCreate(fetchedProject.getProjectId());
     return new ProjectResponse(fetchedProject.getName(), project);
+  }
+
+  private ProjectResponse toProjectResponse(Project project) {
+    return new ProjectResponse(project);
   }
 
   private DatasetResponse toDatasetResponse(FetchedDataset dataset) {

@@ -9,6 +9,7 @@ import com.achilio.mvm.service.databases.entities.FetchedOrganization;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
+import com.achilio.mvm.service.entities.AOrganization;
 import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics;
 import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics.Scope;
 import com.achilio.mvm.service.entities.statistics.QueryStatistics;
@@ -73,6 +74,13 @@ public class FetcherService {
     List<FetchedOrganization> organizationList = fetcher.fetchAllOrganizations();
     fetcher.close();
     return organizationList;
+  }
+
+  public List<FetchedProject> fetchAllProjectsFromOrg(AOrganization organization) {
+    DatabaseFetcher fetcher = fetcher();
+    List<FetchedProject> projectList = fetcher.fetchAllProjectsFromOrg(organization);
+    fetcher.close();
+    return projectList;
   }
 
   public FetchedProject fetchProject(String projectId) throws ProjectNotFoundException {

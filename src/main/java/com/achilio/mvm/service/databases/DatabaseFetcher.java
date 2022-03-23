@@ -5,6 +5,7 @@ import com.achilio.mvm.service.databases.entities.FetchedOrganization;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
+import com.achilio.mvm.service.entities.AOrganization;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import java.util.List;
 import java.util.Set;
@@ -73,9 +74,9 @@ public interface DatabaseFetcher {
 
   List<FetchedOrganization> fetchAllOrganizations();
 
-  List<FetchedProject> fetchAllProjectsFromOrg(String baseOrganizationId)
+  List<FetchedProject> fetchAllProjectsFromOrg(AOrganization baseOrganization);
 
-  List<FetchedProject> fetchAllProjectsFromParent(String parentId, String baseOrganizationId);
+  List<FetchedProject> fetchAllProjectsFromParent(String parentId, AOrganization baseOrganization);
 
   void close();
 }

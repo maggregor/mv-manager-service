@@ -48,4 +48,16 @@ public class ProjectResponse {
     this.stripeSubscriptionId = project.getStripeSubscriptionId();
     this.organization = project.getOrganization();
   }
+
+  public ProjectResponse(Project project) {
+    this.projectId = project.getProjectId();
+    this.projectName = project.getProjectName();
+    this.activated = project.isActivated();
+    this.automatic = project.isAutomatic();
+    this.username = project.getUsername();
+    this.mvMaxPerTable = project.getMvMaxPerTable();
+    this.analysisTimeframe = project.getAnalysisTimeframe();
+    this.stripeSubscriptionId = project.getStripeSubscriptionId();
+    this.organization = project.getOrganization();
+  }
 }

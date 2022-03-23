@@ -120,14 +120,7 @@ public class ProjectControllerTest {
     project2.setAutomatic(true);
     project2.setMvMaxPerTable(10);
     project2.setAnalysisTimeframe(14);
-    DefaultFetchedProject fetchedProject1 =
-        new DefaultFetchedProject(TEST_PROJECT_ID1, TEST_PROJECT_NAME1);
-    DefaultFetchedProject fetchedProject2 =
-        new DefaultFetchedProject(TEST_PROJECT_ID2, TEST_PROJECT_NAME2);
-    when(mockedFetcherService.fetchAllProjects())
-        .thenReturn(Arrays.asList(fetchedProject1, fetchedProject2));
-    when(mockedProjectService.findProjectOrCreate(TEST_PROJECT_ID1)).thenReturn(project1);
-    when(mockedProjectService.findProjectOrCreate(TEST_PROJECT_ID2)).thenReturn(project2);
+    when(mockedProjectService.findAllProjects()).thenReturn(Arrays.asList(project1, project2));
     List<ProjectResponse> responseEntity = controller.getAllProjects();
     assertProjectResponseListEquals(Arrays.asList(project1, project2), responseEntity);
   }

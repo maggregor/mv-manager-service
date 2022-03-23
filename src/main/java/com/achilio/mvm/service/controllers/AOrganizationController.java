@@ -5,7 +5,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import com.achilio.mvm.service.entities.AOrganization;
 import com.achilio.mvm.service.services.AOrganizationService;
 import io.swagger.annotations.ApiOperation;
-import java.io.IOException;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -23,13 +22,13 @@ public class AOrganizationController {
 
   @GetMapping(path = "/organization", produces = APPLICATION_JSON_VALUE)
   @ApiOperation("List all organizations")
-  public List<AOrganization> getAllOrganizations() throws IOException {
-    return organizationService.getAllOrgOrCreate();
+  public List<AOrganization> getAllOrganizations() {
+    return organizationService.getAllOrg();
   }
 
   @PostMapping(path = "/organization/project", produces = APPLICATION_JSON_VALUE)
-  @ApiOperation("Creates the whole project tree structure, starting from each org")
+  @ApiOperation("Creates the whole project tree structure for each org")
   public void createProjectStructure() {
-    List<AOrganization> allOrganizations = organizationService.getAllOrg();
+    List<AOrganization> allOrganizations = organizationService.getAllOrgOrCreate();
   }
 }

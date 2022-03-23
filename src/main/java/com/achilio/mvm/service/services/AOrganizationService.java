@@ -1,6 +1,7 @@
 package com.achilio.mvm.service.services;
 
 import com.achilio.mvm.service.databases.entities.FetchedOrganization;
+import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.entities.AOrganization;
 import com.achilio.mvm.service.repositories.AOrganizationRepository;
 import com.stripe.model.Customer;
@@ -16,6 +17,7 @@ public class AOrganizationService {
 
   @Autowired private FetcherService fetcherService;
   @Autowired private StripeService stripeService;
+  @Autowired private ProjectService projectService;
   @Autowired private AOrganizationRepository organizationRepository;
 
   public List<AOrganization> getAllOrg() {
@@ -30,6 +32,11 @@ public class AOrganizationService {
   public AOrganization findOrgOrCreate(FetchedOrganization fetchedOrganization) {
     return findAOrganization(fetchedOrganization.getName())
         .orElseGet(() -> createOrganization(fetchedOrganization));
+  }
+
+  public void createProjectStructure(AOrganization organization) {
+    List<FetchedProject> projectList = fetcherService.fetchAllProjectsFromOrg(organization);
+    projectList.forEach(p -> projectService.createProjectFromFetchedProject(p));
   }
 
   public AOrganization createOrganization(FetchedOrganization fetchedOrganization) {
