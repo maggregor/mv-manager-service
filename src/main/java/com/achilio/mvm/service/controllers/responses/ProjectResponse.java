@@ -1,5 +1,6 @@
 package com.achilio.mvm.service.controllers.responses;
 
+import com.achilio.mvm.service.entities.AOrganization;
 import com.achilio.mvm.service.entities.Project;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -29,8 +30,8 @@ public class ProjectResponse {
   @JsonProperty("stripeSubscriptionId")
   private String stripeSubscriptionId;
 
-  @JsonProperty("organizationId")
-  private String organizationId;
+  @JsonProperty("organization")
+  private AOrganization organization;
 
   public ProjectResponse(String projectId, String projectName) {
     this.projectId = projectId;
@@ -45,10 +46,6 @@ public class ProjectResponse {
     this.mvMaxPerTable = project.getMvMaxPerTable();
     this.analysisTimeframe = project.getAnalysisTimeframe();
     this.stripeSubscriptionId = project.getStripeSubscriptionId();
-    if (project.getOrganization() != null) {
-      this.organizationId = project.getOrganization().getId();
-    } else {
-      this.organizationId = null;
-    }
+    this.organization = project.getOrganization();
   }
 }

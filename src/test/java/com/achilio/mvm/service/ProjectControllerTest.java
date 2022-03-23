@@ -24,6 +24,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeType;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -92,6 +93,19 @@ public class ProjectControllerTest {
     project.setAutomatic(true);
     project.setMvMaxPerTable(10);
     project.setAnalysisTimeframe(14);
+    responseEntity = controller.getProject(TEST_PROJECT_ID1);
+    assertProjectResponseEquals(project, responseEntity);
+  }
+
+  @Test
+  public void whenOrgIsNull() throws JsonProcessingException {
+    Project project = new Project(TEST_PROJECT_ID1, STRIPE_SUBSCRIPTION_ID1, null);
+
+    FetchedProject fetchedProject = new DefaultFetchedProject(TEST_PROJECT_ID1, TEST_PROJECT_NAME1);
+    when(mockedFetcherService.fetchProject(any())).thenReturn(fetchedProject);
+    when(mockedProjectService.findProjectOrCreate(any())).thenReturn(project);
+    ProjectResponse responseEntity;
+
     responseEntity = controller.getProject(TEST_PROJECT_ID1);
     assertProjectResponseEquals(project, responseEntity);
   }
@@ -261,7 +275,18 @@ public class ProjectControllerTest {
     assertEquals(expected.isActivated(), jsonNode.get("activated").asBoolean());
     assertEquals(expected.isAutomatic(), jsonNode.get("automatic").asBoolean());
     assertEquals(expected.getStripeSubscriptionId(), jsonNode.get("stripeSubscriptionId").asText());
-    assertEquals(expected.getOrganization().getId(), jsonNode.get("organizationId").asText());
+    assertOrganizationResponseNodeEquals(expected.getOrganization(), jsonNode.get("organization"));
+  }
+
+  private void assertOrganizationResponseNodeEquals(AOrganization expected, JsonNode actual) {
+    if (expected == null) {
+      assertEquals(JsonNodeType.NULL, actual.getNodeType());
+    } else {
+      assertEquals(expected.getId(), actual.get("id").asText());
+      assertEquals(expected.getName(), actual.get("name").asText());
+      assertEquals(expected.getStripeCustomerId(), actual.get("stripeCustomerId").asText());
+      assertEquals(expected.getGoogleWorkspaceId(), actual.get("googleWorkspaceId").asText());
+    }
   }
 
   private void assertProjectResponseListEquals(
