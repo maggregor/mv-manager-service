@@ -261,7 +261,7 @@ public class StripeService {
   private ProjectSubscription toProjectSubscription(Subscription s) {
     List<SubscriptionItem> items = s.getItems().getData();
     if (!items.isEmpty()) {
-      return new ProjectSubscription(s.getId(), s.getStatus(), items.get(0).getId());
+      return new ProjectSubscription(s.getId(), s.getStatus(), items.get(0).getPrice().getId());
     }
     throw new IllegalArgumentException("No subscription item found in subscription " + s.getId());
   }
