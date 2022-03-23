@@ -18,6 +18,10 @@ public class AOrganizationService {
   @Autowired private StripeService stripeService;
   @Autowired private AOrganizationRepository organizationRepository;
 
+  public List<AOrganization> getAllOrg() {
+    return organizationRepository.findAll();
+  }
+
   public List<AOrganization> getAllOrgOrCreate() {
     List<FetchedOrganization> fetchedOrganizations = fetcherService.fetchAllOrganizations();
     return fetchedOrganizations.stream().map(this::findOrgOrCreate).collect(Collectors.toList());

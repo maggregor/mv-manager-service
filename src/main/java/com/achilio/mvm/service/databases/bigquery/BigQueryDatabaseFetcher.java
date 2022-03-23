@@ -43,6 +43,9 @@ import com.google.cloud.resourcemanager.v3.Organization;
 import com.google.cloud.resourcemanager.v3.OrganizationsClient;
 import com.google.cloud.resourcemanager.v3.OrganizationsClient.SearchOrganizationsPagedResponse;
 import com.google.cloud.resourcemanager.v3.OrganizationsSettings;
+import com.google.cloud.resourcemanager.v3.Project.State;
+import com.google.cloud.resourcemanager.v3.ProjectsClient;
+import com.google.cloud.resourcemanager.v3.ProjectsSettings;
 import com.google.cloud.resourcemanager.v3.SearchOrganizationsRequest;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.zetasql.ZetaSQLType;
@@ -73,17 +76,21 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
   private final BigQuery bigquery;
   private final ResourceManager resourceManager;
   private final OrganizationsClient organizationClient;
+  private final ProjectsClient projectClient;
 
   @VisibleForTesting
-  public BigQueryDatabaseFetcher(BigQuery bigquery, ResourceManager rm, OrganizationsClient oc) {
+  public BigQueryDatabaseFetcher(
+      BigQuery bigquery, ResourceManager rm, OrganizationsClient oc, ProjectsClient pc) {
     this.bigquery = bigquery;
     this.resourceManager = rm;
     this.organizationClient = oc;
+    this.projectClient = pc;
   }
 
   public BigQueryDatabaseFetcher(final GoogleCredentials credentials, final String projectId)
       throws ProjectNotFoundException {
     OrganizationsClient organizationClient1 = null;
+    ProjectsClient projectClient1 = null;
     BigQueryOptions.Builder bqOptBuilder = BigQueryOptions.newBuilder().setCredentials(credentials);
     ResourceManagerOptions.Builder rmOptBuilder =
         ResourceManagerOptions.newBuilder().setCredentials(credentials);
@@ -93,11 +100,18 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
               .setCredentialsProvider(FixedCredentialsProvider.create(credentials))
               .build();
 
+      ProjectsSettings projectsSettings =
+          ProjectsSettings.newBuilder()
+              .setCredentialsProvider(FixedCredentialsProvider.create(credentials))
+              .build();
+
       organizationClient1 = OrganizationsClient.create(organizationsSettings);
+      projectClient1 = ProjectsClient.create(projectsSettings);
     } catch (IOException e) {
-      LOGGER.warn("Error during creation of organizations settings and client");
+      LOGGER.error("Error during creation of settings and client");
     }
     this.organizationClient = organizationClient1;
+    this.projectClient = projectClient1;
     if (StringUtils.isNotEmpty(projectId)) {
       // Change default project of BigQuery instance
       bqOptBuilder.setProjectId(projectId);
@@ -348,6 +362,22 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
   }
 
   @Override
+  public List<FetchedProject> fetchAllProjectsFromOrg(String baseOrganizationId) {
+
+    return null;
+  }
+
+  @Override
+  public List<FetchedProject> fetchAllProjectsFromParent(
+      String parentId, String baseOrganizationId) {
+    return StreamSupport.stream(
+            projectClient.listProjects(parentId).iterateAll().spliterator(), true)
+        .filter(p -> p.getState() == State.ACTIVE)
+        .map(p -> toFetchedProject(p, baseOrganizationId))
+        .collect(Collectors.toList());
+  }
+
+  @Override
   public FetchedProject fetchProject(String projectId) throws ProjectNotFoundException {
     Project project = resourceManager.get(projectId);
     if (project == null) {
@@ -373,6 +403,11 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
 
   public FetchedProject toFetchedProject(Project project) {
     return new DefaultFetchedProject(project.getProjectId(), project.getName());
+  }
+
+  public FetchedProject toFetchedProject(
+      com.google.cloud.resourcemanager.v3.Project project, String baseOrganizationId) {
+    return new DefaultFetchedProject(project.getProjectId(), project.getName(), baseOrganizationId);
   }
 
   public FetchedDataset toFetchedDataset(Dataset dataset) {
@@ -402,5 +437,6 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
 
   public void close() {
     this.organizationClient.shutdown();
+    this.projectClient.shutdown();
   }
 }
