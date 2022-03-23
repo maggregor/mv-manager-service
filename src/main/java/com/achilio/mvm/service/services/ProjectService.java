@@ -174,7 +174,8 @@ public class ProjectService {
       updatedProject.setProjectName(p.getName());
       updatedProject.setOrganization(p.getOrganization());
       projectRepository.save(updatedProject);
+    } else {
+      projectRepository.save(new Project(p));
     }
-    projectRepository.save(new Project(p));
   }
 }

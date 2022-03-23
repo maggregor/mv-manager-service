@@ -30,5 +30,6 @@ public class AOrganizationController {
   @ApiOperation("Creates the whole project tree structure for each org")
   public void createProjectStructure() {
     List<AOrganization> allOrganizations = organizationService.getAllOrgOrCreate();
+    allOrganizations.forEach(o -> organizationService.createProjectStructure(o));
   }
 }

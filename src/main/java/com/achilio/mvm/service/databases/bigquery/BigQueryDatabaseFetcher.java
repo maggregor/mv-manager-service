@@ -380,9 +380,7 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
 
   @Override
   public List<FetchedProject> fetchAllProjectsFromOrg(AOrganization baseOrganization) {
-    List<FetchedProject> projectList = new ArrayList<>();
-    projectList.addAll(fetchAllProjectsFromParent(baseOrganization.getName(), baseOrganization));
-    return projectList;
+    return new ArrayList<>(fetchAllProjectsFromParent(baseOrganization.getId(), baseOrganization));
   }
 
   /**
@@ -436,7 +434,8 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
 
   public FetchedProject toFetchedProject(
       com.google.cloud.resourcemanager.v3.Project project, AOrganization baseOrganization) {
-    return new DefaultFetchedProject(project.getProjectId(), project.getName(), baseOrganization);
+    return new DefaultFetchedProject(
+        project.getProjectId(), project.getDisplayName(), baseOrganization);
   }
 
   public FetchedDataset toFetchedDataset(Dataset dataset) {
