@@ -11,6 +11,8 @@ import static org.mockito.Mockito.when;
 import com.achilio.mvm.service.controllers.requests.UpdateProjectRequest;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.entities.ADataset;
+import com.achilio.mvm.service.entities.AOrganization;
+import com.achilio.mvm.service.entities.AOrganization.OrganizationType;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import com.achilio.mvm.service.repositories.DatasetRepository;
@@ -50,6 +52,12 @@ public class ProjectServiceTest {
   private static final String TEST_DATASET_NAME1 = "nyc_trips";
   private static final String TEST_DATASET_NAME2 = "another_one";
   private static final String TEST_DATASET_NAME3 = "other_dataset";
+  private static final String ORGANIZATION_ID = "organization/123456";
+  private static final String ORGANIZATION_NAME = "achilio.com";
+  private static final String STRIPE_CUSTOMER_ID = "cus_123456";
+  private static final OrganizationType ORGANIZATION_TYPE = OrganizationType.ORGANIZATION;
+  private static final AOrganization ORGANIZATION =
+      new AOrganization(ORGANIZATION_ID, ORGANIZATION_NAME, STRIPE_CUSTOMER_ID, ORGANIZATION_TYPE);
   private static final ADataset mockedDataset1 = mock(ADataset.class);
   private static final ADataset mockedDataset2 = mock(ADataset.class);
   private final ADataset realDataset = new ADataset(mockedProject1, TEST_DATASET_NAME3);
@@ -88,6 +96,9 @@ public class ProjectServiceTest {
     when(mockedProduct.getMetadata()).thenReturn(productMetadata);
     when(errorMockedProduct.getMetadata()).thenReturn(errorProductMetadata);
     when(mockedFetcherService.getUserInfo()).thenReturn(new Userinfo().setEmail("myEmail"));
+    when(mockedFetchedProject.getProjectId()).thenReturn(TEST_PROJECT_ID2);
+    when(mockedFetchedProject.getName()).thenReturn(TEST_PROJECT_NAME2);
+    when(mockedFetchedProject.getOrganization()).thenReturn(ORGANIZATION);
   }
 
   @Test
@@ -177,13 +188,13 @@ public class ProjectServiceTest {
   @Test
   public void updateMvMaxPerTableLimit() {
     Project project = new Project(TEST_PROJECT_ID1);
-    assertEquals(20, project.getMvMaxPerTable());
+    assertEquals(5, project.getMvMaxPerTable());
     assertEquals(20, project.getMvMaxPerTableLimit());
-    service.updateMvMaxPerTableLimit(project, 10);
-    assertEquals(10, project.getMvMaxPerTable());
-    assertEquals(10, project.getMvMaxPerTableLimit());
+    service.updateMvMaxPerTableLimit(project, 3);
+    assertEquals(3, project.getMvMaxPerTable());
+    assertEquals(3, project.getMvMaxPerTableLimit());
     service.updateMvMaxPerTableLimit(project, 12);
-    assertEquals(10, project.getMvMaxPerTable());
+    assertEquals(3, project.getMvMaxPerTable());
     assertEquals(12, project.getMvMaxPerTableLimit());
   }
 
@@ -228,5 +239,22 @@ public class ProjectServiceTest {
   public void isDatasetActivated() {
     assertTrue(service.isDatasetActivated(TEST_PROJECT_ID1, TEST_DATASET_NAME1));
     assertFalse(service.isDatasetActivated(TEST_PROJECT_ID1, TEST_DATASET_NAME2));
+  }
+
+  @Test
+  public void createProjectFromFetchedProjectExistsTest() {
+    Project project1 = service.createProjectFromFetchedProject(mockedFetchedProject);
+    assertEquals(TEST_PROJECT_ID2, project1.getProjectId());
+    assertEquals(TEST_PROJECT_NAME2, project1.getProjectName());
+    assertEquals(ORGANIZATION_NAME, project1.getOrganization().getName());
+  }
+
+  @Test
+  public void createProjectFromFetchedProjectNotExistsTest() {
+    when(mockedProjectRepository.findByProjectId(TEST_PROJECT_ID2)).thenReturn(Optional.empty());
+    Project project1 = service.createProjectFromFetchedProject(mockedFetchedProject);
+    assertEquals(TEST_PROJECT_ID2, project1.getProjectId());
+    assertEquals(TEST_PROJECT_NAME2, project1.getProjectName());
+    assertEquals(ORGANIZATION_NAME, project1.getOrganization().getName());
   }
 }

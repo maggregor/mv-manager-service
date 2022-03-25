@@ -1,6 +1,7 @@
 package com.achilio.mvm.service.services;
 
 import com.achilio.mvm.service.controllers.requests.UpdateProjectRequest;
+import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.entities.ADataset;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
@@ -9,6 +10,7 @@ import com.achilio.mvm.service.repositories.ProjectRepository;
 import com.stripe.model.Product;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import javax.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,13 +35,19 @@ public class ProjectService {
     return projectRepository.findAllByActivated(true);
   }
 
+  public List<Project> findAllProjects() {
+    return fetcherService.fetchAllProjects().stream()
+        .filter(p -> projectExists(p.getProjectId()))
+        .map(p -> getProject(p.getProjectId()))
+        .collect(Collectors.toList());
+  }
+
   public Project findProjectOrCreate(String projectId) {
     return findProject(projectId).orElseGet(() -> createProject(projectId));
   }
 
   public Project createProject(String projectId) {
     Project project = new Project(projectId, null, null);
-
     return projectRepository.save(project);
   }
 
@@ -48,6 +56,7 @@ public class ProjectService {
   }
 
   public Project getProject(String projectId) {
+    fetcherService.fetchProject(projectId);
     return findProject(projectId).orElseThrow(() -> new ProjectNotFoundException(projectId));
   }
 
@@ -62,6 +71,7 @@ public class ProjectService {
 
   @Transactional
   public Project updateProject(String projectId, UpdateProjectRequest payload) {
+    fetcherService.fetchProject(projectId);
     Project project = getProject(projectId);
     // If automatic has been sent in the payload (or if the project is being deactivated), we need
     // to publish a potential config change on the schedulers
@@ -155,6 +165,17 @@ public class ProjectService {
     }
     if (automaticAvailable != null) {
       updateProjectAutomaticAvailable(project, Boolean.parseBoolean(automaticAvailable));
+    }
+  }
+
+  public Project createProjectFromFetchedProject(FetchedProject p) {
+    if (projectExists(p.getProjectId())) {
+      Project updatedProject = getProject(p.getProjectId());
+      updatedProject.setProjectName(p.getName());
+      updatedProject.setOrganization(p.getOrganization());
+      return projectRepository.save(updatedProject);
+    } else {
+      return projectRepository.save(new Project(p));
     }
   }
 }

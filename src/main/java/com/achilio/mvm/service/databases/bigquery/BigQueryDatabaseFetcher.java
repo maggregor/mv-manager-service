@@ -11,6 +11,8 @@ import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedQueryFactory;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
+import com.achilio.mvm.service.entities.AOrganization;
+import com.achilio.mvm.service.entities.AOrganization.OrganizationType;
 import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import com.achilio.mvm.service.visitors.ATableId;
@@ -39,10 +41,15 @@ import com.google.cloud.bigquery.TableId;
 import com.google.cloud.resourcemanager.Project;
 import com.google.cloud.resourcemanager.ResourceManager;
 import com.google.cloud.resourcemanager.ResourceManagerOptions;
+import com.google.cloud.resourcemanager.v3.FoldersClient;
+import com.google.cloud.resourcemanager.v3.FoldersSettings;
 import com.google.cloud.resourcemanager.v3.Organization;
 import com.google.cloud.resourcemanager.v3.OrganizationsClient;
 import com.google.cloud.resourcemanager.v3.OrganizationsClient.SearchOrganizationsPagedResponse;
 import com.google.cloud.resourcemanager.v3.OrganizationsSettings;
+import com.google.cloud.resourcemanager.v3.Project.State;
+import com.google.cloud.resourcemanager.v3.ProjectsClient;
+import com.google.cloud.resourcemanager.v3.ProjectsSettings;
 import com.google.cloud.resourcemanager.v3.SearchOrganizationsRequest;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.zetasql.ZetaSQLType;
@@ -72,18 +79,29 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
   private static final String SQL_SELECT_WORD = "SELECT";
   private final BigQuery bigquery;
   private final ResourceManager resourceManager;
-  private final OrganizationsClient organizationClient;
+  private OrganizationsClient organizationClient;
+  private ProjectsClient projectClient;
+  private FoldersClient folderClient;
 
   @VisibleForTesting
-  public BigQueryDatabaseFetcher(BigQuery bigquery, ResourceManager rm, OrganizationsClient oc) {
+  public BigQueryDatabaseFetcher(
+      BigQuery bigquery,
+      ResourceManager rm,
+      OrganizationsClient oc,
+      ProjectsClient pc,
+      FoldersClient fc) {
     this.bigquery = bigquery;
     this.resourceManager = rm;
     this.organizationClient = oc;
+    this.projectClient = pc;
+    this.folderClient = fc;
   }
 
   public BigQueryDatabaseFetcher(final GoogleCredentials credentials, final String projectId)
       throws ProjectNotFoundException {
-    OrganizationsClient organizationClient1 = null;
+    this.organizationClient = null;
+    this.projectClient = null;
+    this.folderClient = null;
     BigQueryOptions.Builder bqOptBuilder = BigQueryOptions.newBuilder().setCredentials(credentials);
     ResourceManagerOptions.Builder rmOptBuilder =
         ResourceManagerOptions.newBuilder().setCredentials(credentials);
@@ -93,11 +111,22 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
               .setCredentialsProvider(FixedCredentialsProvider.create(credentials))
               .build();
 
-      organizationClient1 = OrganizationsClient.create(organizationsSettings);
+      ProjectsSettings projectsSettings =
+          ProjectsSettings.newBuilder()
+              .setCredentialsProvider(FixedCredentialsProvider.create(credentials))
+              .build();
+
+      FoldersSettings foldersSettings =
+          FoldersSettings.newBuilder()
+              .setCredentialsProvider(FixedCredentialsProvider.create(credentials))
+              .build();
+
+      this.organizationClient = OrganizationsClient.create(organizationsSettings);
+      this.projectClient = ProjectsClient.create(projectsSettings);
+      this.folderClient = FoldersClient.create(foldersSettings);
     } catch (IOException e) {
-      LOGGER.warn("Error during creation of organizations settings and client");
+      LOGGER.error("Error during creation of settings and client");
     }
-    this.organizationClient = organizationClient1;
     if (StringUtils.isNotEmpty(projectId)) {
       // Change default project of BigQuery instance
       bqOptBuilder.setProjectId(projectId);
@@ -348,6 +377,49 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
   }
 
   @Override
+  public List<FetchedProject> fetchAllProjectsFromOrg(AOrganization baseOrganization) {
+    if (baseOrganization.getOrganizationType() == OrganizationType.NO_ORGANIZATION) {
+      return new ArrayList<>(fetchAllProjectsNoParent(baseOrganization));
+    } else {
+      return new ArrayList<>(
+          fetchAllProjectsFromParent(baseOrganization.getId(), baseOrganization));
+    }
+  }
+
+  /**
+   * Recursively fetch all projects in all the folders of the organization
+   *
+   * @param parentId is the direct parent of the projects to fetch (folderId or organizationId)
+   * @param baseOrganization is the base organization of the projects to fetch (organization only)
+   * @return
+   */
+  @Override
+  public List<FetchedProject> fetchAllProjectsFromParent(
+      String parentId, AOrganization baseOrganization) {
+    List<FetchedProject> projectList =
+        StreamSupport.stream(projectClient.listProjects(parentId).iterateAll().spliterator(), true)
+            .filter(p -> p.getState() == State.ACTIVE)
+            .map(p -> toFetchedProject(p, baseOrganization))
+            .collect(Collectors.toList());
+    StreamSupport.stream(folderClient.listFolders(parentId).iterateAll().spliterator(), true)
+        .forEach(
+            f -> projectList.addAll(fetchAllProjectsFromParent(f.getName(), baseOrganization)));
+    return projectList;
+  }
+
+  @Override
+  public List<FetchedProject> fetchAllProjectsNoParent(AOrganization baseOrganization) {
+    List<FetchedProject> projectList =
+        StreamSupport.stream(projectClient.searchProjects("").iterateAll().spliterator(), true)
+            .filter(p -> p.getState() == State.ACTIVE)
+            .map(p -> toFetchedProject(p, baseOrganization))
+            .collect(Collectors.toList());
+    StreamSupport.stream(folderClient.searchFolders("").iterateAll().spliterator(), true)
+        .forEach(f -> projectList.addAll(fetchAllProjectsNoParent(baseOrganization)));
+    return projectList;
+  }
+
+  @Override
   public FetchedProject fetchProject(String projectId) throws ProjectNotFoundException {
     Project project = resourceManager.get(projectId);
     if (project == null) {
@@ -373,6 +445,16 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
 
   public FetchedProject toFetchedProject(Project project) {
     return new DefaultFetchedProject(project.getProjectId(), project.getName());
+  }
+
+  public FetchedProject toFetchedProject(com.google.cloud.resourcemanager.v3.Project project) {
+    return new DefaultFetchedProject(project.getProjectId(), project.getDisplayName());
+  }
+
+  public FetchedProject toFetchedProject(
+      com.google.cloud.resourcemanager.v3.Project project, AOrganization baseOrganization) {
+    return new DefaultFetchedProject(
+        project.getProjectId(), project.getDisplayName(), baseOrganization);
   }
 
   public FetchedDataset toFetchedDataset(Dataset dataset) {
@@ -402,5 +484,7 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
 
   public void close() {
     this.organizationClient.shutdown();
+    this.folderClient.shutdown();
+    this.projectClient.shutdown();
   }
 }

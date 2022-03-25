@@ -6,12 +6,15 @@ import static org.mockito.Mockito.when;
 
 import com.achilio.mvm.service.databases.entities.DefaultFetchedOrganization;
 import com.achilio.mvm.service.entities.AOrganization;
+import com.achilio.mvm.service.entities.AOrganization.OrganizationType;
+import com.achilio.mvm.service.exceptions.OrganizationNotFoundException;
 import com.achilio.mvm.service.repositories.AOrganizationRepository;
 import com.achilio.mvm.service.services.AOrganizationService;
 import com.achilio.mvm.service.services.FetcherService;
 import com.achilio.mvm.service.services.StripeService;
 import com.stripe.model.Customer;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import org.junit.Assert;
@@ -37,6 +40,9 @@ public class AOrganizationServiceTest {
   private final String WORKSPACE1 = "workspace1";
   private final String WORKSPACE2 = "workspace2";
   private final String WORKSPACE3 = "workspace3";
+  private final OrganizationType ORG1 = OrganizationType.ORGANIZATION;
+  private final OrganizationType ORG2 = OrganizationType.ORGANIZATION;
+  private final OrganizationType ORG3 = OrganizationType.ORGANIZATION;
   private final DefaultFetchedOrganization fetchedOrganization1 =
       new DefaultFetchedOrganization(ID1, NAME1, WORKSPACE1);
   private final DefaultFetchedOrganization fetchedOrganization2 =
@@ -48,9 +54,12 @@ public class AOrganizationServiceTest {
   @Mock FetcherService fetcherService;
   @Mock StripeService stripeService;
   @Mock Customer mockedCustomer3;
-  private AOrganization organization1 = new AOrganization(ID1, NAME1, STRIPE_CUSTOMER1, WORKSPACE1);
-  private AOrganization organization2 = new AOrganization(ID2, NAME2, STRIPE_CUSTOMER2, WORKSPACE2);
-  private AOrganization organization3 = new AOrganization(ID3, NAME3, STRIPE_CUSTOMER3, WORKSPACE3);
+  private AOrganization organization1 =
+      new AOrganization(ID1, NAME1, STRIPE_CUSTOMER1, ORG1, WORKSPACE1);
+  private AOrganization organization2 =
+      new AOrganization(ID2, NAME2, STRIPE_CUSTOMER2, ORG2, WORKSPACE2);
+  private AOrganization organization3 =
+      new AOrganization(ID3, NAME3, STRIPE_CUSTOMER3, ORG3, WORKSPACE3);
 
   @Before
   public void setup() {
@@ -97,6 +106,27 @@ public class AOrganizationServiceTest {
     assertOrganizationEquals(organization1, organizationList.get(0));
     assertOrganizationEquals(organization2, organizationList.get(1));
     assertOrganizationEquals(organization3, organizationList.get(2));
+  }
+
+  @Test
+  public void getOrganizationTest() {
+    AOrganization organizationExists = service.getOrganization(ID1);
+    assertOrganizationEquals(organization1, organizationExists);
+
+    Assert.assertThrows(
+        OrganizationNotFoundException.class, () -> service.getOrganization("idnotexists"));
+  }
+
+  @Test
+  public void getAllOrgTest() {
+    List<AOrganization> organizationList = service.getAllOrg();
+    Assert.assertEquals(2, organizationList.size());
+    assertOrganizationEquals(organization1, organizationList.get(0));
+    assertOrganizationEquals(organization2, organizationList.get(1));
+
+    when(fetcherService.fetchAllOrganizations()).thenReturn(Collections.emptyList());
+    organizationList = service.getAllOrg();
+    Assert.assertEquals(0, organizationList.size());
   }
 
   private void assertOrganizationEquals(AOrganization expected, AOrganization got) {

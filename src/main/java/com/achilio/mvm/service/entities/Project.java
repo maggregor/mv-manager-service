@@ -1,5 +1,6 @@
 package com.achilio.mvm.service.entities;
 
+import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.exceptions.InvalidSettingsException;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -32,6 +33,9 @@ public class Project {
   @Column(name = "project_id", nullable = false, unique = true)
   private String projectId;
 
+  @Column(name = "project_name")
+  private String projectName;
+
   @Column(name = "activated", nullable = false)
   private Boolean activated = false;
 
@@ -41,8 +45,8 @@ public class Project {
   @Column(name = "username", nullable = false, columnDefinition = "varchar(255) default ''")
   private String username = Strings.EMPTY;
 
-  @Column(name = "mv_max_per_table", nullable = false, columnDefinition = "numeric default 20")
-  private Integer mvMaxPerTable = 20;
+  @Column(name = "mv_max_per_table", nullable = false, columnDefinition = "numeric default 5")
+  private Integer mvMaxPerTable = 5;
 
   @Column(name = "analysis_timeframe", nullable = false, columnDefinition = "numeric default 30")
   private Integer analysisTimeframe = 30;
@@ -78,12 +82,26 @@ public class Project {
     this.organization = organization;
   }
 
+  public Project(FetchedProject project) {
+    this.projectId = project.getProjectId();
+    this.projectName = project.getName();
+    this.organization = project.getOrganization();
+  }
+
   public Long getId() {
     return id;
   }
 
   public String getProjectId() {
     return projectId;
+  }
+
+  public String getProjectName() {
+    return projectName;
+  }
+
+  public void setProjectName(String projectName) {
+    this.projectName = projectName;
   }
 
   public Boolean isActivated() {
@@ -194,5 +212,9 @@ public class Project {
 
   public AOrganization getOrganization() {
     return organization;
+  }
+
+  public void setOrganization(AOrganization organization) {
+    this.organization = organization;
   }
 }
