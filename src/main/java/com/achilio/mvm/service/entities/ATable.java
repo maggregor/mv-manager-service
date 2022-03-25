@@ -11,7 +11,7 @@ import javax.persistence.Table;
     name = "imported_tables"
     //    indexes = {@Index(name = "dataset_index", columnList = "dataset_id")}
     )
-public class ImportedTable {
+public class ATable {
 
   @ManyToOne ADataset dataset;
   @ManyToOne Project project;
@@ -22,9 +22,9 @@ public class ImportedTable {
 
   @Column private String tableName;
 
-  public ImportedTable() {}
+  public ATable() {}
 
-  public ImportedTable(String id, Project project, ADataset dataset, String tableName) {
+  public ATable(String id, Project project, ADataset dataset, String tableName) {
     this.id = id;
     this.project = project;
     this.dataset = dataset;
@@ -35,31 +35,15 @@ public class ImportedTable {
     return id;
   }
 
-  public void setId(String id) {
-    this.id = id;
-  }
-
   public ADataset getDataset() {
     return dataset;
-  }
-
-  public void setDataset(ADataset dataset) {
-    this.dataset = dataset;
   }
 
   public Project getProject() {
     return project;
   }
 
-  public void setProject(Project project) {
-    this.project = project;
-  }
-
   public String getTableName() {
     return tableName;
-  }
-
-  public void setTableName(String tableName) {
-    this.tableName = tableName;
   }
 }

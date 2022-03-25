@@ -24,9 +24,9 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "imported_columns")
-public class ImportedColumn {
+public class AColumn {
 
-  @ManyToOne ImportedTable table;
+  @ManyToOne ATable table;
 
   @Id private String id;
 
@@ -34,16 +34,16 @@ public class ImportedColumn {
 
   @Column private String type;
 
-  public ImportedColumn() {}
+  public AColumn() {}
 
-  public ImportedColumn(ImportedTable table, String name, String type) {
+  public AColumn(ATable table, String name, String type) {
     this.table = table;
     this.name = name;
     this.type = type;
     setId(table, name);
   }
 
-  public ImportedColumn(String id, ImportedTable table, String name, String type) {
+  public AColumn(String id, ATable table, String name, String type) {
     this.id = id;
     this.table = table;
     this.name = name;
@@ -54,11 +54,7 @@ public class ImportedColumn {
     return id;
   }
 
-  public void setId(String id) {
-    this.id = id;
-  }
-
-  public void setId(ImportedTable table, String name) {
+  public void setId(ATable table, String name) {
     this.id =
         format(
             "%s:%s.%s#%s",
@@ -68,27 +64,15 @@ public class ImportedColumn {
             name);
   }
 
-  public ImportedTable getTable() {
+  public ATable getTable() {
     return table;
-  }
-
-  public void setTable(ImportedTable table) {
-    this.table = table;
   }
 
   public String getName() {
     return name;
   }
 
-  public void setName(String name) {
-    this.name = name;
-  }
-
   public String getType() {
     return type;
-  }
-
-  public void setType(String type) {
-    this.type = type;
   }
 }
