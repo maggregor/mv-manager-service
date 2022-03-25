@@ -7,12 +7,14 @@ import static org.mockito.Mockito.when;
 import com.achilio.mvm.service.databases.entities.DefaultFetchedOrganization;
 import com.achilio.mvm.service.entities.AOrganization;
 import com.achilio.mvm.service.entities.AOrganization.OrganizationType;
+import com.achilio.mvm.service.exceptions.OrganizationNotFoundException;
 import com.achilio.mvm.service.repositories.AOrganizationRepository;
 import com.achilio.mvm.service.services.AOrganizationService;
 import com.achilio.mvm.service.services.FetcherService;
 import com.achilio.mvm.service.services.StripeService;
 import com.stripe.model.Customer;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import org.junit.Assert;
@@ -104,6 +106,27 @@ public class AOrganizationServiceTest {
     assertOrganizationEquals(organization1, organizationList.get(0));
     assertOrganizationEquals(organization2, organizationList.get(1));
     assertOrganizationEquals(organization3, organizationList.get(2));
+  }
+
+  @Test
+  public void getOrganizationTest() {
+    AOrganization organizationExists = service.getOrganization(ID1);
+    assertOrganizationEquals(organization1, organizationExists);
+
+    Assert.assertThrows(
+        OrganizationNotFoundException.class, () -> service.getOrganization("idnotexists"));
+  }
+
+  @Test
+  public void getAllOrgTest() {
+    List<AOrganization> organizationList = service.getAllOrg();
+    Assert.assertEquals(2, organizationList.size());
+    assertOrganizationEquals(organization1, organizationList.get(0));
+    assertOrganizationEquals(organization2, organizationList.get(1));
+
+    when(fetcherService.fetchAllOrganizations()).thenReturn(Collections.emptyList());
+    organizationList = service.getAllOrg();
+    Assert.assertEquals(0, organizationList.size());
   }
 
   private void assertOrganizationEquals(AOrganization expected, AOrganization got) {

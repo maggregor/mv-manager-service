@@ -168,14 +168,14 @@ public class ProjectService {
     }
   }
 
-  public void createProjectFromFetchedProject(FetchedProject p) {
+  public Project createProjectFromFetchedProject(FetchedProject p) {
     if (projectExists(p.getProjectId())) {
       Project updatedProject = getProject(p.getProjectId());
       updatedProject.setProjectName(p.getName());
       updatedProject.setOrganization(p.getOrganization());
-      projectRepository.save(updatedProject);
+      return projectRepository.save(updatedProject);
     } else {
-      projectRepository.save(new Project(p));
+      return projectRepository.save(new Project(p));
     }
   }
 }

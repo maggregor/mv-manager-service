@@ -19,7 +19,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class AOrganizationService {
 
-  private final String NO_ORGANIZATION = "No Organization";
   @Autowired private FetcherService fetcherService;
   @Autowired private StripeService stripeService;
   @Autowired private ProjectService projectService;

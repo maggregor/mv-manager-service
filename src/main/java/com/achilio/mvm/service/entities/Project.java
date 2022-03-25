@@ -85,6 +85,7 @@ public class Project {
   public Project(FetchedProject project) {
     this.projectId = project.getProjectId();
     this.projectName = project.getName();
+    this.organization = project.getOrganization();
   }
 
   public Long getId() {
