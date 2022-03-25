@@ -382,7 +382,7 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
   @Override
   public List<FetchedProject> fetchAllProjectsFromOrg(AOrganization baseOrganization) {
     if (baseOrganization.getOrganizationType() == OrganizationType.NO_ORGANIZATION) {
-      return new ArrayList<>(fetchAllProjectsNoParent());
+      return new ArrayList<>(fetchAllProjectsNoParent(baseOrganization));
     } else {
       return new ArrayList<>(
           fetchAllProjectsFromParent(baseOrganization.getId(), baseOrganization));
@@ -411,14 +411,14 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
   }
 
   @Override
-  public List<FetchedProject> fetchAllProjectsNoParent() {
+  public List<FetchedProject> fetchAllProjectsNoParent(AOrganization baseOrganization) {
     List<FetchedProject> projectList =
         StreamSupport.stream(projectClient.searchProjects("").iterateAll().spliterator(), true)
             .filter(p -> p.getState() == State.ACTIVE)
-            .map(this::toFetchedProject)
+            .map(p -> toFetchedProject(p, baseOrganization))
             .collect(Collectors.toList());
     StreamSupport.stream(folderClient.searchFolders("").iterateAll().spliterator(), true)
-        .forEach(f -> projectList.addAll(fetchAllProjectsNoParent()));
+        .forEach(f -> projectList.addAll(fetchAllProjectsNoParent(baseOrganization)));
     return projectList;
   }
 

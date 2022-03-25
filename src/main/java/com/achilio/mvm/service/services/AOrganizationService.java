@@ -4,6 +4,7 @@ import com.achilio.mvm.service.databases.entities.FetchedOrganization;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.entities.AOrganization;
 import com.achilio.mvm.service.entities.AOrganization.OrganizationType;
+import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import com.achilio.mvm.service.repositories.AOrganizationRepository;
 import com.google.api.services.oauth2.model.Userinfo;
 import com.stripe.model.Customer;
@@ -25,7 +26,10 @@ public class AOrganizationService {
   @Autowired private AOrganizationRepository organizationRepository;
 
   public List<AOrganization> getAllOrg() {
-    return organizationRepository.findAll();
+    return fetcherService.fetchAllOrganizations().stream()
+        .filter(o -> organizationExists(o.getName()))
+        .map(o -> getOrganization(o.getName()))
+        .collect(Collectors.toList());
   }
 
   public List<AOrganization> getAllOrgOrCreate() {
@@ -78,5 +82,14 @@ public class AOrganizationService {
 
   public Optional<AOrganization> findAOrganization(String organizationId) {
     return organizationRepository.findAOrganizationById(organizationId);
+  }
+
+  private boolean organizationExists(String organizationId) {
+    return organizationRepository.findAOrganizationById(organizationId).isPresent();
+  }
+
+  public AOrganization getOrganization(String organizationId) {
+    return findAOrganization(organizationId)
+        .orElseThrow(() -> new ProjectNotFoundException(organizationId));
   }
 }
