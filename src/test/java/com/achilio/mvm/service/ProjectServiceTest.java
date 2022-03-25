@@ -10,7 +10,9 @@ import static org.mockito.Mockito.when;
 
 import com.achilio.mvm.service.controllers.requests.UpdateProjectRequest;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
-import com.achilio.mvm.service.entities.Dataset;
+import com.achilio.mvm.service.entities.ADataset;
+import com.achilio.mvm.service.entities.AOrganization;
+import com.achilio.mvm.service.entities.AOrganization.OrganizationType;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import com.achilio.mvm.service.repositories.DatasetRepository;
@@ -18,9 +20,8 @@ import com.achilio.mvm.service.repositories.ProjectRepository;
 import com.achilio.mvm.service.services.FetcherService;
 import com.achilio.mvm.service.services.GooglePublisherService;
 import com.achilio.mvm.service.services.ProjectService;
-import com.achilio.mvm.service.services.StripeService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.api.services.oauth2.model.Userinfo;
-import com.stripe.model.Customer;
 import com.stripe.model.Product;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -51,23 +52,28 @@ public class ProjectServiceTest {
   private static final String TEST_DATASET_NAME1 = "nyc_trips";
   private static final String TEST_DATASET_NAME2 = "another_one";
   private static final String TEST_DATASET_NAME3 = "other_dataset";
-  private static final Dataset mockedDataset1 = mock(Dataset.class);
-  private static final Dataset mockedDataset2 = mock(Dataset.class);
-  private final Dataset realDataset = new Dataset(mockedProject1, TEST_DATASET_NAME3);
+  private static final String ORGANIZATION_ID = "organization/123456";
+  private static final String ORGANIZATION_NAME = "achilio.com";
+  private static final String STRIPE_CUSTOMER_ID = "cus_123456";
+  private static final OrganizationType ORGANIZATION_TYPE = OrganizationType.ORGANIZATION;
+  private static final AOrganization ORGANIZATION =
+      new AOrganization(ORGANIZATION_ID, ORGANIZATION_NAME, STRIPE_CUSTOMER_ID, ORGANIZATION_TYPE);
+  private static final ADataset mockedDataset1 = mock(ADataset.class);
+  private static final ADataset mockedDataset2 = mock(ADataset.class);
+  private final ADataset realDataset = new ADataset(mockedProject1, TEST_DATASET_NAME3);
   private final Map<String, String> productMetadata = new HashMap<>();
   private final Map<String, String> errorProductMetadata = new HashMap<>();
   private final Project realProject = new Project(TEST_PROJECT_ID2);
   @InjectMocks private ProjectService service;
   @Mock private ProjectRepository mockedProjectRepository;
   @Mock private DatasetRepository mockedDatasetRepository;
-  @Mock private GooglePublisherService mockedPublisherService;
   @Mock private Product mockedProduct;
   @Mock private Product errorMockedProduct;
   @Mock private FetcherService mockedFetcherService;
-  @Mock private StripeService mockedStripeService;
+  @Mock private GooglePublisherService mockedPublisherService;
 
   @Before
-  public void setup() {
+  public void setup() throws JsonProcessingException {
     when(mockedProject1.getProjectId()).thenReturn(TEST_PROJECT_ID1);
     when(mockedProject2.getProjectId()).thenReturn(TEST_PROJECT_ID2);
     when(mockedProjectRepository.save(any())).then(AdditionalAnswers.returnsFirstArg());
@@ -78,7 +84,7 @@ public class ProjectServiceTest {
     when(mockedProjectRepository.findAllByActivated(true)).thenReturn(mockedActivatedProjects);
     when(mockedDataset1.isActivated()).thenReturn(true);
     when(mockedDataset2.isActivated()).thenReturn(false);
-    when(mockedDatasetRepository.save(any(Dataset.class))).thenReturn(mockedDataset1);
+    when(mockedDatasetRepository.save(any(ADataset.class))).thenReturn(mockedDataset1);
     when(mockedDatasetRepository.findByProjectAndDatasetName(mockedProject1, TEST_DATASET_NAME1))
         .thenReturn(Optional.of(mockedDataset1));
     when(mockedDatasetRepository.findByProjectAndDatasetName(mockedProject1, TEST_DATASET_NAME2))
@@ -90,17 +96,15 @@ public class ProjectServiceTest {
     when(mockedProduct.getMetadata()).thenReturn(productMetadata);
     when(errorMockedProduct.getMetadata()).thenReturn(errorProductMetadata);
     when(mockedFetcherService.getUserInfo()).thenReturn(new Userinfo().setEmail("myEmail"));
+    when(mockedFetchedProject.getProjectId()).thenReturn(TEST_PROJECT_ID2);
+    when(mockedFetchedProject.getName()).thenReturn(TEST_PROJECT_NAME2);
+    when(mockedFetchedProject.getOrganization()).thenReturn(ORGANIZATION);
   }
 
   @Test
   public void createProject() {
-    final String expectedStripeCustomerId = "stripe-id-100";
-    Customer customer = mock(Customer.class);
-    when(customer.getId()).thenReturn(expectedStripeCustomerId);
-    when(mockedStripeService.createCustomer(any(), any())).thenReturn(customer);
     Project project = service.createProject(TEST_PROJECT_ID1);
     assertEquals(mockedProject1.getProjectId(), project.getProjectId());
-    assertEquals(expectedStripeCustomerId, project.getStripeCustomerId());
   }
 
   @Test
@@ -184,13 +188,13 @@ public class ProjectServiceTest {
   @Test
   public void updateMvMaxPerTableLimit() {
     Project project = new Project(TEST_PROJECT_ID1);
-    assertEquals(20, project.getMvMaxPerTable());
+    assertEquals(5, project.getMvMaxPerTable());
     assertEquals(20, project.getMvMaxPerTableLimit());
-    service.updateMvMaxPerTableLimit(project, 10);
-    assertEquals(10, project.getMvMaxPerTable());
-    assertEquals(10, project.getMvMaxPerTableLimit());
+    service.updateMvMaxPerTableLimit(project, 3);
+    assertEquals(3, project.getMvMaxPerTable());
+    assertEquals(3, project.getMvMaxPerTableLimit());
     service.updateMvMaxPerTableLimit(project, 12);
-    assertEquals(10, project.getMvMaxPerTable());
+    assertEquals(3, project.getMvMaxPerTable());
     assertEquals(12, project.getMvMaxPerTableLimit());
   }
 
@@ -224,7 +228,7 @@ public class ProjectServiceTest {
 
   @Test
   public void updateDataset() {
-    Dataset dataset = service.updateDataset(TEST_PROJECT_ID1, TEST_DATASET_NAME3, true);
+    ADataset dataset = service.updateDataset(TEST_PROJECT_ID1, TEST_DATASET_NAME3, true);
     assertTrue(dataset.isActivated());
     assertEquals(TEST_DATASET_NAME3, "other_dataset");
     dataset = service.updateDataset(TEST_PROJECT_ID1, TEST_DATASET_NAME3, false);
@@ -235,5 +239,22 @@ public class ProjectServiceTest {
   public void isDatasetActivated() {
     assertTrue(service.isDatasetActivated(TEST_PROJECT_ID1, TEST_DATASET_NAME1));
     assertFalse(service.isDatasetActivated(TEST_PROJECT_ID1, TEST_DATASET_NAME2));
+  }
+
+  @Test
+  public void createProjectFromFetchedProjectExistsTest() {
+    Project project1 = service.createProjectFromFetchedProject(mockedFetchedProject);
+    assertEquals(TEST_PROJECT_ID2, project1.getProjectId());
+    assertEquals(TEST_PROJECT_NAME2, project1.getProjectName());
+    assertEquals(ORGANIZATION_NAME, project1.getOrganization().getName());
+  }
+
+  @Test
+  public void createProjectFromFetchedProjectNotExistsTest() {
+    when(mockedProjectRepository.findByProjectId(TEST_PROJECT_ID2)).thenReturn(Optional.empty());
+    Project project1 = service.createProjectFromFetchedProject(mockedFetchedProject);
+    assertEquals(TEST_PROJECT_ID2, project1.getProjectId());
+    assertEquals(TEST_PROJECT_NAME2, project1.getProjectName());
+    assertEquals(ORGANIZATION_NAME, project1.getOrganization().getName());
   }
 }

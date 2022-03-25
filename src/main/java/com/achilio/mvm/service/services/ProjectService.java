@@ -1,15 +1,16 @@
 package com.achilio.mvm.service.services;
 
 import com.achilio.mvm.service.controllers.requests.UpdateProjectRequest;
-import com.achilio.mvm.service.entities.Dataset;
+import com.achilio.mvm.service.databases.entities.FetchedProject;
+import com.achilio.mvm.service.entities.ADataset;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import com.achilio.mvm.service.repositories.DatasetRepository;
 import com.achilio.mvm.service.repositories.ProjectRepository;
-import com.stripe.model.Customer;
 import com.stripe.model.Product;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import javax.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,14 +35,19 @@ public class ProjectService {
     return projectRepository.findAllByActivated(true);
   }
 
+  public List<Project> findAllProjects() {
+    return fetcherService.fetchAllProjects().stream()
+        .filter(p -> projectExists(p.getProjectId()))
+        .map(p -> getProject(p.getProjectId()))
+        .collect(Collectors.toList());
+  }
+
   public Project findProjectOrCreate(String projectId) {
     return findProject(projectId).orElseGet(() -> createProject(projectId));
   }
 
   public Project createProject(String projectId) {
-    // To date the customerName is the projectId
-    Customer customer = stripeService.createCustomer(projectId, projectId);
-    Project project = new Project(projectId, customer.getId());
+    Project project = new Project(projectId, null, null);
     return projectRepository.save(project);
   }
 
@@ -50,6 +56,7 @@ public class ProjectService {
   }
 
   public Project getProject(String projectId) {
+    fetcherService.fetchProject(projectId);
     return findProject(projectId).orElseThrow(() -> new ProjectNotFoundException(projectId));
   }
 
@@ -57,13 +64,18 @@ public class ProjectService {
     return projectRepository.findByProjectId(projectId).isPresent();
   }
 
+  public Project updateProjectSubscription(Project project, String subscriptionId) {
+    project.setStripeSubscriptionId(subscriptionId);
+    return projectRepository.save(project);
+  }
+
   @Transactional
   public Project updateProject(String projectId, UpdateProjectRequest payload) {
+    fetcherService.fetchProject(projectId);
     Project project = getProject(projectId);
     // If automatic has been sent in the payload (or if the project is being deactivated), we need
     // to publish a potential config change on the schedulers
     Boolean automaticChanged = project.setAutomatic(payload.isAutomatic());
-
     project.setAnalysisTimeframe(payload.getAnalysisTimeframe());
     project.setMvMaxPerTable(payload.getMvMaxPerTable());
     projectRepository.save(project);
@@ -77,36 +89,36 @@ public class ProjectService {
     return project;
   }
 
-  private Optional<Dataset> getDataset(String projectId, String datasetName) {
+  private Optional<ADataset> getDataset(String projectId, String datasetName) {
     return getDataset(getProject(projectId), datasetName);
   }
 
-  private Optional<Dataset> getDataset(Project project, String datasetName) {
+  private Optional<ADataset> getDataset(Project project, String datasetName) {
     return datasetRepository.findByProjectAndDatasetName(project, datasetName);
   }
 
-  private Dataset findDatasetOrCreate(String projectId, String dataset) {
+  private ADataset findDatasetOrCreate(String projectId, String dataset) {
     return getDataset(projectId, dataset).orElseGet(() -> createDataset(projectId, dataset));
   }
 
-  private Dataset createDataset(String projectId, String datasetName) {
+  private ADataset createDataset(String projectId, String datasetName) {
     return createDataset(getProject(projectId), datasetName);
   }
 
-  private Dataset createDataset(Project project, String datasetName) {
-    return datasetRepository.save(new Dataset(project, datasetName));
+  private ADataset createDataset(Project project, String datasetName) {
+    return datasetRepository.save(new ADataset(project, datasetName));
   }
 
   @Transactional
-  public Dataset updateDataset(String projectId, String datasetName, Boolean activated) {
-    Dataset dataset = findDatasetOrCreate(projectId, datasetName);
+  public ADataset updateDataset(String projectId, String datasetName, Boolean activated) {
+    ADataset dataset = findDatasetOrCreate(projectId, datasetName);
     dataset.setActivated(activated);
     datasetRepository.save(dataset);
     return dataset;
   }
 
   public boolean isDatasetActivated(String projectId, String datasetName) {
-    return getDataset(projectId, datasetName).map(Dataset::isActivated).orElse(false);
+    return getDataset(projectId, datasetName).map(ADataset::isActivated).orElse(false);
   }
 
   @Transactional
@@ -153,6 +165,17 @@ public class ProjectService {
     }
     if (automaticAvailable != null) {
       updateProjectAutomaticAvailable(project, Boolean.parseBoolean(automaticAvailable));
+    }
+  }
+
+  public Project createProjectFromFetchedProject(FetchedProject p) {
+    if (projectExists(p.getProjectId())) {
+      Project updatedProject = getProject(p.getProjectId());
+      updatedProject.setProjectName(p.getName());
+      updatedProject.setOrganization(p.getOrganization());
+      return projectRepository.save(updatedProject);
+    } else {
+      return projectRepository.save(new Project(p));
     }
   }
 }

@@ -1,5 +1,7 @@
 package com.achilio.mvm.service.databases.entities;
 
+import com.achilio.mvm.service.entities.AOrganization;
+
 /** Represents a single project from database with metadata. */
 public interface FetchedProject {
 
@@ -16,4 +18,6 @@ public interface FetchedProject {
    * @return the project name.
    */
   String getName();
+
+  AOrganization getOrganization();
 }

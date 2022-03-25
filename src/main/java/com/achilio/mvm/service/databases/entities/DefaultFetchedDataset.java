@@ -5,6 +5,7 @@ public class DefaultFetchedDataset implements FetchedDataset {
   private final String projectId;
   private final String friendlyName;
   private final String datasetName;
+  private final String datasetId;
   private final String location;
   private final String description;
   private final Long createdAt;
@@ -13,6 +14,7 @@ public class DefaultFetchedDataset implements FetchedDataset {
   public DefaultFetchedDataset(
       final String projectId,
       final String datasetName,
+      final String datasetId,
       final String location,
       final String friendlyName,
       final String description,
@@ -20,6 +22,7 @@ public class DefaultFetchedDataset implements FetchedDataset {
       final Long lastModified) {
     this.projectId = projectId;
     this.datasetName = datasetName;
+    this.datasetId = datasetId;
     this.location = location;
     this.friendlyName = friendlyName;
     this.description = description;
@@ -35,6 +38,11 @@ public class DefaultFetchedDataset implements FetchedDataset {
   @Override
   public String getProjectId() {
     return this.projectId;
+  }
+
+  @Override
+  public String getDatasetId() {
+    return datasetId;
   }
 
   @Override

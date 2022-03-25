@@ -4,6 +4,7 @@ public class CreateSubscriptionRequest {
 
   private String customerId;
   private String priceId;
+  private String projectId;
 
   public CreateSubscriptionRequest() {}
 
@@ -13,5 +14,9 @@ public class CreateSubscriptionRequest {
 
   public String getPriceId() {
     return this.priceId;
+  }
+
+  public String getProjectId() {
+    return this.projectId;
   }
 }

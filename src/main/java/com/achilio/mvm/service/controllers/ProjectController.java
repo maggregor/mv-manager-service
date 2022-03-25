@@ -11,18 +11,17 @@ import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics;
 import com.achilio.mvm.service.services.FetcherService;
-import com.achilio.mvm.service.services.FetcherService.StatEntry;
 import com.achilio.mvm.service.services.ProjectService;
 import io.swagger.annotations.ApiOperation;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -37,21 +36,23 @@ public class ProjectController {
   @Autowired private ProjectService projectService;
   @Autowired private FetcherService fetcherService;
 
-  @GetMapping(path = "/project", produces = "application/json")
+  @GetMapping(path = "/project", produces = MediaType.APPLICATION_JSON_VALUE)
   @ApiOperation("List all projects")
   public List<ProjectResponse> getAllProjects() {
-    return fetcherService.fetchAllProjects().stream()
+    return projectService.findAllProjects().stream()
         .map(this::toProjectResponse)
         .collect(Collectors.toList());
   }
 
-  @GetMapping(path = "/project/{projectId}", produces = "application/json")
+  @GetMapping(path = "/project/{projectId}", produces = MediaType.APPLICATION_JSON_VALUE)
   @ApiOperation("Get a project for a given projectId")
   public ProjectResponse getProject(@PathVariable final String projectId) {
     return toProjectResponse(fetcherService.fetchProject(projectId));
   }
 
-  @GetMapping(path = "/project/{projectId}/permissions", produces = "application/json")
+  @GetMapping(
+      path = "/project/{projectId}/permissions",
+      produces = MediaType.APPLICATION_JSON_VALUE)
   @ApiOperation("Check permissions for a given projectId")
   public List<String> getMissingPermissions(@PathVariable final String projectId) {
     return fetcherService.fetchMissingPermissions(projectId);
@@ -63,22 +64,12 @@ public class ProjectController {
   public ProjectResponse updateProject(
       @PathVariable final String projectId, @RequestBody final UpdateProjectRequest payload) {
     Project updatedProject = projectService.updateProject(projectId, payload);
-    FetchedProject fetchedProject = fetcherService.fetchProject(projectId);
-    return toProjectResponse(fetchedProject, updatedProject);
+    return toProjectResponse(updatedProject);
   }
 
-  @Deprecated
-  @PostMapping(path = "/project/{projectId}/dataset/{datasetName}", produces = "application/json")
-  @ApiOperation("Update metadata of a dataset")
-  public UpdateDatasetRequestResponse updateDatasetPost(
-      @PathVariable final String projectId,
-      @PathVariable final String datasetName,
-      @RequestBody final UpdateDatasetRequestResponse payload) {
-    return new UpdateDatasetRequestResponse(
-        projectService.updateDataset(projectId, datasetName, payload.isActivated()));
-  }
-
-  @PutMapping(path = "/project/{projectId}/dataset/{datasetName}", produces = "application/json")
+  @PutMapping(
+      path = "/project/{projectId}/dataset/{datasetName}",
+      produces = MediaType.APPLICATION_JSON_VALUE)
   @ApiOperation("Update metadata of a dataset")
   public UpdateDatasetRequestResponse updateDataset(
       @PathVariable final String projectId,
@@ -88,7 +79,7 @@ public class ProjectController {
         projectService.updateDataset(projectId, datasetName, payload.isActivated()));
   }
 
-  @GetMapping(path = "/project/{projectId}/dataset", produces = "application/json")
+  @GetMapping(path = "/project/{projectId}/dataset", produces = MediaType.APPLICATION_JSON_VALUE)
   @ApiOperation("Get all dataset for a given projectId")
   public List<DatasetResponse> getAllDatasets(@PathVariable final String projectId) {
     return fetcherService.fetchAllDatasets(projectId).stream()
@@ -96,7 +87,9 @@ public class ProjectController {
         .collect(Collectors.toList());
   }
 
-  @GetMapping(path = "/project/{projectId}/dataset/{datasetName}", produces = "application/json")
+  @GetMapping(
+      path = "/project/{projectId}/dataset/{datasetName}",
+      produces = MediaType.APPLICATION_JSON_VALUE)
   @ApiOperation("Get a single dataset for a given projectId")
   public DatasetResponse getDataset(
       @PathVariable final String projectId, @PathVariable final String datasetName) {
@@ -106,7 +99,7 @@ public class ProjectController {
 
   @GetMapping(
       path = "/project/{projectId}/queries/{days}/statistics",
-      produces = "application/json")
+      produces = MediaType.APPLICATION_JSON_VALUE)
   @ApiOperation("Get statistics of queries ")
   public GlobalQueryStatisticsResponse getQueryStatistics(
       @PathVariable final String projectId, @PathVariable final int days) throws Exception {
@@ -115,17 +108,8 @@ public class ProjectController {
   }
 
   @GetMapping(
-      path = "/project/{projectId}/queries/{days}/statistics/series",
-      produces = "application/json")
-  @ApiOperation("Get statistics of queries grouped per days for charts")
-  public List<StatEntry> getDailyStatistics(
-      @PathVariable final String projectId, @PathVariable final int days) {
-    return fetcherService.getDailyStatistics(projectId, days);
-  }
-
-  @GetMapping(
       path = "/project/{projectId}/queries/{days}/statistics/kpi",
-      produces = "application/json")
+      produces = MediaType.APPLICATION_JSON_VALUE)
   @ApiOperation("Get statistics of queries grouped per days for charts")
   public AggregatedStatisticsResponse getKPIStatistics(
       @PathVariable final String projectId, @PathVariable final int days) throws Exception {
@@ -142,13 +126,13 @@ public class ProjectController {
     return new AggregatedStatisticsResponse(statistics);
   }
 
-  private ProjectResponse toProjectResponse(FetchedProject fetchedProject, Project project) {
-    return new ProjectResponse(fetchedProject.getName(), project);
-  }
-
   private ProjectResponse toProjectResponse(FetchedProject fetchedProject) {
     Project project = projectService.findProjectOrCreate(fetchedProject.getProjectId());
     return new ProjectResponse(fetchedProject.getName(), project);
+  }
+
+  private ProjectResponse toProjectResponse(Project project) {
+    return new ProjectResponse(project);
   }
 
   private DatasetResponse toDatasetResponse(FetchedDataset dataset) {

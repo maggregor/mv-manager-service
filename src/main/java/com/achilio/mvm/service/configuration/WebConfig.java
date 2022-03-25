@@ -35,7 +35,8 @@ public class WebConfig implements WebMvcConfigurer {
     registry
         .addInterceptor(googleProjectInterceptor)
         .addPathPatterns("/**")
-        .excludePathPatterns("/api/v1/webhook/**");
+        .excludePathPatterns("/api/v1/webhook/**")
+        .excludePathPatterns("/api/v1/organization");
   }
 
   @Override

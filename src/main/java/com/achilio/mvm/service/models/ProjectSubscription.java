@@ -11,9 +11,13 @@ public class ProjectSubscription {
   @JsonProperty("status")
   private String status;
 
-  public ProjectSubscription(String subscriptionId, String status) {
+  @JsonProperty("priceId")
+  private String priceId;
+
+  public ProjectSubscription(String subscriptionId, String status, String priceId) {
     this.subscriptionId = subscriptionId;
     this.status = status;
+    this.priceId = priceId;
   }
 
   public boolean isActive() {
@@ -26,5 +30,9 @@ public class ProjectSubscription {
 
   public String getId() {
     return this.subscriptionId;
+  }
+
+  public String getPriceId() {
+    return priceId;
   }
 }

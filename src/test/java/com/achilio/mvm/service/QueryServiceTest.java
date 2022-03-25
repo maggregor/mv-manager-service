@@ -58,7 +58,7 @@ public class QueryServiceTest {
     when(mockFetcherJobRepository.findFetcherQueryJobByIdAndProjectId(
             ArgumentMatchers.eq(-1L), any()))
         .thenReturn(java.util.Optional.empty());
-    when(mockFetcherJobRepository.findTopFetchedQueryJobByProjectIdOrderByCreatedAtDesc(any()))
+    when(mockFetcherJobRepository.findTopFetcherQueryJobByProjectIdOrderByCreatedAtDesc(any()))
         .thenReturn(java.util.Optional.ofNullable(JOB1));
     when(mockQueryRepository.findAllByInitialFetcherQueryJobAndProjectId(
             ArgumentMatchers.eq(JOB1), any()))
@@ -90,7 +90,7 @@ public class QueryServiceTest {
 
   @Test
   public void getAllQueriesByProjectIdLastJobTest() {
-    when(mockFetcherJobRepository.findTopFetchedQueryJobByProjectIdOrderByCreatedAtDesc(
+    when(mockFetcherJobRepository.findTopFetcherQueryJobByProjectIdOrderByCreatedAtDesc(
             "unknownProjectId"))
         .thenReturn(java.util.Optional.empty());
 

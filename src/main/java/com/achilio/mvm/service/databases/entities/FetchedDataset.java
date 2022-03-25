@@ -1,6 +1,6 @@
 package com.achilio.mvm.service.databases.entities;
 
-/** Represents a single project from database with metadata. */
+/** Represents a single dataset from database with metadata. */
 public interface FetchedDataset {
 
   /**
@@ -16,6 +16,8 @@ public interface FetchedDataset {
    * @return the dataset name.
    */
   String getDatasetName();
+
+  String getDatasetId();
 
   String getLocation();
 

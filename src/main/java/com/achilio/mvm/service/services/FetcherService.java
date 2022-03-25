@@ -5,9 +5,11 @@ import com.achilio.mvm.service.databases.DatabaseFetcher;
 import com.achilio.mvm.service.databases.bigquery.BigQueryDatabaseFetcher;
 import com.achilio.mvm.service.databases.bigquery.BigQueryMaterializedViewStatementBuilder;
 import com.achilio.mvm.service.databases.entities.FetchedDataset;
+import com.achilio.mvm.service.databases.entities.FetchedOrganization;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
+import com.achilio.mvm.service.entities.AOrganization;
 import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics;
 import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics.Scope;
 import com.achilio.mvm.service.entities.statistics.QueryStatistics;
@@ -20,13 +22,7 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.oauth2.Oauth2;
 import com.google.api.services.oauth2.model.Userinfo;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.temporal.TemporalAdjusters;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Value;
@@ -48,12 +44,6 @@ public class FetcherService {
     this.statementBuilder = new BigQueryMaterializedViewStatementBuilder();
   }
 
-  public static QueryUsageStatistics merge(List<QueryUsageStatistics> statistics) {
-    QueryUsageStatistics root = new QueryUsageStatistics(0, 0, 0);
-    statistics.forEach(root::addQueryUsageStatistics);
-    return root;
-  }
-
   public static long averageQueryCost(List<QueryUsageStatistics> statistics) {
     QueryUsageStatistics root = new QueryUsageStatistics(0, 0, 0);
     statistics.forEach(root::addQueryUsageStatistics);
@@ -61,19 +51,45 @@ public class FetcherService {
   }
 
   public List<FetchedProject> fetchAllProjects() {
-    return fetcher().fetchAllProjects();
+    DatabaseFetcher fetcher = fetcher();
+    List<FetchedProject> projectList = fetcher.fetchAllProjects();
+    fetcher.close();
+    return projectList;
+  }
+
+  public List<FetchedOrganization> fetchAllOrganizations() {
+    DatabaseFetcher fetcher = fetcher();
+    List<FetchedOrganization> organizationList = fetcher.fetchAllOrganizations();
+    fetcher.close();
+    return organizationList;
+  }
+
+  public List<FetchedProject> fetchAllProjectsFromOrg(AOrganization organization) {
+    DatabaseFetcher fetcher = fetcher();
+    List<FetchedProject> projectList = fetcher.fetchAllProjectsFromOrg(organization);
+    fetcher.close();
+    return projectList;
   }
 
   public FetchedProject fetchProject(String projectId) throws ProjectNotFoundException {
-    return fetcher(projectId).fetchProject(projectId);
+    DatabaseFetcher fetcher = fetcher();
+    FetchedProject fetchedProject = fetcher.fetchProject(projectId);
+    fetcher.close();
+    return fetchedProject;
   }
 
   public List<FetchedDataset> fetchAllDatasets(String projectId) {
-    return fetcher(projectId).fetchAllDatasets(projectId);
+    DatabaseFetcher fetcher = fetcher(projectId);
+    List<FetchedDataset> datasetList = fetcher.fetchAllDatasets(projectId);
+    fetcher.close();
+    return datasetList;
   }
 
   public FetchedDataset fetchDataset(String projectId, String datasetName) {
-    return fetcher(projectId).fetchDataset(datasetName);
+    DatabaseFetcher fetcher = fetcher(projectId);
+    FetchedDataset fetchedDataset = fetcher.fetchDataset(datasetName);
+    fetcher.close();
+    return fetchedDataset;
   }
 
   public List<FetchedQuery> fetchQueriesSinceLastDays(String projectId, int lastDays) {
@@ -81,41 +97,21 @@ public class FetcherService {
   }
 
   public List<FetchedQuery> fetchQueriesSinceTimestamp(String projectId, long fromTimestamp) {
-    return fetcher(projectId).fetchAllQueriesFrom(fromTimestamp);
+    DatabaseFetcher fetcher = fetcher(projectId);
+    List<FetchedQuery> queryList = fetcher.fetchAllQueriesFrom(fromTimestamp);
+    fetcher.close();
+    return queryList;
   }
 
   public Set<FetchedTable> fetchAllTables(String projectId) {
-    return fetcher(projectId).fetchAllTables();
+    DatabaseFetcher fetcher = fetcher(projectId);
+    Set<FetchedTable> fetchedTableSet = fetcher.fetchAllTables();
+    fetcher.close();
+    return fetchedTableSet;
   }
 
   public GlobalQueryStatistics getStatistics(String projectId, int lastDays) throws Exception {
     return getStatistics(fetchQueriesSinceLastDays(projectId, lastDays));
-  }
-
-  public List<StatEntry> getDailyStatistics(String projectId, int lastDays) {
-    Map<LocalDate, List<QueryUsageStatistics>> fetched =
-        fetchQueriesSinceLastDays(projectId, lastDays).parallelStream()
-            .collect(
-                Collectors.groupingBy(
-                    q -> q.getDate().with(TemporalAdjusters.ofDateAdjuster(d -> d)),
-                    Collectors.mapping(FetchedQuery::getStatistics, Collectors.toList())));
-    for (int i = 0; i < lastDays; i++) {
-      LocalDate currentDay =
-          LocalDate.now().minusDays(i).with(TemporalAdjusters.ofDateAdjuster(d -> d));
-      if (!fetched.containsKey(currentDay)) {
-        fetched.put(currentDay, Collections.emptyList());
-      }
-    }
-    return fetched.entrySet().stream()
-        .collect(
-            Collectors.toMap(
-                e -> e.getKey().atStartOfDay(ZoneId.systemDefault()).toEpochSecond(),
-                e -> averageQueryCost(e.getValue())))
-        .entrySet()
-        .stream()
-        .map(e -> new StatEntry(e.getKey(), e.getValue()))
-        .sorted(Comparator.comparingLong(StatEntry::getTimestamp))
-        .collect(Collectors.toList());
   }
 
   public GlobalQueryStatistics getStatistics(List<FetchedQuery> queries) {
@@ -177,24 +173,5 @@ public class FetcherService {
 
   public List<String> fetchMissingPermissions(String projectId) {
     return fetcher().fetchMissingPermissions(projectId);
-  }
-
-  public static class StatEntry {
-
-    private final long timestamp;
-    private final long value;
-
-    public StatEntry(long timestamp, long value) {
-      this.timestamp = timestamp;
-      this.value = value;
-    }
-
-    public long getTimestamp() {
-      return this.timestamp;
-    }
-
-    public long getValue() {
-      return this.value;
-    }
   }
 }

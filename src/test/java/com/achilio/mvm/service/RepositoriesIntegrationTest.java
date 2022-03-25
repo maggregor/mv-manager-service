@@ -3,6 +3,7 @@ package com.achilio.mvm.service;
 import com.achilio.mvm.service.entities.FetcherJob;
 import com.achilio.mvm.service.entities.FetcherJob.FetcherJobStatus;
 import com.achilio.mvm.service.entities.FetcherQueryJob;
+import com.achilio.mvm.service.entities.FetcherStructJob;
 import com.achilio.mvm.service.entities.Query;
 import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
 import com.achilio.mvm.service.repositories.FetcherJobRepository;
@@ -90,6 +91,7 @@ public class RepositoriesIntegrationTest {
           false,
           LocalDate.of(2020, 1, 8),
           stats);
+  private final FetcherStructJob job5 = new FetcherStructJob(TEST_PROJECT_ID1);
 
   @Autowired FetcherJobRepository fetcherJobRepository;
   @Autowired QueryRepository queryRepository;
@@ -101,6 +103,7 @@ public class RepositoriesIntegrationTest {
     fetcherJobRepository.save(job2);
     fetcherJobRepository.save(job3);
     fetcherJobRepository.save(job4);
+    fetcherJobRepository.save(job5);
 
     queryRepository.save(query1);
     queryRepository.save(query2);
@@ -137,19 +140,26 @@ public class RepositoriesIntegrationTest {
 
   @Test
   public void findAllByProjectIdTest() {
-    List<FetcherQueryJob> jobs =
+    List<FetcherQueryJob> queryJobs =
         fetcherJobRepository.findFetcherQueryJobsByProjectId(TEST_PROJECT_ID1);
-    Assert.assertEquals(3, jobs.size());
-    FetcherJob job = jobs.get(0);
+    Assert.assertEquals(3, queryJobs.size());
+    FetcherJob job = queryJobs.get(0);
     Assert.assertEquals(TEST_PROJECT_ID1, job.getProjectId());
     Assert.assertNotNull(job.getCreatedAt());
     Assert.assertEquals("PENDING", job.getStatus().toString());
+
+    List<FetcherStructJob> structJobs =
+        fetcherJobRepository.findFetcherStructJobsByProjectId(TEST_PROJECT_ID1);
+    Assert.assertEquals(1, structJobs.size());
+
+    List<FetcherJob> allJobs = fetcherJobRepository.findFetcherJobsByProjectId(TEST_PROJECT_ID1);
+    Assert.assertEquals(4, allJobs.size());
   }
 
   @Test
   public void findLastFetcherQueryJobTest() {
     Optional<FetcherQueryJob> optionalJob =
-        fetcherJobRepository.findTopFetchedQueryJobByProjectIdOrderByCreatedAtDesc(
+        fetcherJobRepository.findTopFetcherQueryJobByProjectIdOrderByCreatedAtDesc(
             TEST_PROJECT_ID1);
     List<FetcherQueryJob> allJobs =
         fetcherJobRepository.findFetcherQueryJobsByProjectId(TEST_PROJECT_ID1);
@@ -166,21 +176,31 @@ public class RepositoriesIntegrationTest {
 
   @Test
   public void findFetcherQueryJobsByProjectIdAndStatusTest() {
-    List<FetcherQueryJob> jobs =
+    List<FetcherQueryJob> queryJobs =
         fetcherJobRepository.findFetcherQueryJobsByProjectIdAndStatus(
             TEST_PROJECT_ID1, FetcherJobStatus.PENDING);
-    Assert.assertEquals(2, jobs.size());
+    Assert.assertEquals(2, queryJobs.size());
+
+    List<FetcherStructJob> structJobs =
+        fetcherJobRepository.findFetcherStructJobsByProjectIdAndStatus(
+            TEST_PROJECT_ID1, FetcherJobStatus.PENDING);
+    Assert.assertEquals(1, structJobs.size());
+
+    List<FetcherJob> allJobs =
+        fetcherJobRepository.findFetcherJobsByProjectIdAndStatus(
+            TEST_PROJECT_ID1, FetcherJobStatus.PENDING);
+    Assert.assertEquals(3, allJobs.size());
   }
 
   @Test
   public void findTopFetchedQueryJobByProjectIdAndStatusOrderByCreatedAtDescTest() {
     Optional<FetcherQueryJob> optionalFetcherJob =
-        fetcherJobRepository.findTopFetchedQueryJobByProjectIdAndStatusOrderByCreatedAtDesc(
+        fetcherJobRepository.findTopFetcherQueryJobByProjectIdAndStatusOrderByCreatedAtDesc(
             TEST_PROJECT_ID1, FetcherJobStatus.PENDING);
     Assert.assertTrue(optionalFetcherJob.isPresent());
 
     optionalFetcherJob =
-        fetcherJobRepository.findTopFetchedQueryJobByProjectIdAndStatusOrderByCreatedAtDesc(
+        fetcherJobRepository.findTopFetcherQueryJobByProjectIdAndStatusOrderByCreatedAtDesc(
             TEST_PROJECT_ID1, FetcherJobStatus.WORKING);
     Assert.assertFalse(optionalFetcherJob.isPresent());
   }
@@ -191,7 +211,7 @@ public class RepositoriesIntegrationTest {
         fetcherJobRepository.findFetcherQueryJobByIdAndProjectId(job1.getId(), TEST_PROJECT_ID1);
     Assert.assertTrue(fetchedJob1.isPresent());
     Assert.assertEquals(job1.getId(), fetchedJob1.get().getId());
-    Assert.assertEquals(7, fetchedJob1.get().getTimeframe());
+    Assert.assertEquals(7, ((FetcherQueryJob) fetchedJob1.get()).getTimeframe());
     Optional<FetcherQueryJob> fetchedJob2 =
         fetcherJobRepository.findFetcherQueryJobByIdAndProjectId(job2.getId(), TEST_PROJECT_ID1);
     Assert.assertTrue(fetchedJob2.isPresent());

@@ -1,5 +1,6 @@
 package com.achilio.mvm.service.entities;
 
+import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.exceptions.InvalidSettingsException;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -7,6 +8,7 @@ import javax.persistence.EntityListeners;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.util.Strings;
@@ -22,6 +24,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 public class Project {
 
   private static Logger LOGGER = LoggerFactory.getLogger(Project.class);
+  @ManyToOne AOrganization organization;
 
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
@@ -29,6 +32,9 @@ public class Project {
 
   @Column(name = "project_id", nullable = false, unique = true)
   private String projectId;
+
+  @Column(name = "project_name")
+  private String projectName;
 
   @Column(name = "activated", nullable = false)
   private Boolean activated = false;
@@ -39,8 +45,8 @@ public class Project {
   @Column(name = "username", nullable = false, columnDefinition = "varchar(255) default ''")
   private String username = Strings.EMPTY;
 
-  @Column(name = "mv_max_per_table", nullable = false, columnDefinition = "numeric default 20")
-  private Integer mvMaxPerTable = 20;
+  @Column(name = "mv_max_per_table", nullable = false, columnDefinition = "numeric default 5")
+  private Integer mvMaxPerTable = 5;
 
   @Column(name = "analysis_timeframe", nullable = false, columnDefinition = "numeric default 30")
   private Integer analysisTimeframe = 30;
@@ -57,8 +63,8 @@ public class Project {
       columnDefinition = "boolean default false")
   private Boolean automaticAvailable = false;
 
-  @Column(name = "stripe_customer_id", nullable = false)
-  private String stripeCustomerId;
+  @Column(name = "stripe_subscription_id")
+  private String stripeSubscriptionId;
 
   public Project() {}
 
@@ -66,9 +72,20 @@ public class Project {
     this(projectId, null);
   }
 
-  public Project(String projectId, String stripeCustomerId) {
+  public Project(String projectId, String stripeSubscriptionId) {
+    this(projectId, stripeSubscriptionId, null);
+  }
+
+  public Project(String projectId, String stripeSubscriptionId, AOrganization organization) {
     this.projectId = projectId;
-    this.stripeCustomerId = stripeCustomerId;
+    this.stripeSubscriptionId = stripeSubscriptionId;
+    this.organization = organization;
+  }
+
+  public Project(FetchedProject project) {
+    this.projectId = project.getProjectId();
+    this.projectName = project.getName();
+    this.organization = project.getOrganization();
   }
 
   public Long getId() {
@@ -77,6 +94,14 @@ public class Project {
 
   public String getProjectId() {
     return projectId;
+  }
+
+  public String getProjectName() {
+    return projectName;
+  }
+
+  public void setProjectName(String projectName) {
+    this.projectName = projectName;
   }
 
   public Boolean isActivated() {
@@ -175,13 +200,21 @@ public class Project {
     }
   }
 
-  public String getStripeCustomerId() {
-    return this.stripeCustomerId;
+  public String getStripeSubscriptionId() {
+    return this.stripeSubscriptionId;
   }
 
-  public void setStripeCustomerId(String stripeCustomerId) {
+  public void setStripeSubscriptionId(String stripeCustomerId) {
     if (StringUtils.isNotEmpty(stripeCustomerId)) {
-      this.stripeCustomerId = stripeCustomerId;
+      this.stripeSubscriptionId = stripeCustomerId;
     }
+  }
+
+  public AOrganization getOrganization() {
+    return organization;
+  }
+
+  public void setOrganization(AOrganization organization) {
+    this.organization = organization;
   }
 }
