@@ -125,7 +125,7 @@ public class StripeController {
             "Processing the subscription {} for customer: {}",
             subscription.getStatus(),
             customerId);
-        stripeService.handleSubscription(subscription, customerId);
+        stripeService.handleSubscription(subscription);
         break;
       case "product.updated":
         LOGGER.info("Updating all project settings with new product");

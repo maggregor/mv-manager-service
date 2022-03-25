@@ -1,5 +1,6 @@
 package com.achilio.mvm.service.services;
 
+import static com.achilio.mvm.service.services.StripeService.StripeMetadata.PROJECT_ID;
 import static java.util.stream.Collectors.toList;
 
 import com.achilio.mvm.service.entities.Project;
@@ -92,10 +93,10 @@ public class StripeService {
 
   public ProjectSubscription createSubscription(Customer customer, String priceId, String projectId)
       throws StripeException {
-    Project project = projectService.getProject(projectId);
+    Project project = projectService.getProjectAsUser(projectId);
     Stripe.apiKey = API_KEY;
     Map<String, String> metadata = new HashMap<>();
-    metadata.put(StripeMetadata.PROJECT_ID.getValue(), projectId);
+    metadata.put(PROJECT_ID.getValue(), projectId);
     SubscriptionCreateParams subCreateParams =
         SubscriptionCreateParams.builder()
             .setCustomer(customer.getId())
@@ -129,7 +130,7 @@ public class StripeService {
 
   public List<ProjectPlan> getPlans(String projectId) throws StripeException {
     Stripe.apiKey = API_KEY;
-    Project project = projectService.getProject(projectId);
+    Project project = projectService.getProjectAsUser(projectId);
     ProductListParams p = ProductListParams.builder().setActive(true).build();
     // Retrieve product as project plans
     List<ProjectPlan> plans =
@@ -206,24 +207,32 @@ public class StripeService {
     return PaymentIntent.retrieve(invoice.getPaymentIntent()).getClientSecret();
   }
 
-  public void handleSubscription(Subscription subscription, String customerId)
+  public void handleSubscription(Subscription subscription)
       throws StripeException, IOException, ExecutionException, InterruptedException {
     Stripe.apiKey = API_KEY;
-    String projectId = subscription.getMetadata().get(StripeMetadata.PROJECT_ID.getValue());
-    Project project = projectService.getProject(projectId);
+    Project project = getProjectIdFromSubscription(subscription);
     Product product =
         Product.retrieve(subscription.getItems().getData().get(0).getPrice().getProduct());
     if (product == null) {
-      throw new IllegalArgumentException(
-          String.format("Product not found for this subscription {}", subscription.getId()));
+      String exMsg = String.format("Product not found for subscription %s", subscription.getId());
+      throw new IllegalArgumentException(exMsg);
     }
     if (subscription.getStatus().equals(Status.ACTIVE.getValue())) {
       projectService.activateProject(project);
-      googlePublisherService.publishProjectActivation(projectId);
+      googlePublisherService.publishProjectActivation(project.getProjectId());
       projectService.updatePlanSettings(project, product);
     } else {
       projectService.deactivateProject(project);
     }
+  }
+
+  private Project getProjectIdFromSubscription(Subscription subscription) {
+    Map<String, String> metadata = subscription.getMetadata();
+    if (metadata.containsKey(PROJECT_ID.getValue())) {
+      String projectId = metadata.get(PROJECT_ID.getValue());
+      return projectService.getProject(projectId);
+    }
+    throw new IllegalArgumentException("Subscription doesn't contains the project id metadata");
   }
 
   // Private methods

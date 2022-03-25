@@ -189,7 +189,7 @@ public class OptimizerService {
 
   @Transactional
   public Optimization createNewOptimization(final String projectId) {
-    Project project = projectService.getProject(projectId);
+    Project project = projectService.getProjectAsUser(projectId);
     Optimization optimization = new Optimization(project);
     optimization.setAnalysisTimeframe(project.getAnalysisTimeframe());
     optimization.setMvMaxPerTable(project.getMvMaxPerTable());
@@ -202,7 +202,7 @@ public class OptimizerService {
 
   public List<Optimization> getAllOptimizationByProject(final String projectId) {
     LOGGER.info("Getting all optimizations from project {}", projectId);
-    return optimizerRepository.findAllByProject(projectService.getProject(projectId));
+    return optimizerRepository.findAllByProject(projectService.getProjectAsUser(projectId));
   }
 
   public void destroyAllMaterializedViewsByProject(final String projectId) {
@@ -212,7 +212,7 @@ public class OptimizerService {
 
   public Optimization getOptimization(final String projectId, final Long optimizationId) {
     LOGGER.info("Getting optimization id: {} from project {}", optimizationId, projectId);
-    Project project = projectService.getProject(projectId);
+    Project project = projectService.getProjectAsUser(projectId);
     return optimizerRepository.findByProjectAndId(project, optimizationId);
   }
 

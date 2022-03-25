@@ -190,7 +190,7 @@ public class FetcherJobService {
   }
 
   private ADataset toAchilioDataset(FetchedDataset dataset, FetcherStructJob fetcherStructJob) {
-    Project project = projectService.getProject(dataset.getProjectId());
+    Project project = projectService.getProjectAsUser(dataset.getProjectId());
     return new ADataset(fetcherStructJob, project, dataset.getDatasetName());
   }
 

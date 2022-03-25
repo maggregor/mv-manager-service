@@ -38,7 +38,7 @@ public class ProjectService {
   public List<Project> findAllProjects() {
     return fetcherService.fetchAllProjects().stream()
         .filter(p -> projectExists(p.getProjectId()))
-        .map(p -> getProject(p.getProjectId()))
+        .map(p -> getProjectAsUser(p.getProjectId()))
         .collect(Collectors.toList());
   }
 
@@ -55,8 +55,12 @@ public class ProjectService {
     return projectRepository.findByProjectId(projectId);
   }
 
-  public Project getProject(String projectId) {
+  public Project getProjectAsUser(String projectId) {
     fetcherService.fetchProject(projectId);
+    return findProject(projectId).orElseThrow(() -> new ProjectNotFoundException(projectId));
+  }
+
+  public Project getProject(String projectId) {
     return findProject(projectId).orElseThrow(() -> new ProjectNotFoundException(projectId));
   }
 
@@ -72,7 +76,7 @@ public class ProjectService {
   @Transactional
   public Project updateProject(String projectId, UpdateProjectRequest payload) {
     fetcherService.fetchProject(projectId);
-    Project project = getProject(projectId);
+    Project project = getProjectAsUser(projectId);
     // If automatic has been sent in the payload (or if the project is being deactivated), we need
     // to publish a potential config change on the schedulers
     Boolean automaticChanged = project.setAutomatic(payload.isAutomatic());
@@ -90,7 +94,7 @@ public class ProjectService {
   }
 
   private Optional<ADataset> getDataset(String projectId, String datasetName) {
-    return getDataset(getProject(projectId), datasetName);
+    return getDataset(getProjectAsUser(projectId), datasetName);
   }
 
   private Optional<ADataset> getDataset(Project project, String datasetName) {
@@ -102,7 +106,7 @@ public class ProjectService {
   }
 
   private ADataset createDataset(String projectId, String datasetName) {
-    return createDataset(getProject(projectId), datasetName);
+    return createDataset(getProjectAsUser(projectId), datasetName);
   }
 
   private ADataset createDataset(Project project, String datasetName) {
@@ -170,7 +174,7 @@ public class ProjectService {
 
   public Project createProjectFromFetchedProject(FetchedProject p) {
     if (projectExists(p.getProjectId())) {
-      Project updatedProject = getProject(p.getProjectId());
+      Project updatedProject = getProjectAsUser(p.getProjectId());
       updatedProject.setProjectName(p.getName());
       updatedProject.setOrganization(p.getOrganization());
       return projectRepository.save(updatedProject);

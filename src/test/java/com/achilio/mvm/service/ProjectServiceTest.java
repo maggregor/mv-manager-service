@@ -111,10 +111,10 @@ public class ProjectServiceTest {
   public void getProject() {
     when(mockedProjectRepository.findByProjectId(TEST_PROJECT_ID1))
         .thenReturn(Optional.of(mockedProject1));
-    Assert.assertNotNull(service.getProject(TEST_PROJECT_ID1));
+    Assert.assertNotNull(service.getProjectAsUser(TEST_PROJECT_ID1));
     Exception e =
         assertThrows(
-            ProjectNotFoundException.class, () -> service.getProject("unknown_project_id"));
+            ProjectNotFoundException.class, () -> service.getProjectAsUser("unknown_project_id"));
     assertEquals("Project unknown_project_id not found", e.getMessage());
   }
 
