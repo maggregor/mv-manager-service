@@ -4,7 +4,7 @@ import com.achilio.mvm.service.databases.entities.FetchedOrganization;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.entities.AOrganization;
 import com.achilio.mvm.service.entities.AOrganization.OrganizationType;
-import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
+import com.achilio.mvm.service.exceptions.OrganizationNotFoundException;
 import com.achilio.mvm.service.repositories.AOrganizationRepository;
 import com.google.api.services.oauth2.model.Userinfo;
 import com.stripe.model.Customer;
@@ -90,6 +90,6 @@ public class AOrganizationService {
 
   public AOrganization getOrganization(String organizationId) {
     return findAOrganization(organizationId)
-        .orElseThrow(() -> new ProjectNotFoundException(organizationId));
+        .orElseThrow(() -> new OrganizationNotFoundException(organizationId));
   }
 }

@@ -2,9 +2,11 @@ package com.achilio.mvm.service.exception.controllers;
 
 import com.achilio.mvm.service.exceptions.FetcherJobNotFoundException;
 import com.achilio.mvm.service.exceptions.InvalidSettingsException;
+import com.achilio.mvm.service.exceptions.OrganizationNotFoundException;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import com.achilio.mvm.service.exceptions.QueryNotFoundException;
 import com.achilio.mvm.service.exceptions.UnauthorizedException;
+import com.google.api.gax.rpc.PermissionDeniedException;
 import com.google.cloud.resourcemanager.ResourceManagerException;
 import java.util.Date;
 import org.apache.catalina.connector.ClientAbortException;
@@ -38,6 +40,13 @@ public class CustomizedResponseEntityExceptionHandler extends ResponseEntityExce
   @ExceptionHandler(ClientAbortException.class)
   public final void handleClientAbortException(Exception ex) {
     LOGGER.warn(ex.getMessage());
+  }
+
+  @ExceptionHandler(OrganizationNotFoundException.class)
+  public final ResponseEntity<Object> organizationNotFoundException(Exception ex, WebRequest request) {
+    ExceptionResponse exResponse =
+        new ExceptionResponse(new Date(), ex.getMessage(), request.getDescription(false));
+    return new ResponseEntity<>(exResponse, HttpStatus.NOT_FOUND);
   }
 
   @ExceptionHandler(ProjectNotFoundException.class)
@@ -90,6 +99,15 @@ public class CustomizedResponseEntityExceptionHandler extends ResponseEntityExce
       return new ResponseEntity<>(exResponse, HttpStatus.FORBIDDEN);
     }
     return new ResponseEntity<>(exResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+  }
+
+  @ExceptionHandler(PermissionDeniedException.class)
+  public final ResponseEntity<Object> handleGooglePermissionDenied(
+      PermissionDeniedException ex, WebRequest request) {
+    ExceptionResponse exResponse =
+        new ExceptionResponse(new Date(), ex.getMessage(), request.getDescription(false));
+    LOGGER.warn(ex.getMessage());
+    return new ResponseEntity<>(exResponse, HttpStatus.FORBIDDEN);
   }
 
   /** Handling invalid User Fields send in the request. */
