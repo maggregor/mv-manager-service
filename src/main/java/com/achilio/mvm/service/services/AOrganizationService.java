@@ -47,7 +47,7 @@ public class AOrganizationService {
 
   public void createProjectStructure(AOrganization organization) {
     List<FetchedProject> projectList = fetcherService.fetchAllProjectsFromOrg(organization);
-    projectList.forEach(p -> projectService.createProjectFromFetchedProject(p));
+    projectList.forEach(projectService::createProjectFromFetchedProject);
   }
 
   public AOrganization findOrganizationNoOrgOrCreate(Userinfo user) {

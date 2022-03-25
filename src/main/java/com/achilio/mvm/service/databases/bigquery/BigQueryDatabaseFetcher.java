@@ -79,9 +79,9 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
   private static final String SQL_SELECT_WORD = "SELECT";
   private final BigQuery bigquery;
   private final ResourceManager resourceManager;
-  private final OrganizationsClient organizationClient;
-  private final ProjectsClient projectClient;
-  private final FoldersClient folderClient;
+  private OrganizationsClient organizationClient;
+  private ProjectsClient projectClient;
+  private FoldersClient folderClient;
 
   @VisibleForTesting
   public BigQueryDatabaseFetcher(
@@ -99,9 +99,9 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
 
   public BigQueryDatabaseFetcher(final GoogleCredentials credentials, final String projectId)
       throws ProjectNotFoundException {
-    OrganizationsClient organizationClient1 = null;
-    ProjectsClient projectClient1 = null;
-    FoldersClient folderClient1 = null;
+    this.organizationClient = null;
+    this.projectClient = null;
+    this.folderClient = null;
     BigQueryOptions.Builder bqOptBuilder = BigQueryOptions.newBuilder().setCredentials(credentials);
     ResourceManagerOptions.Builder rmOptBuilder =
         ResourceManagerOptions.newBuilder().setCredentials(credentials);
@@ -121,15 +121,12 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
               .setCredentialsProvider(FixedCredentialsProvider.create(credentials))
               .build();
 
-      organizationClient1 = OrganizationsClient.create(organizationsSettings);
-      projectClient1 = ProjectsClient.create(projectsSettings);
-      folderClient1 = FoldersClient.create(foldersSettings);
+      this.organizationClient = OrganizationsClient.create(organizationsSettings);
+      this.projectClient = ProjectsClient.create(projectsSettings);
+      this.folderClient = FoldersClient.create(foldersSettings);
     } catch (IOException e) {
       LOGGER.error("Error during creation of settings and client");
     }
-    this.organizationClient = organizationClient1;
-    this.projectClient = projectClient1;
-    this.folderClient = folderClient1;
     if (StringUtils.isNotEmpty(projectId)) {
       // Change default project of BigQuery instance
       bqOptBuilder.setProjectId(projectId);
