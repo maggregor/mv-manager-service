@@ -19,7 +19,6 @@ import com.achilio.mvm.service.entities.AOrganization.OrganizationType;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics;
 import com.achilio.mvm.service.services.FetcherService;
-import com.achilio.mvm.service.services.FetcherService.StatEntry;
 import com.achilio.mvm.service.services.ProjectService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -201,18 +200,6 @@ public class ProjectControllerTest {
     assertEquals(0, map2.get("global").get("totalQueries").asInt());
     assertEquals(0, map2.get("global").get("totalBilledBytes").asInt());
     assertEquals(0, map2.get("global").get("totalProcessedBytes").asInt());
-  }
-
-  @Test
-  public void getDailyStatistics() throws JsonProcessingException {
-    StatEntry stat1 = new StatEntry(10, 1);
-    StatEntry stat2 = new StatEntry(20, 2);
-    when(mockedFetcherService.getDailyStatistics(TEST_PROJECT_ID1, 30))
-        .thenReturn(Arrays.asList(stat1, stat2));
-    String expectedResponse = "[{\"timestamp\":10,\"value\":1},{\"timestamp\":20,\"value\":2}]";
-    List<StatEntry> responseEntity = controller.getDailyStatistics(TEST_PROJECT_ID1, 30);
-    String jsonResponse = objectMapper.writeValueAsString(responseEntity);
-    assertEquals(expectedResponse, jsonResponse);
   }
 
   @Test

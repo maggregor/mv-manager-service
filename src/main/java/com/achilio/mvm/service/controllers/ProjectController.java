@@ -11,7 +11,6 @@ import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics;
 import com.achilio.mvm.service.services.FetcherService;
-import com.achilio.mvm.service.services.FetcherService.StatEntry;
 import com.achilio.mvm.service.services.ProjectService;
 import io.swagger.annotations.ApiOperation;
 import java.util.List;
@@ -23,7 +22,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -69,19 +67,6 @@ public class ProjectController {
     return toProjectResponse(updatedProject);
   }
 
-  @Deprecated
-  @PostMapping(
-      path = "/project/{projectId}/dataset/{datasetName}",
-      produces = MediaType.APPLICATION_JSON_VALUE)
-  @ApiOperation("Update metadata of a dataset")
-  public UpdateDatasetRequestResponse updateDatasetPost(
-      @PathVariable final String projectId,
-      @PathVariable final String datasetName,
-      @RequestBody final UpdateDatasetRequestResponse payload) {
-    return new UpdateDatasetRequestResponse(
-        projectService.updateDataset(projectId, datasetName, payload.isActivated()));
-  }
-
   @PutMapping(
       path = "/project/{projectId}/dataset/{datasetName}",
       produces = MediaType.APPLICATION_JSON_VALUE)
@@ -123,15 +108,6 @@ public class ProjectController {
   }
 
   @GetMapping(
-      path = "/project/{projectId}/queries/{days}/statistics/series",
-      produces = MediaType.APPLICATION_JSON_VALUE)
-  @ApiOperation("Get statistics of queries grouped per days for charts")
-  public List<StatEntry> getDailyStatistics(
-      @PathVariable final String projectId, @PathVariable final int days) {
-    return fetcherService.getDailyStatistics(projectId, days);
-  }
-
-  @GetMapping(
       path = "/project/{projectId}/queries/{days}/statistics/kpi",
       produces = MediaType.APPLICATION_JSON_VALUE)
   @ApiOperation("Get statistics of queries grouped per days for charts")
@@ -148,10 +124,6 @@ public class ProjectController {
 
   public AggregatedStatisticsResponse toAggregatedStatistics(GlobalQueryStatistics statistics) {
     return new AggregatedStatisticsResponse(statistics);
-  }
-
-  private ProjectResponse toProjectResponse(FetchedProject fetchedProject, Project project) {
-    return new ProjectResponse(fetchedProject.getName(), project);
   }
 
   private ProjectResponse toProjectResponse(FetchedProject fetchedProject) {

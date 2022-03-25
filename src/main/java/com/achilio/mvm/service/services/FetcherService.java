@@ -22,13 +22,7 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.oauth2.Oauth2;
 import com.google.api.services.oauth2.model.Userinfo;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.temporal.TemporalAdjusters;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Value;
@@ -48,12 +42,6 @@ public class FetcherService {
 
   public FetcherService() {
     this.statementBuilder = new BigQueryMaterializedViewStatementBuilder();
-  }
-
-  public static QueryUsageStatistics merge(List<QueryUsageStatistics> statistics) {
-    QueryUsageStatistics root = new QueryUsageStatistics(0, 0, 0);
-    statistics.forEach(root::addQueryUsageStatistics);
-    return root;
   }
 
   public static long averageQueryCost(List<QueryUsageStatistics> statistics) {
@@ -126,32 +114,6 @@ public class FetcherService {
     return getStatistics(fetchQueriesSinceLastDays(projectId, lastDays));
   }
 
-  public List<StatEntry> getDailyStatistics(String projectId, int lastDays) {
-    Map<LocalDate, List<QueryUsageStatistics>> fetched =
-        fetchQueriesSinceLastDays(projectId, lastDays).parallelStream()
-            .collect(
-                Collectors.groupingBy(
-                    q -> q.getDate().with(TemporalAdjusters.ofDateAdjuster(d -> d)),
-                    Collectors.mapping(FetchedQuery::getStatistics, Collectors.toList())));
-    for (int i = 0; i < lastDays; i++) {
-      LocalDate currentDay =
-          LocalDate.now().minusDays(i).with(TemporalAdjusters.ofDateAdjuster(d -> d));
-      if (!fetched.containsKey(currentDay)) {
-        fetched.put(currentDay, Collections.emptyList());
-      }
-    }
-    return fetched.entrySet().stream()
-        .collect(
-            Collectors.toMap(
-                e -> e.getKey().atStartOfDay(ZoneId.systemDefault()).toEpochSecond(),
-                e -> averageQueryCost(e.getValue())))
-        .entrySet()
-        .stream()
-        .map(e -> new StatEntry(e.getKey(), e.getValue()))
-        .sorted(Comparator.comparingLong(StatEntry::getTimestamp))
-        .collect(Collectors.toList());
-  }
-
   public GlobalQueryStatistics getStatistics(List<FetchedQuery> queries) {
     // Select using materialized view
     List<FetchedQuery> selectIn =
@@ -211,24 +173,5 @@ public class FetcherService {
 
   public List<String> fetchMissingPermissions(String projectId) {
     return fetcher().fetchMissingPermissions(projectId);
-  }
-
-  public static class StatEntry {
-
-    private final long timestamp;
-    private final long value;
-
-    public StatEntry(long timestamp, long value) {
-      this.timestamp = timestamp;
-      this.value = value;
-    }
-
-    public long getTimestamp() {
-      return this.timestamp;
-    }
-
-    public long getValue() {
-      return this.value;
-    }
   }
 }
