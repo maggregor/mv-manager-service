@@ -15,6 +15,7 @@ import com.achilio.mvm.service.databases.entities.DefaultFetchedDataset;
 import com.achilio.mvm.service.databases.entities.DefaultFetchedProject;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.entities.AOrganization;
+import com.achilio.mvm.service.entities.AOrganization.OrganizationType;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics;
 import com.achilio.mvm.service.services.FetcherService;
@@ -51,8 +52,10 @@ public class ProjectControllerTest {
   private static final String STRIPE_SUBSCRIPTION_ID1 = "stripeSubscription1";
   private static final String STRIPE_SUBSCRIPTION_ID2 = "stripeSubscription2";
   private static final String STRIPE_SUBSCRIPTION_ID3 = "stripeSubscription3";
+  private static final OrganizationType ORG1 = OrganizationType.ORGANIZATION;
   private static final AOrganization ORGANIZATION =
-      new AOrganization("organization/12345", "example.com", "stripeCustomerId", "workspaceId");
+      new AOrganization(
+          "organization/12345", "example.com", "stripeCustomerId", ORG1, "workspaceId");
   private static final Project realProject = new Project("achilio-dev");
   private static final DefaultFetchedProject realFetchedProject =
       new DefaultFetchedProject(TEST_PROJECT_ID1, TEST_PROJECT_NAME1);

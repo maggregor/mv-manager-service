@@ -78,5 +78,7 @@ public interface DatabaseFetcher {
 
   List<FetchedProject> fetchAllProjectsFromParent(String parentId, AOrganization baseOrganization);
 
+  List<FetchedProject> fetchAllProjectsNoParent();
+
   void close();
 }

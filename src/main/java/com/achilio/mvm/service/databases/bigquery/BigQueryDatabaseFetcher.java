@@ -12,6 +12,7 @@ import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedQueryFactory;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.entities.AOrganization;
+import com.achilio.mvm.service.entities.AOrganization.OrganizationType;
 import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import com.achilio.mvm.service.visitors.ATableId;
@@ -380,7 +381,12 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
 
   @Override
   public List<FetchedProject> fetchAllProjectsFromOrg(AOrganization baseOrganization) {
-    return new ArrayList<>(fetchAllProjectsFromParent(baseOrganization.getId(), baseOrganization));
+    if (baseOrganization.getOrganizationType() == OrganizationType.NO_ORGANIZATION) {
+      return new ArrayList<>(fetchAllProjectsNoParent());
+    } else {
+      return new ArrayList<>(
+          fetchAllProjectsFromParent(baseOrganization.getId(), baseOrganization));
+    }
   }
 
   /**
@@ -401,6 +407,18 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     StreamSupport.stream(folderClient.listFolders(parentId).iterateAll().spliterator(), true)
         .forEach(
             f -> projectList.addAll(fetchAllProjectsFromParent(f.getName(), baseOrganization)));
+    return projectList;
+  }
+
+  @Override
+  public List<FetchedProject> fetchAllProjectsNoParent() {
+    List<FetchedProject> projectList =
+        StreamSupport.stream(projectClient.searchProjects("").iterateAll().spliterator(), true)
+            .filter(p -> p.getState() == State.ACTIVE)
+            .map(this::toFetchedProject)
+            .collect(Collectors.toList());
+    StreamSupport.stream(folderClient.searchFolders("").iterateAll().spliterator(), true)
+        .forEach(f -> projectList.addAll(fetchAllProjectsNoParent()));
     return projectList;
   }
 
@@ -430,6 +448,10 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
 
   public FetchedProject toFetchedProject(Project project) {
     return new DefaultFetchedProject(project.getProjectId(), project.getName());
+  }
+
+  public FetchedProject toFetchedProject(com.google.cloud.resourcemanager.v3.Project project) {
+    return new DefaultFetchedProject(project.getProjectId(), project.getDisplayName());
   }
 
   public FetchedProject toFetchedProject(

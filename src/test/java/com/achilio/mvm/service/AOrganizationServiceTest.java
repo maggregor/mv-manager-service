@@ -6,6 +6,7 @@ import static org.mockito.Mockito.when;
 
 import com.achilio.mvm.service.databases.entities.DefaultFetchedOrganization;
 import com.achilio.mvm.service.entities.AOrganization;
+import com.achilio.mvm.service.entities.AOrganization.OrganizationType;
 import com.achilio.mvm.service.repositories.AOrganizationRepository;
 import com.achilio.mvm.service.services.AOrganizationService;
 import com.achilio.mvm.service.services.FetcherService;
@@ -37,6 +38,9 @@ public class AOrganizationServiceTest {
   private final String WORKSPACE1 = "workspace1";
   private final String WORKSPACE2 = "workspace2";
   private final String WORKSPACE3 = "workspace3";
+  private final OrganizationType ORG1 = OrganizationType.ORGANIZATION;
+  private final OrganizationType ORG2 = OrganizationType.ORGANIZATION;
+  private final OrganizationType ORG3 = OrganizationType.ORGANIZATION;
   private final DefaultFetchedOrganization fetchedOrganization1 =
       new DefaultFetchedOrganization(ID1, NAME1, WORKSPACE1);
   private final DefaultFetchedOrganization fetchedOrganization2 =
@@ -48,9 +52,12 @@ public class AOrganizationServiceTest {
   @Mock FetcherService fetcherService;
   @Mock StripeService stripeService;
   @Mock Customer mockedCustomer3;
-  private AOrganization organization1 = new AOrganization(ID1, NAME1, STRIPE_CUSTOMER1, WORKSPACE1);
-  private AOrganization organization2 = new AOrganization(ID2, NAME2, STRIPE_CUSTOMER2, WORKSPACE2);
-  private AOrganization organization3 = new AOrganization(ID3, NAME3, STRIPE_CUSTOMER3, WORKSPACE3);
+  private AOrganization organization1 =
+      new AOrganization(ID1, NAME1, STRIPE_CUSTOMER1, ORG1, WORKSPACE1);
+  private AOrganization organization2 =
+      new AOrganization(ID2, NAME2, STRIPE_CUSTOMER2, ORG2, WORKSPACE2);
+  private AOrganization organization3 =
+      new AOrganization(ID3, NAME3, STRIPE_CUSTOMER3, ORG3, WORKSPACE3);
 
   @Before
   public void setup() {

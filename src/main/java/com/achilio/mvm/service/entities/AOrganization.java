@@ -20,12 +20,25 @@ public class AOrganization {
 
   @Column private String googleWorkspaceId;
 
+  @Column private OrganizationType organizationType;
+
   public AOrganization() {}
 
-  public AOrganization(String id, String name, String stripeCustomerId, String googleWorkspaceId) {
+  public AOrganization(
+      String id, String name, String stripeCustomerId, OrganizationType organizationType) {
+    this(id, name, stripeCustomerId, organizationType, null);
+  }
+
+  public AOrganization(
+      String id,
+      String name,
+      String stripeCustomerId,
+      OrganizationType organizationType,
+      String googleWorkspaceId) {
     this.id = id;
     this.name = name;
     this.stripeCustomerId = stripeCustomerId;
+    this.organizationType = organizationType;
     this.googleWorkspaceId = googleWorkspaceId;
   }
 
@@ -41,7 +54,16 @@ public class AOrganization {
     return stripeCustomerId;
   }
 
+  public OrganizationType getOrganizationType() {
+    return organizationType;
+  }
+
   public String getGoogleWorkspaceId() {
     return googleWorkspaceId;
+  }
+
+  public enum OrganizationType {
+    ORGANIZATION,
+    NO_ORGANIZATION
   }
 }
