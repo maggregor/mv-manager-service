@@ -85,11 +85,14 @@ public class ProjectServiceTest {
     when(mockedDataset1.isActivated()).thenReturn(true);
     when(mockedDataset2.isActivated()).thenReturn(false);
     when(mockedDatasetRepository.save(any(ADataset.class))).thenReturn(mockedDataset1);
-    when(mockedDatasetRepository.findByProjectAndDatasetName(mockedProject1, TEST_DATASET_NAME1))
+    when(mockedDatasetRepository.findByProject_ProjectIdAndDatasetName(
+            mockedProject1.getProjectId(), TEST_DATASET_NAME1))
         .thenReturn(Optional.of(mockedDataset1));
-    when(mockedDatasetRepository.findByProjectAndDatasetName(mockedProject1, TEST_DATASET_NAME2))
+    when(mockedDatasetRepository.findByProject_ProjectIdAndDatasetName(
+            mockedProject1.getProjectId(), TEST_DATASET_NAME2))
         .thenReturn(Optional.of(mockedDataset2));
-    when(mockedDatasetRepository.findByProjectAndDatasetName(mockedProject1, TEST_DATASET_NAME3))
+    when(mockedDatasetRepository.findByProject_ProjectIdAndDatasetName(
+            mockedProject1.getProjectId(), TEST_DATASET_NAME3))
         .thenReturn(Optional.of(realDataset));
     productMetadata.put("mv_max", "10");
     productMetadata.put("automatic_available", "true");
