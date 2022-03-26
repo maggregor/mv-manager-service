@@ -112,17 +112,11 @@ public class StripeController {
 
     switch (event.getType()) {
       case "customer.subscription.deleted":
-        // handle subscription canceled automatically based
-        // upon your subscription settings. Or if the user
-        // cancels it.
-        LOGGER.info("Processing the deletion of the subscription");
       case "customer.subscription.updated":
-        // handle subscription updated by updating the project
-        // associated to its customerId
-        LOGGER.info("Updating subscription for customer: {}", customerId);
       case "customer.subscription.created":
         LOGGER.info(
-            "Processing the subscription {} for customer: {}",
+            "Processing {} for subscription {} of customer: {}",
+            event.getType(),
             subscription.getStatus(),
             customerId);
         stripeService.handleSubscription(subscription);
