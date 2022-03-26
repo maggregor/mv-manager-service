@@ -10,4 +10,6 @@ import org.springframework.stereotype.Repository;
 public interface DatasetRepository extends JpaRepository<ADataset, Integer> {
 
   Optional<ADataset> findByProjectAndDatasetName(Project project, String datasetName);
+
+  Optional<ADataset> findByProject_ProjectIdAndDatasetName(String projectId, String datasetName);
 }

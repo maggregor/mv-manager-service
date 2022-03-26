@@ -94,11 +94,7 @@ public class ProjectService {
   }
 
   private Optional<ADataset> getDataset(String projectId, String datasetName) {
-    return getDataset(getProjectAsUser(projectId), datasetName);
-  }
-
-  private Optional<ADataset> getDataset(Project project, String datasetName) {
-    return datasetRepository.findByProjectAndDatasetName(project, datasetName);
+    return datasetRepository.findByProject_ProjectIdAndDatasetName(projectId, datasetName);
   }
 
   private ADataset findDatasetOrCreate(String projectId, String dataset) {
