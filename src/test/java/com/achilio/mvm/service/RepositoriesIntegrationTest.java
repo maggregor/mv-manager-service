@@ -101,8 +101,8 @@ public class RepositoriesIntegrationTest {
           LocalDate.of(2020, 1, 8),
           stats);
   private final FetcherStructJob job5 = new FetcherStructJob(TEST_PROJECT_ID1);
-  private final Connection mockedConnection = new ServiceAccountConnection("SA_JSON_CONTENT");
-  private final Connection mockedConnection2 = new ServiceAccountConnection("SA_JSON_CONTENT");
+  private final Connection connection = new ServiceAccountConnection("SA_JSON_CONTENT");
+  private final Connection connection2 = new ServiceAccountConnection("SA_JSON_CONTENT");
   @Autowired FetcherJobRepository fetcherJobRepository;
   @Autowired QueryRepository queryRepository;
   @Autowired private ConnectionRepository connectionRepository;
@@ -133,8 +133,8 @@ public class RepositoriesIntegrationTest {
             stats);
     queryRepository.saveAndFlush(replacingQuery5);
 
-    mockedConnection.setTeamName("myTeam");
-    mockedConnection2.setTeamName("myTeam");
+    connection.setTeamName("myTeam");
+    connection2.setTeamName("myTeam");
   }
 
   @After
@@ -296,9 +296,9 @@ public class RepositoriesIntegrationTest {
   @Test
   public void findAllByTeamName() {
     assertEquals(0, connectionRepository.findAllByTeamName("myTeam").size());
-    connectionRepository.save(mockedConnection);
+    connectionRepository.save(connection);
     assertEquals(1, connectionRepository.findAllByTeamName("myTeam").size());
-    connectionRepository.save(mockedConnection2);
+    connectionRepository.save(connection2);
     assertEquals(2, connectionRepository.findAllByTeamName("myTeam").size());
   }
 
@@ -308,13 +308,13 @@ public class RepositoriesIntegrationTest {
   // transaction available for current thread - cannot reliably process 'remove' call; nested
   public void deleteByIdAndTeamName() {
     assertTrue(connectionRepository.findAllByTeamName("myTeam").isEmpty());
-    connectionRepository.save(mockedConnection);
+    connectionRepository.save(connection);
     assertFalse(connectionRepository.findAllByTeamName("myTeam").isEmpty());
-    connectionRepository.deleteByIdAndTeamName(mockedConnection.getId(), "myTeam");
+    connectionRepository.deleteByIdAndTeamName(connection.getId(), "myTeam");
     assertFalse(connectionRepository.findAllByTeamName("myTeam").isEmpty());
-    connectionRepository.deleteByIdAndTeamName(mockedConnection.getId(), "myTeam");
+    connectionRepository.deleteByIdAndTeamName(connection.getId(), "myTeam");
     assertFalse(connectionRepository.findAllByTeamName("myTeam").isEmpty());
-    connectionRepository.deleteByIdAndTeamName(mockedConnection.getId(), "myTeam");
+    connectionRepository.deleteByIdAndTeamName(connection.getId(), "myTeam");
     assertTrue(connectionRepository.findAllByTeamName("myTeam").isEmpty());
   }
 }
