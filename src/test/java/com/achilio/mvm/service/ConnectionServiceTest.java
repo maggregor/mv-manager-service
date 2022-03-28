@@ -100,7 +100,7 @@ public class ConnectionServiceTest {
         assertThrows(
             ConnectionNotFoundException.class,
             () -> service.updateConnection(9999L, teamName, mockedSARequest));
-    assertEquals("Connection unknownId not found", e.getMessage());
+    assertEquals("Connection 9999 not found", e.getMessage());
   }
 
   @Test
