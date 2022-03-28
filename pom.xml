@@ -252,7 +252,20 @@
       <groupId>com.google.apis</groupId>
       <version>v2-rev157-1.25.0</version>
     </dependency>
-
+    <dependency>
+      <artifactId>lombok</artifactId>
+      <groupId>org.projectlombok</groupId>
+    </dependency>
+    <dependency>
+      <artifactId>hibernate-validator</artifactId>
+      <groupId>org.hibernate</groupId>
+      <version>6.0.13.Final</version>
+    </dependency>
+    <dependency>
+      <artifactId>javax.el</artifactId>
+      <groupId>org.glassfish</groupId>
+      <version>3.0.0</version>
+    </dependency>
   </dependencies>
   <dependencyManagement>
     <dependencies>
