@@ -242,7 +242,7 @@ public class ProjectServiceTest {
   }
 
   @Test
-  public void createProjectFromFetchedProjectExistsTest() {
+  public void createProjectFromFetchedProjectExists() {
     Project project1 = service.createProjectFromFetchedProject(mockedFetchedProject);
     assertEquals(TEST_PROJECT_ID2, project1.getProjectId());
     assertEquals(TEST_PROJECT_NAME2, project1.getProjectName());
@@ -250,7 +250,7 @@ public class ProjectServiceTest {
   }
 
   @Test
-  public void createProjectFromFetchedProjectNotExistsTest() {
+  public void createProjectFromFetchedProjectNotExists() {
     when(mockedProjectRepository.findByProjectId(TEST_PROJECT_ID2)).thenReturn(Optional.empty());
     Project project1 = service.createProjectFromFetchedProject(mockedFetchedProject);
     assertEquals(TEST_PROJECT_ID2, project1.getProjectId());

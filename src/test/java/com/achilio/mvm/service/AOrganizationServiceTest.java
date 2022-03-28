@@ -78,7 +78,7 @@ public class AOrganizationServiceTest {
   }
 
   @Test
-  public void findAOrganizationTest() {
+  public void findAOrganization() {
     Optional<AOrganization> org1 = service.findAOrganization(ID1);
     Assert.assertTrue(org1.isPresent());
     assertOrganizationEquals(organization1, org1.get());
@@ -89,7 +89,7 @@ public class AOrganizationServiceTest {
   }
 
   @Test
-  public void getAllOrgOrUpdateExistTest() {
+  public void getAllOrgOrUpdateExist() {
     List<AOrganization> organizationList = service.getAllOrgOrCreate();
     Assert.assertEquals(2, organizationList.size());
     assertOrganizationEquals(organization1, organizationList.get(0));
@@ -97,7 +97,7 @@ public class AOrganizationServiceTest {
   }
 
   @Test
-  public void getAllOrgOrUpdateNotExistTest() {
+  public void getAllOrgOrUpdateNotExist() {
     when(fetcherService.fetchAllOrganizations())
         .thenReturn(
             Arrays.asList(fetchedOrganization1, fetchedOrganization2, fetchedOrganization3));
@@ -109,7 +109,7 @@ public class AOrganizationServiceTest {
   }
 
   @Test
-  public void getOrganizationTest() {
+  public void getOrganization() {
     AOrganization organizationExists = service.getOrganization(ID1);
     assertOrganizationEquals(organization1, organizationExists);
 
@@ -118,7 +118,7 @@ public class AOrganizationServiceTest {
   }
 
   @Test
-  public void getAllOrgTest() {
+  public void getAllOrg() {
     List<AOrganization> organizationList = service.getAllOrg();
     Assert.assertEquals(2, organizationList.size());
     assertOrganizationEquals(organization1, organizationList.get(0));

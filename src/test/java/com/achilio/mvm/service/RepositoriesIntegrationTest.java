@@ -130,7 +130,7 @@ public class RepositoriesIntegrationTest {
   }
 
   @Test
-  public void saveTest() {
+  public void save() {
     FetcherQueryJob job = new FetcherQueryJob(TEST_PROJECT_ID2);
     FetcherQueryJob savedJob = fetcherJobRepository.save(job);
     Assert.assertNotNull(savedJob.getCreatedAt());
@@ -139,7 +139,7 @@ public class RepositoriesIntegrationTest {
   }
 
   @Test
-  public void findAllByProjectIdTest() {
+  public void findAllByProjectId() {
     List<FetcherQueryJob> queryJobs =
         fetcherJobRepository.findFetcherQueryJobsByProjectId(TEST_PROJECT_ID1);
     Assert.assertEquals(3, queryJobs.size());
@@ -157,7 +157,7 @@ public class RepositoriesIntegrationTest {
   }
 
   @Test
-  public void findLastFetcherQueryJobTest() {
+  public void findLastFetcherQueryJob() {
     Optional<FetcherQueryJob> optionalJob =
         fetcherJobRepository.findTopFetcherQueryJobByProjectIdOrderByCreatedAtDesc(
             TEST_PROJECT_ID1);
@@ -175,7 +175,7 @@ public class RepositoriesIntegrationTest {
   }
 
   @Test
-  public void findFetcherQueryJobsByProjectIdAndStatusTest() {
+  public void findFetcherQueryJobsByProjectIdAndStatus() {
     List<FetcherQueryJob> queryJobs =
         fetcherJobRepository.findFetcherQueryJobsByProjectIdAndStatus(
             TEST_PROJECT_ID1, FetcherJobStatus.PENDING);
@@ -193,7 +193,7 @@ public class RepositoriesIntegrationTest {
   }
 
   @Test
-  public void findTopFetchedQueryJobByProjectIdAndStatusOrderByCreatedAtDescTest() {
+  public void findTopFetchedQueryJobByProjectIdAndStatusOrderByCreatedAtDesc() {
     Optional<FetcherQueryJob> optionalFetcherJob =
         fetcherJobRepository.findTopFetcherQueryJobByProjectIdAndStatusOrderByCreatedAtDesc(
             TEST_PROJECT_ID1, FetcherJobStatus.PENDING);
@@ -206,7 +206,7 @@ public class RepositoriesIntegrationTest {
   }
 
   @Test
-  public void findFetcherQueryJobByProjectIdAndIdTest() {
+  public void findFetcherQueryJobByProjectIdAndId() {
     Optional<FetcherQueryJob> fetchedJob1 =
         fetcherJobRepository.findFetcherQueryJobByIdAndProjectId(job1.getId(), TEST_PROJECT_ID1);
     Assert.assertTrue(fetchedJob1.isPresent());
@@ -226,7 +226,7 @@ public class RepositoriesIntegrationTest {
   }
 
   @Test
-  public void findAllQueriesByFetcherQueryJobTest() {
+  public void findAllQueriesByFetcherQueryJob() {
     List<Query> queries =
         queryRepository.findAllByInitialFetcherQueryJobAndProjectId(job1, TEST_PROJECT_ID1);
     Assert.assertEquals(3, queries.size());
@@ -249,7 +249,7 @@ public class RepositoriesIntegrationTest {
   }
 
   @Test
-  public void findFirstByIdAndProjectIdTest() {
+  public void findFirstByIdAndProjectId() {
     Optional<Query> retrievedQuery1 =
         queryRepository.findQueryByIdAndProjectId(
             query1.getId(), query1.getLastFetcherQueryJob().getProjectId());
@@ -258,14 +258,14 @@ public class RepositoriesIntegrationTest {
   }
 
   @Test
-  public void findAllByLastFetcherQueryJobAndProjectIdTest() {
+  public void findAllByLastFetcherQueryJobAndProjectId() {
     List<Query> queries =
         queryRepository.findAllByLastFetcherQueryJobAndProjectId(job4, TEST_PROJECT_ID2);
     Assert.assertEquals(1, queries.size());
   }
 
   @Test
-  public void updateQueryTest() {
+  public void updateQuery() {
     Optional<Query> unchangedQuery =
         queryRepository.findQueryByIdAndProjectId(query5.getId(), TEST_PROJECT_ID1);
     Assert.assertTrue(unchangedQuery.isPresent());

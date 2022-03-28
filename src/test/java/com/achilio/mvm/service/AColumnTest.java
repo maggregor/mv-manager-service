@@ -24,7 +24,7 @@ public class AColumnTest {
   private final ATable table = new ATable(tableId, project, dataset, tableName);
 
   @Test
-  public void simpleValidationConstructor1Test() {
+  public void simpleValidationConstructor1() {
     AColumn column = new AColumn(table, columnName, columnType);
     Assert.assertEquals("myProjectId:myDataset.myTable#myCol", column.getId());
     Assert.assertEquals(columnName, column.getName());
@@ -35,7 +35,7 @@ public class AColumnTest {
   }
 
   @Test
-  public void simpleValidationConstructor2Test() {
+  public void simpleValidationConstructor2() {
     AColumn column = new AColumn(customColumnId, table, columnName, columnType);
     Assert.assertEquals(customColumnId, column.getId());
     Assert.assertEquals(columnName, column.getName());

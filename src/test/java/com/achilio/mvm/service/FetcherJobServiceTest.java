@@ -53,7 +53,7 @@ public class FetcherJobServiceTest {
   }
 
   @Test
-  public void fetchAllQueriesJobTest() throws InterruptedException {
+  public void fetchAllQueriesJob() throws InterruptedException {
     FetcherQueryJob job = new FetcherQueryJob(PROJECT_ID);
     service.fetchAllQueriesJob(job);
     TimeUnit.SECONDS.sleep(1);
@@ -65,7 +65,7 @@ public class FetcherJobServiceTest {
   }
 
   @Test
-  public void createNewFetcherQueryJobTest() {
+  public void createNewFetcherQueryJob() {
     FetcherQueryJob job1 = service.createNewFetcherQueryJob(PROJECT_ID, request1);
     Assert.assertEquals(PROJECT_ID, job1.getProjectId());
     Assert.assertEquals(7, job1.getTimeframe());

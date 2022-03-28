@@ -80,7 +80,7 @@ public class QueryControllerTest {
   }
 
   @Test
-  public void getAllQueriesByProjectIdAndFetcherQueryJobIdTest() throws JsonProcessingException {
+  public void getAllQueriesByProjectIdAndFetcherQueryJobId() throws JsonProcessingException {
     ObjectMapper mapper = new ObjectMapper();
     List<Query> jobResponseEntity =
         controller.getAllQueriesByProjectIdAndFetcherQueryJobId(TEST_PROJECT_ID, 1L);
@@ -92,7 +92,7 @@ public class QueryControllerTest {
   }
 
   @Test
-  public void getQueriesOfLastFetcherQueryJobByProjectIdTest() throws JsonProcessingException {
+  public void getQueriesOfLastFetcherQueryJobByProjectId() throws JsonProcessingException {
     ObjectMapper mapper = new ObjectMapper();
     List<Query> jobResponseEntity =
         controller.getAllQueriesOfLastFetcherQueryJobByProjectId(TEST_PROJECT_ID);
@@ -104,7 +104,7 @@ public class QueryControllerTest {
   }
 
   @Test
-  public void getQueryTesT() throws JsonProcessingException {
+  public void getQuery() throws JsonProcessingException {
     ObjectMapper mapper = new ObjectMapper();
     Query jobResponseEntity = controller.getSingleQuery(TEST_PROJECT_ID, googleJobId);
     String jsonResponse = objectMapper.writeValueAsString(jobResponseEntity);

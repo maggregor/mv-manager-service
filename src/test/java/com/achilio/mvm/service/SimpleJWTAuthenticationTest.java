@@ -44,20 +44,20 @@ public class SimpleJWTAuthenticationTest {
           + "}";
 
   @Test
-  public void gettersValidationTest() {
+  public void gettersValidation() {
     SimpleJWTAuthentication jwtAuthentication = new SimpleJWTAuthentication(payload);
     Assert.assertEquals("nicolas.guelfi@achilio.com", jwtAuthentication.getPrincipal());
     Assert.assertEquals("Nicolas Guelfi", jwtAuthentication.getName());
   }
 
   @Test
-  public void illegalArgumentTest() {
+  public void illegalArgument() {
     Assert.assertThrows(
         IllegalArgumentException.class, () -> new SimpleJWTAuthentication(wrongPayload));
   }
 
   @Test
-  public void getDetailsTest() {
+  public void getDetails() {
     SimpleJWTAuthentication jwtAuthentication = new SimpleJWTAuthentication(payload);
     UserProfile expectedUser =
         new UserProfile(

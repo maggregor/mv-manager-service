@@ -14,13 +14,13 @@ public class JWTDecoderServiceTest {
   @Autowired private JWTDecoderService decoder = new JWTDecoderService("secret");
 
   @Test
-  public void decodeHeaderTest() {
+  public void decodeHeader() {
     String expected = "{\"typ\":\"JWT\",\"alg\":\"HS256\"}";
     Assert.assertEquals(expected, decoder.decodeHeader(token1));
   }
 
   @Test
-  public void decodePayloadTest() {
+  public void decodePayload() {
     String expected =
         "{\"username\":\"nicolas.guelfi@achilio.com\","
             + "\"email\":\"nicolas.guelfi@achilio.com\","
