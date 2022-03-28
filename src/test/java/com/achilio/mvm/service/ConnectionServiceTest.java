@@ -51,7 +51,7 @@ public class ConnectionServiceTest {
   @Before
   public void setup() {
     when(mockedRepository.save(any())).then(returnsFirstArg());
-    when(mockedRepository.findByIdAndTeamId("myId", teamName))
+    when(mockedRepository.findByIdAndTeamName(456L, teamName))
         .thenReturn(Optional.of(mockedSAConnection));
     when(mockedSAConnection.getType()).thenReturn(ConnectionType.SERVICE_ACCOUNT);
     when(mockedSAConnection.getServiceAccount()).thenReturn(JSON_SA_CONTENT);
@@ -80,7 +80,7 @@ public class ConnectionServiceTest {
 
   @Test
   public void whenCreateMoreThanOneConnection_thenThrowException() {
-    when(mockedRepository.findAllByTeamId(teamName))
+    when(mockedRepository.findAllByTeamName(teamName))
         .thenReturn(Collections.singletonList(mockedSAConnection));
     Exception e =
         assertThrows(
@@ -94,27 +94,27 @@ public class ConnectionServiceTest {
     ServiceAccountConnectionRequest updateRequest = mock(ServiceAccountConnectionRequest.class);
     when(updateRequest.getType()).thenReturn(ConnectionType.SERVICE_ACCOUNT);
     when(updateRequest.getServiceAccount()).thenReturn("another_sa_content");
-    Connection connection = service.updateConnection("myId", teamName, updateRequest);
+    Connection connection = service.updateConnection(456L, teamName, updateRequest);
     assertExpectedServiceAccount(updateRequest, connection);
     Exception e =
         assertThrows(
             ConnectionNotFoundException.class,
-            () -> service.updateConnection("unknownId", teamName, mockedSARequest));
+            () -> service.updateConnection(9999L, teamName, mockedSARequest));
     assertEquals("Connection unknownId not found", e.getMessage());
   }
 
   @Test
   public void deleteConnection() {
-    service.deleteConnection("myId", teamName);
+    service.deleteConnection(456L, teamName);
     Mockito.verify(mockedRepository, Mockito.timeout(1000).times(1))
-        .deleteByIdAndTeamId("myId", teamName);
+        .deleteByIdAndTeamName(456L, teamName);
   }
 
   @Test
   public void getAll() {
-    when(mockedRepository.findAllByTeamId(any())).thenReturn(new ArrayList<>());
+    when(mockedRepository.findAllByTeamName(any())).thenReturn(new ArrayList<>());
     assertTrue(service.getAll(teamName).isEmpty());
-    when(mockedRepository.findAllByTeamId(any()))
+    when(mockedRepository.findAllByTeamName(any()))
         .thenReturn(Arrays.asList(mockedSAConnection, mockedSAConnection));
     List<Connection> connections = service.getAll(teamName);
     assertEquals(2, connections.size());
@@ -125,7 +125,7 @@ public class ConnectionServiceTest {
   @Test
   public void getServiceAccountConnection() {
     ServiceAccountConnection connection =
-        (ServiceAccountConnection) service.getConnection("myId", teamName);
+        (ServiceAccountConnection) service.getConnection(456L, teamName);
     assertEquals(mockedSAConnection, connection);
   }
 

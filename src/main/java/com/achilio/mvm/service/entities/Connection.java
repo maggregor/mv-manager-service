@@ -29,11 +29,11 @@ public abstract class Connection {
 
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
-  private String id;
+  private Long id;
 
   @Column private String name;
 
-  @Column private String teamId;
+  @Column private String teamName;
 
   public abstract ConnectionType getType();
 

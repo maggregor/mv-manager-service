@@ -15,8 +15,8 @@ public class ServiceAccountConnectionTest extends ConnectionTest {
   private static final String SERVICE_ACCOUNT_JSON = "json_service_account";
 
   @Override
-  protected Connection createConnection(String id, String teamId) {
-    return new ServiceAccountConnection(id, teamId, SERVICE_ACCOUNT_JSON);
+  protected Connection createConnection() {
+    return new ServiceAccountConnection(SERVICE_ACCOUNT_JSON);
   }
 
   @Test

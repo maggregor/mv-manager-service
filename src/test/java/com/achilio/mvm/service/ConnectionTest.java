@@ -13,16 +13,18 @@ public abstract class ConnectionTest {
 
   private Connection connection;
 
-  protected abstract Connection createConnection(String id, String teamId);
+  protected abstract Connection createConnection();
 
   @Before
   public void setup() {
-    connection = createConnection("id-1", "myTeamId");
+    connection = createConnection();
+    connection.setTeamName("myTeam");
+    connection.setId(123L);
   }
 
   @Test
   public void baseGetters() {
-    assertEquals("id-1", connection.getId());
-    assertEquals("myTeamId", connection.getTeamId());
+    assertEquals(123L, connection.getId().longValue());
+    assertEquals("myTeam", connection.getTeamName());
   }
 }

@@ -27,19 +27,19 @@ public class ConnectionService {
   }
 
   public List<Connection> getAll(String teamName) {
-    return repository.findAllByTeamId(teamName);
+    return repository.findAllByTeamName(teamName);
   }
 
-  public Optional<Connection> findConnection(String id, String teamName) {
-    return repository.findByIdAndTeamId(id, teamName);
+  public Optional<Connection> findConnection(Long id, String teamName) {
+    return repository.findByIdAndTeamName(id, teamName);
   }
 
-  public Connection getConnection(String id, String teamName) {
+  public Connection getConnection(Long id, String teamName) {
     return findConnection(id, teamName).orElseThrow(() -> new ConnectionNotFoundException(id));
   }
 
-  public void deleteConnection(String id, String teamName) {
-    repository.deleteByIdAndTeamId(id, teamName);
+  public void deleteConnection(Long id, String teamName) {
+    repository.deleteByIdAndTeamName(id, teamName);
   }
 
   public Connection createConnection(String teamName, ConnectionRequest request) {
@@ -52,7 +52,7 @@ public class ConnectionService {
       throw new IllegalArgumentException("Unsupported connection type");
     }
     connection.setName(DEFAULT_CONNECTION_NAME);
-    connection.setTeamId(teamName);
+    connection.setTeamName(teamName);
     return repository.save(connection);
   }
 
@@ -62,7 +62,7 @@ public class ConnectionService {
     }
   }
 
-  public Connection updateConnection(String id, String teamName, ConnectionRequest request) {
+  public Connection updateConnection(Long id, String teamName, ConnectionRequest request) {
     Connection connection = getConnection(id, teamName);
     if (ConnectionType.SERVICE_ACCOUNT.equals(connection.getType())) {
       // Update a service account

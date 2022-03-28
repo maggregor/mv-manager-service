@@ -7,9 +7,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ConnectionRepository extends JpaRepository<Connection, String> {
 
-  Optional<Connection> findByIdAndTeamId(String id, String teamId);
+  Optional<Connection> findByIdAndTeamName(Long id, String teamName);
 
-  void deleteByIdAndTeamId(String id, String teamId);
+  void deleteByIdAndTeamName(Long id, String teamName);
 
-  List<Connection> findAllByTeamId(String teamId);
+  List<Connection> findAllByTeamName(String teamName);
 }

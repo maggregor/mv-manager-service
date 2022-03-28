@@ -1,11 +1,18 @@
 package com.achilio.mvm.service;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import com.achilio.mvm.service.entities.Connection;
 import com.achilio.mvm.service.entities.FetcherJob;
 import com.achilio.mvm.service.entities.FetcherJob.FetcherJobStatus;
 import com.achilio.mvm.service.entities.FetcherQueryJob;
 import com.achilio.mvm.service.entities.FetcherStructJob;
 import com.achilio.mvm.service.entities.Query;
+import com.achilio.mvm.service.entities.ServiceAccountConnection;
 import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
+import com.achilio.mvm.service.repositories.ConnectionRepository;
 import com.achilio.mvm.service.repositories.FetcherJobRepository;
 import com.achilio.mvm.service.repositories.QueryRepository;
 import java.time.LocalDate;
@@ -14,7 +21,9 @@ import java.util.Optional;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -92,9 +101,11 @@ public class RepositoriesIntegrationTest {
           LocalDate.of(2020, 1, 8),
           stats);
   private final FetcherStructJob job5 = new FetcherStructJob(TEST_PROJECT_ID1);
-
+  private final Connection mockedConnection = new ServiceAccountConnection("SA_JSON_CONTENT");
+  private final Connection mockedConnection2 = new ServiceAccountConnection("SA_JSON_CONTENT");
   @Autowired FetcherJobRepository fetcherJobRepository;
   @Autowired QueryRepository queryRepository;
+  @Autowired private ConnectionRepository connectionRepository;
 
   @Before
   public void setup() {
@@ -121,6 +132,9 @@ public class RepositoriesIntegrationTest {
             LocalDate.of(2020, 1, 8),
             stats);
     queryRepository.saveAndFlush(replacingQuery5);
+
+    mockedConnection.setTeamName("myTeam");
+    mockedConnection2.setTeamName("myTeam");
   }
 
   @After
@@ -272,5 +286,35 @@ public class RepositoriesIntegrationTest {
     Query finalQuery = unchangedQuery.get();
     Assert.assertEquals(job2.getId(), finalQuery.getLastFetcherQueryJob().getId());
     Assert.assertEquals(job1.getId(), finalQuery.getInitialFetcherQueryJob().getId());
+  }
+
+  @BeforeEach
+  public void clear() {
+    connectionRepository.deleteAll();
+  }
+
+  @Test
+  public void findAllByTeamName() {
+    assertEquals(0, connectionRepository.findAllByTeamName("myTeam").size());
+    connectionRepository.save(mockedConnection);
+    assertEquals(1, connectionRepository.findAllByTeamName("myTeam").size());
+    connectionRepository.save(mockedConnection2);
+    assertEquals(2, connectionRepository.findAllByTeamName("myTeam").size());
+  }
+
+  @Test
+  @Ignore
+  // org.springframework.dao.InvalidDataAccessApiUsageException: No EntityManager with actual
+  // transaction available for current thread - cannot reliably process 'remove' call; nested
+  public void deleteByIdAndTeamName() {
+    assertTrue(connectionRepository.findAllByTeamName("myTeam").isEmpty());
+    connectionRepository.save(mockedConnection);
+    assertFalse(connectionRepository.findAllByTeamName("myTeam").isEmpty());
+    connectionRepository.deleteByIdAndTeamName(mockedConnection.getId(), "myTeam");
+    assertFalse(connectionRepository.findAllByTeamName("myTeam").isEmpty());
+    connectionRepository.deleteByIdAndTeamName(mockedConnection.getId(), "myTeam");
+    assertFalse(connectionRepository.findAllByTeamName("myTeam").isEmpty());
+    connectionRepository.deleteByIdAndTeamName(mockedConnection.getId(), "myTeam");
+    assertTrue(connectionRepository.findAllByTeamName("myTeam").isEmpty());
   }
 }
