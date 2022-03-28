@@ -28,7 +28,7 @@ public class ConnectionController {
   @GetMapping(path = "/connection", produces = APPLICATION_JSON_VALUE)
   @ApiOperation("List all connection")
   public List<Connection> getAllConnections() {
-    return service.getAll(getContextTeamName());
+    return service.getAllConnections(getContextTeamName());
   }
 
   @PostMapping(path = "/connection", produces = APPLICATION_JSON_VALUE)

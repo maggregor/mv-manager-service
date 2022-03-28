@@ -41,11 +41,11 @@ public class ConnectionServiceTest {
 
   private static final String JSON_SA_CONTENT = "json_content_service_account_xxx";
   private static final String teamName = "myTeam";
-  private final ServiceAccountConnection mockedSAConnection = mock(ServiceAccountConnection.class);
   @InjectMocks private ConnectionService service;
+  @Mock private ServiceAccountConnection mockedSAConnection;
   @Mock private ConnectionRepository mockedRepository;
-  private ServiceAccountConnectionRequest mockedSARequest =
-      mock(ServiceAccountConnectionRequest.class);
+  @Mock private ServiceAccountConnectionRequest mockedSARequest;
+
   private Validator validator;
 
   @Before
@@ -113,10 +113,10 @@ public class ConnectionServiceTest {
   @Test
   public void getAll() {
     when(mockedRepository.findAllByTeamName(any())).thenReturn(new ArrayList<>());
-    assertTrue(service.getAll(teamName).isEmpty());
+    assertTrue(service.getAllConnections(teamName).isEmpty());
     when(mockedRepository.findAllByTeamName(any()))
         .thenReturn(Arrays.asList(mockedSAConnection, mockedSAConnection));
-    List<Connection> connections = service.getAll(teamName);
+    List<Connection> connections = service.getAllConnections(teamName);
     assertEquals(2, connections.size());
     assertEquals(mockedSAConnection, connections.get(0));
     assertEquals(mockedSAConnection, connections.get(1));

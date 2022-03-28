@@ -26,7 +26,7 @@ public class ConnectionService {
     this.repository = repository;
   }
 
-  public List<Connection> getAll(String teamName) {
+  public List<Connection> getAllConnections(String teamName) {
     return repository.findAllByTeamName(teamName);
   }
 
@@ -57,7 +57,7 @@ public class ConnectionService {
   }
 
   private void validateCreate(String teamName) {
-    if (!getAll(teamName).isEmpty()) {
+    if (!getAllConnections(teamName).isEmpty()) {
       throw new IllegalArgumentException("You cannot create more than one connection per team");
     }
   }
