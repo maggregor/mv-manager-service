@@ -74,7 +74,7 @@ public class QueryServiceTest {
   }
 
   @Test
-  public void getAllQueriesByJobIdAndProjectIdTest() {
+  public void getAllQueriesByJobIdAndProjectId() {
     List<Query> queries = service.getAllQueriesByJobIdAndProjectId(JOB1.getId(), PROJECT_ID1);
     Assert.assertEquals(2, queries.size());
     Assert.assertEquals("SELECT 1", queries.get(0).getQuery());
@@ -89,7 +89,7 @@ public class QueryServiceTest {
   }
 
   @Test
-  public void getAllQueriesByProjectIdLastJobTest() {
+  public void getAllQueriesByProjectIdLastJob() {
     when(mockFetcherJobRepository.findTopFetcherQueryJobByProjectIdOrderByCreatedAtDesc(
             "unknownProjectId"))
         .thenReturn(java.util.Optional.empty());
@@ -105,7 +105,7 @@ public class QueryServiceTest {
   }
 
   @Test
-  public void getQueryTest() {
+  public void getQuery() {
     Query query = service.getQuery(QUERY_ID1, PROJECT_ID1);
     Assert.assertEquals(QUERY_ID1, query.getId());
     Assert.assertEquals(PROJECT_ID1, query.getProjectId());

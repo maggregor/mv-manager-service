@@ -64,20 +64,20 @@ public class AOrganizationControllerTest {
   }
 
   @Test
-  public void getAllOrganizationsTest() throws JsonProcessingException {
+  public void getAllOrganizations() throws JsonProcessingException {
     List<AOrganization> organizationList = controller.getAllOrganizations();
     assertOrganizationListEquals(allOrganizations, organizationList);
   }
 
   @Test
-  public void getAllOrganizationsNoneTest() throws JsonProcessingException {
+  public void getAllOrganizationsNone() throws JsonProcessingException {
     when(mockOrganizationService.getAllOrg()).thenReturn(Collections.emptyList());
     List<AOrganization> organizationList = controller.getAllOrganizations();
     assertOrganizationListEquals(Collections.emptyList(), organizationList);
   }
 
   @Test
-  public void createProjectStructureTest() {
+  public void createProjectStructure() {
     controller.createProjectStructure();
     Mockito.verify(mockOrganizationService, Mockito.timeout(1000).times(2))
         .createProjectStructure(ArgumentMatchers.any(AOrganization.class));

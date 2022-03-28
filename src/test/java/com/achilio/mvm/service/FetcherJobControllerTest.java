@@ -10,7 +10,6 @@ import com.achilio.mvm.service.entities.FetcherJob;
 import com.achilio.mvm.service.entities.FetcherJob.FetcherJobStatus;
 import com.achilio.mvm.service.entities.FetcherQueryJob;
 import com.achilio.mvm.service.exceptions.FetcherJobNotFoundException;
-import com.achilio.mvm.service.repositories.FetcherJobRepository;
 import com.achilio.mvm.service.services.FetcherJobService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -49,13 +48,11 @@ public class FetcherJobControllerTest {
   private final FetcherQueryJobRequest request2 = new FetcherQueryJobRequest(TIMEFRAME2);
 
   @InjectMocks FetcherJobController controller;
-  @Mock private FetcherJobRepository mockedFetcherJobRepository;
   @Mock private FetcherJobService mockedFetcherJobService;
 
   @Before
   public void setup() {
     realFetcherJob3.setStatus(FetcherJobStatus.FINISHED);
-    //    when(mockedFetcherJobRepository.save(any())).thenReturn(realFetcherJob1);
     doNothing().when(mockedFetcherJobService).fetchAllQueriesJob(any());
     when(mockedFetcherJobService.getAllQueryJobs(TEST_PROJECT_ID))
         .thenReturn(Arrays.asList(realFetcherJob1, realFetcherJob2, realFetcherJob3));
@@ -80,7 +77,7 @@ public class FetcherJobControllerTest {
   }
 
   @Test
-  public void getFetcherQueryJobByProjectIdNoParamTest() throws JsonProcessingException {
+  public void getFetcherQueryJobByProjectIdNoParam() throws JsonProcessingException {
     ObjectMapper mapper = new ObjectMapper();
     List<FetcherQueryJob> jobResponseEntity =
         controller.getAllFetcherQueryJobsByProjectId(TEST_PROJECT_ID, null, null);
@@ -109,7 +106,7 @@ public class FetcherJobControllerTest {
   }
 
   @Test
-  public void getFetcherQueryJobByProjectIdWithParamLastTest() throws JsonProcessingException {
+  public void getFetcherQueryJobByProjectIdWithParamLast() throws JsonProcessingException {
     ObjectMapper mapper = new ObjectMapper();
     List<FetcherQueryJob> jobResponseEntity =
         controller.getAllFetcherQueryJobsByProjectId(TEST_PROJECT_ID, true, null);
@@ -125,7 +122,7 @@ public class FetcherJobControllerTest {
   }
 
   @Test
-  public void getFetcherQueryJobByProjectIdWithParamStatusTest() throws JsonProcessingException {
+  public void getFetcherQueryJobByProjectIdWithParamStatus() throws JsonProcessingException {
     ObjectMapper mapper = new ObjectMapper();
     // List of pending
     List<FetcherQueryJob> jobResponseEntity =
@@ -171,7 +168,7 @@ public class FetcherJobControllerTest {
   }
 
   @Test
-  public void getFetcherQueryJobByProjectIdAndJobIdTest() throws JsonProcessingException {
+  public void getFetcherQueryJobByProjectIdAndJobId() throws JsonProcessingException {
     ObjectMapper mapper = new ObjectMapper();
     FetcherJob jobResponseEntity = controller.getFetcherQueryJob(TEST_PROJECT_ID, 1L);
     String jsonResponse = objectMapper.writeValueAsString(jobResponseEntity);
@@ -200,7 +197,7 @@ public class FetcherJobControllerTest {
   }
 
   @Test
-  public void createNewFetcherQueryJobRequest1Test() throws JsonProcessingException {
+  public void createNewFetcherQueryJobRequest1() throws JsonProcessingException {
     ObjectMapper mapper = new ObjectMapper();
 
     // Request 1
@@ -217,7 +214,7 @@ public class FetcherJobControllerTest {
   }
 
   @Test
-  public void createNewFetcherQueryJobRequest2Test() throws JsonProcessingException {
+  public void createNewFetcherQueryJobRequest2() throws JsonProcessingException {
     ObjectMapper mapper = new ObjectMapper();
 
     // Request 2

@@ -19,7 +19,7 @@ public class ATableTest {
   private final ADataset dataset = new ADataset(project, datasetName);
 
   @Test
-  public void simpleValidationConstructorTest() {
+  public void simpleValidationConstructor() {
     ATable table = new ATable(tableId, project, dataset, tableName);
     Assert.assertEquals(tableId, table.getId());
     Assert.assertEquals(project.getProjectId(), table.getProject().getProjectId());

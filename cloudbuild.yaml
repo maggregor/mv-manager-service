@@ -31,6 +31,7 @@ steps:
           "--update-secrets=SPRING_DATASOURCE_PASSWORD=projects/${PROJECT_NUMBER}/secrets/service_db_password/versions/latest",
           "--update-secrets=STRIPE_API_KEY=projects/${PROJECT_NUMBER}/secrets/stripe_api_key/versions/latest",
           "--update-secrets=STRIPE_ENDPOINT_SECRET=projects/${PROJECT_NUMBER}/secrets/stripe_endpoint_secret/versions/latest",
+          "--update-secrets=JWT_SECRET=projects/${PROJECT_NUMBER}/secrets/jwt_secret/versions/latest",
           "--region",
           "${_REGION}",
           "--platform",
