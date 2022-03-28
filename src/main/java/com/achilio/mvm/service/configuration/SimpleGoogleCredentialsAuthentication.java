@@ -38,6 +38,7 @@ public class SimpleGoogleCredentialsAuthentication implements Authentication {
   public Object getDetails() {
     return null;
   }
+
   @Override
   public Object getPrincipal() {
     return null;
