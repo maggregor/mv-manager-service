@@ -7,56 +7,39 @@ import io.jsonwebtoken.impl.crypto.DefaultJwtSignatureValidator;
 import java.util.Base64;
 import javax.crypto.spec.SecretKeySpec;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
-@Component
+@Service
 public class JWTDecoderService {
 
-  private Base64.Decoder decoder = Base64.getUrlDecoder();
-  private String[] chunks;
-  private String tokenWithoutSignature;
-  private String signature;
-  private String header;
-  private String payload;
-
-  private String SECRET_KEY;
+  private final String SECRET_KEY;
+  private final Base64.Decoder decoder = Base64.getUrlDecoder();
 
   public JWTDecoderService(@Value("${jwt.secret}") String secretKey) {
     this.SECRET_KEY = secretKey;
   }
 
-  public void readToken(String token) {
-    this.chunks = token.split("\\.");
-    this.tokenWithoutSignature = this.chunks[0] + "." + this.chunks[1];
-    this.signature = this.chunks[2];
+  public String decodeHeader(String token) {
+    String[] chunks = getChunks(token);
+    verifySignature(token);
+    return new String(decoder.decode(chunks[0]));
   }
 
-  public String decodeHeader() {
-    this.header = new String(decoder.decode(this.chunks[0]));
-    return header;
+  public String decodePayload(String token) {
+    String[] chunks = getChunks(token);
+    verifySignature(token);
+    return new String(decoder.decode(chunks[1]));
   }
 
-  public String decodePayload() {
-    this.payload = new String(decoder.decode(this.chunks[1]));
-    return payload;
-  }
-
-  public boolean verifySignature() {
+  public boolean verifySignature(String token) {
+    String[] chunks = getChunks(token);
     SignatureAlgorithm sa = HS256;
     SecretKeySpec secretKeySpec = new SecretKeySpec(this.SECRET_KEY.getBytes(), sa.getJcaName());
     DefaultJwtSignatureValidator validator = new DefaultJwtSignatureValidator(sa, secretKeySpec);
-    return validator.isValid(this.tokenWithoutSignature, this.signature);
+    return validator.isValid(chunks[0] + "." + chunks[1], chunks[2]);
   }
 
-  public String getHeader() {
-    return header;
-  }
-
-  public String getPayload() {
-    return payload;
-  }
-
-  public String getSignature() {
-    return signature;
+  private String[] getChunks(String token) {
+    return token.split("\\.");
   }
 }
