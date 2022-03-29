@@ -28,4 +28,8 @@ public class UserContextHelper {
     }
     return (UserProfile) details;
   }
+
+  public static String getContextTeamName() {
+    return getUserProfile().getTeamName();
+  }
 }

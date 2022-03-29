@@ -1,8 +1,8 @@
 package com.achilio.mvm.service.controllers;
 
+import static com.achilio.mvm.service.UserContextHelper.getContextTeamName;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import com.achilio.mvm.service.UserContextHelper;
 import com.achilio.mvm.service.controllers.requests.ConnectionRequest;
 import com.achilio.mvm.service.controllers.requests.ConnectionResponse;
 import com.achilio.mvm.service.controllers.requests.ServiceAccountConnectionResponse;
@@ -13,6 +13,7 @@ import io.swagger.annotations.ApiOperation;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -57,20 +59,17 @@ public class ConnectionController {
     throw new IllegalArgumentException("Unsupported connection response");
   }
 
-  @DeleteMapping(path = "/connection/{:id}", produces = APPLICATION_JSON_VALUE)
+  @DeleteMapping(path = "/connection/{id}", produces = APPLICATION_JSON_VALUE)
   @ApiOperation("List all connection")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteConnection(@PathVariable Long id) {
     service.deleteConnection(id, getContextTeamName());
   }
 
   @PatchMapping(path = "/connection/{id}", produces = APPLICATION_JSON_VALUE)
   @ApiOperation("List all connection")
-  public Connection updateConnection(
+  public ConnectionResponse updateConnection(
       @PathVariable Long id, @RequestBody ConnectionRequest request) {
-    return service.updateConnection(id, getContextTeamName(), request);
-  }
-
-  public String getContextTeamName() {
-    return UserContextHelper.getUserProfile().getTeamName();
+    return toConnectionResponse(service.updateConnection(id, getContextTeamName(), request));
   }
 }

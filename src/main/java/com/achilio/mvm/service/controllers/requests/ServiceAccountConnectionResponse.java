@@ -10,6 +10,6 @@ public class ServiceAccountConnectionResponse extends ConnectionResponse {
 
   public ServiceAccountConnectionResponse(ServiceAccountConnection connection) {
     super(connection);
-    this.serviceAccount = connection.getServiceAccount();
+    this.serviceAccount = connection.getContent();
   }
 }

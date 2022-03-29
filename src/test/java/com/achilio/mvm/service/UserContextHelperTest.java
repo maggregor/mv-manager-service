@@ -35,6 +35,12 @@ public class UserContextHelperTest {
   }
 
   @Test
+  public void getContextTeamName() {
+    when(mockedJWTAuth.getDetails()).thenReturn(USER_PROFILE_1);
+    assertEquals(USER_PROFILE_1.getTeamName(), UserContextHelper.getContextTeamName());
+  }
+
+  @Test
   public void when_authIsNull_throwException() {
     when(securityContext.getAuthentication()).thenReturn(null);
     Exception e = assertThrows(IllegalArgumentException.class, UserContextHelper::getUserProfile);

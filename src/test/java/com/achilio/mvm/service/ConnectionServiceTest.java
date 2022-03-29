@@ -54,7 +54,7 @@ public class ConnectionServiceTest {
     when(mockedRepository.findByIdAndTeamName(456L, teamName))
         .thenReturn(Optional.of(mockedSAConnection));
     when(mockedSAConnection.getType()).thenReturn(ConnectionType.SERVICE_ACCOUNT);
-    when(mockedSAConnection.getServiceAccount()).thenReturn(JSON_SA_CONTENT);
+    when(mockedSAConnection.getContent()).thenReturn(JSON_SA_CONTENT);
     //
     mockedSARequest = mock(ServiceAccountConnectionRequest.class);
     when(mockedSARequest.getType()).thenReturn(ConnectionType.SERVICE_ACCOUNT);
@@ -134,7 +134,7 @@ public class ConnectionServiceTest {
     assertNotNull(actual);
     assertEquals(expected.getType(), actual.getType());
     assertTrue(actual instanceof ServiceAccountConnection);
-    String actualServiceAccount = ((ServiceAccountConnection) actual).getServiceAccount();
+    String actualServiceAccount = ((ServiceAccountConnection) actual).getContent();
     assertEquals(mockedSARequest.getServiceAccount(), actualServiceAccount);
   }
 

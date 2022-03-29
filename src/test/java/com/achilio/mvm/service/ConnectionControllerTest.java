@@ -9,7 +9,7 @@ import static org.mockito.Mockito.when;
 import com.achilio.mvm.service.controllers.ConnectionController;
 import com.achilio.mvm.service.controllers.ConnectionNameResponse;
 import com.achilio.mvm.service.controllers.requests.ConnectionResponse;
-import com.achilio.mvm.service.entities.Connection;
+import com.achilio.mvm.service.controllers.requests.ServiceAccountConnectionResponse;
 import com.achilio.mvm.service.entities.ServiceAccountConnection;
 import com.achilio.mvm.service.models.UserProfile;
 import com.achilio.mvm.service.services.ConnectionService;
@@ -22,6 +22,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.Authentication;
@@ -34,26 +35,30 @@ public class ConnectionControllerTest {
 
   @InjectMocks ConnectionController mockedController;
   @Mock ConnectionService mockedService;
+  @Mock private UserProfile mockedUserProfile;
 
   @Before
   public void setup() {
     // Mock security context for the getContextTeamName() method in Controller
     Authentication mockedAuth = mock(Authentication.class);
     SecurityContext mockedSecurityContext = mock(SecurityContext.class);
-    UserProfile mockedUserProfile = mock(UserProfile.class);
     when(mockedUserProfile.getTeamName()).thenReturn("myTeam");
     when(mockedAuth.getDetails()).thenReturn(mockedUserProfile);
     when(mockedSecurityContext.getAuthentication()).thenReturn(mockedAuth);
     SecurityContextHolder.setContext(mockedSecurityContext);
     //
-    Connection connection = mock(ServiceAccountConnection.class);
-    when(connection.getId()).thenReturn(1L);
-    when(connection.getName()).thenReturn("My Connection");
-    Connection connection2 = mock(ServiceAccountConnection.class);
-    when(connection2.getId()).thenReturn(2L);
-    when(connection2.getName()).thenReturn("My Connection 2");
+    ServiceAccountConnection mockedConnection = mock(ServiceAccountConnection.class);
+    ServiceAccountConnection mockedConnection2 = mock(ServiceAccountConnection.class);
+    when(mockedConnection.getId()).thenReturn(1L);
+    when(mockedConnection.getName()).thenReturn("My Connection");
+    when(mockedConnection.getContent()).thenReturn("SA_content_1");
+    when(mockedConnection2.getContent()).thenReturn("SA_content_2");
+    when(mockedConnection2.getId()).thenReturn(2L);
+    when(mockedConnection2.getName()).thenReturn("My Connection 2");
+    when(mockedService.getConnection(1L, "myTeam")).thenReturn(mockedConnection);
+    when(mockedService.getConnection(2L, "myTeam")).thenReturn(mockedConnection2);
     when(mockedService.getAllConnections(mockedUserProfile.getTeamName()))
-        .thenReturn(Arrays.asList(connection, connection2));
+        .thenReturn(Arrays.asList(mockedConnection, mockedConnection2));
   }
 
   @Test
@@ -65,19 +70,32 @@ public class ConnectionControllerTest {
     assertConnectionNameResponse(2L, "My Connection 2", responses.get(1));
     // Team without connections
     when(mockedService.getAllConnections("team2")).thenReturn(Collections.emptyList());
-    assertTrue(responses.isEmpty());
+    when(mockedUserProfile.getTeamName()).thenReturn("team2");
+    assertTrue(mockedController.getAllConnections().isEmpty());
   }
 
   @Test
   public void getConnection() {
-    ConnectionResponse response = mockedController.getConnection(1L);
-    assertConnectionNameResponse(1L, "My Connection", response);
+    ConnectionResponse response;
+    response = mockedController.getConnection(1L);
+    assertConnectionResponse(1L, "My Connection", "SA_content_1", response);
+    response = mockedController.getConnection(2L);
+    assertConnectionResponse(2L, "My Connection 2", "SA_content_2", response);
+  }
+
+  @Test
+  public void deleteConnection() {
+    mockedController.deleteConnection(1L);
+    Mockito.verify(mockedService, Mockito.timeout(1000).times(1)).deleteConnection(1L, "myTeam");
   }
 
   private void assertConnectionResponse(
-      Long expectedId, String expectedName, ConnectionNameResponse response) {
+      Long expectedId, String expectedName, String expectedSA, ConnectionResponse response) {
     assertEquals(expectedId, response.getId());
     assertEquals(expectedName, response.getName());
+    if (response instanceof ServiceAccountConnectionResponse) {
+      assertEquals(expectedSA, ((ServiceAccountConnectionResponse) response).getServiceAccount());
+    }
   }
 
   private void assertConnectionNameResponse(
