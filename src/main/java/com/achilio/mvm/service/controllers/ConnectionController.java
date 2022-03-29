@@ -2,11 +2,16 @@ package com.achilio.mvm.service.controllers;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import com.achilio.mvm.service.UserContextHelper;
 import com.achilio.mvm.service.controllers.requests.ConnectionRequest;
+import com.achilio.mvm.service.controllers.requests.ConnectionResponse;
+import com.achilio.mvm.service.controllers.requests.ServiceAccountConnectionResponse;
 import com.achilio.mvm.service.entities.Connection;
+import com.achilio.mvm.service.entities.ServiceAccountConnection;
 import com.achilio.mvm.service.services.ConnectionService;
 import io.swagger.annotations.ApiOperation;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -27,8 +32,10 @@ public class ConnectionController {
 
   @GetMapping(path = "/connection", produces = APPLICATION_JSON_VALUE)
   @ApiOperation("List all connection")
-  public List<Connection> getAllConnections() {
-    return service.getAllConnections(getContextTeamName());
+  public List<ConnectionNameResponse> getAllConnections() {
+    return service.getAllConnections(getContextTeamName()).stream()
+        .map(ConnectionNameResponse::new)
+        .collect(Collectors.toList());
   }
 
   @PostMapping(path = "/connection", produces = APPLICATION_JSON_VALUE)
@@ -37,10 +44,17 @@ public class ConnectionController {
     return service.createConnection(getContextTeamName(), request);
   }
 
-  @GetMapping(path = "/connection/{:id}", produces = APPLICATION_JSON_VALUE)
-  @ApiOperation("List all connection")
-  public Connection getConnection(@PathVariable Long id) {
-    return service.getConnection(id, getContextTeamName());
+  @GetMapping(path = "/connection/{id}", produces = APPLICATION_JSON_VALUE)
+  @ApiOperation("Get connection")
+  public ConnectionResponse getConnection(@PathVariable Long id) {
+    return toConnectionResponse(service.getConnection(id, getContextTeamName()));
+  }
+
+  private ConnectionResponse toConnectionResponse(Connection connection) {
+    if (connection instanceof ServiceAccountConnection) {
+      return new ServiceAccountConnectionResponse((ServiceAccountConnection) connection);
+    }
+    throw new IllegalArgumentException("Unsupported connection response");
   }
 
   @DeleteMapping(path = "/connection/{:id}", produces = APPLICATION_JSON_VALUE)
@@ -57,6 +71,6 @@ public class ConnectionController {
   }
 
   public String getContextTeamName() {
-    return "myTeam";
+    return UserContextHelper.getUserProfile().getTeamName();
   }
 }
