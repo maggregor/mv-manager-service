@@ -68,7 +68,7 @@ public class ConnectionService {
       // Update a service account
       ServiceAccountConnection saConnection = (ServiceAccountConnection) connection;
       ServiceAccountConnectionRequest saRequest = (ServiceAccountConnectionRequest) request;
-      saConnection.setServiceAccount(saRequest.getServiceAccount());
+      saConnection.setContent(saRequest.getServiceAccount());
     } else {
       throw new IllegalArgumentException("Unsupported connection type");
     }
