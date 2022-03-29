@@ -5,7 +5,6 @@ import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 import javax.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -15,13 +14,12 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode
 @DiscriminatorValue("service_account")
 public class ServiceAccountConnection extends Connection {
 
   @Column
   @NotEmpty(message = "Service account must not be empty")
-  private String serviceAccount;
+  private String content;
 
   @Override
   public ConnectionType getType() {
