@@ -10,6 +10,7 @@ import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.entities.AOrganization;
+import com.achilio.mvm.service.entities.ServiceAccountConnection;
 import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics;
 import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics.Scope;
 import com.achilio.mvm.service.entities.statistics.QueryStatistics;
@@ -25,6 +26,7 @@ import com.google.api.services.oauth2.model.Userinfo;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -36,6 +38,7 @@ public class FetcherService {
   private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
   private static final HttpTransport HTTP_TRANSPORT = new NetHttpTransport();
   BigQueryMaterializedViewStatementBuilder statementBuilder;
+  @Autowired ConnectionService connectionService;
 
   @Value("${application.name}")
   private String applicationName;
@@ -152,11 +155,20 @@ public class FetcherService {
     return fetcher(null);
   }
 
+  // Old fetcher using access token
+  //  private DatabaseFetcher fetcher(String projectId) throws ProjectNotFoundException {
+  //    SimpleGoogleCredentialsAuthentication authentication =
+  //        (SimpleGoogleCredentialsAuthentication)
+  //            SecurityContextHolder.getContext().getAuthentication();
+  //    return new BigQueryDatabaseFetcher(authentication.getCredentials(), projectId);
+  //  }
+
   private DatabaseFetcher fetcher(String projectId) throws ProjectNotFoundException {
-    SimpleGoogleCredentialsAuthentication authentication =
-        (SimpleGoogleCredentialsAuthentication)
-            SecurityContextHolder.getContext().getAuthentication();
-    return new BigQueryDatabaseFetcher(authentication.getCredentials(), projectId);
+    ServiceAccountConnection serviceAccountConnection =
+        (ServiceAccountConnection)
+            connectionService.getAllConnections(UserContextHelper.getContextTeamName()).get(0);
+    String serviceAccount = serviceAccountConnection.getServiceAccount();
+    return new BigQueryDatabaseFetcher(serviceAccount, projectId);
   }
 
   public String getAccessToken() {
