@@ -20,4 +20,6 @@ public interface FetchedProject {
   String getName();
 
   AOrganization getOrganization();
+
+  String getTeamName();
 }

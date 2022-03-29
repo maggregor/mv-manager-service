@@ -1,5 +1,7 @@
 package com.achilio.mvm.service.services;
 
+import static com.achilio.mvm.service.UserContextHelper.getContextTeamName;
+
 import com.achilio.mvm.service.controllers.requests.UpdateProjectRequest;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.entities.ADataset;
@@ -173,6 +175,7 @@ public class ProjectService {
       Project updatedProject = getProjectAsUser(p.getProjectId());
       updatedProject.setProjectName(p.getName());
       updatedProject.setOrganization(p.getOrganization());
+      updatedProject.setTeamName(getContextTeamName());
       return projectRepository.save(updatedProject);
     } else {
       return projectRepository.save(new Project(p));

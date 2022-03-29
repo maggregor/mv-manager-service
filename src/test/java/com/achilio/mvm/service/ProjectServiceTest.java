@@ -15,6 +15,7 @@ import com.achilio.mvm.service.entities.AOrganization;
 import com.achilio.mvm.service.entities.AOrganization.OrganizationType;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
+import com.achilio.mvm.service.models.UserProfile;
 import com.achilio.mvm.service.repositories.DatasetRepository;
 import com.achilio.mvm.service.repositories.ProjectRepository;
 import com.achilio.mvm.service.services.FetcherService;
@@ -36,10 +37,15 @@ import org.mockito.AdditionalAnswers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ProjectServiceTest {
 
+  private static final UserProfile USER_PROFILE_1 =
+      new UserProfile("moi", "moi@achilio.com", "foo", "bar", "myName", "myTeamName");
   private static final String TEST_PROJECT_ID1 = "achilio-dev";
   private static final String TEST_PROJECT_ID2 = "other-project";
   private static final String TEST_PROJECT_NAME1 = "Achilio Dev";
@@ -70,10 +76,15 @@ public class ProjectServiceTest {
   @Mock private Product mockedProduct;
   @Mock private Product errorMockedProduct;
   @Mock private FetcherService mockedFetcherService;
+  @Mock private Authentication mockedJWTAuth;
+  @Mock private SecurityContext securityContext;
   @Mock private GooglePublisherService mockedPublisherService;
 
   @Before
   public void setup() throws JsonProcessingException {
+    when(securityContext.getAuthentication()).thenReturn(mockedJWTAuth);
+    SecurityContextHolder.setContext(securityContext);
+    when(mockedJWTAuth.getDetails()).thenReturn(USER_PROFILE_1);
     when(mockedProject1.getProjectId()).thenReturn(TEST_PROJECT_ID1);
     when(mockedProject2.getProjectId()).thenReturn(TEST_PROJECT_ID2);
     when(mockedProjectRepository.save(any())).then(AdditionalAnswers.returnsFirstArg());
@@ -250,6 +261,7 @@ public class ProjectServiceTest {
     assertEquals(TEST_PROJECT_ID2, project1.getProjectId());
     assertEquals(TEST_PROJECT_NAME2, project1.getProjectName());
     assertEquals(ORGANIZATION_NAME, project1.getOrganization().getName());
+    assertEquals("myTeamName", project1.getTeamName());
   }
 
   @Test

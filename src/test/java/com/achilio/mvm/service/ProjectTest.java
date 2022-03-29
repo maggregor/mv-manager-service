@@ -17,7 +17,8 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class ProjectTest {
 
-  private static final AOrganization organization = new AOrganization("orgId", "Org Name", "stripeId", OrganizationType.ORGANIZATION);
+  private static final AOrganization organization =
+      new AOrganization("orgId", "Org Name", "stripeId", OrganizationType.ORGANIZATION);
 
   @Test
   public void simpleValidation() {
@@ -33,11 +34,13 @@ public class ProjectTest {
 
   @Test
   public void simpleValidationConstructorFetchedProject() {
-    FetchedProject fetchedProject = new DefaultFetchedProject("projectId", "Project Name", organization);
+    FetchedProject fetchedProject =
+        new DefaultFetchedProject("projectId", "Project Name", organization, "myTeam");
     Project project = new Project(fetchedProject);
     assertEquals("projectId", project.getProjectId());
     assertEquals("Project Name", project.getProjectName());
     assertEquals(organization, project.getOrganization());
+    assertEquals("myTeam", project.getTeamName());
   }
 
   @Test

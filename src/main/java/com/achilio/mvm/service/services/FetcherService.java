@@ -1,5 +1,7 @@
 package com.achilio.mvm.service.services;
 
+import static com.achilio.mvm.service.UserContextHelper.getContextTeamName;
+
 import com.achilio.mvm.service.configuration.SimpleGoogleCredentialsAuthentication;
 import com.achilio.mvm.service.databases.DatabaseFetcher;
 import com.achilio.mvm.service.databases.bigquery.BigQueryDatabaseFetcher;
@@ -155,19 +157,10 @@ public class FetcherService {
     return fetcher(null);
   }
 
-  // Old fetcher using access token
-  //  private DatabaseFetcher fetcher(String projectId) throws ProjectNotFoundException {
-  //    SimpleGoogleCredentialsAuthentication authentication =
-  //        (SimpleGoogleCredentialsAuthentication)
-  //            SecurityContextHolder.getContext().getAuthentication();
-  //    return new BigQueryDatabaseFetcher(authentication.getCredentials(), projectId);
-  //  }
-
   private DatabaseFetcher fetcher(String projectId) throws ProjectNotFoundException {
     ServiceAccountConnection serviceAccountConnection =
-        (ServiceAccountConnection)
-            connectionService.getAllConnections(UserContextHelper.getContextTeamName()).get(0);
-    String serviceAccount = serviceAccountConnection.getServiceAccount();
+        (ServiceAccountConnection) connectionService.getAllConnections(getContextTeamName()).get(0);
+    String serviceAccount = serviceAccountConnection.getContent();
     return new BigQueryDatabaseFetcher(serviceAccount, projectId);
   }
 

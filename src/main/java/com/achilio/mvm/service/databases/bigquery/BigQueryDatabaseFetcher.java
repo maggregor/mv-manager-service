@@ -1,5 +1,7 @@
 package com.achilio.mvm.service.databases.bigquery;
 
+import static com.achilio.mvm.service.UserContextHelper.getContextTeamName;
+
 import com.achilio.mvm.service.databases.DatabaseFetcher;
 import com.achilio.mvm.service.databases.entities.DefaultFetchedDataset;
 import com.achilio.mvm.service.databases.entities.DefaultFetchedOrganization;
@@ -500,14 +502,10 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     return new DefaultFetchedProject(project.getProjectId(), project.getName());
   }
 
-  public FetchedProject toFetchedProject(com.google.cloud.resourcemanager.v3.Project project) {
-    return new DefaultFetchedProject(project.getProjectId(), project.getDisplayName());
-  }
-
   public FetchedProject toFetchedProject(
       com.google.cloud.resourcemanager.v3.Project project, AOrganization baseOrganization) {
     return new DefaultFetchedProject(
-        project.getProjectId(), project.getDisplayName(), baseOrganization);
+        project.getProjectId(), project.getDisplayName(), baseOrganization, getContextTeamName());
   }
 
   public FetchedDataset toFetchedDataset(Dataset dataset) {
