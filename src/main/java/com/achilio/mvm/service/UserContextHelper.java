@@ -32,4 +32,8 @@ public class UserContextHelper {
   public static String getContextTeamName() {
     return getUserProfile().getTeamName();
   }
+
+  public static String getContextEmail() {
+    return getUserProfile().getEmail();
+  }
 }

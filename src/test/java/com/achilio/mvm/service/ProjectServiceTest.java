@@ -22,7 +22,6 @@ import com.achilio.mvm.service.services.FetcherService;
 import com.achilio.mvm.service.services.GooglePublisherService;
 import com.achilio.mvm.service.services.ProjectService;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.google.api.services.oauth2.model.Userinfo;
 import com.stripe.model.Product;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -109,7 +108,6 @@ public class ProjectServiceTest {
     productMetadata.put("automatic_available", "true");
     when(mockedProduct.getMetadata()).thenReturn(productMetadata);
     when(errorMockedProduct.getMetadata()).thenReturn(errorProductMetadata);
-    when(mockedFetcherService.getUserInfo()).thenReturn(new Userinfo().setEmail("myEmail"));
     when(mockedFetchedProject.getProjectId()).thenReturn(TEST_PROJECT_ID2);
     when(mockedFetchedProject.getName()).thenReturn(TEST_PROJECT_NAME2);
     when(mockedFetchedProject.getOrganization()).thenReturn(ORGANIZATION);
@@ -180,7 +178,7 @@ public class ProjectServiceTest {
         new UpdateProjectRequest(null, true, analysisTimeFrame, mvMaxPerTable);
     project = service.updateProject(TEST_PROJECT_ID2, payload2);
     assertTrue(project.isAutomatic());
-    assertEquals("myEmail", project.getUsername());
+    assertEquals("moi@achilio.com", project.getUsername());
   }
 
   @Test

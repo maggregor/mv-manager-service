@@ -1,5 +1,6 @@
 package com.achilio.mvm.service.services;
 
+import static com.achilio.mvm.service.UserContextHelper.getContextEmail;
 import static com.achilio.mvm.service.UserContextHelper.getContextTeamName;
 
 import com.achilio.mvm.service.controllers.requests.UpdateProjectRequest;
@@ -89,7 +90,7 @@ public class ProjectService {
       publisherService.publishProjectSchedulers(getAllActivatedProjects());
       if (payload.isAutomatic()) {
         // Automatic mode has just been activated by this current user
-        project.setUsername(fetcherService.getUserInfo().getEmail());
+        project.setUsername(getContextEmail());
       }
     }
     return project;

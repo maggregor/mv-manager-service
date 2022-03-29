@@ -2,7 +2,6 @@ package com.achilio.mvm.service.services;
 
 import static com.achilio.mvm.service.UserContextHelper.getContextTeamName;
 
-import com.achilio.mvm.service.configuration.SimpleGoogleCredentialsAuthentication;
 import com.achilio.mvm.service.databases.DatabaseFetcher;
 import com.achilio.mvm.service.databases.bigquery.BigQueryDatabaseFetcher;
 import com.achilio.mvm.service.databases.bigquery.BigQueryMaterializedViewStatementBuilder;
@@ -18,19 +17,16 @@ import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics.Scope;
 import com.achilio.mvm.service.entities.statistics.QueryStatistics;
 import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
-import com.google.api.services.oauth2.Oauth2;
-import com.google.api.services.oauth2.model.Userinfo;
+import com.google.common.annotations.VisibleForTesting;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 /** All the useful services to generate relevant Materialized Views. */
@@ -138,21 +134,6 @@ public class FetcherService {
     return global;
   }
 
-  public Userinfo getUserInfo() {
-    try {
-      Oauth2 oauth2 =
-          new Oauth2.Builder(
-                  HTTP_TRANSPORT,
-                  JSON_FACTORY,
-                  new GoogleCredential().setAccessToken(getAccessToken()))
-              .setApplicationName(applicationName)
-              .build();
-      return oauth2.userinfo().get().execute();
-    } catch (Exception e) {
-      throw new RuntimeException("Error while retrieve user info");
-    }
-  }
-
   private DatabaseFetcher fetcher() {
     return fetcher(null);
   }
@@ -162,7 +143,8 @@ public class FetcherService {
     return new BigQueryDatabaseFetcher(serviceAccount, projectId);
   }
 
-  private ServiceAccountConnection getSAAvailableConnection() {
+  @VisibleForTesting
+  public ServiceAccountConnection getSAAvailableConnection() {
     return connectionService.getAllConnections(getContextTeamName()).stream()
         .filter(c -> c instanceof ServiceAccountConnection)
         .map(c -> (ServiceAccountConnection) c)
@@ -170,14 +152,6 @@ public class FetcherService {
         .orElseThrow(
             () ->
                 new IllegalArgumentException("Can't initialize the fetcher: no connection found"));
-  }
-
-  public String getAccessToken() {
-    return ((SimpleGoogleCredentialsAuthentication)
-            SecurityContextHolder.getContext().getAuthentication())
-        .getCredentials()
-        .getAccessToken()
-        .getTokenValue();
   }
 
   private long daysToMillis(int days) {
