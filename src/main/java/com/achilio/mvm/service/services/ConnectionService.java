@@ -45,7 +45,7 @@ public class ConnectionService {
   public Connection createConnection(String teamName, ConnectionRequest request) {
     validateCreate(teamName);
     Connection connection;
-    if (ConnectionType.SERVICE_ACCOUNT.equals(request.getType())) {
+    if (request instanceof ServiceAccountConnectionRequest) {
       ServiceAccountConnectionRequest saRequest = (ServiceAccountConnectionRequest) request;
       connection = new ServiceAccountConnection(saRequest.getContent());
     } else {

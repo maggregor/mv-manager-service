@@ -57,7 +57,6 @@ public class ConnectionServiceTest {
     when(mockedSAConnection.getContent()).thenReturn(JSON_SA_CONTENT);
     //
     mockedSARequest = mock(ServiceAccountConnectionRequest.class);
-    when(mockedSARequest.getType()).thenReturn(ConnectionType.SERVICE_ACCOUNT);
     when(mockedSARequest.getContent()).thenReturn(JSON_SA_CONTENT);
     ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
     validator = factory.getValidator();
@@ -92,7 +91,6 @@ public class ConnectionServiceTest {
   @Test
   public void updateServiceAccountConnection() {
     ServiceAccountConnectionRequest updateRequest = mock(ServiceAccountConnectionRequest.class);
-    when(updateRequest.getType()).thenReturn(ConnectionType.SERVICE_ACCOUNT);
     when(updateRequest.getContent()).thenReturn("another_sa_content");
     Connection connection = service.updateConnection(456L, teamName, updateRequest);
     assertExpectedServiceAccount(updateRequest, connection);
@@ -132,7 +130,6 @@ public class ConnectionServiceTest {
   private void assertExpectedServiceAccount(
       ServiceAccountConnectionRequest expected, Connection actual) {
     assertNotNull(actual);
-    assertEquals(expected.getType(), actual.getType());
     assertTrue(actual instanceof ServiceAccountConnection);
     String actualServiceAccount = ((ServiceAccountConnection) actual).getContent();
     assertEquals(mockedSARequest.getContent(), actualServiceAccount);
@@ -140,7 +137,6 @@ public class ConnectionServiceTest {
 
   @Test
   public void whenConnectionTypeNull_thenThrowIllegalArgumentException() {
-    when(mockedSARequest.getType()).thenReturn(null);
     Exception e =
         assertThrows(
             IllegalArgumentException.class,

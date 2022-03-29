@@ -17,7 +17,7 @@ import lombok.Setter;
 @DiscriminatorValue("service_account")
 public class ServiceAccountConnection extends Connection {
 
-  @Column
+  @Column(name = "content", length = 65535)
   @NotEmpty(message = "Service account must not be empty")
   private String content;
 
