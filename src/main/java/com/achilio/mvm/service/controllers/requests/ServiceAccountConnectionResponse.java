@@ -6,10 +6,10 @@ import lombok.Getter;
 @Getter
 public class ServiceAccountConnectionResponse extends ConnectionResponse {
 
-  private final String serviceAccount;
+  private final String content;
 
   public ServiceAccountConnectionResponse(ServiceAccountConnection connection) {
     super(connection);
-    this.serviceAccount = connection.getContent();
+    this.content = connection.getContent();
   }
 }

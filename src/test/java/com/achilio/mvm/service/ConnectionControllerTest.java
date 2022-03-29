@@ -94,7 +94,7 @@ public class ConnectionControllerTest {
     assertEquals(expectedId, response.getId());
     assertEquals(expectedName, response.getName());
     if (response instanceof ServiceAccountConnectionResponse) {
-      assertEquals(expectedSA, ((ServiceAccountConnectionResponse) response).getServiceAccount());
+      assertEquals(expectedSA, ((ServiceAccountConnectionResponse) response).getContent());
     }
   }
 
