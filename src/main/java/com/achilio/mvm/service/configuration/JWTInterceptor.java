@@ -2,6 +2,8 @@ package com.achilio.mvm.service.configuration;
 
 import com.achilio.mvm.service.services.JWTDecoderService;
 import java.io.IOException;
+import java.util.Arrays;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,15 +14,18 @@ import org.springframework.web.servlet.HandlerInterceptor;
 @Component
 public class JWTInterceptor implements HandlerInterceptor {
 
-  private static final String HEADER = "Authorization";
-  private static final String PREFIX = "Bearer";
   @Autowired JWTDecoderService jwtDecoderService;
 
   @Override
   public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
       throws IOException {
     try {
-      setUpSpringAuthentication(validateToken(request));
+      Cookie jwtToken =
+          Arrays.stream(request.getCookies())
+              .filter(c -> c.getName().equals("jwt_token"))
+              .findFirst()
+              .orElseThrow(IllegalArgumentException::new);
+      setUpSpringAuthentication(validateToken(jwtToken));
     } catch (Exception e) {
       response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
       response.sendError(HttpServletResponse.SC_UNAUTHORIZED, e.getMessage());
@@ -28,18 +33,10 @@ public class JWTInterceptor implements HandlerInterceptor {
     return true;
   }
 
-  private String validateToken(HttpServletRequest request)
+  private String validateToken(Cookie jwtToken)
       throws IllegalArgumentException, NullPointerException {
-    final String idToken = request.getHeader(HEADER);
-    if (idToken == null) {
-      throw new NullPointerException("No authorization header");
-    }
-    if (!idToken.contains(PREFIX)) {
-      throw new IllegalArgumentException("Bearer prefix is missing");
-    }
-    String jwt = idToken.replace(PREFIX, "").trim();
-    jwtDecoderService.verifySignature(jwt);
-    return jwtDecoderService.decodePayload(jwt);
+    jwtDecoderService.verifySignature(jwtToken.getValue());
+    return jwtDecoderService.decodePayload(jwtToken.getValue());
   }
 
   private void setUpSpringAuthentication(String jwtPayload) {
