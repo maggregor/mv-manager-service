@@ -158,10 +158,18 @@ public class FetcherService {
   }
 
   private DatabaseFetcher fetcher(String projectId) throws ProjectNotFoundException {
-    ServiceAccountConnection serviceAccountConnection =
-        (ServiceAccountConnection) connectionService.getAllConnections(getContextTeamName()).get(0);
-    String serviceAccount = serviceAccountConnection.getContent();
+    String serviceAccount = getSAAvailableConnection().getContent();
     return new BigQueryDatabaseFetcher(serviceAccount, projectId);
+  }
+
+  private ServiceAccountConnection getSAAvailableConnection() {
+    return connectionService.getAllConnections(getContextTeamName()).stream()
+        .filter(c -> c instanceof ServiceAccountConnection)
+        .map(c -> (ServiceAccountConnection) c)
+        .findFirst()
+        .orElseThrow(
+            () ->
+                new IllegalArgumentException("Can't initialize the fetcher: no connection found"));
   }
 
   public String getAccessToken() {
