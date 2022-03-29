@@ -58,7 +58,7 @@ public class ConnectionServiceTest {
     //
     mockedSARequest = mock(ServiceAccountConnectionRequest.class);
     when(mockedSARequest.getType()).thenReturn(ConnectionType.SERVICE_ACCOUNT);
-    when(mockedSARequest.getServiceAccount()).thenReturn(JSON_SA_CONTENT);
+    when(mockedSARequest.getContent()).thenReturn(JSON_SA_CONTENT);
     ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
     validator = factory.getValidator();
   }
@@ -69,7 +69,7 @@ public class ConnectionServiceTest {
     connection = service.createConnection(teamName, mockedSARequest);
     assertExpectedServiceAccount(mockedSARequest, connection);
     // Empty service account
-    when(mockedSARequest.getServiceAccount()).thenReturn(Strings.EMPTY);
+    when(mockedSARequest.getContent()).thenReturn(Strings.EMPTY);
     connection = service.createConnection(teamName, mockedSARequest);
     Set<ConstraintViolation<Connection>> violations = validator.validate(connection);
     assertFalse(violations.isEmpty());
@@ -93,7 +93,7 @@ public class ConnectionServiceTest {
   public void updateServiceAccountConnection() {
     ServiceAccountConnectionRequest updateRequest = mock(ServiceAccountConnectionRequest.class);
     when(updateRequest.getType()).thenReturn(ConnectionType.SERVICE_ACCOUNT);
-    when(updateRequest.getServiceAccount()).thenReturn("another_sa_content");
+    when(updateRequest.getContent()).thenReturn("another_sa_content");
     Connection connection = service.updateConnection(456L, teamName, updateRequest);
     assertExpectedServiceAccount(updateRequest, connection);
     Exception e =
@@ -135,7 +135,7 @@ public class ConnectionServiceTest {
     assertEquals(expected.getType(), actual.getType());
     assertTrue(actual instanceof ServiceAccountConnection);
     String actualServiceAccount = ((ServiceAccountConnection) actual).getContent();
-    assertEquals(mockedSARequest.getServiceAccount(), actualServiceAccount);
+    assertEquals(mockedSARequest.getContent(), actualServiceAccount);
   }
 
   @Test
