@@ -30,14 +30,14 @@ public class JWTInterceptor implements HandlerInterceptor {
 
   private String validateToken(HttpServletRequest request)
       throws IllegalArgumentException, NullPointerException {
-    final String id_token = request.getHeader(HEADER);
-    if (id_token == null) {
+    final String idToken = request.getHeader(HEADER);
+    if (idToken == null) {
       throw new NullPointerException("No authorization header");
     }
-    if (!id_token.contains(PREFIX)) {
+    if (!idToken.contains(PREFIX)) {
       throw new IllegalArgumentException("Bearer prefix is missing");
     }
-    String jwt = id_token.replace(PREFIX, "").trim();
+    String jwt = idToken.replace(PREFIX, "").trim();
     jwtDecoderService.verifySignature(jwt);
     return jwtDecoderService.decodePayload(jwt);
   }
