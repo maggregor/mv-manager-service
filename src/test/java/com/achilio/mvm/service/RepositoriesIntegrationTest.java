@@ -1,6 +1,8 @@
 package com.achilio.mvm.service;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import com.achilio.mvm.service.entities.Connection;
 import com.achilio.mvm.service.entities.FetcherJob;
@@ -19,6 +21,7 @@ import java.util.Optional;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.runner.RunWith;
@@ -222,7 +225,7 @@ public class RepositoriesIntegrationTest {
         fetcherJobRepository.findFetcherQueryJobByIdAndProjectId(job1.getId(), TEST_PROJECT_ID1);
     Assert.assertTrue(fetchedJob1.isPresent());
     Assert.assertEquals(job1.getId(), fetchedJob1.get().getId());
-    Assert.assertEquals(7, (fetchedJob1.get()).getTimeframe());
+    Assert.assertEquals(7, ((FetcherQueryJob) fetchedJob1.get()).getTimeframe());
     Optional<FetcherQueryJob> fetchedJob2 =
         fetcherJobRepository.findFetcherQueryJobByIdAndProjectId(job2.getId(), TEST_PROJECT_ID1);
     Assert.assertTrue(fetchedJob2.isPresent());
@@ -297,5 +300,21 @@ public class RepositoriesIntegrationTest {
     assertEquals(1, connectionRepository.findAllByTeamName("myTeam").size());
     connectionRepository.save(connection2);
     assertEquals(2, connectionRepository.findAllByTeamName("myTeam").size());
+  }
+
+  @Test
+  @Ignore
+  // org.springframework.dao.InvalidDataAccessApiUsageException: No EntityManager with actual
+  // transaction available for current thread - cannot reliably process 'remove' call; nested
+  public void deleteByIdAndTeamName() {
+    assertTrue(connectionRepository.findAllByTeamName("myTeam").isEmpty());
+    connectionRepository.save(connection);
+    assertFalse(connectionRepository.findAllByTeamName("myTeam").isEmpty());
+    connectionRepository.deleteByIdAndTeamName(connection.getId(), "myTeam");
+    assertFalse(connectionRepository.findAllByTeamName("myTeam").isEmpty());
+    connectionRepository.deleteByIdAndTeamName(connection.getId(), "myTeam");
+    assertFalse(connectionRepository.findAllByTeamName("myTeam").isEmpty());
+    connectionRepository.deleteByIdAndTeamName(connection.getId(), "myTeam");
+    assertTrue(connectionRepository.findAllByTeamName("myTeam").isEmpty());
   }
 }
