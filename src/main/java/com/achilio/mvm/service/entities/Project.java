@@ -23,7 +23,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 @EntityListeners(AuditingEntityListener.class)
 public class Project {
 
-  private static Logger LOGGER = LoggerFactory.getLogger(Project.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(Project.class);
   @ManyToOne AOrganization organization;
 
   @Id
@@ -80,6 +80,13 @@ public class Project {
 
   public Project(String projectId, String stripeSubscriptionId, AOrganization organization) {
     this.projectId = projectId;
+    this.stripeSubscriptionId = stripeSubscriptionId;
+    this.organization = organization;
+  }
+
+  public Project(String projectId, String projectName, String stripeSubscriptionId, AOrganization organization) {
+    this.projectId = projectId;
+    this.projectName = projectName;
     this.stripeSubscriptionId = stripeSubscriptionId;
     this.organization = organization;
   }

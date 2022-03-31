@@ -2,22 +2,26 @@ package com.achilio.mvm.service;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.achilio.mvm.service.controllers.ProjectController;
+import com.achilio.mvm.service.controllers.requests.ACreateProjectRequest;
 import com.achilio.mvm.service.controllers.requests.UpdateProjectRequest;
 import com.achilio.mvm.service.controllers.responses.AggregatedStatisticsResponse;
 import com.achilio.mvm.service.controllers.responses.DatasetResponse;
 import com.achilio.mvm.service.controllers.responses.GlobalQueryStatisticsResponse;
 import com.achilio.mvm.service.controllers.responses.ProjectResponse;
 import com.achilio.mvm.service.databases.entities.DefaultFetchedDataset;
-import com.achilio.mvm.service.databases.entities.DefaultFetchedProject;
-import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.entities.AOrganization;
 import com.achilio.mvm.service.entities.AOrganization.OrganizationType;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics;
+import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
+import com.achilio.mvm.service.models.UserProfile;
 import com.achilio.mvm.service.services.FetcherService;
 import com.achilio.mvm.service.services.ProjectService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -35,8 +39,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 @ExtendWith(MockitoExtension.class)
 @RunWith(MockitoJUnitRunner.class)
@@ -51,22 +59,27 @@ public class ProjectControllerTest {
   private static final String STRIPE_SUBSCRIPTION_ID1 = "stripeSubscription1";
   private static final String STRIPE_SUBSCRIPTION_ID2 = "stripeSubscription2";
   private static final String STRIPE_SUBSCRIPTION_ID3 = "stripeSubscription3";
+  private static final String TEAM_ID1 = "myTeam1";
+  private static final String TEAM_ID2 = "myTeam2";
+  private static final Long CONNECTION_ID1 = 1L;
   private static final OrganizationType ORG1 = OrganizationType.ORGANIZATION;
   private static final AOrganization ORGANIZATION =
       new AOrganization(
           "organization/12345", "example.com", "stripeCustomerId", ORG1, "workspaceId");
-  private static final Project realProject = new Project("achilio-dev");
-  private static final DefaultFetchedProject realFetchedProject =
-      new DefaultFetchedProject(TEST_PROJECT_ID1, TEST_PROJECT_NAME1);
   private final ObjectMapper objectMapper = new ObjectMapper();
   @InjectMocks ProjectController controller;
   @Mock FetcherService mockedFetcherService;
   @Mock ProjectService mockedProjectService;
+  @Mock private UserProfile mockedUserProfile;
 
   @Before
   public void setup() throws JsonProcessingException {
-    when(mockedProjectService.findProjectOrCreate(any())).thenReturn(realProject);
-    when(mockedFetcherService.fetchProject(any())).thenReturn(realFetchedProject);
+    Authentication mockedAuth = mock(Authentication.class);
+    SecurityContext mockedSecurityContext = mock(SecurityContext.class);
+    when(mockedUserProfile.getTeamName()).thenReturn(TEAM_ID1);
+    when(mockedAuth.getDetails()).thenReturn(mockedUserProfile);
+    when(mockedSecurityContext.getAuthentication()).thenReturn(mockedAuth);
+    SecurityContextHolder.setContext(mockedSecurityContext);
   }
 
   @Test
@@ -75,11 +88,40 @@ public class ProjectControllerTest {
   }
 
   @Test
+  public void getAllProject() throws Exception {
+    Project project1 = new Project(TEST_PROJECT_ID1, STRIPE_SUBSCRIPTION_ID1, ORGANIZATION);
+    Project project2 = new Project(TEST_PROJECT_ID2, STRIPE_SUBSCRIPTION_ID2, ORGANIZATION);
+    project1.setTeamName(TEAM_ID1);
+    project2.setAutomaticAvailable(true);
+    project2.setActivated(true);
+    project2.setAutomatic(true);
+    project2.setMvMaxPerTable(10);
+    project2.setAnalysisTimeframe(14);
+    when(mockedProjectService.getAllActivatedProjects(TEAM_ID1))
+        .thenReturn(Arrays.asList(project1, project2));
+    List<ProjectResponse> responseEntity = controller.getAllProjects();
+    assertProjectResponseListEquals(Arrays.asList(project1, project2), responseEntity);
+  }
+
+  @Test
+  public void getAllProject__empty() throws Exception {
+    Project localProject1 = new Project(TEST_PROJECT_ID1, STRIPE_SUBSCRIPTION_ID1, ORGANIZATION);
+    Project localProject2 = new Project(TEST_PROJECT_ID2, STRIPE_SUBSCRIPTION_ID2, ORGANIZATION);
+    localProject1.setTeamName(TEAM_ID1);
+    localProject2.setTeamName(TEAM_ID2);
+    localProject2.setAutomaticAvailable(true);
+    localProject2.setActivated(true);
+    localProject2.setAutomatic(true);
+    localProject2.setMvMaxPerTable(10);
+    localProject2.setAnalysisTimeframe(14);
+    List<ProjectResponse> responseEntity = controller.getAllProjects();
+    assertProjectResponseListEquals(Collections.emptyList(), responseEntity);
+  }
+
+  @Test
   public void getProject() throws JsonProcessingException {
     Project project = new Project(TEST_PROJECT_ID1, STRIPE_SUBSCRIPTION_ID1, ORGANIZATION);
-    FetchedProject fetchedProject = new DefaultFetchedProject(TEST_PROJECT_ID1, TEST_PROJECT_NAME1);
-    when(mockedFetcherService.fetchProject(any())).thenReturn(fetchedProject);
-    when(mockedProjectService.findProjectOrCreate(any())).thenReturn(project);
+    when(mockedProjectService.getProject(TEST_PROJECT_ID1, TEAM_ID1)).thenReturn(project);
     ProjectResponse responseEntity;
     // Project 1
     responseEntity = controller.getProject(TEST_PROJECT_ID1);
@@ -100,12 +142,17 @@ public class ProjectControllerTest {
   }
 
   @Test
-  public void whenOrgIsNull() throws JsonProcessingException {
-    Project project = new Project(TEST_PROJECT_ID1, STRIPE_SUBSCRIPTION_ID1, null);
+  public void getProject__whenProjectNotExist_throwException() {
+    when(mockedProjectService.getProject(TEST_PROJECT_ID2, TEAM_ID1))
+        .thenThrow(new ProjectNotFoundException(TEST_PROJECT_ID2));
+    Assert.assertThrows(
+        ProjectNotFoundException.class, () -> controller.getProject(TEST_PROJECT_ID2));
+  }
 
-    FetchedProject fetchedProject = new DefaultFetchedProject(TEST_PROJECT_ID1, TEST_PROJECT_NAME1);
-    when(mockedFetcherService.fetchProject(any())).thenReturn(fetchedProject);
-    when(mockedProjectService.findProjectOrCreate(any())).thenReturn(project);
+  @Test
+  public void getProject__whenOrgIsNull() throws JsonProcessingException {
+    Project project = new Project(TEST_PROJECT_ID1, STRIPE_SUBSCRIPTION_ID1, null);
+    when(mockedProjectService.getProject(TEST_PROJECT_ID1, TEAM_ID1)).thenReturn(project);
     ProjectResponse responseEntity;
 
     responseEntity = controller.getProject(TEST_PROJECT_ID1);
@@ -113,19 +160,30 @@ public class ProjectControllerTest {
   }
 
   @Test
-  public void getAllProject() throws Exception {
-    Project project1 = new Project(TEST_PROJECT_ID1, STRIPE_SUBSCRIPTION_ID1, ORGANIZATION);
-    Project project2 = new Project(TEST_PROJECT_ID2, STRIPE_SUBSCRIPTION_ID2, ORGANIZATION);
-    project1.setUsername("myEmail");
-    project2.setAutomaticAvailable(true);
-    project2.setActivated(true);
-    project2.setAutomatic(true);
-    project2.setMvMaxPerTable(10);
-    project2.setAnalysisTimeframe(14);
-    when(mockedProjectService.findAllProjects()).thenReturn(Arrays.asList(project1, project2));
-    List<ProjectResponse> responseEntity = controller.getAllProjects();
-    assertProjectResponseListEquals(Arrays.asList(project1, project2), responseEntity);
+  public void createProject() throws JsonProcessingException {
+    Project project =
+        new Project(TEST_PROJECT_ID1, TEST_PROJECT_NAME1, STRIPE_SUBSCRIPTION_ID1, ORGANIZATION);
+    ACreateProjectRequest payload = new ACreateProjectRequest(TEST_PROJECT_ID1, CONNECTION_ID1);
+    when(mockedProjectService.createProject(payload, TEAM_ID1)).thenReturn(project);
+    assertProjectResponseEquals(project, controller.createProject(payload));
   }
+
+  @Test
+  public void deleteProject() {
+    controller.deleteProject(TEST_PROJECT_ID1);
+    Mockito.verify(mockedProjectService, Mockito.timeout(1000).times(1))
+        .deleteProject(TEST_PROJECT_ID1, TEAM_ID1);
+  }
+
+  @Test
+  public void deleteProject__whenProjectNotExists_throwException() {
+    doThrow(new ProjectNotFoundException(TEST_PROJECT_ID1))
+        .when(mockedProjectService)
+        .deleteProject(TEST_PROJECT_ID1, TEAM_ID1);
+    assertThrows(ProjectNotFoundException.class, () -> controller.deleteProject(TEST_PROJECT_ID1));
+  }
+
+  // Old Controller methods
 
   @Test
   public void updateProject() throws JsonProcessingException {

@@ -3,10 +3,12 @@ package com.achilio.mvm.service.services;
 import static com.achilio.mvm.service.UserContextHelper.getContextEmail;
 import static com.achilio.mvm.service.UserContextHelper.getContextTeamName;
 
+import com.achilio.mvm.service.controllers.requests.ACreateProjectRequest;
 import com.achilio.mvm.service.controllers.requests.UpdateProjectRequest;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.entities.ADataset;
 import com.achilio.mvm.service.entities.Project;
+import com.achilio.mvm.service.exceptions.ProjectAlreadyExistsException;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import com.achilio.mvm.service.repositories.DatasetRepository;
 import com.achilio.mvm.service.repositories.ProjectRepository;
@@ -18,6 +20,7 @@ import javax.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
 /** Services to manage project and dataset resources. */
@@ -34,10 +37,35 @@ public class ProjectService {
 
   public ProjectService() {}
 
-  private List<Project> getAllActivatedProjects() {
+  public List<Project> getAllActivatedProjects(String teamName) {
+    return projectRepository.findAllByActivatedAndTeamName(true, teamName);
+  }
+
+  public Project getProject(String projectId, String teamName) {
+    return findProjectByTeamId(projectId, teamName).orElseThrow(() -> new ProjectNotFoundException(projectId));
+  }
+
+  public Project createProject(ACreateProjectRequest payload, String teamName) {
+    FetchedProject fetchedProject = fetcherService.fetchProject(payload.getProjectId());
+    return createProjectFromFetchedProject(fetchedProject, teamName);
+  }
+
+  public void deleteProject(String projectId, String teamName) {
+    Project project = findProjectByTeamId(projectId, teamName).orElseThrow(() -> new ProjectNotFoundException(projectId));
+    projectRepository.delete(project);
+  }
+
+  private Optional<Project> findProjectByTeamId(String projectId, String teamName) {
+    return projectRepository.findByProjectIdAndTeamName(projectId, teamName);
+  }
+
+  // Old ProjectService
+
+  public List<Project> getAllActivatedProjects() {
     return projectRepository.findAllByActivated(true);
   }
 
+  @Deprecated
   public List<Project> findAllProjects() {
     return fetcherService.fetchAllProjects().stream()
         .filter(p -> projectExists(p.getProjectId()))
@@ -45,10 +73,12 @@ public class ProjectService {
         .collect(Collectors.toList());
   }
 
+  @Deprecated
   public Project findProjectOrCreate(String projectId) {
     return findProject(projectId).orElseGet(() -> createProject(projectId));
   }
 
+  @Deprecated
   public Project createProject(String projectId) {
     Project project = new Project(projectId, null, null);
     return projectRepository.save(project);
@@ -58,6 +88,7 @@ public class ProjectService {
     return projectRepository.findByProjectId(projectId);
   }
 
+  @Deprecated
   public Project getProjectAsUser(String projectId) {
     fetcherService.fetchProject(projectId);
     return findProject(projectId).orElseThrow(() -> new ProjectNotFoundException(projectId));
@@ -171,7 +202,20 @@ public class ProjectService {
     }
   }
 
-  public Project createProjectFromFetchedProject(FetchedProject p) {
+  @Transactional
+  public Project createProjectFromFetchedProject(FetchedProject p, String teamName) {
+    if (projectExists(p.getProjectId())) {
+      throw new ProjectAlreadyExistsException(p.getProjectId());
+    } else {
+      Project project = new Project(p);
+      project.setTeamName(teamName);
+      return projectRepository.save(project);
+    }
+  }
+
+  @Deprecated
+  @Transactional
+  public Project createProjectFromFetchedProjectSync(FetchedProject p) {
     if (projectExists(p.getProjectId())) {
       Project updatedProject = getProjectAsUser(p.getProjectId());
       updatedProject.setProjectName(p.getName());

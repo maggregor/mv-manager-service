@@ -49,7 +49,7 @@ public class AOrganizationService {
 
   public void createProjectStructure(AOrganization organization) {
     List<FetchedProject> projectList = fetcherService.fetchAllProjectsFromOrg(organization);
-    projectList.forEach(projectService::createProjectFromFetchedProject);
+    projectList.forEach(projectService::createProjectFromFetchedProjectSync);
   }
 
   public AOrganization findOrganizationNoOrgOrCreate(UserProfile user) {
