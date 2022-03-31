@@ -75,11 +75,13 @@ public class ProjectServiceTest {
   private static final OrganizationType ORGANIZATION_TYPE = OrganizationType.ORGANIZATION;
   private static final AOrganization ORGANIZATION =
       new AOrganization(ORGANIZATION_ID, ORGANIZATION_NAME, STRIPE_CUSTOMER_ID, ORGANIZATION_TYPE);
-  private static final  Project project1 = new Project(TEST_PROJECT_ID1, TEST_PROJECT_NAME1, STRIPE_SUBSCRIPTION_ID, ORGANIZATION);
-  private static final Project project2 = new Project(TEST_PROJECT_ID2, TEST_PROJECT_NAME2, STRIPE_SUBSCRIPTION_ID, ORGANIZATION);
-  private static final Project project3 = new Project(TEST_PROJECT_ID3, TEST_PROJECT_NAME3, STRIPE_SUBSCRIPTION_ID, ORGANIZATION);
-  private static final List<Project> activatedProjects =
-      Arrays.asList(project1, project2);
+  private static final Project project1 =
+      new Project(TEST_PROJECT_ID1, TEST_PROJECT_NAME1, STRIPE_SUBSCRIPTION_ID, ORGANIZATION);
+  private static final Project project2 =
+      new Project(TEST_PROJECT_ID2, TEST_PROJECT_NAME2, STRIPE_SUBSCRIPTION_ID, ORGANIZATION);
+  private static final List<Project> activatedProjects = Arrays.asList(project1, project2);
+  private static final Project project3 =
+      new Project(TEST_PROJECT_ID3, TEST_PROJECT_NAME3, STRIPE_SUBSCRIPTION_ID, ORGANIZATION);
   private static final Connection mockedConnection = mock(Connection.class);
   private static final ADataset mockedDataset1 = mock(ADataset.class);
   private static final ADataset mockedDataset2 = mock(ADataset.class);
@@ -107,13 +109,16 @@ public class ProjectServiceTest {
         .thenReturn(Optional.of(project1));
     when(mockedProjectRepository.findByProjectId(TEST_PROJECT_ID2))
         .thenReturn(Optional.of(project2));
-    when(mockedProjectRepository.findByProjectId(TEST_PROJECT_ID3))
-        .thenReturn(Optional.empty());
+    when(mockedProjectRepository.findByProjectId(TEST_PROJECT_ID3)).thenReturn(Optional.empty());
     when(mockedProjectRepository.findAllByActivated(true)).thenReturn(activatedProjects);
-    when(mockedProjectRepository.findAllByActivatedAndTeamName(true, TEAM_NAME1)).thenReturn(activatedProjects);
-    when(mockedProjectRepository.findByProjectIdAndTeamName(TEST_PROJECT_ID1, TEAM_NAME1)).thenReturn(Optional.of(project1));
-    when(mockedProjectRepository.findByProjectIdAndTeamName(PROJECT_NOT_EXISTS, TEAM_NAME1)).thenReturn(Optional.empty());
-    when(mockedProjectRepository.findByProjectIdAndTeamName(TEST_PROJECT_ID1, TEAM_NOT_EXISTS)).thenReturn(Optional.empty());
+    when(mockedProjectRepository.findAllByActivatedAndTeamName(true, TEAM_NAME1))
+        .thenReturn(activatedProjects);
+    when(mockedProjectRepository.findByProjectIdAndTeamName(TEST_PROJECT_ID1, TEAM_NAME1))
+        .thenReturn(Optional.of(project1));
+    when(mockedProjectRepository.findByProjectIdAndTeamName(PROJECT_NOT_EXISTS, TEAM_NAME1))
+        .thenReturn(Optional.empty());
+    when(mockedProjectRepository.findByProjectIdAndTeamName(TEST_PROJECT_ID1, TEAM_NOT_EXISTS))
+        .thenReturn(Optional.empty());
     when(mockedDataset1.isActivated()).thenReturn(true);
     when(mockedDataset2.isActivated()).thenReturn(false);
     when(mockedDatasetRepository.save(any(ADataset.class))).thenReturn(mockedDataset1);
@@ -159,22 +164,25 @@ public class ProjectServiceTest {
 
   @Test
   public void getProject() {
-    when(mockedProjectRepository.findByProjectIdAndTeamName(TEST_PROJECT_ID1, TEAM_NAME1)).thenReturn(
-        Optional.of(project1));
+    when(mockedProjectRepository.findByProjectIdAndTeamName(TEST_PROJECT_ID1, TEAM_NAME1))
+        .thenReturn(Optional.of(project1));
     Project project = service.getProject(TEST_PROJECT_ID1, TEAM_NAME1);
     assertProjectEquals(project1, project);
   }
 
   @Test
   public void getProject__whenNotExists_throwException() {
-    when(mockedProjectRepository.findByProjectIdAndTeamName(TEST_PROJECT_ID1, TEAM_NAME1)).thenReturn(Optional.empty());
-    Assert.assertThrows(ProjectNotFoundException.class, () -> service.getProject(TEST_PROJECT_ID1, TEAM_NAME1));
+    when(mockedProjectRepository.findByProjectIdAndTeamName(TEST_PROJECT_ID1, TEAM_NAME1))
+        .thenReturn(Optional.empty());
+    Assert.assertThrows(
+        ProjectNotFoundException.class, () -> service.getProject(TEST_PROJECT_ID1, TEAM_NAME1));
   }
 
   @Test
   public void createProject() {
     ACreateProjectRequest payload = new ACreateProjectRequest(TEST_PROJECT_ID3, CONNECTION_ID);
-    when(mockedFetcherService.fetchProjectWithConnection(TEST_PROJECT_ID3, mockedConnection)).thenReturn(mockedFetchedProject3);
+    when(mockedFetcherService.fetchProjectWithConnection(TEST_PROJECT_ID3, mockedConnection))
+        .thenReturn(mockedFetchedProject3);
     Project project = service.createProject(payload, TEAM_NAME1);
     assertProjectEquals(project3, project);
     assertEquals(TEAM_NAME1, project.getTeamName());
@@ -183,8 +191,10 @@ public class ProjectServiceTest {
   @Test
   public void createProject__whenExists_throwException() {
     ACreateProjectRequest payload = new ACreateProjectRequest(TEST_PROJECT_ID1, CONNECTION_ID);
-    when(mockedFetcherService.fetchProjectWithConnection(TEST_PROJECT_ID1, mockedConnection)).thenReturn(mockedFetchedProject1);
-    assertThrows(ProjectAlreadyExistsException.class, () -> service.createProject(payload, TEAM_NAME1));
+    when(mockedFetcherService.fetchProjectWithConnection(TEST_PROJECT_ID1, mockedConnection))
+        .thenReturn(mockedFetchedProject1);
+    assertThrows(
+        ProjectAlreadyExistsException.class, () -> service.createProject(payload, TEAM_NAME1));
   }
 
   @Test

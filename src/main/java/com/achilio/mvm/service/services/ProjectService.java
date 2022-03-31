@@ -34,7 +34,6 @@ public class ProjectService {
   @Autowired private GooglePublisherService publisherService;
   @Autowired private FetcherService fetcherService;
   @Autowired private ConnectionService connectionService;
-  @Autowired private StripeService stripeService;
 
   public ProjectService() {}
 
@@ -43,17 +42,21 @@ public class ProjectService {
   }
 
   public Project getProject(String projectId, String teamName) {
-    return findProjectByTeamId(projectId, teamName).orElseThrow(() -> new ProjectNotFoundException(projectId));
+    return findProjectByTeamId(projectId, teamName)
+        .orElseThrow(() -> new ProjectNotFoundException(projectId));
   }
 
   public Project createProject(ACreateProjectRequest payload, String teamName) {
     Connection connection = connectionService.getConnection(payload.getConnectionId(), teamName);
-    FetchedProject fetchedProject = fetcherService.fetchProjectWithConnection(payload.getProjectId(), connection);
+    FetchedProject fetchedProject =
+        fetcherService.fetchProjectWithConnection(payload.getProjectId(), connection);
     return createProjectFromFetchedProject(fetchedProject, teamName);
   }
 
   public void deleteProject(String projectId, String teamName) {
-    Project project = findProjectByTeamId(projectId, teamName).orElseThrow(() -> new ProjectNotFoundException(projectId));
+    Project project =
+        findProjectByTeamId(projectId, teamName)
+            .orElseThrow(() -> new ProjectNotFoundException(projectId));
     projectRepository.delete(project);
   }
 

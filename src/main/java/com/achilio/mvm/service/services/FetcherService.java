@@ -16,40 +16,23 @@ import com.achilio.mvm.service.entities.ServiceAccountConnection;
 import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics;
 import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics.Scope;
 import com.achilio.mvm.service.entities.statistics.QueryStatistics;
-import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
-import com.google.api.client.http.HttpTransport;
-import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.gson.GsonFactory;
 import com.google.common.annotations.VisibleForTesting;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /** All the useful services to generate relevant Materialized Views. */
 @Service
 public class FetcherService {
 
-  private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
-  private static final HttpTransport HTTP_TRANSPORT = new NetHttpTransport();
   BigQueryMaterializedViewStatementBuilder statementBuilder;
   @Autowired ConnectionService connectionService;
 
-  @Value("${application.name}")
-  private String applicationName;
-
   public FetcherService() {
     this.statementBuilder = new BigQueryMaterializedViewStatementBuilder();
-  }
-
-  public static long averageQueryCost(List<QueryUsageStatistics> statistics) {
-    QueryUsageStatistics root = new QueryUsageStatistics(0, 0, 0);
-    statistics.forEach(root::addQueryUsageStatistics);
-    return root.getQueryCount() == 0 ? 0 : root.getProcessedBytes() / root.getQueryCount();
   }
 
   public List<FetchedProject> fetchAllProjects() {
@@ -73,7 +56,8 @@ public class FetcherService {
     return projectList;
   }
 
-  public FetchedProject fetchProjectWithConnection(String projectId, Connection connection) throws ProjectNotFoundException {
+  public FetchedProject fetchProjectWithConnection(String projectId, Connection connection)
+      throws ProjectNotFoundException {
     DatabaseFetcher fetcher = fetcher(projectId, connection);
     FetchedProject fetchedProject = fetcher.fetchProject(projectId);
     fetcher.close();
@@ -152,7 +136,8 @@ public class FetcherService {
     return new BigQueryDatabaseFetcher(serviceAccount, projectId);
   }
 
-  private DatabaseFetcher fetcher(String projectId, Connection connection) throws ProjectNotFoundException {
+  private DatabaseFetcher fetcher(String projectId, Connection connection)
+      throws ProjectNotFoundException {
     ServiceAccountConnection saConnection = (ServiceAccountConnection) connection;
     String serviceAccount = saConnection.getServiceAccountKey();
     return new BigQueryDatabaseFetcher(serviceAccount, projectId);

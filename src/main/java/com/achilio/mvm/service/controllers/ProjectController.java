@@ -11,7 +11,6 @@ import com.achilio.mvm.service.controllers.responses.GlobalQueryStatisticsRespon
 import com.achilio.mvm.service.controllers.responses.ProjectResponse;
 import com.achilio.mvm.service.controllers.responses.UpdateDatasetRequestResponse;
 import com.achilio.mvm.service.databases.entities.FetchedDataset;
-import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics;
 import com.achilio.mvm.service.services.FetcherService;
@@ -21,7 +20,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -53,14 +51,16 @@ public class ProjectController {
   @GetMapping(path = "/project/{projectId}", produces = APPLICATION_JSON_VALUE)
   @ApiOperation("Get a project for a given projectId")
   public ProjectResponse getProject(@PathVariable final String projectId) {
-    return toProjectResponse(projectService.getProject(projectId, UserContextHelper.getContextTeamName()));
+    return toProjectResponse(
+        projectService.getProject(projectId, UserContextHelper.getContextTeamName()));
   }
 
   @PostMapping(path = "/project", produces = APPLICATION_JSON_VALUE)
   @ApiOperation("Register a project if not exists")
   @ResponseStatus(HttpStatus.CREATED)
   public ProjectResponse createProject(@RequestBody final ACreateProjectRequest payload) {
-    return toProjectResponse(projectService.createProject(payload, UserContextHelper.getContextTeamName()));
+    return toProjectResponse(
+        projectService.createProject(payload, UserContextHelper.getContextTeamName()));
   }
 
   @DeleteMapping(path = "/project/{projectId}")
@@ -72,9 +72,7 @@ public class ProjectController {
 
   // Old ProjectController methods
 
-  @GetMapping(
-      path = "/project/{projectId}/permissions",
-      produces = APPLICATION_JSON_VALUE)
+  @GetMapping(path = "/project/{projectId}/permissions", produces = APPLICATION_JSON_VALUE)
   @ApiOperation("Check permissions for a given projectId")
   public List<String> getMissingPermissions(@PathVariable final String projectId) {
     return fetcherService.fetchMissingPermissions(projectId);
@@ -146,11 +144,6 @@ public class ProjectController {
 
   public AggregatedStatisticsResponse toAggregatedStatistics(GlobalQueryStatistics statistics) {
     return new AggregatedStatisticsResponse(statistics);
-  }
-
-  private ProjectResponse toProjectResponse(FetchedProject fetchedProject) {
-    Project project = projectService.findProjectOrCreate(fetchedProject.getProjectId());
-    return new ProjectResponse(fetchedProject.getName(), project);
   }
 
   private ProjectResponse toProjectResponse(Project project) {
