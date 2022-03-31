@@ -44,13 +44,13 @@ public class ServiceAccountConnection extends Connection {
 
   @Override
   public void setContent(String content) {
-    if (content != null) {
+    if (content != null && !content.equals("")) {
       this.serviceAccountKey = content;
     }
   }
 
   public void setServiceAccountKey(String serviceAccountKey) {
-    if (serviceAccountKey != null) {
+    if (serviceAccountKey != null && !serviceAccountKey.equals("")) {
       this.serviceAccountKey = serviceAccountKey;
     }
   }
