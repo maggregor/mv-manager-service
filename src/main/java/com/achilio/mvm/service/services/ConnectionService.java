@@ -40,7 +40,8 @@ public class ConnectionService {
 
   @Transactional
   public void deleteConnection(Long id, String teamName) {
-    repository.deleteByIdAndTeamName(id, teamName);
+    Connection connection = getConnection(id, teamName);
+    repository.delete(connection);
   }
 
   @Transactional

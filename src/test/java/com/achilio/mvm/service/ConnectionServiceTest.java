@@ -86,8 +86,14 @@ public class ConnectionServiceTest {
   @Test
   public void deleteConnection() {
     service.deleteConnection(456L, teamName);
-    Mockito.verify(mockedRepository, Mockito.timeout(1000).times(1))
-        .deleteByIdAndTeamName(456L, teamName);
+    Mockito.verify(mockedRepository, Mockito.timeout(1000).times(1)).delete(any());
+  }
+
+  @Test
+  public void deleteConnection__whenNotExists_throwException() {
+    assertThrows(ConnectionNotFoundException.class, () -> service.deleteConnection(789L, teamName));
+    assertThrows(
+        ConnectionNotFoundException.class, () -> service.deleteConnection(456L, "unknownTeam"));
   }
 
   @Test

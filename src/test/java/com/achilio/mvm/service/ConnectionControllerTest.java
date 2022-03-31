@@ -3,6 +3,7 @@ package com.achilio.mvm.service;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -11,11 +12,13 @@ import com.achilio.mvm.service.controllers.ConnectionNameResponse;
 import com.achilio.mvm.service.controllers.responses.ConnectionResponse;
 import com.achilio.mvm.service.controllers.responses.ServiceAccountConnectionResponse;
 import com.achilio.mvm.service.entities.ServiceAccountConnection;
+import com.achilio.mvm.service.exceptions.ConnectionNotFoundException;
 import com.achilio.mvm.service.models.UserProfile;
 import com.achilio.mvm.service.services.ConnectionService;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,6 +36,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 @RunWith(MockitoJUnitRunner.class)
 public class ConnectionControllerTest {
 
+  private static final String TEAM_NAME = "myTeam";
   @InjectMocks ConnectionController controller;
   @Mock ConnectionService mockedService;
   @Mock private UserProfile mockedUserProfile;
@@ -42,7 +46,7 @@ public class ConnectionControllerTest {
     // Mock security context for the getContextTeamName() method in Controller
     Authentication mockedAuth = mock(Authentication.class);
     SecurityContext mockedSecurityContext = mock(SecurityContext.class);
-    when(mockedUserProfile.getTeamName()).thenReturn("myTeam");
+    when(mockedUserProfile.getTeamName()).thenReturn(TEAM_NAME);
     when(mockedAuth.getDetails()).thenReturn(mockedUserProfile);
     when(mockedSecurityContext.getAuthentication()).thenReturn(mockedAuth);
     SecurityContextHolder.setContext(mockedSecurityContext);
@@ -53,10 +57,13 @@ public class ConnectionControllerTest {
     when(mockedConnection.getName()).thenReturn("My Connection");
     when(mockedConnection2.getId()).thenReturn(2L);
     when(mockedConnection2.getName()).thenReturn("My Connection 2");
-    when(mockedService.getConnection(1L, "myTeam")).thenReturn(mockedConnection);
-    when(mockedService.getConnection(2L, "myTeam")).thenReturn(mockedConnection2);
+    when(mockedService.getConnection(1L, TEAM_NAME)).thenReturn(mockedConnection);
+    when(mockedService.getConnection(2L, TEAM_NAME)).thenReturn(mockedConnection2);
     when(mockedService.getAllConnections(mockedUserProfile.getTeamName()))
         .thenReturn(Arrays.asList(mockedConnection, mockedConnection2));
+    doThrow(ConnectionNotFoundException.class)
+        .when(mockedService)
+        .deleteConnection(9999L, TEAM_NAME);
   }
 
   @Test
@@ -84,7 +91,13 @@ public class ConnectionControllerTest {
   @Test
   public void deleteConnection() {
     controller.deleteConnection(1L);
-    Mockito.verify(mockedService, Mockito.timeout(1000).times(1)).deleteConnection(1L, "myTeam");
+    Mockito.verify(mockedService, Mockito.timeout(1000).times(1)).deleteConnection(1L, TEAM_NAME);
+  }
+
+  @Test
+  public void deleteConnection__whenNotExists_throwException() {
+    Assert.assertThrows(
+        ConnectionNotFoundException.class, () -> controller.deleteConnection(9999L));
   }
 
   private void assertConnectionResponse(
