@@ -1,5 +1,6 @@
-package com.achilio.mvm.service.controllers.requests;
+package com.achilio.mvm.service.controllers.responses;
 
+import com.achilio.mvm.service.controllers.responses.ConnectionResponse;
 import com.achilio.mvm.service.entities.ServiceAccountConnection;
 import lombok.Getter;
 

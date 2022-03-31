@@ -1,4 +1,4 @@
-package com.achilio.mvm.service.controllers.requests;
+package com.achilio.mvm.service.controllers.responses;
 
 import com.achilio.mvm.service.entities.Connection;
 import com.achilio.mvm.service.entities.ServiceAccountConnection;

@@ -25,4 +25,10 @@ public class ServiceAccountConnection extends Connection {
   public ConnectionType getType() {
     return ConnectionType.SERVICE_ACCOUNT;
   }
+
+  public void setContent(String content) {
+    if (content != null) {
+      this.content = content;
+    }
+  }
 }

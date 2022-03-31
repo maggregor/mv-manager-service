@@ -68,6 +68,7 @@ public class ConnectionService {
       // Update a service account
       ServiceAccountConnection saConnection = (ServiceAccountConnection) connection;
       ServiceAccountConnectionRequest saRequest = (ServiceAccountConnectionRequest) request;
+      saConnection.setName(saRequest.getName());
       saConnection.setContent(saRequest.getContent());
       LOGGER.info("Connection {} updated", id);
       return repository.save(saConnection);

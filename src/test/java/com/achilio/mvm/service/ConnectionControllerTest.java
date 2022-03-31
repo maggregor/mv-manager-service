@@ -8,8 +8,8 @@ import static org.mockito.Mockito.when;
 
 import com.achilio.mvm.service.controllers.ConnectionController;
 import com.achilio.mvm.service.controllers.ConnectionNameResponse;
-import com.achilio.mvm.service.controllers.requests.ConnectionResponse;
-import com.achilio.mvm.service.controllers.requests.ServiceAccountConnectionResponse;
+import com.achilio.mvm.service.controllers.responses.ConnectionResponse;
+import com.achilio.mvm.service.controllers.responses.ServiceAccountConnectionResponse;
 import com.achilio.mvm.service.entities.ServiceAccountConnection;
 import com.achilio.mvm.service.models.UserProfile;
 import com.achilio.mvm.service.services.ConnectionService;
@@ -33,7 +33,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 @RunWith(MockitoJUnitRunner.class)
 public class ConnectionControllerTest {
 
-  @InjectMocks ConnectionController mockedController;
+  @InjectMocks ConnectionController controller;
   @Mock ConnectionService mockedService;
   @Mock private UserProfile mockedUserProfile;
 
@@ -63,7 +63,7 @@ public class ConnectionControllerTest {
 
   @Test
   public void getAllConnections() {
-    List<ConnectionNameResponse> responses = mockedController.getAllConnections();
+    List<ConnectionNameResponse> responses = controller.getAllConnections();
     assertFalse(responses.isEmpty());
     assertEquals(2, responses.size());
     assertConnectionNameResponse(1L, "My Connection", responses.get(0));
@@ -71,21 +71,21 @@ public class ConnectionControllerTest {
     // Team without connections
     when(mockedService.getAllConnections("team2")).thenReturn(Collections.emptyList());
     when(mockedUserProfile.getTeamName()).thenReturn("team2");
-    assertTrue(mockedController.getAllConnections().isEmpty());
+    assertTrue(controller.getAllConnections().isEmpty());
   }
 
   @Test
   public void getConnection() {
     ConnectionResponse response;
-    response = mockedController.getConnection(1L);
+    response = controller.getConnection(1L);
     assertConnectionResponse(1L, "My Connection", "SA_content_1", response);
-    response = mockedController.getConnection(2L);
+    response = controller.getConnection(2L);
     assertConnectionResponse(2L, "My Connection 2", "SA_content_2", response);
   }
 
   @Test
   public void deleteConnection() {
-    mockedController.deleteConnection(1L);
+    controller.deleteConnection(1L);
     Mockito.verify(mockedService, Mockito.timeout(1000).times(1)).deleteConnection(1L, "myTeam");
   }
 

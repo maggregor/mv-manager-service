@@ -37,7 +37,13 @@ public abstract class Connection {
 
   public abstract ConnectionType getType();
 
+  public void setName(String name) {
+    if (name != null) {
+      this.name = name;
+    }
+  }
+
   public enum ConnectionType {
-    SERVICE_ACCOUNT;
+    SERVICE_ACCOUNT
   }
 }

@@ -4,8 +4,8 @@ import static com.achilio.mvm.service.UserContextHelper.getContextTeamName;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.achilio.mvm.service.controllers.requests.ConnectionRequest;
-import com.achilio.mvm.service.controllers.requests.ConnectionResponse;
-import com.achilio.mvm.service.controllers.requests.ServiceAccountConnectionResponse;
+import com.achilio.mvm.service.controllers.responses.ConnectionResponse;
+import com.achilio.mvm.service.controllers.responses.ServiceAccountConnectionResponse;
 import com.achilio.mvm.service.entities.Connection;
 import com.achilio.mvm.service.entities.ServiceAccountConnection;
 import com.achilio.mvm.service.services.ConnectionService;
@@ -52,11 +52,11 @@ public class ConnectionController {
     return toConnectionResponse(service.getConnection(id, getContextTeamName()));
   }
 
-  private ConnectionResponse toConnectionResponse(Connection connection) {
-    if (connection instanceof ServiceAccountConnection) {
-      return new ServiceAccountConnectionResponse((ServiceAccountConnection) connection);
-    }
-    throw new IllegalArgumentException("Unsupported connection response");
+  @PatchMapping(path = "/connection/{id}", produces = APPLICATION_JSON_VALUE)
+  @ApiOperation("Update connection")
+  public ConnectionResponse updateConnection(
+      @PathVariable Long id, @RequestBody ConnectionRequest request) {
+    return toConnectionResponse(service.updateConnection(id, getContextTeamName(), request));
   }
 
   @DeleteMapping(path = "/connection/{id}", produces = APPLICATION_JSON_VALUE)
@@ -66,10 +66,11 @@ public class ConnectionController {
     service.deleteConnection(id, getContextTeamName());
   }
 
-  @PatchMapping(path = "/connection/{id}", produces = APPLICATION_JSON_VALUE)
-  @ApiOperation("Update connection")
-  public ConnectionResponse updateConnection(
-      @PathVariable Long id, @RequestBody ConnectionRequest request) {
-    return toConnectionResponse(service.updateConnection(id, getContextTeamName(), request));
+
+  private ConnectionResponse toConnectionResponse(Connection connection) {
+    if (connection instanceof ServiceAccountConnection) {
+      return new ServiceAccountConnectionResponse((ServiceAccountConnection) connection);
+    }
+    throw new IllegalArgumentException("Unsupported connection response");
   }
 }
