@@ -1,5 +1,6 @@
 package com.achilio.mvm.service.services;
 
+import static com.achilio.mvm.service.UserContextHelper.getContextEmail;
 import static java.util.stream.Collectors.toList;
 
 import com.achilio.mvm.service.Optimizer;
@@ -193,7 +194,7 @@ public class OptimizerService {
     Optimization optimization = new Optimization(project);
     optimization.setAnalysisTimeframe(project.getAnalysisTimeframe());
     optimization.setMvMaxPerTable(project.getMvMaxPerTable());
-    optimization.setUsername(fetcherService.getUserInfo().getEmail());
+    optimization.setUsername(getContextEmail());
     optimization.setStatus(Optimization.Status.PENDING);
     optimizerRepository.save(optimization);
     LOGGER.info("New optimization created: {}", optimization.getId());

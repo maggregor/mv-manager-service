@@ -1,5 +1,6 @@
 package com.achilio.mvm.service.services;
 
+import static com.achilio.mvm.service.UserContextHelper.getUserProfile;
 import static com.achilio.mvm.service.services.StripeService.StripeMetadata.PROJECT_ID;
 import static java.util.stream.Collectors.toList;
 
@@ -8,7 +9,7 @@ import com.achilio.mvm.service.models.PlanPrice;
 import com.achilio.mvm.service.models.ProjectPlan;
 import com.achilio.mvm.service.models.ProjectPlan.PossibleAction;
 import com.achilio.mvm.service.models.ProjectSubscription;
-import com.google.api.services.oauth2.model.Userinfo;
+import com.achilio.mvm.service.models.UserProfile;
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
@@ -57,9 +58,9 @@ public class StripeService {
    * @return the stripe customer ID
    */
   public Customer createCustomer(String customerName, String organizationId) {
-    Userinfo userInfo = fetcherService.getUserInfo();
-    String userEmail = userInfo.getEmail();
-    String userName = userInfo.getName();
+    UserProfile userProfile = getUserProfile();
+    String userEmail = userProfile.getEmail();
+    String userName = userProfile.getName();
     return createCustomer(userEmail, userName, customerName, organizationId);
   }
 

@@ -36,6 +36,8 @@ public class Project {
   @Column(name = "project_name")
   private String projectName;
 
+  @Column private String teamName;
+
   @Column(name = "activated", nullable = false)
   private Boolean activated = false;
 
@@ -82,10 +84,11 @@ public class Project {
     this.organization = organization;
   }
 
-  public Project(FetchedProject project) {
-    this.projectId = project.getProjectId();
-    this.projectName = project.getName();
-    this.organization = project.getOrganization();
+  public Project(FetchedProject fetchedProject) {
+    this.projectId = fetchedProject.getProjectId();
+    this.projectName = fetchedProject.getName();
+    this.organization = fetchedProject.getOrganization();
+    this.teamName = fetchedProject.getTeamName();
   }
 
   public Long getId() {
@@ -102,6 +105,14 @@ public class Project {
 
   public void setProjectName(String projectName) {
     this.projectName = projectName;
+  }
+
+  public String getTeamName() {
+    return teamName;
+  }
+
+  public void setTeamName(String teamName) {
+    this.teamName = teamName;
   }
 
   public Boolean isActivated() {

@@ -9,5 +9,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ServiceAccountConnectionRequest extends ConnectionRequest {
 
-  private String serviceAccount;
+  private String content;
 }

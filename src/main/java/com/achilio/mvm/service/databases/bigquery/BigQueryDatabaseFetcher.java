@@ -1,5 +1,7 @@
 package com.achilio.mvm.service.databases.bigquery;
 
+import static com.achilio.mvm.service.UserContextHelper.getContextTeamName;
+
 import com.achilio.mvm.service.databases.DatabaseFetcher;
 import com.achilio.mvm.service.databases.entities.DefaultFetchedDataset;
 import com.achilio.mvm.service.databases.entities.DefaultFetchedOrganization;
@@ -53,6 +55,7 @@ import com.google.cloud.resourcemanager.v3.ProjectsSettings;
 import com.google.cloud.resourcemanager.v3.SearchOrganizationsRequest;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.zetasql.ZetaSQLType;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -95,6 +98,58 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     this.organizationClient = oc;
     this.projectClient = pc;
     this.folderClient = fc;
+  }
+
+  public BigQueryDatabaseFetcher(final String serviceAccount, final String projectId) {
+    GoogleCredentials credentials;
+    try {
+      credentials =
+          GoogleCredentials.fromStream(new ByteArrayInputStream(serviceAccount.getBytes()));
+
+    } catch (IOException e) {
+      LOGGER.error("Cannot read service account {}", serviceAccount);
+      throw new RuntimeException(e);
+    }
+    this.organizationClient = null;
+    this.projectClient = null;
+    this.folderClient = null;
+    BigQueryOptions.Builder bqOptBuilder = BigQueryOptions.newBuilder().setCredentials(credentials);
+    ResourceManagerOptions.Builder rmOptBuilder =
+        ResourceManagerOptions.newBuilder().setCredentials(credentials);
+    try {
+      OrganizationsSettings organizationsSettings =
+          OrganizationsSettings.newBuilder()
+              .setCredentialsProvider(FixedCredentialsProvider.create(credentials))
+              .build();
+
+      ProjectsSettings projectsSettings =
+          ProjectsSettings.newBuilder()
+              .setCredentialsProvider(FixedCredentialsProvider.create(credentials))
+              .build();
+
+      FoldersSettings foldersSettings =
+          FoldersSettings.newBuilder()
+              .setCredentialsProvider(FixedCredentialsProvider.create(credentials))
+              .build();
+
+      this.organizationClient = OrganizationsClient.create(organizationsSettings);
+      this.projectClient = ProjectsClient.create(projectsSettings);
+      this.folderClient = FoldersClient.create(foldersSettings);
+    } catch (IOException e) {
+      LOGGER.error("Error during creation of settings and client");
+      throw new RuntimeException(e);
+    }
+    if (StringUtils.isNotEmpty(projectId)) {
+      // Change default project of BigQuery instance
+      bqOptBuilder.setProjectId(projectId);
+      rmOptBuilder.setProjectId(projectId);
+    }
+    this.bigquery = bqOptBuilder.build().getService();
+    this.resourceManager = rmOptBuilder.build().getService();
+    // Checks if the Google credentials have access.
+    if (StringUtils.isNotEmpty(projectId)) {
+      fetchProject(projectId);
+    }
   }
 
   public BigQueryDatabaseFetcher(final GoogleCredentials credentials, final String projectId)
@@ -447,14 +502,10 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     return new DefaultFetchedProject(project.getProjectId(), project.getName());
   }
 
-  public FetchedProject toFetchedProject(com.google.cloud.resourcemanager.v3.Project project) {
-    return new DefaultFetchedProject(project.getProjectId(), project.getDisplayName());
-  }
-
   public FetchedProject toFetchedProject(
       com.google.cloud.resourcemanager.v3.Project project, AOrganization baseOrganization) {
     return new DefaultFetchedProject(
-        project.getProjectId(), project.getDisplayName(), baseOrganization);
+        project.getProjectId(), project.getDisplayName(), baseOrganization, getContextTeamName());
   }
 
   public FetchedDataset toFetchedDataset(Dataset dataset) {

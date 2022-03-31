@@ -1,12 +1,14 @@
 package com.achilio.mvm.service.services;
 
+import static com.achilio.mvm.service.UserContextHelper.getUserProfile;
+
 import com.achilio.mvm.service.databases.entities.FetchedOrganization;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.entities.AOrganization;
 import com.achilio.mvm.service.entities.AOrganization.OrganizationType;
 import com.achilio.mvm.service.exceptions.OrganizationNotFoundException;
+import com.achilio.mvm.service.models.UserProfile;
 import com.achilio.mvm.service.repositories.AOrganizationRepository;
-import com.google.api.services.oauth2.model.Userinfo;
 import com.stripe.model.Customer;
 import java.util.Collections;
 import java.util.List;
@@ -34,7 +36,7 @@ public class AOrganizationService {
   public List<AOrganization> getAllOrgOrCreate() {
     List<FetchedOrganization> fetchedOrganizations = fetcherService.fetchAllOrganizations();
     if (fetchedOrganizations.isEmpty()) {
-      Userinfo user = fetcherService.getUserInfo();
+      UserProfile user = getUserProfile();
       return Collections.singletonList(findOrganizationNoOrgOrCreate(user));
     }
     return fetchedOrganizations.stream().map(this::findOrgOrCreate).collect(Collectors.toList());
@@ -50,17 +52,20 @@ public class AOrganizationService {
     projectList.forEach(projectService::createProjectFromFetchedProject);
   }
 
-  public AOrganization findOrganizationNoOrgOrCreate(Userinfo user) {
+  public AOrganization findOrganizationNoOrgOrCreate(UserProfile user) {
     return findAOrganization(user.getEmail()).orElseGet(() -> createOrganizationNoOrg(user));
   }
 
-  public AOrganization createOrganizationNoOrg(Userinfo user) {
+  public AOrganization createOrganizationNoOrg(UserProfile user) {
     // In case of a No Org customer, the Customer Name is the full name, the id and org_id are both
     // the user Email
     Customer customer = stripeService.createCustomer(user.getName(), user.getEmail());
     AOrganization organization =
         new AOrganization(
-            user.getId(), user.getEmail(), customer.getId(), OrganizationType.NO_ORGANIZATION);
+            user.getUsername(),
+            user.getEmail(),
+            customer.getId(),
+            OrganizationType.NO_ORGANIZATION);
     return organizationRepository.save(organization);
   }
 

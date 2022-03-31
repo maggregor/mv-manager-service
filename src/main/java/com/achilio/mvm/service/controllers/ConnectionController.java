@@ -67,7 +67,7 @@ public class ConnectionController {
   }
 
   @PatchMapping(path = "/connection/{id}", produces = APPLICATION_JSON_VALUE)
-  @ApiOperation("List all connection")
+  @ApiOperation("Update connection")
   public ConnectionResponse updateConnection(
       @PathVariable Long id, @RequestBody ConnectionRequest request) {
     return toConnectionResponse(service.updateConnection(id, getContextTeamName(), request));

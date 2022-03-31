@@ -20,12 +20,12 @@ public class JWTInterceptor implements HandlerInterceptor {
   public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
       throws IOException {
     try {
-      Cookie jwt =
+      Cookie jwtToken =
           Arrays.stream(request.getCookies())
               .filter(c -> c.getName().equals("jwt_token"))
               .findFirst()
               .orElseThrow(IllegalArgumentException::new);
-      setUpSpringAuthentication(validateToken(jwt));
+      setUpSpringAuthentication(validateToken(jwtToken));
     } catch (Exception e) {
       response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
       response.sendError(HttpServletResponse.SC_UNAUTHORIZED, e.getMessage());
@@ -33,9 +33,10 @@ public class JWTInterceptor implements HandlerInterceptor {
     return true;
   }
 
-  private String validateToken(Cookie jwt) throws IllegalArgumentException, NullPointerException {
-    jwtDecoderService.verifySignature(jwt.getValue());
-    return jwt.getValue();
+  private String validateToken(Cookie jwtToken)
+      throws IllegalArgumentException, NullPointerException {
+    jwtDecoderService.verifySignature(jwtToken.getValue());
+    return jwtDecoderService.decodePayload(jwtToken.getValue());
   }
 
   private void setUpSpringAuthentication(String jwtPayload) {

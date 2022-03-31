@@ -7,16 +7,19 @@ public class DefaultFetchedProject implements FetchedProject {
   private String projectId;
   private String name;
   private AOrganization organization;
+  private String teamName;
 
   public DefaultFetchedProject(String projectId, String name) {
     this.projectId = projectId;
     this.name = name;
   }
 
-  public DefaultFetchedProject(String projectId, String name, AOrganization organization) {
+  public DefaultFetchedProject(
+      String projectId, String name, AOrganization organization, String teamName) {
     this.projectId = projectId;
     this.name = name;
     this.organization = organization;
+    this.teamName = teamName;
   }
 
   @Override
@@ -32,5 +35,10 @@ public class DefaultFetchedProject implements FetchedProject {
   @Override
   public AOrganization getOrganization() {
     return this.organization;
+  }
+
+  @Override
+  public String getTeamName() {
+    return this.teamName;
   }
 }

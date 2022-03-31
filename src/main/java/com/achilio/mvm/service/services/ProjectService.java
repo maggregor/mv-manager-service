@@ -1,5 +1,8 @@
 package com.achilio.mvm.service.services;
 
+import static com.achilio.mvm.service.UserContextHelper.getContextEmail;
+import static com.achilio.mvm.service.UserContextHelper.getContextTeamName;
+
 import com.achilio.mvm.service.controllers.requests.UpdateProjectRequest;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.entities.ADataset;
@@ -87,7 +90,7 @@ public class ProjectService {
       publisherService.publishProjectSchedulers(getAllActivatedProjects());
       if (payload.isAutomatic()) {
         // Automatic mode has just been activated by this current user
-        project.setUsername(fetcherService.getUserInfo().getEmail());
+        project.setUsername(getContextEmail());
       }
     }
     return project;
@@ -173,6 +176,7 @@ public class ProjectService {
       Project updatedProject = getProjectAsUser(p.getProjectId());
       updatedProject.setProjectName(p.getName());
       updatedProject.setOrganization(p.getOrganization());
+      updatedProject.setTeamName(getContextTeamName());
       return projectRepository.save(updatedProject);
     } else {
       return projectRepository.save(new Project(p));

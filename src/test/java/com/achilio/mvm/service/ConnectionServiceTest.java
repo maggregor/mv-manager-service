@@ -7,12 +7,10 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.achilio.mvm.service.controllers.requests.ServiceAccountConnectionRequest;
 import com.achilio.mvm.service.entities.Connection;
-import com.achilio.mvm.service.entities.Connection.ConnectionType;
 import com.achilio.mvm.service.entities.ServiceAccountConnection;
 import com.achilio.mvm.service.exceptions.ConnectionNotFoundException;
 import com.achilio.mvm.service.repositories.ConnectionRepository;
@@ -27,7 +25,6 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
-import org.apache.logging.log4j.util.Strings;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -42,23 +39,20 @@ public class ConnectionServiceTest {
   private static final String JSON_SA_CONTENT = "json_content_service_account_xxx";
   private static final String teamName = "myTeam";
   @InjectMocks private ConnectionService service;
-  @Mock private ServiceAccountConnection mockedSAConnection;
   @Mock private ConnectionRepository mockedRepository;
-  @Mock private ServiceAccountConnectionRequest mockedSARequest;
+  private ServiceAccountConnection SA_CONNECTION;
+  private ServiceAccountConnectionRequest SA_REQUEST;
 
   private Validator validator;
 
   @Before
   public void setup() {
+    SA_CONNECTION = new ServiceAccountConnection(JSON_SA_CONTENT);
+    SA_REQUEST = new ServiceAccountConnectionRequest(JSON_SA_CONTENT);
     when(mockedRepository.save(any())).then(returnsFirstArg());
     when(mockedRepository.findByIdAndTeamName(456L, teamName))
-        .thenReturn(Optional.of(mockedSAConnection));
-    when(mockedSAConnection.getType()).thenReturn(ConnectionType.SERVICE_ACCOUNT);
-    when(mockedSAConnection.getContent()).thenReturn(JSON_SA_CONTENT);
+        .thenReturn(Optional.of(SA_CONNECTION));
     //
-    mockedSARequest = mock(ServiceAccountConnectionRequest.class);
-    when(mockedSARequest.getType()).thenReturn(ConnectionType.SERVICE_ACCOUNT);
-    when(mockedSARequest.getServiceAccount()).thenReturn(JSON_SA_CONTENT);
     ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
     validator = factory.getValidator();
   }
@@ -66,11 +60,11 @@ public class ConnectionServiceTest {
   @Test
   public void createServiceAccountConnection() {
     Connection connection;
-    connection = service.createConnection(teamName, mockedSARequest);
-    assertExpectedServiceAccount(mockedSARequest, connection);
+    connection = service.createConnection(teamName, SA_REQUEST);
+    assertExpectedServiceAccount(SA_REQUEST, connection);
     // Empty service account
-    when(mockedSARequest.getServiceAccount()).thenReturn(Strings.EMPTY);
-    connection = service.createConnection(teamName, mockedSARequest);
+    SA_REQUEST = new ServiceAccountConnectionRequest("");
+    connection = service.createConnection(teamName, SA_REQUEST);
     Set<ConstraintViolation<Connection>> violations = validator.validate(connection);
     assertFalse(violations.isEmpty());
     assertEquals(
@@ -81,25 +75,22 @@ public class ConnectionServiceTest {
   @Test
   public void whenCreateMoreThanOneConnection_thenThrowException() {
     when(mockedRepository.findAllByTeamName(teamName))
-        .thenReturn(Collections.singletonList(mockedSAConnection));
+        .thenReturn(Collections.singletonList(SA_CONNECTION));
     Exception e =
         assertThrows(
-            IllegalArgumentException.class,
-            () -> service.createConnection(teamName, mockedSARequest));
+            IllegalArgumentException.class, () -> service.createConnection(teamName, SA_REQUEST));
     assertEquals("You cannot create more than one connection per team", e.getMessage());
   }
 
   @Test
   public void updateServiceAccountConnection() {
-    ServiceAccountConnectionRequest updateRequest = mock(ServiceAccountConnectionRequest.class);
-    when(updateRequest.getType()).thenReturn(ConnectionType.SERVICE_ACCOUNT);
-    when(updateRequest.getServiceAccount()).thenReturn("another_sa_content");
+    ServiceAccountConnectionRequest updateRequest = new ServiceAccountConnectionRequest("another");
     Connection connection = service.updateConnection(456L, teamName, updateRequest);
     assertExpectedServiceAccount(updateRequest, connection);
     Exception e =
         assertThrows(
             ConnectionNotFoundException.class,
-            () -> service.updateConnection(9999L, teamName, mockedSARequest));
+            () -> service.updateConnection(9999L, teamName, SA_REQUEST));
     assertEquals("Connection 9999 not found", e.getMessage());
   }
 
@@ -115,36 +106,33 @@ public class ConnectionServiceTest {
     when(mockedRepository.findAllByTeamName(any())).thenReturn(new ArrayList<>());
     assertTrue(service.getAllConnections(teamName).isEmpty());
     when(mockedRepository.findAllByTeamName(any()))
-        .thenReturn(Arrays.asList(mockedSAConnection, mockedSAConnection));
+        .thenReturn(Arrays.asList(SA_CONNECTION, SA_CONNECTION));
     List<Connection> connections = service.getAllConnections(teamName);
     assertEquals(2, connections.size());
-    assertEquals(mockedSAConnection, connections.get(0));
-    assertEquals(mockedSAConnection, connections.get(1));
+    assertEquals(SA_CONNECTION, connections.get(0));
+    assertEquals(SA_CONNECTION, connections.get(1));
   }
 
   @Test
   public void getServiceAccountConnection() {
     ServiceAccountConnection connection =
         (ServiceAccountConnection) service.getConnection(456L, teamName);
-    assertEquals(mockedSAConnection, connection);
+    assertEquals(SA_CONNECTION, connection);
   }
 
   private void assertExpectedServiceAccount(
       ServiceAccountConnectionRequest expected, Connection actual) {
     assertNotNull(actual);
-    assertEquals(expected.getType(), actual.getType());
     assertTrue(actual instanceof ServiceAccountConnection);
     String actualServiceAccount = ((ServiceAccountConnection) actual).getContent();
-    assertEquals(mockedSARequest.getServiceAccount(), actualServiceAccount);
+    assertEquals(expected.getContent(), actualServiceAccount);
   }
 
   @Test
   public void whenConnectionTypeNull_thenThrowIllegalArgumentException() {
-    when(mockedSARequest.getType()).thenReturn(null);
     Exception e =
         assertThrows(
-            IllegalArgumentException.class,
-            () -> service.createConnection(teamName, mockedSARequest));
+            IllegalArgumentException.class, () -> service.createConnection(teamName, null));
     assertEquals("Unsupported connection type", e.getMessage());
   }
 }
