@@ -7,11 +7,9 @@ import javax.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Entity
 @Getter
-@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @DiscriminatorValue("service_account")
@@ -20,6 +18,19 @@ public class ServiceAccountConnection extends Connection {
   @Column(name = "content", length = 65535)
   @NotEmpty(message = "Service account must not be empty")
   private String serviceAccountKey;
+
+  public ServiceAccountConnection(
+      String name,
+      String teamName,
+      String ownerUsername,
+      SourceType sourceType,
+      String serviceAccountKey) {
+    this.setName(name);
+    this.setTeamName(teamName);
+    this.setOwnerUsername(ownerUsername);
+    this.setSourceType(sourceType);
+    this.setServiceAccountKey(serviceAccountKey);
+  }
 
   @Override
   public ConnectionType getType() {

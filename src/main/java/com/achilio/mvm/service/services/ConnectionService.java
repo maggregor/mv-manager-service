@@ -44,7 +44,8 @@ public class ConnectionService {
   }
 
   @Transactional
-  public Connection createConnection(String teamName, ConnectionRequest request) {
+  public Connection createConnection(
+      String teamName, String ownerUsername, ConnectionRequest request) {
     Connection connection;
     if (request instanceof ServiceAccountConnectionRequest) {
       connection = new ServiceAccountConnection(request.getContent());
@@ -53,6 +54,8 @@ public class ConnectionService {
     }
     connection.setName(request.getName());
     connection.setTeamName(teamName);
+    connection.setOwnerUsername(ownerUsername);
+    connection.setSourceType(request.getSourceType());
     return repository.save(connection);
   }
 

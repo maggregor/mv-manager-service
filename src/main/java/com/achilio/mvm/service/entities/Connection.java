@@ -1,9 +1,12 @@
 package com.achilio.mvm.service.entities;
 
+import java.time.LocalDateTime;
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorColumn;
 import javax.persistence.DiscriminatorType;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -14,6 +17,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 @Entity
@@ -35,6 +39,14 @@ public abstract class Connection {
 
   @Column private String teamName;
 
+  @Column private String ownerUsername;
+
+  @Column
+  @Enumerated(EnumType.STRING)
+  private SourceType sourceType;
+
+  @UpdateTimestamp @Column private LocalDateTime lastModifiedAt;
+
   public abstract ConnectionType getType();
 
   public abstract String getContent();
@@ -47,5 +59,9 @@ public abstract class Connection {
 
   public enum ConnectionType {
     SERVICE_ACCOUNT
+  }
+
+  public enum SourceType {
+    BIGQUERY
   }
 }

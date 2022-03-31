@@ -1,6 +1,7 @@
 package com.achilio.mvm.service.controllers;
 
 import static com.achilio.mvm.service.UserContextHelper.getContextTeamName;
+import static com.achilio.mvm.service.UserContextHelper.getContextUsername;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.achilio.mvm.service.controllers.requests.ConnectionRequest;
@@ -43,7 +44,8 @@ public class ConnectionController {
   @PostMapping(path = "/connection", produces = APPLICATION_JSON_VALUE)
   @ApiOperation("List all connection")
   public ConnectionResponse createConnection(@RequestBody ConnectionRequest request) {
-    return toConnectionResponse(service.createConnection(getContextTeamName(), request));
+    return toConnectionResponse(
+        service.createConnection(getContextTeamName(), getContextUsername(), request));
   }
 
   @GetMapping(path = "/connection/{id}", produces = APPLICATION_JSON_VALUE)
