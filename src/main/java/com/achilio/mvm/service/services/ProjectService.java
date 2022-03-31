@@ -7,6 +7,7 @@ import com.achilio.mvm.service.controllers.requests.ACreateProjectRequest;
 import com.achilio.mvm.service.controllers.requests.UpdateProjectRequest;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.entities.ADataset;
+import com.achilio.mvm.service.entities.Connection;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.exceptions.ProjectAlreadyExistsException;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
@@ -20,7 +21,6 @@ import javax.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
 /** Services to manage project and dataset resources. */
@@ -33,6 +33,7 @@ public class ProjectService {
   @Autowired private DatasetRepository datasetRepository;
   @Autowired private GooglePublisherService publisherService;
   @Autowired private FetcherService fetcherService;
+  @Autowired private ConnectionService connectionService;
   @Autowired private StripeService stripeService;
 
   public ProjectService() {}
@@ -46,7 +47,8 @@ public class ProjectService {
   }
 
   public Project createProject(ACreateProjectRequest payload, String teamName) {
-    FetchedProject fetchedProject = fetcherService.fetchProject(payload.getProjectId());
+    Connection connection = connectionService.getConnection(payload.getConnectionId(), teamName);
+    FetchedProject fetchedProject = fetcherService.fetchProjectWithConnection(payload.getProjectId(), connection);
     return createProjectFromFetchedProject(fetchedProject, teamName);
   }
 

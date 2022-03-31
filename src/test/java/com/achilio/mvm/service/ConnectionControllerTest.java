@@ -51,8 +51,8 @@ public class ConnectionControllerTest {
     ServiceAccountConnection mockedConnection2 = mock(ServiceAccountConnection.class);
     when(mockedConnection.getId()).thenReturn(1L);
     when(mockedConnection.getName()).thenReturn("My Connection");
-    when(mockedConnection.getContent()).thenReturn("SA_content_1");
-    when(mockedConnection2.getContent()).thenReturn("SA_content_2");
+    when(mockedConnection.getServiceAccountKey()).thenReturn("SA_content_1");
+    when(mockedConnection2.getServiceAccountKey()).thenReturn("SA_content_2");
     when(mockedConnection2.getId()).thenReturn(2L);
     when(mockedConnection2.getName()).thenReturn("My Connection 2");
     when(mockedService.getConnection(1L, "myTeam")).thenReturn(mockedConnection);

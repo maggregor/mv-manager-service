@@ -9,5 +9,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ServiceAccountConnectionRequest extends ConnectionRequest {
 
-  private String content;
+  private String serviceAccountKey;
+
+  @Override
+  public String getContent() {
+    return this.serviceAccountKey;
+  }
 }

@@ -124,8 +124,8 @@ public class ConnectionServiceTest {
       ServiceAccountConnectionRequest expected, Connection actual) {
     assertNotNull(actual);
     assertTrue(actual instanceof ServiceAccountConnection);
-    String actualServiceAccount = ((ServiceAccountConnection) actual).getContent();
-    assertEquals(expected.getContent(), actualServiceAccount);
+    String actualServiceAccount = ((ServiceAccountConnection) actual).getServiceAccountKey();
+    assertEquals(expected.getServiceAccountKey(), actualServiceAccount);
   }
 
   @Test

@@ -16,4 +16,6 @@ import lombok.NoArgsConstructor;
 public abstract class ConnectionRequest {
   @JsonProperty
   private String name;
+
+  public abstract String getContent();
 }

@@ -14,12 +14,14 @@ import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.entities.ADataset;
 import com.achilio.mvm.service.entities.AOrganization;
 import com.achilio.mvm.service.entities.AOrganization.OrganizationType;
+import com.achilio.mvm.service.entities.Connection;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.exceptions.ProjectAlreadyExistsException;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import com.achilio.mvm.service.models.UserProfile;
 import com.achilio.mvm.service.repositories.DatasetRepository;
 import com.achilio.mvm.service.repositories.ProjectRepository;
+import com.achilio.mvm.service.services.ConnectionService;
 import com.achilio.mvm.service.services.FetcherService;
 import com.achilio.mvm.service.services.GooglePublisherService;
 import com.achilio.mvm.service.services.ProjectService;
@@ -50,6 +52,7 @@ public class ProjectServiceTest {
   private static final String TEAM_NAME1 = "myTeamName";
   private static final String TEAM_NOT_EXISTS = "notExistsTeamName";
   private static final Long CONNECTION_ID = 1L;
+  private static final String CONNECTION_CONTENT = "serviceAccountContent";
   private static final UserProfile USER_PROFILE_1 =
       new UserProfile("moi", "moi@achilio.com", "foo", "bar", "myName", TEAM_NAME1);
   private static final String TEST_PROJECT_ID1 = "achilio-dev";
@@ -77,6 +80,7 @@ public class ProjectServiceTest {
   private static final Project project3 = new Project(TEST_PROJECT_ID3, TEST_PROJECT_NAME3, STRIPE_SUBSCRIPTION_ID, ORGANIZATION);
   private static final List<Project> activatedProjects =
       Arrays.asList(project1, project2);
+  private static final Connection mockedConnection = mock(Connection.class);
   private static final ADataset mockedDataset1 = mock(ADataset.class);
   private static final ADataset mockedDataset2 = mock(ADataset.class);
   private final ADataset realDataset = new ADataset(project1, TEST_DATASET_NAME3);
@@ -89,13 +93,14 @@ public class ProjectServiceTest {
   @Mock private Product errorMockedProduct;
   @Mock private FetcherService mockedFetcherService;
   @Mock private Authentication mockedJWTAuth;
-  @Mock private SecurityContext securityContext;
+  @Mock private SecurityContext mockedSecurityContext;
+  @Mock private ConnectionService mockedConnectionService;
   @Mock private GooglePublisherService mockedPublisherService;
 
   @Before
   public void setup() throws JsonProcessingException {
-    when(securityContext.getAuthentication()).thenReturn(mockedJWTAuth);
-    SecurityContextHolder.setContext(securityContext);
+    when(mockedSecurityContext.getAuthentication()).thenReturn(mockedJWTAuth);
+    SecurityContextHolder.setContext(mockedSecurityContext);
     when(mockedJWTAuth.getDetails()).thenReturn(USER_PROFILE_1);
     when(mockedProjectRepository.save(any())).then(AdditionalAnswers.returnsFirstArg());
     when(mockedProjectRepository.findByProjectId(TEST_PROJECT_ID1))
@@ -134,6 +139,8 @@ public class ProjectServiceTest {
     when(mockedFetchedProject3.getProjectId()).thenReturn(TEST_PROJECT_ID3);
     when(mockedFetchedProject3.getName()).thenReturn(TEST_PROJECT_NAME3);
     when(mockedFetchedProject3.getOrganization()).thenReturn(ORGANIZATION);
+    when(mockedConnection.getContent()).thenReturn(CONNECTION_CONTENT);
+    when(mockedConnectionService.getConnection(any(), any())).thenReturn(mockedConnection);
   }
 
   @Test
@@ -167,7 +174,7 @@ public class ProjectServiceTest {
   @Test
   public void createProject() {
     ACreateProjectRequest payload = new ACreateProjectRequest(TEST_PROJECT_ID3, CONNECTION_ID);
-    when(mockedFetcherService.fetchProject(TEST_PROJECT_ID3)).thenReturn(mockedFetchedProject3);
+    when(mockedFetcherService.fetchProjectWithConnection(TEST_PROJECT_ID3, mockedConnection)).thenReturn(mockedFetchedProject3);
     Project project = service.createProject(payload, TEAM_NAME1);
     assertProjectEquals(project3, project);
     assertEquals(TEAM_NAME1, project.getTeamName());
@@ -176,7 +183,7 @@ public class ProjectServiceTest {
   @Test
   public void createProject__whenExists_throwException() {
     ACreateProjectRequest payload = new ACreateProjectRequest(TEST_PROJECT_ID1, CONNECTION_ID);
-    when(mockedFetcherService.fetchProject(TEST_PROJECT_ID1)).thenReturn(mockedFetchedProject1);
+    when(mockedFetcherService.fetchProjectWithConnection(TEST_PROJECT_ID1, mockedConnection)).thenReturn(mockedFetchedProject1);
     assertThrows(ProjectAlreadyExistsException.class, () -> service.createProject(payload, TEAM_NAME1));
   }
 

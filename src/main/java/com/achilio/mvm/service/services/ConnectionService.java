@@ -47,7 +47,7 @@ public class ConnectionService {
     Connection connection;
     if (request instanceof ServiceAccountConnectionRequest) {
       ServiceAccountConnectionRequest saRequest = (ServiceAccountConnectionRequest) request;
-      connection = new ServiceAccountConnection(saRequest.getContent());
+      connection = new ServiceAccountConnection(saRequest.getServiceAccountKey());
     } else {
       throw new IllegalArgumentException("Unsupported connection type");
     }
@@ -69,7 +69,7 @@ public class ConnectionService {
       ServiceAccountConnection saConnection = (ServiceAccountConnection) connection;
       ServiceAccountConnectionRequest saRequest = (ServiceAccountConnectionRequest) request;
       saConnection.setName(saRequest.getName());
-      saConnection.setContent(saRequest.getContent());
+      saConnection.setServiceAccountKey(saRequest.getServiceAccountKey());
       LOGGER.info("Connection {} updated", id);
       return repository.save(saConnection);
     } else {

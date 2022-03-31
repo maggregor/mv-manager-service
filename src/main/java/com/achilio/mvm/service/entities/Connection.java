@@ -37,6 +37,8 @@ public abstract class Connection {
 
   public abstract ConnectionType getType();
 
+  public abstract String getContent();
+
   public void setName(String name) {
     if (name != null) {
       this.name = name;

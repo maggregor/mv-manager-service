@@ -19,16 +19,21 @@ public class ServiceAccountConnection extends Connection {
 
   @Column(name = "content", length = 65535)
   @NotEmpty(message = "Service account must not be empty")
-  private String content;
+  private String serviceAccountKey;
 
   @Override
   public ConnectionType getType() {
     return ConnectionType.SERVICE_ACCOUNT;
   }
 
-  public void setContent(String content) {
-    if (content != null) {
-      this.content = content;
+  @Override
+  public String getContent() {
+    return this.serviceAccountKey;
+  }
+
+  public void setServiceAccountKey(String serviceAccountKey) {
+    if (serviceAccountKey != null) {
+      this.serviceAccountKey = serviceAccountKey;
     }
   }
 }

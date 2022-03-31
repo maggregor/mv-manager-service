@@ -11,6 +11,7 @@ import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.entities.AOrganization;
+import com.achilio.mvm.service.entities.Connection;
 import com.achilio.mvm.service.entities.ServiceAccountConnection;
 import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics;
 import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics.Scope;
@@ -72,6 +73,14 @@ public class FetcherService {
     return projectList;
   }
 
+  public FetchedProject fetchProjectWithConnection(String projectId, Connection connection) throws ProjectNotFoundException {
+    DatabaseFetcher fetcher = fetcher(projectId, connection);
+    FetchedProject fetchedProject = fetcher.fetchProject(projectId);
+    fetcher.close();
+    return fetchedProject;
+  }
+
+  @Deprecated
   public FetchedProject fetchProject(String projectId) throws ProjectNotFoundException {
     DatabaseFetcher fetcher = fetcher();
     FetchedProject fetchedProject = fetcher.fetchProject(projectId);
@@ -139,7 +148,13 @@ public class FetcherService {
   }
 
   private DatabaseFetcher fetcher(String projectId) throws ProjectNotFoundException {
-    String serviceAccount = getSAAvailableConnection().getContent();
+    String serviceAccount = getSAAvailableConnection().getServiceAccountKey();
+    return new BigQueryDatabaseFetcher(serviceAccount, projectId);
+  }
+
+  private DatabaseFetcher fetcher(String projectId, Connection connection) throws ProjectNotFoundException {
+    ServiceAccountConnection saConnection = (ServiceAccountConnection) connection;
+    String serviceAccount = saConnection.getServiceAccountKey();
     return new BigQueryDatabaseFetcher(serviceAccount, projectId);
   }
 
