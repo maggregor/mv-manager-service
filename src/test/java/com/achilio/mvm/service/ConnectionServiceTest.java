@@ -25,7 +25,6 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
-import org.apache.logging.log4j.util.Strings;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -64,7 +63,7 @@ public class ConnectionServiceTest {
     connection = service.createConnection(teamName, SA_REQUEST);
     assertExpectedServiceAccount(SA_REQUEST, connection);
     // Empty service account
-    when(SA_REQUEST.getContent()).thenReturn(Strings.EMPTY);
+    SA_REQUEST = new ServiceAccountConnectionRequest("");
     connection = service.createConnection(teamName, SA_REQUEST);
     Set<ConstraintViolation<Connection>> violations = validator.validate(connection);
     assertFalse(violations.isEmpty());
@@ -133,7 +132,7 @@ public class ConnectionServiceTest {
   public void whenConnectionTypeNull_thenThrowIllegalArgumentException() {
     Exception e =
         assertThrows(
-            IllegalArgumentException.class, () -> service.createConnection(teamName, SA_REQUEST));
+            IllegalArgumentException.class, () -> service.createConnection(teamName, null));
     assertEquals("Unsupported connection type", e.getMessage());
   }
 }
