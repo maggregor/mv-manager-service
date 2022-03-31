@@ -42,8 +42,8 @@ public class ConnectionController {
 
   @PostMapping(path = "/connection", produces = APPLICATION_JSON_VALUE)
   @ApiOperation("List all connection")
-  public Connection createConnection(@RequestBody ConnectionRequest request) {
-    return service.createConnection(getContextTeamName(), request);
+  public ConnectionResponse createConnection(@RequestBody ConnectionRequest request) {
+    return toConnectionResponse(service.createConnection(getContextTeamName(), request));
   }
 
   @GetMapping(path = "/connection/{id}", produces = APPLICATION_JSON_VALUE)
@@ -66,11 +66,10 @@ public class ConnectionController {
     service.deleteConnection(id, getContextTeamName());
   }
 
-
   private ConnectionResponse toConnectionResponse(Connection connection) {
     if (connection instanceof ServiceAccountConnection) {
       return new ServiceAccountConnectionResponse((ServiceAccountConnection) connection);
     }
-    throw new IllegalArgumentException("Unsupported connection response");
+    throw new IllegalArgumentException("Unsupported connection type");
   }
 }

@@ -10,6 +10,6 @@ public class ServiceAccountConnectionResponse extends ConnectionResponse {
 
   public ServiceAccountConnectionResponse(ServiceAccountConnection connection) {
     super(connection);
-    this.content = connection.getServiceAccountKey();
+    this.content = "secretkey";
   }
 }

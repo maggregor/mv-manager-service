@@ -17,7 +17,6 @@ import com.achilio.mvm.service.repositories.ConnectionRepository;
 import com.achilio.mvm.service.services.ConnectionService;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -70,16 +69,6 @@ public class ConnectionServiceTest {
     assertEquals(
         "Service account must not be empty",
         ((ConstraintViolation<?>) violations.toArray()[0]).getMessage());
-  }
-
-  @Test
-  public void whenCreateMoreThanOneConnection_thenThrowException() {
-    when(mockedRepository.findAllByTeamName(teamName))
-        .thenReturn(Collections.singletonList(SA_CONNECTION));
-    Exception e =
-        assertThrows(
-            IllegalArgumentException.class, () -> service.createConnection(teamName, SA_REQUEST));
-    assertEquals("You cannot create more than one connection per team", e.getMessage());
   }
 
   @Test

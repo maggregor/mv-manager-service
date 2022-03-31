@@ -3,12 +3,12 @@ package com.achilio.mvm.service.services;
 import com.achilio.mvm.service.controllers.requests.ConnectionRequest;
 import com.achilio.mvm.service.controllers.requests.ServiceAccountConnectionRequest;
 import com.achilio.mvm.service.entities.Connection;
-import com.achilio.mvm.service.entities.Connection.ConnectionType;
 import com.achilio.mvm.service.entities.ServiceAccountConnection;
 import com.achilio.mvm.service.exceptions.ConnectionNotFoundException;
 import com.achilio.mvm.service.repositories.ConnectionRepository;
 import java.util.List;
 import java.util.Optional;
+import javax.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -38,33 +38,32 @@ public class ConnectionService {
     return findConnection(id, teamName).orElseThrow(() -> new ConnectionNotFoundException(id));
   }
 
+  @Transactional
   public void deleteConnection(Long id, String teamName) {
     repository.deleteByIdAndTeamName(id, teamName);
   }
 
+  @Transactional
   public Connection createConnection(String teamName, ConnectionRequest request) {
     Connection connection;
     if (request instanceof ServiceAccountConnectionRequest) {
-      ServiceAccountConnectionRequest saRequest = (ServiceAccountConnectionRequest) request;
-      connection = new ServiceAccountConnection(saRequest.getServiceAccountKey());
+      connection = new ServiceAccountConnection(request.getContent());
     } else {
       throw new IllegalArgumentException("Unsupported connection type");
     }
-    connection.setName(DEFAULT_CONNECTION_NAME);
+    connection.setName(request.getName());
     connection.setTeamName(teamName);
     return repository.save(connection);
   }
 
   public Connection updateConnection(Long id, String teamName, ConnectionRequest request) {
-    Connection connection = getConnection(id, teamName);
-    if (ConnectionType.SERVICE_ACCOUNT.equals(connection.getType())) {
+    if (request instanceof ServiceAccountConnectionRequest) {
       // Update a service account
-      ServiceAccountConnection saConnection = (ServiceAccountConnection) connection;
-      ServiceAccountConnectionRequest saRequest = (ServiceAccountConnectionRequest) request;
-      saConnection.setName(saRequest.getName());
-      saConnection.setServiceAccountKey(saRequest.getServiceAccountKey());
+      Connection connection = getConnection(id, teamName);
+      connection.setName(request.getName());
+      ((ServiceAccountConnection) connection).setServiceAccountKey(request.getContent());
       LOGGER.info("Connection {} updated", id);
-      return repository.save(saConnection);
+      return repository.save(connection);
     } else {
       throw new IllegalArgumentException("Unsupported connection type");
     }
