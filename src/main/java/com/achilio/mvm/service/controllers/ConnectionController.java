@@ -35,9 +35,9 @@ public class ConnectionController {
 
   @GetMapping(path = "/connection", produces = APPLICATION_JSON_VALUE)
   @ApiOperation("List all connection")
-  public List<ConnectionNameResponse> getAllConnections() {
+  public List<ConnectionResponse> getAllConnections() {
     return service.getAllConnections(getContextTeamName()).stream()
-        .map(ConnectionNameResponse::new)
+        .map(this::toConnectionResponse)
         .collect(Collectors.toList());
   }
 

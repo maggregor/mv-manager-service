@@ -51,6 +51,8 @@ public abstract class Connection {
 
   public abstract String getContent();
 
+  public abstract void setContent(String content);
+
   public void setName(String name) {
     if (name != null) {
       this.name = name;

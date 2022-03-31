@@ -42,6 +42,13 @@ public class ServiceAccountConnection extends Connection {
     return this.serviceAccountKey;
   }
 
+  @Override
+  public void setContent(String content) {
+    if (content != null) {
+      this.serviceAccountKey = content;
+    }
+  }
+
   public void setServiceAccountKey(String serviceAccountKey) {
     if (serviceAccountKey != null) {
       this.serviceAccountKey = serviceAccountKey;

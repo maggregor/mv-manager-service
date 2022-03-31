@@ -7,7 +7,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.achilio.mvm.service.controllers.ConnectionController;
-import com.achilio.mvm.service.controllers.ConnectionNameResponse;
 import com.achilio.mvm.service.controllers.responses.ConnectionResponse;
 import com.achilio.mvm.service.controllers.responses.ServiceAccountConnectionResponse;
 import com.achilio.mvm.service.entities.ServiceAccountConnection;
@@ -61,11 +60,11 @@ public class ConnectionControllerTest {
 
   @Test
   public void getAllConnections() {
-    List<ConnectionNameResponse> responses = controller.getAllConnections();
+    List<ConnectionResponse> responses = controller.getAllConnections();
     assertFalse(responses.isEmpty());
     assertEquals(2, responses.size());
-    assertConnectionNameResponse(1L, "My Connection", responses.get(0));
-    assertConnectionNameResponse(2L, "My Connection 2", responses.get(1));
+    assertConnectionResponse(1L, "My Connection", responses.get(0));
+    assertConnectionResponse(2L, "My Connection 2", responses.get(1));
     // Team without connections
     when(mockedService.getAllConnections("team2")).thenReturn(Collections.emptyList());
     when(mockedUserProfile.getTeamName()).thenReturn("team2");
@@ -92,11 +91,5 @@ public class ConnectionControllerTest {
     assertEquals(expectedId, response.getId());
     assertEquals(expectedName, response.getName());
     assertEquals("secretkey", ((ServiceAccountConnectionResponse) response).getContent());
-  }
-
-  private void assertConnectionNameResponse(
-      Long expectedId, String expectedName, ConnectionNameResponse response) {
-    assertEquals(expectedId, response.getId());
-    assertEquals(expectedName, response.getName());
   }
 }
