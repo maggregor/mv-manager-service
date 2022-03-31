@@ -69,10 +69,10 @@ public class ConnectionService {
       ServiceAccountConnection saConnection = (ServiceAccountConnection) connection;
       ServiceAccountConnectionRequest saRequest = (ServiceAccountConnectionRequest) request;
       saConnection.setContent(saRequest.getContent());
+      LOGGER.info("Connection {} updated", id);
+      return repository.save(saConnection);
     } else {
       throw new IllegalArgumentException("Unsupported connection type");
     }
-    LOGGER.info("Connection {} updated", id);
-    return repository.save(connection);
   }
 }
