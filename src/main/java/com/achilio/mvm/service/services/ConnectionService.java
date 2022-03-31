@@ -43,7 +43,6 @@ public class ConnectionService {
   }
 
   public Connection createConnection(String teamName, ConnectionRequest request) {
-    validateCreate(teamName);
     Connection connection;
     if (request instanceof ServiceAccountConnectionRequest) {
       ServiceAccountConnectionRequest saRequest = (ServiceAccountConnectionRequest) request;
@@ -54,12 +53,6 @@ public class ConnectionService {
     connection.setName(DEFAULT_CONNECTION_NAME);
     connection.setTeamName(teamName);
     return repository.save(connection);
-  }
-
-  private void validateCreate(String teamName) {
-    if (!getAllConnections(teamName).isEmpty()) {
-      throw new IllegalArgumentException("You cannot create more than one connection per team");
-    }
   }
 
   public Connection updateConnection(Long id, String teamName, ConnectionRequest request) {
