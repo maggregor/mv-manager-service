@@ -14,6 +14,7 @@ import com.achilio.mvm.service.entities.Connection;
 import com.achilio.mvm.service.entities.Connection.SourceType;
 import com.achilio.mvm.service.entities.ServiceAccountConnection;
 import com.achilio.mvm.service.exceptions.ConnectionNotFoundException;
+import com.achilio.mvm.service.exceptions.InvalidPayloadException;
 import com.achilio.mvm.service.repositories.ConnectionRepository;
 import com.achilio.mvm.service.services.ConnectionService;
 import java.util.ArrayList;
@@ -25,6 +26,7 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,7 +39,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 public class ConnectionServiceTest {
 
   private static final String CONNECTION_NAME = "myConnection";
-  private static final SourceType SOURCE_TYPE = SourceType.BIGQUERY;
+  private static final SourceType SOURCE_BIGQUERY = SourceType.BIGQUERY;
   private static final String OWNER_USERNAME = "myUsername";
   private static final String TEAM_NAME = "myTeam";
   private static final String JSON_SA_CONTENT = "json_content_service_account_xxx";
@@ -52,7 +54,8 @@ public class ConnectionServiceTest {
     SA_CONNECTION =
         new ServiceAccountConnection(
             CONNECTION_NAME, TEAM_NAME, OWNER_USERNAME, SourceType.BIGQUERY, JSON_SA_CONTENT);
-    SA_REQUEST = new ServiceAccountConnectionRequest(CONNECTION_NAME, SOURCE_TYPE, JSON_SA_CONTENT);
+    SA_REQUEST =
+        new ServiceAccountConnectionRequest(CONNECTION_NAME, SOURCE_BIGQUERY, JSON_SA_CONTENT);
     when(mockedRepository.save(any())).then(returnsFirstArg());
     when(mockedRepository.findByIdAndTeamName(456L, TEAM_NAME))
         .thenReturn(Optional.of(SA_CONNECTION));
@@ -67,7 +70,7 @@ public class ConnectionServiceTest {
     connection = service.createConnection(TEAM_NAME, OWNER_USERNAME, SA_REQUEST);
     assertExpectedServiceAccount(SA_CONNECTION, connection);
     // Empty service account
-    SA_REQUEST = new ServiceAccountConnectionRequest("");
+    SA_REQUEST = new ServiceAccountConnectionRequest(CONNECTION_NAME, SOURCE_BIGQUERY, "");
     connection = service.createConnection(TEAM_NAME, OWNER_USERNAME, SA_REQUEST);
     Set<ConstraintViolation<Connection>> violations = validator.validate(connection);
     assertFalse(violations.isEmpty());
@@ -77,9 +80,17 @@ public class ConnectionServiceTest {
   }
 
   @Test
+  public void createServiceAccountConnection__whenSourceTypeNull_throwException() {
+    SA_REQUEST = new ServiceAccountConnectionRequest(CONNECTION_NAME, null, JSON_SA_CONTENT);
+    Assert.assertThrows(
+        InvalidPayloadException.class,
+        () -> service.createConnection(TEAM_NAME, OWNER_USERNAME, SA_REQUEST));
+  }
+
+  @Test
   public void updateServiceAccountConnection() {
     ServiceAccountConnectionRequest updateRequest =
-        new ServiceAccountConnectionRequest(CONNECTION_NAME, SOURCE_TYPE, "another");
+        new ServiceAccountConnectionRequest(CONNECTION_NAME, SOURCE_BIGQUERY, "another");
     Connection connection = service.updateConnection(456L, TEAM_NAME, updateRequest);
     assertExpectedServiceAccount(updateRequest, connection);
     Exception e =

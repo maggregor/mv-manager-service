@@ -5,6 +5,7 @@ import com.achilio.mvm.service.controllers.requests.ServiceAccountConnectionRequ
 import com.achilio.mvm.service.entities.Connection;
 import com.achilio.mvm.service.entities.ServiceAccountConnection;
 import com.achilio.mvm.service.exceptions.ConnectionNotFoundException;
+import com.achilio.mvm.service.exceptions.InvalidPayloadException;
 import com.achilio.mvm.service.repositories.ConnectionRepository;
 import java.util.List;
 import java.util.Optional;
@@ -56,6 +57,9 @@ public class ConnectionService {
     connection.setTeamName(teamName);
     connection.setOwnerUsername(ownerUsername);
     connection.setSourceType(request.getSourceType());
+    if (request.getSourceType() == null) {
+      throw new InvalidPayloadException();
+    }
     return repository.save(connection);
   }
 

@@ -6,7 +6,7 @@ services:
     image: mvm-service
     build: .
     ports:
-      - 8080:8080
+      - "8080:8080"
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/optimizer_dev
       SPRING_DATASOURCE_USERNAME: optimizer
@@ -15,14 +15,16 @@ services:
 
   db:
     image: postgres
+    restart: always
     ports:
-      - 5432:5432
+      - "5432:5432"
     environment:
       POSTGRES_USER: optimizer
       POSTGRES_PASSWORD: optimizer
       POSTGRES_DB: optimizer_dev
 
   adminer:
+    restart: always
     image: adminer
     ports:
-      - 8088:8080
+      - "8088:8080"
