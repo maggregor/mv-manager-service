@@ -16,7 +16,6 @@ import com.achilio.mvm.service.entities.AOrganization;
 import com.achilio.mvm.service.entities.AOrganization.OrganizationType;
 import com.achilio.mvm.service.entities.Connection;
 import com.achilio.mvm.service.entities.Project;
-import com.achilio.mvm.service.exceptions.ProjectAlreadyExistsException;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import com.achilio.mvm.service.models.UserProfile;
 import com.achilio.mvm.service.repositories.DatasetRepository;
@@ -186,15 +185,16 @@ public class ProjectServiceTest {
     Project project = service.createProject(payload, TEAM_NAME1);
     assertProjectEquals(project3, project);
     assertEquals(TEAM_NAME1, project.getTeamName());
+    assertTrue(project.isActivated());
   }
 
   @Test
-  public void createProject__whenExists_throwException() {
+  public void createProject__whenExists_SetActivated() {
     ACreateProjectRequest payload = new ACreateProjectRequest(TEST_PROJECT_ID1, CONNECTION_ID);
     when(mockedFetcherService.fetchProjectWithConnection(TEST_PROJECT_ID1, mockedConnection))
         .thenReturn(mockedFetchedProject1);
-    assertThrows(
-        ProjectAlreadyExistsException.class, () -> service.createProject(payload, TEAM_NAME1));
+    Project project = service.createProject(payload, TEAM_NAME1);
+    Assert.assertTrue(project.isActivated());
   }
 
   @Test

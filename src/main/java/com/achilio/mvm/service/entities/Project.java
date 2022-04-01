@@ -39,7 +39,7 @@ public class Project {
   @Column private String teamName;
 
   @Column(name = "activated", nullable = false)
-  private Boolean activated = false;
+  private Boolean activated = true;
 
   @Column(name = "automatic", nullable = false, columnDefinition = "boolean default false")
   private Boolean automatic = false;
@@ -52,6 +52,8 @@ public class Project {
 
   @Column(name = "analysis_timeframe", nullable = false, columnDefinition = "numeric default 30")
   private Integer analysisTimeframe = 30;
+
+  @ManyToOne private Connection connection;
 
   @Column(
       name = "mv_max_per_table_limit",
@@ -84,7 +86,11 @@ public class Project {
     this.organization = organization;
   }
 
-  public Project(String projectId, String projectName, String stripeSubscriptionId, AOrganization organization) {
+  public Project(
+      String projectId,
+      String projectName,
+      String stripeSubscriptionId,
+      AOrganization organization) {
     this.projectId = projectId;
     this.projectName = projectName;
     this.stripeSubscriptionId = stripeSubscriptionId;
@@ -226,6 +232,14 @@ public class Project {
     if (StringUtils.isNotEmpty(stripeCustomerId)) {
       this.stripeSubscriptionId = stripeCustomerId;
     }
+  }
+
+  public Connection getConnection() {
+    return connection;
+  }
+
+  public void setConnection(Connection connection) {
+    this.connection = connection;
   }
 
   public AOrganization getOrganization() {

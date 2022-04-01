@@ -9,7 +9,6 @@ import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.entities.ADataset;
 import com.achilio.mvm.service.entities.Connection;
 import com.achilio.mvm.service.entities.Project;
-import com.achilio.mvm.service.exceptions.ProjectAlreadyExistsException;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import com.achilio.mvm.service.repositories.DatasetRepository;
 import com.achilio.mvm.service.repositories.ProjectRepository;
@@ -46,18 +45,26 @@ public class ProjectService {
         .orElseThrow(() -> new ProjectNotFoundException(projectId));
   }
 
+  @Transactional
   public Project createProject(ACreateProjectRequest payload, String teamName) {
     Connection connection = connectionService.getConnection(payload.getConnectionId(), teamName);
     FetchedProject fetchedProject =
         fetcherService.fetchProjectWithConnection(payload.getProjectId(), connection);
-    return createProjectFromFetchedProject(fetchedProject, teamName);
+    return createProjectFromFetchedProject(fetchedProject, teamName, connection);
   }
 
+  /**
+   * deleteProject does not actually delete the object in DB but set the project to activated: false
+   */
+  @Transactional
   public void deleteProject(String projectId, String teamName) {
-    Project project =
-        findProjectByTeamId(projectId, teamName)
-            .orElseThrow(() -> new ProjectNotFoundException(projectId));
-    projectRepository.delete(project);
+    projectRepository
+        .findByProjectIdAndTeamName(projectId, teamName)
+        .ifPresent(
+            p -> {
+              p.setActivated(false);
+              projectRepository.save(p);
+            });
   }
 
   private Optional<Project> findProjectByTeamId(String projectId, String teamName) {
@@ -208,14 +215,18 @@ public class ProjectService {
   }
 
   @Transactional
-  public Project createProjectFromFetchedProject(FetchedProject p, String teamName) {
+  public Project createProjectFromFetchedProject(
+      FetchedProject p, String teamName, Connection connection) {
+    Project project;
     if (projectExists(p.getProjectId())) {
-      throw new ProjectAlreadyExistsException(p.getProjectId());
+      project = getProject(p.getProjectId());
+      project.setActivated(true);
     } else {
-      Project project = new Project(p);
+      project = new Project(p);
       project.setTeamName(teamName);
-      return projectRepository.save(project);
+      project.setConnection(connection);
     }
+    return projectRepository.save(project);
   }
 
   @Deprecated
