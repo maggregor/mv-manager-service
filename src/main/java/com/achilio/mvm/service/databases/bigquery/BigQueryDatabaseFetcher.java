@@ -1,20 +1,14 @@
 package com.achilio.mvm.service.databases.bigquery;
 
-import static com.achilio.mvm.service.UserContextHelper.getContextTeamName;
-
 import com.achilio.mvm.service.databases.DatabaseFetcher;
 import com.achilio.mvm.service.databases.entities.DefaultFetchedDataset;
-import com.achilio.mvm.service.databases.entities.DefaultFetchedOrganization;
 import com.achilio.mvm.service.databases.entities.DefaultFetchedProject;
 import com.achilio.mvm.service.databases.entities.DefaultFetchedTable;
 import com.achilio.mvm.service.databases.entities.FetchedDataset;
-import com.achilio.mvm.service.databases.entities.FetchedOrganization;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedQueryFactory;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
-import com.achilio.mvm.service.entities.AOrganization;
-import com.achilio.mvm.service.entities.AOrganization.OrganizationType;
 import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import com.achilio.mvm.service.visitors.ATableId;
@@ -24,7 +18,6 @@ import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.bigquery.BigQuery;
 import com.google.cloud.bigquery.BigQuery.TableField;
 import com.google.cloud.bigquery.BigQuery.TableOption;
-import com.google.cloud.bigquery.BigQueryException;
 import com.google.cloud.bigquery.BigQueryOptions;
 import com.google.cloud.bigquery.Dataset;
 import com.google.cloud.bigquery.DatasetId;
@@ -39,26 +32,20 @@ import com.google.cloud.bigquery.Schema;
 import com.google.cloud.bigquery.StandardTableDefinition;
 import com.google.cloud.bigquery.Table;
 import com.google.cloud.bigquery.TableDefinition;
-import com.google.cloud.bigquery.TableId;
 import com.google.cloud.resourcemanager.Project;
 import com.google.cloud.resourcemanager.ResourceManager;
 import com.google.cloud.resourcemanager.ResourceManagerOptions;
 import com.google.cloud.resourcemanager.v3.FoldersClient;
 import com.google.cloud.resourcemanager.v3.FoldersSettings;
-import com.google.cloud.resourcemanager.v3.Organization;
 import com.google.cloud.resourcemanager.v3.OrganizationsClient;
-import com.google.cloud.resourcemanager.v3.OrganizationsClient.SearchOrganizationsPagedResponse;
 import com.google.cloud.resourcemanager.v3.OrganizationsSettings;
-import com.google.cloud.resourcemanager.v3.Project.State;
 import com.google.cloud.resourcemanager.v3.ProjectsClient;
 import com.google.cloud.resourcemanager.v3.ProjectsSettings;
-import com.google.cloud.resourcemanager.v3.SearchOrganizationsRequest;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.zetasql.ZetaSQLType;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -77,9 +64,7 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
 
   public static final int LIST_JOB_PAGE_SIZE = 1000;
   private static final Logger LOGGER = LoggerFactory.getLogger(BigQueryDatabaseFetcher.class);
-  private static final String UNSUPPORTED_TABLE_TOKEN = "INFORMATION_SCHEMA";
   private static final String SQL_FROM_WORD = "FROM";
-  private static final String SQL_SELECT_WORD = "SELECT";
   private final BigQuery bigquery;
   private final ResourceManager resourceManager;
   private OrganizationsClient organizationClient;
@@ -195,38 +180,9 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     }
   }
 
-  public List<String> fetchMissingPermissions(String projectId) {
-    List<String> REQUIRED_PERMISSIONS =
-        Arrays.asList(
-            "bigquery.jobs.list", "bigquery.datasets.get", "resourcemanager.projects.get");
-    /*
-     * These permissions must be checked at dataset resource level
-     *
-     * "bigquery.tables.get",
-     * "bigquery.tables.create",
-     * "bigquery.tables.delete",
-     * "bigquery.tables.list",
-     */
-    List<String> missingPermissions = new ArrayList<>();
-    List<Boolean> r = resourceManager.testPermissions(projectId, REQUIRED_PERMISSIONS);
-
-    for (int i = 0; i < r.size(); i++) {
-      if (!r.get(i)) {
-        missingPermissions.add(REQUIRED_PERMISSIONS.get(i));
-      }
-    }
-    return missingPermissions;
-  }
-
   @Override
   public List<FetchedQuery> fetchAllQueries() {
     return fetchAllQueriesFrom(0);
-  }
-
-  private Stream<Job> fetchJobs(long fromCreationTime) {
-    List<BigQuery.JobListOption> options = getJobListOptions(fromCreationTime);
-    final Page<Job> jobPages = bigquery.listJobs(options.toArray(new BigQuery.JobListOption[0]));
-    return StreamSupport.stream(jobPages.iterateAll().spliterator(), true);
   }
 
   @Override
@@ -235,6 +191,62 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
         .filter(this::isValidQueryJob)
         .map(this::toFetchedQuery)
         .collect(Collectors.toList());
+  }
+
+  @Override
+  public FetchedProject fetchProject(String projectId) throws ProjectNotFoundException {
+    Project project = resourceManager.get(projectId);
+    if (project == null) {
+      throw new ProjectNotFoundException(projectId);
+    }
+    return toFetchedProject(project);
+  }
+
+  @Override
+  public List<FetchedDataset> fetchAllDatasets(String projectId) {
+    List<FetchedDataset> datasets = new ArrayList<>();
+    for (Dataset dataset : bigquery.listDatasets(projectId).iterateAll()) {
+      datasets.add(toFetchedDataset(dataset));
+    }
+    return datasets;
+  }
+
+  @Override
+  public FetchedDataset fetchDataset(String datasetName) {
+    Dataset dataset = bigquery.getDataset(datasetName);
+    return toFetchedDataset(dataset);
+  }
+
+  @Override
+  public Set<FetchedTable> fetchAllTables() {
+    Spliterator<Dataset> spliterator = bigquery.listDatasets().getValues().spliterator();
+    return StreamSupport.stream(spliterator, true)
+        .map(dataset -> dataset.getDatasetId().getDataset())
+        .map(this::fetchTablesInDataset)
+        .flatMap(Set::stream)
+        .collect(Collectors.toSet());
+  }
+
+  @Override
+  public Set<FetchedTable> fetchTablesInDataset(String datasetName) {
+    Spliterator<Table> spliterator = bigquery.listTables(datasetName).getValues().spliterator();
+    return StreamSupport.stream(spliterator, true)
+        .map(table -> bigquery.getTable(table.getTableId(), TableOption.fields(TableField.SCHEMA)))
+        .filter(this::isValidTable)
+        .map(this::toFetchedTable)
+        .collect(Collectors.toSet());
+  }
+
+  public void close() {
+    this.organizationClient.shutdown();
+    this.folderClient.shutdown();
+    this.projectClient.shutdown();
+  }
+
+  private Stream<Job> fetchJobs(long fromCreationTime) {
+    List<BigQuery.JobListOption> options = getJobListOptions(fromCreationTime);
+    final Page<Job> jobPages = bigquery.listJobs(options.toArray(new BigQuery.JobListOption[0]));
+    return StreamSupport.stream(jobPages.iterateAll().spliterator(), true);
   }
 
   /** Returns true if a job is a query job */
@@ -321,22 +333,6 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     return options;
   }
 
-  @Override
-  public FetchedTable fetchTable(String datasetName, String tableName)
-      throws IllegalArgumentException {
-    try {
-      TableId tableId = TableId.of(datasetName, tableName);
-      Table table = bigquery.getTable(tableId);
-      if (!isValidTable(table)) {
-        LOGGER.warn("Fetched table is not valid: {}", table);
-        return null;
-      }
-      return toFetchedTable(table);
-    } catch (BigQueryException e) {
-      throw new IllegalArgumentException(e.toString());
-    }
-  }
-
   private FetchedTable toFetchedTable(Table table) {
     StandardTableDefinition tableDefinition = table.getDefinition();
     Map<String, String> tableColumns = mapColumnsOrEmptyIfSchemaIsNull(tableDefinition);
@@ -356,26 +352,6 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     return tableDefinition.getSchema() != null
         && tableDefinition.getSchema().getFields().stream()
             .noneMatch(f -> f.getType().equals(LegacySQLTypeName.RECORD));
-  }
-
-  @Override
-  public Set<FetchedTable> fetchAllTables() {
-    Spliterator<Dataset> spliterator = bigquery.listDatasets().getValues().spliterator();
-    return StreamSupport.stream(spliterator, true)
-        .map(dataset -> dataset.getDatasetId().getDataset())
-        .map(this::fetchTablesInDataset)
-        .flatMap(Set::stream)
-        .collect(Collectors.toSet());
-  }
-
-  @Override
-  public Set<FetchedTable> fetchTablesInDataset(String datasetName) {
-    Spliterator<Table> spliterator = bigquery.listTables(datasetName).getValues().spliterator();
-    return StreamSupport.stream(spliterator, true)
-        .map(table -> bigquery.getTable(table.getTableId(), TableOption.fields(TableField.SCHEMA)))
-        .filter(this::isValidTable)
-        .map(this::toFetchedTable)
-        .collect(Collectors.toSet());
   }
 
   /*
@@ -415,97 +391,8 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     }
   }
 
-  @Override
-  public List<FetchedOrganization> fetchAllOrganizations() {
-    SearchOrganizationsRequest r = SearchOrganizationsRequest.newBuilder().build();
-    SearchOrganizationsPagedResponse results = this.organizationClient.searchOrganizations(r);
-    return StreamSupport.stream(results.iterateAll().spliterator(), false)
-        .map(this::toFetchedOrganization)
-        .collect(Collectors.toList());
-  }
-
-  @Override
-  public List<FetchedProject> fetchAllProjects() {
-    return StreamSupport.stream(resourceManager.list().getValues().spliterator(), true)
-        .map(this::toFetchedProject)
-        .collect(Collectors.toList());
-  }
-
-  @Override
-  public List<FetchedProject> fetchAllProjectsFromOrg(AOrganization baseOrganization) {
-    if (baseOrganization.getOrganizationType() == OrganizationType.NO_ORGANIZATION) {
-      return new ArrayList<>(fetchAllProjectsNoParent(baseOrganization));
-    } else {
-      return new ArrayList<>(
-          fetchAllProjectsFromParent(baseOrganization.getId(), baseOrganization));
-    }
-  }
-
-  /**
-   * Recursively fetch all projects in all the folders of the organization
-   *
-   * @param parentId is the direct parent of the projects to fetch (folderId or organizationId)
-   * @param baseOrganization is the base organization of the projects to fetch (organization only)
-   * @return
-   */
-  @Override
-  public List<FetchedProject> fetchAllProjectsFromParent(
-      String parentId, AOrganization baseOrganization) {
-    List<FetchedProject> projectList =
-        StreamSupport.stream(projectClient.listProjects(parentId).iterateAll().spliterator(), true)
-            .filter(p -> p.getState() == State.ACTIVE)
-            .map(p -> toFetchedProject(p, baseOrganization))
-            .collect(Collectors.toList());
-    StreamSupport.stream(folderClient.listFolders(parentId).iterateAll().spliterator(), true)
-        .forEach(
-            f -> projectList.addAll(fetchAllProjectsFromParent(f.getName(), baseOrganization)));
-    return projectList;
-  }
-
-  @Override
-  public List<FetchedProject> fetchAllProjectsNoParent(AOrganization baseOrganization) {
-    List<FetchedProject> projectList =
-        StreamSupport.stream(projectClient.searchProjects("").iterateAll().spliterator(), true)
-            .filter(p -> p.getState() == State.ACTIVE)
-            .map(p -> toFetchedProject(p, baseOrganization))
-            .collect(Collectors.toList());
-    StreamSupport.stream(folderClient.searchFolders("").iterateAll().spliterator(), true)
-        .forEach(f -> projectList.addAll(fetchAllProjectsNoParent(baseOrganization)));
-    return projectList;
-  }
-
-  @Override
-  public FetchedProject fetchProject(String projectId) throws ProjectNotFoundException {
-    Project project = resourceManager.get(projectId);
-    if (project == null) {
-      throw new ProjectNotFoundException(projectId);
-    }
-    return toFetchedProject(project);
-  }
-
-  @Override
-  public List<FetchedDataset> fetchAllDatasets(String projectId) {
-    List<FetchedDataset> datasets = new ArrayList<>();
-    for (Dataset dataset : bigquery.listDatasets(projectId).iterateAll()) {
-      datasets.add(toFetchedDataset(dataset));
-    }
-    return datasets;
-  }
-
-  @Override
-  public FetchedDataset fetchDataset(String datasetName) {
-    Dataset dataset = bigquery.getDataset(datasetName);
-    return toFetchedDataset(dataset);
-  }
-
   public FetchedProject toFetchedProject(Project project) {
     return new DefaultFetchedProject(project.getProjectId(), project.getName());
-  }
-
-  public FetchedProject toFetchedProject(
-      com.google.cloud.resourcemanager.v3.Project project, AOrganization baseOrganization) {
-    return new DefaultFetchedProject(
-        project.getProjectId(), project.getDisplayName(), baseOrganization, getContextTeamName());
   }
 
   public FetchedDataset toFetchedDataset(Dataset dataset) {
@@ -524,18 +411,5 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
         description,
         createdAt,
         lastModified);
-  }
-
-  private FetchedOrganization toFetchedOrganization(Organization organization) {
-    return new DefaultFetchedOrganization(
-        organization.getName(),
-        organization.getDisplayName(),
-        organization.getDirectoryCustomerId());
-  }
-
-  public void close() {
-    this.organizationClient.shutdown();
-    this.folderClient.shutdown();
-    this.projectClient.shutdown();
   }
 }

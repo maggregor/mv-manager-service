@@ -6,11 +6,9 @@ import com.achilio.mvm.service.databases.DatabaseFetcher;
 import com.achilio.mvm.service.databases.bigquery.BigQueryDatabaseFetcher;
 import com.achilio.mvm.service.databases.bigquery.BigQueryMaterializedViewStatementBuilder;
 import com.achilio.mvm.service.databases.entities.FetchedDataset;
-import com.achilio.mvm.service.databases.entities.FetchedOrganization;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
-import com.achilio.mvm.service.entities.AOrganization;
 import com.achilio.mvm.service.entities.Connection;
 import com.achilio.mvm.service.entities.ServiceAccountConnection;
 import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics;
@@ -35,28 +33,7 @@ public class FetcherService {
     this.statementBuilder = new BigQueryMaterializedViewStatementBuilder();
   }
 
-  public List<FetchedProject> fetchAllProjects() {
-    DatabaseFetcher fetcher = fetcher();
-    List<FetchedProject> projectList = fetcher.fetchAllProjects();
-    fetcher.close();
-    return projectList;
-  }
-
-  public List<FetchedOrganization> fetchAllOrganizations() {
-    DatabaseFetcher fetcher = fetcher();
-    List<FetchedOrganization> organizationList = fetcher.fetchAllOrganizations();
-    fetcher.close();
-    return organizationList;
-  }
-
-  public List<FetchedProject> fetchAllProjectsFromOrg(AOrganization organization) {
-    DatabaseFetcher fetcher = fetcher();
-    List<FetchedProject> projectList = fetcher.fetchAllProjectsFromOrg(organization);
-    fetcher.close();
-    return projectList;
-  }
-
-  public FetchedProject fetchProjectWithConnection(String projectId, Connection connection)
+  public FetchedProject fetchProject(String projectId, Connection connection)
       throws ProjectNotFoundException {
     DatabaseFetcher fetcher = fetcher(projectId, connection);
     FetchedProject fetchedProject = fetcher.fetchProject(projectId);
@@ -64,48 +41,43 @@ public class FetcherService {
     return fetchedProject;
   }
 
-  @Deprecated
-  public FetchedProject fetchProject(String projectId) throws ProjectNotFoundException {
-    DatabaseFetcher fetcher = fetcher();
-    FetchedProject fetchedProject = fetcher.fetchProject(projectId);
-    fetcher.close();
-    return fetchedProject;
-  }
-
-  public List<FetchedDataset> fetchAllDatasets(String projectId) {
-    DatabaseFetcher fetcher = fetcher(projectId);
+  public List<FetchedDataset> fetchAllDatasets(String projectId, Connection connection) {
+    DatabaseFetcher fetcher = fetcher(projectId, connection);
     List<FetchedDataset> datasetList = fetcher.fetchAllDatasets(projectId);
     fetcher.close();
     return datasetList;
   }
 
-  public FetchedDataset fetchDataset(String projectId, String datasetName) {
-    DatabaseFetcher fetcher = fetcher(projectId);
+  public FetchedDataset fetchDataset(String projectId, String datasetName, Connection connection) {
+    DatabaseFetcher fetcher = fetcher(projectId, connection);
     FetchedDataset fetchedDataset = fetcher.fetchDataset(datasetName);
     fetcher.close();
     return fetchedDataset;
   }
 
-  public List<FetchedQuery> fetchQueriesSinceLastDays(String projectId, int lastDays) {
-    return fetchQueriesSinceTimestamp(projectId, daysToMillis(lastDays));
+  public List<FetchedQuery> fetchQueriesSinceLastDays(
+      String projectId, Connection connection, int lastDays) {
+    return fetchQueriesSinceTimestamp(projectId, connection, daysToMillis(lastDays));
   }
 
-  public List<FetchedQuery> fetchQueriesSinceTimestamp(String projectId, long fromTimestamp) {
-    DatabaseFetcher fetcher = fetcher(projectId);
+  public List<FetchedQuery> fetchQueriesSinceTimestamp(
+      String projectId, Connection connection, long fromTimestamp) {
+    DatabaseFetcher fetcher = fetcher(projectId, connection);
     List<FetchedQuery> queryList = fetcher.fetchAllQueriesFrom(fromTimestamp);
     fetcher.close();
     return queryList;
   }
 
-  public Set<FetchedTable> fetchAllTables(String projectId) {
-    DatabaseFetcher fetcher = fetcher(projectId);
+  public Set<FetchedTable> fetchAllTables(String projectId, Connection connection) {
+    DatabaseFetcher fetcher = fetcher(projectId, connection);
     Set<FetchedTable> fetchedTableSet = fetcher.fetchAllTables();
     fetcher.close();
     return fetchedTableSet;
   }
 
-  public GlobalQueryStatistics getStatistics(String projectId, int lastDays) throws Exception {
-    return getStatistics(fetchQueriesSinceLastDays(projectId, lastDays));
+  public GlobalQueryStatistics getStatistics(String projectId, Connection connection, int lastDays)
+      throws Exception {
+    return getStatistics(fetchQueriesSinceLastDays(projectId, connection, lastDays));
   }
 
   public GlobalQueryStatistics getStatistics(List<FetchedQuery> queries) {
@@ -125,15 +97,6 @@ public class FetcherService {
     global.addStatistic(Scope.OUT, new QueryStatistics(selectOut));
     global.addStatistic(Scope.CACHED, new QueryStatistics(selectCached));
     return global;
-  }
-
-  private DatabaseFetcher fetcher() {
-    return fetcher(null);
-  }
-
-  private DatabaseFetcher fetcher(String projectId) throws ProjectNotFoundException {
-    String serviceAccount = getSAAvailableConnection().getServiceAccountKey();
-    return new BigQueryDatabaseFetcher(serviceAccount, projectId);
   }
 
   private DatabaseFetcher fetcher(String projectId, Connection connection)
@@ -156,9 +119,5 @@ public class FetcherService {
 
   private long daysToMillis(int days) {
     return System.currentTimeMillis() - (long) days * 24 * 60 * 60 * 1000;
-  }
-
-  public List<String> fetchMissingPermissions(String projectId) {
-    return fetcher().fetchMissingPermissions(projectId);
   }
 }

@@ -1,21 +1,21 @@
 package com.achilio.mvm.service.services;
 
 import static com.achilio.mvm.service.UserContextHelper.getContextEmail;
-import static com.achilio.mvm.service.UserContextHelper.getContextTeamName;
 
 import com.achilio.mvm.service.controllers.requests.ACreateProjectRequest;
 import com.achilio.mvm.service.controllers.requests.UpdateProjectRequest;
+import com.achilio.mvm.service.databases.entities.FetchedDataset;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.entities.ADataset;
 import com.achilio.mvm.service.entities.Connection;
 import com.achilio.mvm.service.entities.Project;
+import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import com.achilio.mvm.service.repositories.DatasetRepository;
 import com.achilio.mvm.service.repositories.ProjectRepository;
 import com.stripe.model.Product;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import javax.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,8 +48,7 @@ public class ProjectService {
   @Transactional
   public Project createProject(ACreateProjectRequest payload, String teamName) {
     Connection connection = connectionService.getConnection(payload.getConnectionId(), teamName);
-    FetchedProject fetchedProject =
-        fetcherService.fetchProjectWithConnection(payload.getProjectId(), connection);
+    FetchedProject fetchedProject = fetcherService.fetchProject(payload.getProjectId(), connection);
     return createProjectFromFetchedProject(fetchedProject, teamName, connection);
   }
 
@@ -73,33 +72,8 @@ public class ProjectService {
     return projectRepository.findAllByActivated(true);
   }
 
-  @Deprecated
-  public List<Project> findAllProjects() {
-    return fetcherService.fetchAllProjects().stream()
-        .filter(p -> projectExists(p.getProjectId()))
-        .map(p -> getProjectAsUser(p.getProjectId()))
-        .collect(Collectors.toList());
-  }
-
-  @Deprecated
-  public Project findProjectOrCreate(String projectId) {
-    return findProject(projectId).orElseGet(() -> createProject(projectId));
-  }
-
-  @Deprecated
-  public Project createProject(String projectId) {
-    Project project = new Project(projectId, null, null);
-    return projectRepository.save(project);
-  }
-
   public Optional<Project> findProject(String projectId) {
     return projectRepository.findByProjectId(projectId);
-  }
-
-  @Deprecated
-  public Project getProjectAsUser(String projectId) {
-    fetcherService.fetchProject(projectId);
-    return findProject(projectId).orElseThrow(() -> new ProjectNotFoundException(projectId));
   }
 
   public Project getProject(String projectId) {
@@ -117,8 +91,7 @@ public class ProjectService {
 
   @Transactional
   public Project updateProject(String projectId, UpdateProjectRequest payload) {
-    fetcherService.fetchProject(projectId);
-    Project project = getProjectAsUser(projectId);
+    Project project = getProject(projectId);
     // If automatic has been sent in the payload (or if the project is being deactivated), we need
     // to publish a potential config change on the schedulers
     Boolean automaticChanged = project.setAutomatic(payload.isAutomatic());
@@ -139,12 +112,20 @@ public class ProjectService {
     return datasetRepository.findByProject_ProjectIdAndDatasetName(projectId, datasetName);
   }
 
+  public FetchedDataset getDataset(String projectId, String teamName, String datasetName) {
+    Project project =
+        projectRepository
+            .findByProjectIdAndTeamName(projectId, teamName)
+            .orElseThrow(() -> new ProjectNotFoundException(projectId));
+    return fetcherService.fetchDataset(projectId, datasetName, project.getConnection());
+  }
+
   private ADataset findDatasetOrCreate(String projectId, String dataset) {
     return getDataset(projectId, dataset).orElseGet(() -> createDataset(projectId, dataset));
   }
 
   private ADataset createDataset(String projectId, String datasetName) {
-    return createDataset(getProjectAsUser(projectId), datasetName);
+    return createDataset(getProject(projectId), datasetName);
   }
 
   private ADataset createDataset(Project project, String datasetName) {
@@ -225,17 +206,17 @@ public class ProjectService {
     return projectRepository.save(project);
   }
 
-  @Deprecated
-  @Transactional
-  public Project createProjectFromFetchedProjectSync(FetchedProject p) {
-    if (projectExists(p.getProjectId())) {
-      Project updatedProject = getProjectAsUser(p.getProjectId());
-      updatedProject.setProjectName(p.getName());
-      updatedProject.setOrganization(p.getOrganization());
-      updatedProject.setTeamName(getContextTeamName());
-      return projectRepository.save(updatedProject);
-    } else {
-      return projectRepository.save(new Project(p));
-    }
+  public List<FetchedDataset> getAllDatasets(String projectId, String teamName) {
+    Project project =
+        projectRepository
+            .findByProjectIdAndTeamName(projectId, teamName)
+            .orElseThrow(() -> new ProjectNotFoundException(projectId));
+    return fetcherService.fetchAllDatasets(projectId, project.getConnection());
+  }
+
+  public GlobalQueryStatistics getStatistics(String projectId, String teamName, int days)
+      throws Exception {
+    Project project = getProject(projectId, teamName);
+    return fetcherService.getStatistics(projectId, project.getConnection(), days);
   }
 }

@@ -1,5 +1,7 @@
 package com.achilio.mvm.service.controllers;
 
+import static com.achilio.mvm.service.UserContextHelper.getContextTeamName;
+
 import com.achilio.mvm.service.controllers.requests.FetcherQueryJobRequest;
 import com.achilio.mvm.service.entities.FetcherJob.FetcherJobStatus;
 import com.achilio.mvm.service.entities.FetcherQueryJob;
@@ -85,7 +87,7 @@ public class FetcherJobController {
       @PathVariable String projectId, @RequestBody FetcherQueryJobRequest payload) {
     FetcherQueryJob currentJob = fetcherJobService.createNewFetcherQueryJob(projectId, payload);
     LOGGER.info("Starting FetcherQueryJob {}", currentJob.getId());
-    fetcherJobService.fetchAllQueriesJob(currentJob);
+    fetcherJobService.fetchAllQueriesJob(currentJob, getContextTeamName());
     return currentJob;
   }
 
@@ -139,7 +141,7 @@ public class FetcherJobController {
   public FetcherStructJob createNewFetcherStructJob(@PathVariable String projectId) {
     FetcherStructJob currentJob = fetcherJobService.createNewFetcherStructJob(projectId);
     LOGGER.info("Starting FetcherQueryJob {}", currentJob.getId());
-    fetcherJobService.fetchAllStructsJob(currentJob);
+    fetcherJobService.fetchAllStructsJob(currentJob, getContextTeamName());
     return currentJob;
   }
 }

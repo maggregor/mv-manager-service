@@ -7,13 +7,16 @@ import static org.mockito.Mockito.when;
 
 import com.achilio.mvm.service.controllers.requests.FetcherQueryJobRequest;
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
+import com.achilio.mvm.service.entities.Connection;
 import com.achilio.mvm.service.entities.FetcherJob.FetcherJobStatus;
 import com.achilio.mvm.service.entities.FetcherQueryJob;
+import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
 import com.achilio.mvm.service.repositories.FetcherJobRepository;
 import com.achilio.mvm.service.repositories.QueryRepository;
 import com.achilio.mvm.service.services.FetcherJobService;
 import com.achilio.mvm.service.services.FetcherService;
+import com.achilio.mvm.service.services.ProjectService;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import org.junit.Assert;
@@ -29,6 +32,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class FetcherJobServiceTest {
 
+  private static final String TEAM_NAME1 = "myTeam1";
   private final String PROJECT_ID = "myProjectId";
   private final String QUERY1 = "SELECT 1";
   private final String QUERY2 = "SELECT 2";
@@ -36,6 +40,9 @@ public class FetcherJobServiceTest {
   @Mock FetcherService fetcherService;
   @Mock FetcherJobRepository mockFetcherJobRepository;
   @Mock QueryRepository mockQueryRepository;
+  @Mock ProjectService mockProjectService;
+  @Mock Project mockProject;
+  @Mock Connection mockConnection;
   FetcherQueryJobRequest request1 = new FetcherQueryJobRequest(null);
   FetcherQueryJobRequest request2 = new FetcherQueryJobRequest(14);
   FetchedQuery fetchedQuery1 = new FetchedQuery(PROJECT_ID, QUERY1);
@@ -44,10 +51,11 @@ public class FetcherJobServiceTest {
 
   @Before
   public void setup() {
-    when(fetcherService.fetchQueriesSinceLastDays(any(), anyInt()))
+    when(fetcherService.fetchQueriesSinceLastDays(any(), any(), anyInt()))
         .thenReturn(Arrays.asList(fetchedQuery1, fetchedQuery2));
     when(mockQueryRepository.saveAll(any())).thenReturn(null);
     when(mockFetcherJobRepository.save(any())).then(returnsFirstArg());
+    when(mockProject.getConnection()).thenReturn(mockConnection);
     fetchedQuery1.setStatistics(stats1);
     fetchedQuery2.setStatistics(stats1);
   }
@@ -55,7 +63,8 @@ public class FetcherJobServiceTest {
   @Test
   public void fetchAllQueriesJob() throws InterruptedException {
     FetcherQueryJob job = new FetcherQueryJob(PROJECT_ID);
-    service.fetchAllQueriesJob(job);
+    when(mockProjectService.getProject(any(), any())).thenReturn(mockProject);
+    service.fetchAllQueriesJob(job, TEAM_NAME1);
     TimeUnit.SECONDS.sleep(1);
     Assert.assertEquals(FetcherJobStatus.FINISHED, job.getStatus());
     Mockito.verify(mockFetcherJobRepository, Mockito.timeout(1000).times(2))

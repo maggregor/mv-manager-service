@@ -1,5 +1,7 @@
 package com.achilio.mvm.service.controllers;
 
+import static com.achilio.mvm.service.UserContextHelper.getContextTeamName;
+
 import com.achilio.mvm.service.controllers.responses.OptimizationResponse;
 import com.achilio.mvm.service.controllers.responses.OptimizationResultsResponse;
 import com.achilio.mvm.service.entities.Optimization;
@@ -43,7 +45,7 @@ public class OptimizerController {
   //  to where the user can follow the steps
   public OptimizationResponse optimizeProject(@PathVariable("projectId") String projectId) {
     Optimization optimization = service.createNewOptimization(projectId);
-    service.optimizeProject(optimization);
+    service.optimizeProject(optimization, getContextTeamName());
     return new OptimizationResponse(optimization);
   }
 

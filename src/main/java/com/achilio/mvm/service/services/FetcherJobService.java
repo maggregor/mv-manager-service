@@ -70,10 +70,10 @@ public class FetcherJobService {
   }
 
   @Async("asyncExecutor")
-  public void fetchAllQueriesJob(FetcherQueryJob fetcherQueryJob) {
+  public void fetchAllQueriesJob(FetcherQueryJob fetcherQueryJob, String teamName) {
     updateJobStatus(fetcherQueryJob, FetcherJobStatus.WORKING);
     try {
-      List<Query> queries = fetchQueries(fetcherQueryJob);
+      List<Query> queries = fetchQueries(fetcherQueryJob, teamName);
       saveAllQueries(queries);
     } catch (Exception e) {
       updateJobStatus(fetcherQueryJob, FetcherJobStatus.ERROR);
@@ -87,10 +87,13 @@ public class FetcherJobService {
     queryRepository.saveAll(queries);
   }
 
-  private List<Query> fetchQueries(FetcherQueryJob fetcherQueryJob) {
+  private List<Query> fetchQueries(FetcherQueryJob fetcherQueryJob, String teamName) {
+    Project project = projectService.getProject(fetcherQueryJob.getProjectId(), teamName);
     List<FetchedQuery> allQueries =
         fetcherService.fetchQueriesSinceLastDays(
-            fetcherQueryJob.getProjectId(), fetcherQueryJob.getTimeframe());
+            fetcherQueryJob.getProjectId(),
+            project.getConnection(),
+            fetcherQueryJob.getTimeframe());
     return allQueries.stream()
         .map(q -> toAchilioQuery(q, fetcherQueryJob))
         .collect(Collectors.toList());
@@ -145,10 +148,10 @@ public class FetcherJobService {
   }
 
   @Async("asyncExecutor")
-  public void fetchAllStructsJob(FetcherStructJob fetcherStructJob) {
+  public void fetchAllStructsJob(FetcherStructJob fetcherStructJob, String teamName) {
     updateJobStatus(fetcherStructJob, FetcherJobStatus.WORKING);
     try {
-      List<ADataset> datasets = fetchDatasets(fetcherStructJob);
+      List<ADataset> datasets = fetchDatasets(fetcherStructJob, teamName);
       saveAllDatasets(datasets);
     } catch (Exception e) {
       updateJobStatus(fetcherStructJob, FetcherJobStatus.ERROR);
@@ -157,9 +160,10 @@ public class FetcherJobService {
     updateJobStatus(fetcherStructJob, FetcherJobStatus.FINISHED);
   }
 
-  private List<ADataset> fetchDatasets(FetcherStructJob fetcherStructJob) {
+  private List<ADataset> fetchDatasets(FetcherStructJob fetcherStructJob, String teamName) {
+    Project project = projectService.getProject(fetcherStructJob.getProjectId(), teamName);
     List<FetchedDataset> allDatasets =
-        fetcherService.fetchAllDatasets(fetcherStructJob.getProjectId());
+        fetcherService.fetchAllDatasets(fetcherStructJob.getProjectId(), project.getConnection());
     allDatasets.stream()
         .map(d -> toAchilioDataset(d, fetcherStructJob))
         .filter(this::datasetExists)
@@ -190,7 +194,7 @@ public class FetcherJobService {
   }
 
   private ADataset toAchilioDataset(FetchedDataset dataset, FetcherStructJob fetcherStructJob) {
-    Project project = projectService.getProjectAsUser(dataset.getProjectId());
+    Project project = projectService.getProject(dataset.getProjectId());
     return new ADataset(fetcherStructJob, project, dataset.getDatasetName());
   }
 
