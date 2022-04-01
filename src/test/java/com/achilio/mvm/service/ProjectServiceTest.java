@@ -114,10 +114,6 @@ public class ProjectServiceTest {
         .thenReturn(activatedProjects);
     when(mockedProjectRepository.findByProjectIdAndTeamName(TEST_PROJECT_ID1, TEAM_NAME1))
         .thenReturn(Optional.of(project1));
-    when(mockedProjectRepository.findByProjectIdAndTeamName(PROJECT_NOT_EXISTS, TEAM_NAME1))
-        .thenReturn(Optional.empty());
-    when(mockedProjectRepository.findByProjectIdAndTeamName(TEST_PROJECT_ID1, TEAM_NOT_EXISTS))
-        .thenReturn(Optional.empty());
     when(mockedDataset1.isActivated()).thenReturn(true);
     when(mockedDataset2.isActivated()).thenReturn(false);
     when(mockedDatasetRepository.save(any(ADataset.class))).thenReturn(mockedDataset1);
@@ -199,20 +195,23 @@ public class ProjectServiceTest {
 
   @Test
   public void deleteProject() {
+    project1.setTeamName(TEAM_NAME1);
+    project1.setActivated(true);
+    when(mockedProjectRepository.findByProjectIdAndTeamName(TEST_PROJECT_ID1, TEAM_NAME1))
+        .thenReturn(Optional.of(project1));
     service.deleteProject(TEST_PROJECT_ID1, TEAM_NAME1);
     Mockito.verify(mockedProjectRepository, Mockito.timeout(1000).times(1))
-        .delete(any(Project.class));
+        .save(any(Project.class));
+    assertFalse(project1.isActivated());
   }
 
   @Test
   public void deleteProject__whenNotFound_throwException() {
-    Assert.assertThrows(
-        ProjectNotFoundException.class,
-        () -> service.deleteProject(PROJECT_NOT_EXISTS, TEAM_NAME1));
-
-    Assert.assertThrows(
-        ProjectNotFoundException.class,
-        () -> service.deleteProject(TEST_PROJECT_ID1, TEAM_NOT_EXISTS));
+    when(mockedProjectRepository.findByProjectIdAndTeamName(TEST_PROJECT_ID1, TEAM_NAME1))
+        .thenReturn(Optional.empty());
+    service.deleteProject(TEST_PROJECT_ID1, TEAM_NAME1);
+    Mockito.verify(mockedProjectRepository, Mockito.timeout(1000).times(0))
+        .save(any(Project.class));
   }
 
   // Old ProjectServiceTest methods
@@ -259,6 +258,8 @@ public class ProjectServiceTest {
   @Test
   public void activateProject() {
     Project project = new Project(TEST_PROJECT_ID1);
+    assertTrue(project.isActivated());
+    project.setActivated(false);
     assertFalse(project.isActivated());
     service.activateProject(project);
     assertTrue(project.isActivated());

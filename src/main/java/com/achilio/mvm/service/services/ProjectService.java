@@ -60,11 +60,7 @@ public class ProjectService {
   public void deleteProject(String projectId, String teamName) {
     projectRepository
         .findByProjectIdAndTeamName(projectId, teamName)
-        .ifPresent(
-            p -> {
-              p.setActivated(false);
-              projectRepository.save(p);
-            });
+        .ifPresent(this::deactivateProject);
   }
 
   private Optional<Project> findProjectByTeamId(String projectId, String teamName) {
