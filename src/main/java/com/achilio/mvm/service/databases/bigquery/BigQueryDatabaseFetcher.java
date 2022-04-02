@@ -12,7 +12,6 @@ import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import com.achilio.mvm.service.visitors.ATableId;
-import com.google.api.gax.core.FixedCredentialsProvider;
 import com.google.api.gax.paging.Page;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.bigquery.BigQuery;
@@ -35,12 +34,6 @@ import com.google.cloud.bigquery.TableDefinition;
 import com.google.cloud.resourcemanager.Project;
 import com.google.cloud.resourcemanager.ResourceManager;
 import com.google.cloud.resourcemanager.ResourceManagerOptions;
-import com.google.cloud.resourcemanager.v3.FoldersClient;
-import com.google.cloud.resourcemanager.v3.FoldersSettings;
-import com.google.cloud.resourcemanager.v3.OrganizationsClient;
-import com.google.cloud.resourcemanager.v3.OrganizationsSettings;
-import com.google.cloud.resourcemanager.v3.ProjectsClient;
-import com.google.cloud.resourcemanager.v3.ProjectsSettings;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.zetasql.ZetaSQLType;
 import java.io.ByteArrayInputStream;
@@ -67,22 +60,11 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
   private static final String SQL_FROM_WORD = "FROM";
   private final BigQuery bigquery;
   private final ResourceManager resourceManager;
-  private OrganizationsClient organizationClient;
-  private ProjectsClient projectClient;
-  private FoldersClient folderClient;
 
   @VisibleForTesting
-  public BigQueryDatabaseFetcher(
-      BigQuery bigquery,
-      ResourceManager rm,
-      OrganizationsClient oc,
-      ProjectsClient pc,
-      FoldersClient fc) {
+  public BigQueryDatabaseFetcher(BigQuery bigquery, ResourceManager rm) {
     this.bigquery = bigquery;
     this.resourceManager = rm;
-    this.organizationClient = oc;
-    this.projectClient = pc;
-    this.folderClient = fc;
   }
 
   public BigQueryDatabaseFetcher(final String serviceAccount, final String projectId) {
@@ -95,35 +77,9 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
       LOGGER.error("Cannot read service account {}", serviceAccount);
       throw new RuntimeException(e);
     }
-    this.organizationClient = null;
-    this.projectClient = null;
-    this.folderClient = null;
     BigQueryOptions.Builder bqOptBuilder = BigQueryOptions.newBuilder().setCredentials(credentials);
     ResourceManagerOptions.Builder rmOptBuilder =
         ResourceManagerOptions.newBuilder().setCredentials(credentials);
-    try {
-      OrganizationsSettings organizationsSettings =
-          OrganizationsSettings.newBuilder()
-              .setCredentialsProvider(FixedCredentialsProvider.create(credentials))
-              .build();
-
-      ProjectsSettings projectsSettings =
-          ProjectsSettings.newBuilder()
-              .setCredentialsProvider(FixedCredentialsProvider.create(credentials))
-              .build();
-
-      FoldersSettings foldersSettings =
-          FoldersSettings.newBuilder()
-              .setCredentialsProvider(FixedCredentialsProvider.create(credentials))
-              .build();
-
-      this.organizationClient = OrganizationsClient.create(organizationsSettings);
-      this.projectClient = ProjectsClient.create(projectsSettings);
-      this.folderClient = FoldersClient.create(foldersSettings);
-    } catch (IOException e) {
-      LOGGER.error("Error during creation of settings and client");
-      throw new RuntimeException(e);
-    }
     if (StringUtils.isNotEmpty(projectId)) {
       // Change default project of BigQuery instance
       bqOptBuilder.setProjectId(projectId);
@@ -139,34 +95,9 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
 
   public BigQueryDatabaseFetcher(final GoogleCredentials credentials, final String projectId)
       throws ProjectNotFoundException {
-    this.organizationClient = null;
-    this.projectClient = null;
-    this.folderClient = null;
     BigQueryOptions.Builder bqOptBuilder = BigQueryOptions.newBuilder().setCredentials(credentials);
     ResourceManagerOptions.Builder rmOptBuilder =
         ResourceManagerOptions.newBuilder().setCredentials(credentials);
-    try {
-      OrganizationsSettings organizationsSettings =
-          OrganizationsSettings.newBuilder()
-              .setCredentialsProvider(FixedCredentialsProvider.create(credentials))
-              .build();
-
-      ProjectsSettings projectsSettings =
-          ProjectsSettings.newBuilder()
-              .setCredentialsProvider(FixedCredentialsProvider.create(credentials))
-              .build();
-
-      FoldersSettings foldersSettings =
-          FoldersSettings.newBuilder()
-              .setCredentialsProvider(FixedCredentialsProvider.create(credentials))
-              .build();
-
-      this.organizationClient = OrganizationsClient.create(organizationsSettings);
-      this.projectClient = ProjectsClient.create(projectsSettings);
-      this.folderClient = FoldersClient.create(foldersSettings);
-    } catch (IOException e) {
-      LOGGER.error("Error during creation of settings and client");
-    }
     if (StringUtils.isNotEmpty(projectId)) {
       // Change default project of BigQuery instance
       bqOptBuilder.setProjectId(projectId);
@@ -237,11 +168,7 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
         .collect(Collectors.toSet());
   }
 
-  public void close() {
-    this.organizationClient.shutdown();
-    this.folderClient.shutdown();
-    this.projectClient.shutdown();
-  }
+  public void close() {}
 
   private Stream<Job> fetchJobs(long fromCreationTime) {
     List<BigQuery.JobListOption> options = getJobListOptions(fromCreationTime);
@@ -344,9 +271,6 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
    * Returns true if the table is eligible
    *
    * <p>- Don't have RECORD field type
-   *
-   * @param tableDefinition
-   * @return
    */
   private boolean isEligibleTableDefinition(StandardTableDefinition tableDefinition) {
     return tableDefinition.getSchema() != null

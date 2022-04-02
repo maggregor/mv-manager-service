@@ -68,7 +68,7 @@ public class BigQueryDatabaseFetcherTest {
       LoadJobConfiguration.newBuilder(DEFAULT_TABLE_ID, "gs://").build();
   private static final JobConfiguration DEFAULT_COPY_JOB_CONFIGURATION =
       CopyJobConfiguration.newBuilder(DEFAULT_TABLE_ID, DEFAULT_TABLE_ID_2).build();
-  private static QueryJobConfiguration DEFAULT_QUERY_JOB_CONFIGURATION =
+  private static final QueryJobConfiguration DEFAULT_QUERY_JOB_CONFIGURATION =
       QueryJobConfiguration.newBuilder("SELECT * FROM toto")
           .setDefaultDataset(defaultDatasetName)
           .build();
@@ -95,13 +95,7 @@ public class BigQueryDatabaseFetcherTest {
     mockOrganizationClient = mock(OrganizationsClient.class);
     mockProjectClient = mock(ProjectsClient.class);
     mockFolderClient = mock(FoldersClient.class);
-    fetcher =
-        new BigQueryDatabaseFetcher(
-            mockBigquery,
-            mockResourceManager,
-            mockOrganizationClient,
-            mockProjectClient,
-            mockFolderClient);
+    fetcher = new BigQueryDatabaseFetcher(mockBigquery, mockResourceManager);
     initializeJobMockDefault();
   }
 
