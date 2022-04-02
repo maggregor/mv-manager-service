@@ -16,6 +16,7 @@ import com.achilio.mvm.service.controllers.responses.DatasetResponse;
 import com.achilio.mvm.service.controllers.responses.GlobalQueryStatisticsResponse;
 import com.achilio.mvm.service.controllers.responses.ProjectResponse;
 import com.achilio.mvm.service.databases.entities.DefaultFetchedDataset;
+import com.achilio.mvm.service.entities.ADataset;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
@@ -58,6 +59,9 @@ public class ProjectControllerTest {
   private static final String TEAM_NAME1 = "myTeam1";
   private static final String TEAM_ID2 = "myTeam2";
   private static final Long CONNECTION_ID1 = 1L;
+  private static final Project project1 = new Project(TEST_PROJECT_ID1);
+  private static final ADataset dataset1 = new ADataset(project1, TEST_DATASET_NAME1);
+  private static final ADataset dataset2 = new ADataset(project1, TEST_DATASET_NAME2);
   private final ObjectMapper objectMapper = new ObjectMapper();
   @InjectMocks ProjectController controller;
   @Mock ProjectService mockedProjectService;
@@ -180,12 +184,6 @@ public class ProjectControllerTest {
 
   @Test
   public void getAllDatasets() throws JsonProcessingException {
-    DefaultFetchedDataset dataset1 =
-        new DefaultFetchedDataset(
-            TEST_PROJECT_ID1, TEST_DATASET_NAME1, null, null, null, null, null, null);
-    DefaultFetchedDataset dataset2 =
-        new DefaultFetchedDataset(
-            TEST_PROJECT_ID1, TEST_DATASET_NAME2, null, null, null, null, null, null);
     when(mockedProjectService.getAllDatasets(TEST_PROJECT_ID1, TEAM_NAME1))
         .thenReturn(Arrays.asList(dataset1, dataset2));
     when(mockedProjectService.isDatasetActivated(TEST_PROJECT_ID1, TEST_DATASET_NAME1))
@@ -204,7 +202,7 @@ public class ProjectControllerTest {
     DefaultFetchedDataset dataset =
         new DefaultFetchedDataset(
             TEST_PROJECT_ID1, TEST_DATASET_NAME1, null, null, null, null, null, null);
-    when(mockedProjectService.getDataset(TEST_PROJECT_ID1, TEAM_NAME1, TEST_DATASET_NAME1))
+    when(mockedProjectService.getFetchedDataset(TEST_PROJECT_ID1, TEAM_NAME1, TEST_DATASET_NAME1))
         .thenReturn(dataset);
     when(mockedProjectService.isDatasetActivated(TEST_PROJECT_ID1, TEST_DATASET_NAME1))
         .thenReturn(true);

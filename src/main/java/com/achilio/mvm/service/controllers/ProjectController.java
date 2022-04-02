@@ -11,6 +11,7 @@ import com.achilio.mvm.service.controllers.responses.GlobalQueryStatisticsRespon
 import com.achilio.mvm.service.controllers.responses.ProjectResponse;
 import com.achilio.mvm.service.controllers.responses.UpdateDatasetRequestResponse;
 import com.achilio.mvm.service.databases.entities.FetchedDataset;
+import com.achilio.mvm.service.entities.ADataset;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics;
 import com.achilio.mvm.service.services.ProjectService;
@@ -104,7 +105,8 @@ public class ProjectController {
   public DatasetResponse getDataset(
       @PathVariable final String projectId, @PathVariable final String datasetName) {
     FetchedDataset fetchedDataset =
-        projectService.getDataset(projectId, UserContextHelper.getContextTeamName(), datasetName);
+        projectService.getFetchedDataset(
+            projectId, UserContextHelper.getContextTeamName(), datasetName);
     return toDatasetResponse(fetchedDataset);
   }
 
@@ -161,5 +163,12 @@ public class ProjectController {
         createdAt,
         lastModified,
         activated);
+  }
+
+  private DatasetResponse toDatasetResponse(ADataset dataset) {
+    final String projectId = dataset.getProject().getProjectId();
+    final String datasetName = dataset.getDatasetName();
+    final boolean activated = projectService.isDatasetActivated(projectId, datasetName);
+    return new DatasetResponse(projectId, datasetName, null, null, null, null, null, activated);
   }
 }

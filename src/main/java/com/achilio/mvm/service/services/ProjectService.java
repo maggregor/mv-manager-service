@@ -7,11 +7,15 @@ import com.achilio.mvm.service.controllers.requests.UpdateProjectRequest;
 import com.achilio.mvm.service.databases.entities.FetchedDataset;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.entities.ADataset;
+import com.achilio.mvm.service.entities.ATable;
 import com.achilio.mvm.service.entities.Connection;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics;
+import com.achilio.mvm.service.exceptions.DatasetNotFoundException;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
-import com.achilio.mvm.service.repositories.DatasetRepository;
+import com.achilio.mvm.service.exceptions.TableNotFoundException;
+import com.achilio.mvm.service.repositories.ADatasetRepository;
+import com.achilio.mvm.service.repositories.ATableRepository;
 import com.achilio.mvm.service.repositories.ProjectRepository;
 import com.stripe.model.Product;
 import java.util.List;
@@ -29,7 +33,8 @@ public class ProjectService {
   private static final Logger LOGGER = LoggerFactory.getLogger(ProjectService.class);
 
   @Autowired private ProjectRepository projectRepository;
-  @Autowired private DatasetRepository datasetRepository;
+  @Autowired private ADatasetRepository datasetRepository;
+  @Autowired private ATableRepository tableRepository;
   @Autowired private GooglePublisherService publisherService;
   @Autowired private FetcherService fetcherService;
   @Autowired private ConnectionService connectionService;
@@ -108,11 +113,23 @@ public class ProjectService {
     return project;
   }
 
-  private Optional<ADataset> getDataset(String projectId, String datasetName) {
+  public Optional<ADataset> findDataset(String projectId, String datasetName) {
     return datasetRepository.findByProject_ProjectIdAndDatasetName(projectId, datasetName);
   }
 
-  public FetchedDataset getDataset(String projectId, String teamName, String datasetName) {
+  public ADataset getDataset(String datasetId) {
+    return datasetRepository
+        .findByDatasetId(datasetId)
+        .orElseThrow(() -> new DatasetNotFoundException(datasetId));
+  }
+
+  public ADataset getDatasetByProjectAndDatasetName(String projectId, String datasetName) {
+    return datasetRepository
+        .findByProject_ProjectIdAndDatasetName(projectId, datasetName)
+        .orElseThrow(() -> new DatasetNotFoundException(datasetName));
+  }
+
+  public FetchedDataset getFetchedDataset(String projectId, String teamName, String datasetName) {
     Project project =
         projectRepository
             .findByProjectIdAndTeamName(projectId, teamName)
@@ -120,28 +137,16 @@ public class ProjectService {
     return fetcherService.fetchDataset(projectId, datasetName, project.getConnection());
   }
 
-  private ADataset findDatasetOrCreate(String projectId, String dataset) {
-    return getDataset(projectId, dataset).orElseGet(() -> createDataset(projectId, dataset));
-  }
-
-  private ADataset createDataset(String projectId, String datasetName) {
-    return createDataset(getProject(projectId), datasetName);
-  }
-
-  private ADataset createDataset(Project project, String datasetName) {
-    return datasetRepository.save(new ADataset(project, datasetName));
-  }
-
   @Transactional
   public ADataset updateDataset(String projectId, String datasetName, Boolean activated) {
-    ADataset dataset = findDatasetOrCreate(projectId, datasetName);
+    ADataset dataset = getDatasetByProjectAndDatasetName(projectId, datasetName);
     dataset.setActivated(activated);
     datasetRepository.save(dataset);
     return dataset;
   }
 
   public boolean isDatasetActivated(String projectId, String datasetName) {
-    return getDataset(projectId, datasetName).map(ADataset::isActivated).orElse(false);
+    return getDatasetByProjectAndDatasetName(projectId, datasetName).isActivated();
   }
 
   @Transactional
@@ -206,17 +211,30 @@ public class ProjectService {
     return projectRepository.save(project);
   }
 
-  public List<FetchedDataset> getAllDatasets(String projectId, String teamName) {
-    Project project =
-        projectRepository
-            .findByProjectIdAndTeamName(projectId, teamName)
-            .orElseThrow(() -> new ProjectNotFoundException(projectId));
-    return fetcherService.fetchAllDatasets(projectId, project.getConnection());
+  public List<ADataset> getAllDatasets(String projectId, String teamName) {
+    getProject(projectId, teamName);
+    return datasetRepository.findAllByProject_ProjectId(projectId);
   }
 
   public GlobalQueryStatistics getStatistics(String projectId, String teamName, int days)
       throws Exception {
     Project project = getProject(projectId, teamName);
     return fetcherService.getStatistics(projectId, project.getConnection(), days);
+  }
+
+  public List<ATable> getAllTables(String projectId, String teamName) {
+    getProject(projectId, teamName);
+    return tableRepository.findAllByProject_ProjectId(projectId);
+  }
+
+  public Optional<ATable> findTable(ADataset dataset, String tableName) {
+    return tableRepository.findByProject_ProjectIdAndDataset_DatasetNameAndTableName(
+        dataset.getDatasetId(), dataset.getDatasetName(), tableName);
+  }
+
+  public ATable getTable(ATable table) {
+    return tableRepository
+        .findByTableId(table.getTableId())
+        .orElseThrow(() -> new TableNotFoundException(table.getTableId()));
   }
 }

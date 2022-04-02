@@ -2,6 +2,7 @@ package com.achilio.mvm.service.entities;
 
 import static java.lang.String.format;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -26,7 +27,8 @@ import javax.persistence.Table;
 @Table(name = "imported_columns")
 public class AColumn {
 
-  @ManyToOne ATable table;
+  @ManyToOne(cascade = CascadeType.REMOVE)
+  ATable table;
 
   @Id private String id;
 
@@ -57,7 +59,7 @@ public class AColumn {
   public void setId(ATable table, String name) {
     this.id =
         format(
-            "%s:%s.%s#%s",
+            "%s.%s.%s#%s",
             table.getProject().getProjectId(),
             table.getDataset().getDatasetName(),
             table.getTableName(),

@@ -49,6 +49,7 @@ public class ADataset {
   public ADataset(Project project, String datasetName) {
     this.project = project;
     this.datasetName = datasetName;
+    this.datasetId = String.format("%s:%s", project.getProjectId(), datasetName);
   }
 
   public ADataset(FetcherStructJob lastFetcherStructJob, Project project, String datasetName) {
@@ -57,6 +58,10 @@ public class ADataset {
     this.project = project;
     this.datasetName = datasetName;
     this.datasetId = String.format("%s:%s", project.getProjectId(), datasetName);
+  }
+
+  public Long getId() {
+    return id;
   }
 
   public String getDatasetId() {
@@ -69,6 +74,10 @@ public class ADataset {
 
   public String getDatasetName() {
     return datasetName;
+  }
+
+  public void setDatasetName(String datasetName) {
+    this.datasetName = datasetName;
   }
 
   public Project getProject() {
@@ -100,5 +109,24 @@ public class ADataset {
       this.activated = activated;
       LOGGER.info("Update dataset {} activated={}", datasetId, activated);
     }
+  }
+
+  @Override
+  public int hashCode() {
+    return datasetId.hashCode();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    ADataset aDataset = (ADataset) o;
+
+    return datasetId.equals(aDataset.datasetId);
   }
 }

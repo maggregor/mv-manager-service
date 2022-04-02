@@ -3,20 +3,27 @@ package com.achilio.mvm.service.services;
 import com.achilio.mvm.service.controllers.requests.FetcherQueryJobRequest;
 import com.achilio.mvm.service.databases.entities.FetchedDataset;
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
+import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.entities.ADataset;
+import com.achilio.mvm.service.entities.ATable;
 import com.achilio.mvm.service.entities.FetcherJob;
 import com.achilio.mvm.service.entities.FetcherJob.FetcherJobStatus;
 import com.achilio.mvm.service.entities.FetcherQueryJob;
 import com.achilio.mvm.service.entities.FetcherStructJob;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.entities.Query;
-import com.achilio.mvm.service.repositories.DatasetRepository;
+import com.achilio.mvm.service.repositories.ADatasetRepository;
+import com.achilio.mvm.service.repositories.ATableRepository;
 import com.achilio.mvm.service.repositories.FetcherJobRepository;
 import com.achilio.mvm.service.repositories.QueryRepository;
+import com.achilio.mvm.service.visitors.ATableId;
+import com.google.common.annotations.VisibleForTesting;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -26,13 +33,14 @@ import org.springframework.stereotype.Service;
 @Service
 public class FetcherJobService {
 
-  //  private static final Logger LOGGER = LoggerFactory.getLogger(FetcherJobService.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(FetcherJobService.class);
 
   @Autowired private FetcherService fetcherService;
   @Autowired private ProjectService projectService;
   @Autowired private FetcherJobRepository fetcherJobRepository;
   @Autowired private QueryRepository queryRepository;
-  @Autowired private DatasetRepository datasetRepository;
+  @Autowired private ADatasetRepository datasetRepository;
+  @Autowired private ATableRepository tableRepository;
 
   public FetcherJobService() {}
 
@@ -148,11 +156,11 @@ public class FetcherJobService {
   }
 
   @Async("asyncExecutor")
-  public void fetchAllStructsJob(FetcherStructJob fetcherStructJob, String teamName) {
+  public void syncAllStructsJob(FetcherStructJob fetcherStructJob, String teamName) {
     updateJobStatus(fetcherStructJob, FetcherJobStatus.WORKING);
     try {
-      List<ADataset> datasets = fetchDatasets(fetcherStructJob, teamName);
-      saveAllDatasets(datasets);
+      syncDatasets(fetcherStructJob, teamName);
+      syncTables(fetcherStructJob, teamName);
     } catch (Exception e) {
       updateJobStatus(fetcherStructJob, FetcherJobStatus.ERROR);
       throw e;
@@ -160,31 +168,73 @@ public class FetcherJobService {
     updateJobStatus(fetcherStructJob, FetcherJobStatus.FINISHED);
   }
 
-  private List<ADataset> fetchDatasets(FetcherStructJob fetcherStructJob, String teamName) {
+  @VisibleForTesting
+  public void syncTables(FetcherStructJob fetcherStructJob, String teamName) {
     Project project = projectService.getProject(fetcherStructJob.getProjectId(), teamName);
-    List<FetchedDataset> allDatasets =
-        fetcherService.fetchAllDatasets(fetcherStructJob.getProjectId(), project.getConnection());
-    allDatasets.stream()
-        .map(d -> toAchilioDataset(d, fetcherStructJob))
-        .filter(this::datasetExists)
-        .forEach(this::updateDataset);
-    return allDatasets.stream()
-        .map(d -> toAchilioDataset(d, fetcherStructJob))
-        .filter(d -> !datasetExists(d))
-        .collect(Collectors.toList());
+    List<ATable> allATables = projectService.getAllTables(project.getProjectId(), teamName);
+    List<ATable> allFetchedTables =
+        fetcherService.fetchAllTables(project.getProjectId(), project.getConnection()).stream()
+            .map(t -> toATable(project, t, fetcherStructJob))
+            .collect(Collectors.toList());
+    // All fetched datasets that already exists are updated with most recent values
+    allFetchedTables.stream().filter(this::tableExists).forEach(this::updateTable);
+
+    // All fetched datasets that don't already exist are created
+    List<ATable> toCreateTables =
+        allFetchedTables.stream().filter(t -> !tableExists(t)).collect(Collectors.toList());
+    saveAllTables(toCreateTables);
+
+    // allADatasets becomes toDeleteDatasets after next operation
+    allATables.removeAll(allFetchedTables);
+    allATables.forEach(this::deleteTable);
   }
 
-  private void updateDataset(ADataset dataset) {
-    ADataset existingDataset =
-        datasetRepository
-            .findByProjectAndDatasetName(dataset.getProject(), dataset.getDatasetName())
-            .get();
+  @VisibleForTesting
+  public void syncDatasets(FetcherStructJob fetcherStructJob, String teamName) {
+    Project project = projectService.getProject(fetcherStructJob.getProjectId(), teamName);
+    List<ADataset> allADatasets = projectService.getAllDatasets(project.getProjectId(), teamName);
+    List<ADataset> allFetchedDatasets =
+        fetcherService
+            .fetchAllDatasets(fetcherStructJob.getProjectId(), project.getConnection())
+            .stream()
+            .map(d -> toADataset(project, d, fetcherStructJob))
+            .collect(Collectors.toList());
+
+    // All fetched datasets that already exists are updated with most recent values
+    allFetchedDatasets.stream().filter(this::datasetExists).forEach(this::updateDataset);
+
+    // All fetched datasets that don't already exist are created
+    List<ADataset> toCreateDatasets =
+        allFetchedDatasets.stream().filter(d -> !datasetExists(d)).collect(Collectors.toList());
+    saveAllDatasets(toCreateDatasets);
+
+    // allADatasets becomes toDeleteDatasets after next operation
+    allADatasets.removeAll(allFetchedDatasets);
+    allADatasets.forEach(this::deleteDataset);
+  }
+
+  @Transactional
+  void updateDataset(ADataset dataset) {
+    ADataset existingDataset = projectService.getDataset(dataset.getDatasetId());
     if (existingDataset.getInitialFetcherStructJob() == null) {
       existingDataset.setInitialFetcherStructJob(dataset.getLastFetcherStructJob());
     }
     existingDataset.setDatasetId(dataset.getDatasetId());
+    existingDataset.setDatasetName(dataset.getDatasetName());
     existingDataset.setLastFetcherStructJob(dataset.getLastFetcherStructJob());
     datasetRepository.save(existingDataset);
+  }
+
+  @Transactional
+  void deleteDataset(ADataset d) {
+    ADataset toDeleteDataset =
+        datasetRepository.findByProjectAndDatasetName(d.getProject(), d.getDatasetName()).get();
+    datasetRepository.delete(toDeleteDataset);
+  }
+
+  @Transactional
+  void saveAllDatasets(List<ADataset> datasets) {
+    datasetRepository.saveAll(datasets);
   }
 
   private boolean datasetExists(ADataset d) {
@@ -193,13 +243,49 @@ public class FetcherJobService {
     return dataset.isPresent();
   }
 
-  private ADataset toAchilioDataset(FetchedDataset dataset, FetcherStructJob fetcherStructJob) {
-    Project project = projectService.getProject(dataset.getProjectId());
-    return new ADataset(fetcherStructJob, project, dataset.getDatasetName());
+  private ADataset toADataset(
+      Project project, FetchedDataset fetchedDataset, FetcherStructJob fetcherStructJob) {
+    return new ADataset(fetcherStructJob, project, fetchedDataset.getDatasetName());
+  }
+
+  private ATable toATable(
+      Project project, FetchedTable fetchedTable, FetcherStructJob fetcherStructJob) {
+    ATableId tableId = fetchedTable.getTableId();
+    Optional<ADataset> tableDataset =
+        projectService.findDataset(project.getProjectId(), tableId.getDataset());
+    if (!tableDataset.isPresent()) {
+      LOGGER.warn(
+          "Dataset {} referenced by Table {} does not exist",
+          tableId.getDataset(),
+          tableId.getTable());
+      return null;
+    }
+    return new ATable(project, tableDataset.get(), tableId.getTable(), fetcherStructJob);
+  }
+
+  private boolean tableExists(ATable t) {
+    Optional<ATable> table = projectService.findTable(t.getDataset(), t.getTableName());
+    return table.isPresent();
   }
 
   @Transactional
-  void saveAllDatasets(List<ADataset> datasets) {
-    datasetRepository.saveAll(datasets);
+  void updateTable(ATable table) {
+    ATable existingTable = projectService.getTable(table);
+    if (existingTable.getInitialFetcherStructJob() == null) {
+      existingTable.setInitialFetcherStructJob(table.getLastFetcherStructJob());
+    }
+    existingTable.setLastFetcherStructJob(table.getLastFetcherStructJob());
+    tableRepository.save(existingTable);
+  }
+
+  @Transactional
+  void saveAllTables(List<ATable> tables) {
+    tableRepository.saveAll(tables);
+  }
+
+  @Transactional
+  void deleteTable(ATable t) {
+    ATable toDeleteTable = tableRepository.findByTableId(t.getTableId()).get();
+    tableRepository.delete(toDeleteTable);
   }
 }

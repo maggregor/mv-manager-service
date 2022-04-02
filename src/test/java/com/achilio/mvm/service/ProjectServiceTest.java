@@ -15,7 +15,7 @@ import com.achilio.mvm.service.entities.Connection;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import com.achilio.mvm.service.models.UserProfile;
-import com.achilio.mvm.service.repositories.DatasetRepository;
+import com.achilio.mvm.service.repositories.ADatasetRepository;
 import com.achilio.mvm.service.repositories.ProjectRepository;
 import com.achilio.mvm.service.services.ConnectionService;
 import com.achilio.mvm.service.services.FetcherService;
@@ -81,7 +81,7 @@ public class ProjectServiceTest {
   private final Map<String, String> errorProductMetadata = new HashMap<>();
   @InjectMocks private ProjectService service;
   @Mock private ProjectRepository mockedProjectRepository;
-  @Mock private DatasetRepository mockedDatasetRepository;
+  @Mock private ADatasetRepository mockedADatasetRepository;
   @Mock private Product mockedProduct;
   @Mock private Product errorMockedProduct;
   @Mock private FetcherService mockedFetcherService;
@@ -108,14 +108,14 @@ public class ProjectServiceTest {
         .thenReturn(Optional.of(project1));
     when(mockedDataset1.isActivated()).thenReturn(true);
     when(mockedDataset2.isActivated()).thenReturn(false);
-    when(mockedDatasetRepository.save(any(ADataset.class))).thenReturn(mockedDataset1);
-    when(mockedDatasetRepository.findByProject_ProjectIdAndDatasetName(
+    when(mockedADatasetRepository.save(any(ADataset.class))).thenReturn(mockedDataset1);
+    when(mockedADatasetRepository.findByProject_ProjectIdAndDatasetName(
             project1.getProjectId(), TEST_DATASET_NAME1))
         .thenReturn(Optional.of(mockedDataset1));
-    when(mockedDatasetRepository.findByProject_ProjectIdAndDatasetName(
+    when(mockedADatasetRepository.findByProject_ProjectIdAndDatasetName(
             project1.getProjectId(), TEST_DATASET_NAME2))
         .thenReturn(Optional.of(mockedDataset2));
-    when(mockedDatasetRepository.findByProject_ProjectIdAndDatasetName(
+    when(mockedADatasetRepository.findByProject_ProjectIdAndDatasetName(
             project1.getProjectId(), TEST_DATASET_NAME3))
         .thenReturn(Optional.of(realDataset));
     productMetadata.put("mv_max", "10");
