@@ -229,7 +229,7 @@ public class ProjectService {
 
   public Optional<ATable> findTable(ADataset dataset, String tableName) {
     return tableRepository.findByProject_ProjectIdAndDataset_DatasetNameAndTableName(
-        dataset.getDatasetId(), dataset.getDatasetName(), tableName);
+        dataset.getProject().getProjectId(), dataset.getDatasetName(), tableName);
   }
 
   public ATable getTable(ATable table) {

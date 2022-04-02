@@ -2,32 +2,20 @@ package com.achilio.mvm.service.entities;
 
 import static java.lang.String.format;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
-/**
- * To sync columns during new fetching, we need to delete table that are not present anymore, and
- * create the new ones, while not touching to existing ones that are still present. This will be
- * done like this:
- *
- * <p>List<Integer> ints1 = Arrays.asList(1, 2, 3); System.out.println(ints1); List<Integer> ints2 =
- * Arrays.asList(2, 3, 4); System.out.println(ints1);
- *
- * <p>List<Integer> toDelete = new ArrayList<>(ints1); toDelete.removeAll(ints2);
- * System.out.println(toDelete);
- *
- * <p>List<Integer> toCreate = new ArrayList<>(ints2); toCreate.removeAll(ints1);
- * System.out.println(toCreate);
- */
 @Entity
-@Table(name = "imported_columns")
+@Table(name = "columns")
 public class AColumn {
 
-  @ManyToOne(cascade = CascadeType.REMOVE)
+  @ManyToOne
+  @OnDelete(action = OnDeleteAction.CASCADE)
   ATable table;
 
   @Id private String id;
