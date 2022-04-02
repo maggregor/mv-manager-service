@@ -1,7 +1,9 @@
 package com.achilio.mvm.service.controllers.requests;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor
 public class FetcherQueryJobRequest {
 
   @JsonProperty private Integer timeframe;
