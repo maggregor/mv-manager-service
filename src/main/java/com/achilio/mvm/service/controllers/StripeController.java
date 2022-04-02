@@ -9,6 +9,8 @@ import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
 import com.stripe.model.Event;
 import com.stripe.model.EventDataObjectDeserializer;
+import com.stripe.model.Price;
+import com.stripe.model.Product;
 import com.stripe.model.StripeObject;
 import com.stripe.model.Subscription;
 import com.stripe.net.Webhook;
@@ -86,6 +88,31 @@ public class StripeController {
       subscription = stripeService.changeSubscriptionPricing(subscriptionId, request.getPriceId());
     }
     return subscription;
+  }
+
+  @GetMapping(path = "/create-customer-portal-session")
+  public String createPortalSession() throws StripeException {
+    return stripeService.createPortalSession();
+  }
+
+  @GetMapping(path = "/create-customer-checkout-session")
+  public String createCheckoutSession() throws StripeException {
+    return "";
+  }
+
+  @GetMapping(path = "/subscription")
+  public Subscription getSubscription() throws StripeException {
+    return stripeService.getSubscription().getSubscriptionObject();
+  }
+
+  @GetMapping(path = "/products")
+  public List<Product> getAllProducts() throws StripeException {
+    return stripeService.getAllProducts();
+  }
+
+  @GetMapping(path = "/prices")
+  public List<Price> getAllPrices() throws StripeException {
+    return stripeService.getAllPrices();
   }
 
   @PostMapping(path = "/webhook")

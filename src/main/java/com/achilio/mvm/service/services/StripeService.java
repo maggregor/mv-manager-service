@@ -1,5 +1,6 @@
 package com.achilio.mvm.service.services;
 
+import static com.achilio.mvm.service.UserContextHelper.getStripeSubscriptionId;
 import static com.achilio.mvm.service.UserContextHelper.getUserProfile;
 import static com.achilio.mvm.service.services.StripeService.StripeMetadata.PROJECT_ID;
 import static java.util.stream.Collectors.toList;
@@ -19,6 +20,7 @@ import com.stripe.model.Price;
 import com.stripe.model.Product;
 import com.stripe.model.Subscription;
 import com.stripe.model.SubscriptionItem;
+import com.stripe.model.SubscriptionSchedule;
 import com.stripe.param.CustomerCreateParams;
 import com.stripe.param.PriceListParams;
 import com.stripe.param.ProductListParams;
@@ -48,9 +50,55 @@ public class StripeService {
   @Value("${stripe.api.key}")
   private String API_KEY;
 
-  @Autowired private FetcherService fetcherService;
   @Autowired private ProjectService projectService;
   @Autowired private GooglePublisherService googlePublisherService;
+
+  public String createPortalSession() throws StripeException {
+    Stripe.apiKey = API_KEY;
+    com.stripe.param.billingportal.SessionCreateParams params =
+        com.stripe.param.billingportal.SessionCreateParams.builder()
+            .setCustomer("cus_LPbXuqfN7jlewJ")
+            .setReturnUrl("http://localhost:8081/home/projects")
+            .build();
+
+    com.stripe.model.billingportal.Session session =
+        com.stripe.model.billingportal.Session.create(params);
+
+    return session.getUrl();
+  }
+
+  public SubscriptionSchedule getSubscription() throws StripeException {
+    Stripe.apiKey = API_KEY;
+    if (StringUtils.isEmpty(getStripeSubscriptionId())) {
+      return null;
+    }
+    return SubscriptionSchedule.retrieve(getStripeSubscriptionId());
+  }
+
+  public List<Product> getAllProducts() throws StripeException {
+    Stripe.apiKey = API_KEY;
+    return Product.list(ProductListParams.builder().build()).getData().stream()
+        .filter(Product::getActive)
+        .filter(this::isAvailable)
+        .collect(toList());
+  }
+
+  public List<Price> getAllPrices() throws StripeException {
+    Stripe.apiKey = API_KEY;
+    return Price.list(PriceListParams.builder().setActive(true).build()).getData().stream()
+        .filter(this::isAvailable)
+        .collect(toList());
+  }
+
+  public boolean isAvailable(Price price) {
+    return price.getMetadata().entrySet().stream()
+        .anyMatch(e -> e.getKey().equals("available") && e.getValue().equalsIgnoreCase("true"));
+  }
+
+  public boolean isAvailable(Product product) {
+    return product.getMetadata().entrySet().stream()
+        .anyMatch(e -> e.getKey().equals("available") && e.getValue().equalsIgnoreCase("true"));
+  }
 
   /**
    * Create a Stripe customer
