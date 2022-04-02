@@ -151,6 +151,7 @@ public class RepositoriesIntegrationTest {
 
   @After
   public void cleanUp() {
+    columnRepository.deleteAll();
     queryRepository.deleteAll();
     fetcherJobRepository.deleteAll();
   }
@@ -352,8 +353,8 @@ public class RepositoriesIntegrationTest {
     ADataset dataset2 = new ADataset(project2, DATASET_NAME2);
     ATable table1 = new ATable(project1, dataset1, TABLE_NAME1);
     ATable table2 = new ATable(project2, dataset1, TABLE_NAME1);
-    AColumn column1 = new AColumn(table1, COLUMN_NAME1, COLUMN_TYPE1);
-    AColumn column2 = new AColumn(table2, COLUMN_NAME1, COLUMN_TYPE1);
+    AColumn column1 = new AColumn(job5, table1, COLUMN_NAME1, COLUMN_TYPE1);
+    AColumn column2 = new AColumn(job5, table2, COLUMN_NAME1, COLUMN_TYPE1);
     projectRepository.save(project1);
     projectRepository.save(project2);
     datasetRepository.save(dataset1);

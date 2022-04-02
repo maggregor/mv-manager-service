@@ -7,6 +7,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import lombok.Getter;
@@ -26,6 +27,10 @@ public class AColumn {
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Long id;
 
+  @ManyToOne private FetcherStructJob lastFetcherStructJob;
+
+  @ManyToOne @JoinColumn private FetcherStructJob initialFetcherStructJob;
+
   @Column(unique = true)
   private String columnId;
 
@@ -35,10 +40,12 @@ public class AColumn {
 
   public AColumn() {}
 
-  public AColumn(ATable table, String name, String type) {
+  public AColumn(FetcherStructJob job, ATable table, String name, String type) {
     this.table = table;
     this.name = name;
     this.type = type;
+    this.lastFetcherStructJob = job;
+    this.initialFetcherStructJob = job;
     setColumnId(table, name);
   }
 

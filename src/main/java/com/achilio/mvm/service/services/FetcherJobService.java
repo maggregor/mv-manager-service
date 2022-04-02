@@ -174,14 +174,14 @@ public class FetcherJobService {
   }
 
   private void syncColumns(
-      FetcherStructJob fetcherStructJob, String teamName, Set<FetchedTable> allCurrentTables) {
-    Project project = projectService.getProject(fetcherStructJob.getProjectId(), teamName);
+      FetcherStructJob job, String teamName, Set<FetchedTable> allCurrentTables) {
+    Project project = projectService.getProject(job.getProjectId(), teamName);
 
     // Transform all FetchedColumns to AColumns
     List<AColumn> allCurrentColumns = new ArrayList<>();
     for (FetchedTable table : allCurrentTables) {
       Map<String, String> columns = table.getColumns();
-      columns.forEach((k, v) -> allCurrentColumns.add(toAColumn(table, k, v)));
+      columns.forEach((k, v) -> allCurrentColumns.add(toAColumn(job, table, k, v)));
     }
 
     List<AColumn> allAColumns = projectService.getAllColumns(project.getProjectId());
@@ -196,9 +196,9 @@ public class FetcherJobService {
     projectService.removeColumns(allAColumns);
   }
 
-  private AColumn toAColumn(FetchedTable table, String c, String v) {
+  private AColumn toAColumn(FetcherStructJob job, FetchedTable table, String c, String v) {
     ATable localTable = projectService.getTable(table.getTableId().getTableId());
-    return new AColumn(localTable, c, v);
+    return new AColumn(job, localTable, c, v);
   }
 
   @VisibleForTesting
