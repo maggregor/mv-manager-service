@@ -6,6 +6,8 @@ import java.util.Arrays;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -13,6 +15,8 @@ import org.springframework.web.servlet.HandlerInterceptor;
 
 @Component
 public class JWTInterceptor implements HandlerInterceptor {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(JWTInterceptor.class);
 
   @Autowired JWTDecoderService jwtDecoderService;
 
@@ -35,7 +39,10 @@ public class JWTInterceptor implements HandlerInterceptor {
 
   private String validateToken(Cookie jwtToken)
       throws IllegalArgumentException, NullPointerException {
-    jwtDecoderService.verifySignature(jwtToken.getValue());
+    if (!jwtDecoderService.verifySignature(jwtToken.getValue())) {
+      LOGGER.error("JWT {} signature invalid", jwtToken);
+    }
+    ;
     return jwtDecoderService.decodePayload(jwtToken.getValue());
   }
 
