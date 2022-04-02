@@ -4,13 +4,17 @@ import static java.lang.String.format;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import lombok.Getter;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
+@Getter
 @Table(name = "columns")
 public class AColumn {
 
@@ -18,7 +22,12 @@ public class AColumn {
   @OnDelete(action = OnDeleteAction.CASCADE)
   ATable table;
 
-  @Id private String id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.AUTO)
+  private Long id;
+
+  @Column(unique = true)
+  private String columnId;
 
   @Column private String name;
 
@@ -30,39 +39,29 @@ public class AColumn {
     this.table = table;
     this.name = name;
     this.type = type;
-    setId(table, name);
+    setColumnId(table, name);
   }
 
-  public AColumn(String id, ATable table, String name, String type) {
-    this.id = id;
-    this.table = table;
-    this.name = name;
-    this.type = type;
+  public void setColumnId(ATable table, String name) {
+    this.columnId = format("%s#%s", table.getTableId(), name);
   }
 
-  public String getId() {
-    return id;
+  @Override
+  public int hashCode() {
+    return columnId.hashCode();
   }
 
-  public void setId(ATable table, String name) {
-    this.id =
-        format(
-            "%s.%s.%s#%s",
-            table.getProject().getProjectId(),
-            table.getDataset().getDatasetName(),
-            table.getTableName(),
-            name);
-  }
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
-  public ATable getTable() {
-    return table;
-  }
+    AColumn aColumn = (AColumn) o;
 
-  public String getName() {
-    return name;
-  }
-
-  public String getType() {
-    return type;
+    return columnId.equals(aColumn.columnId);
   }
 }

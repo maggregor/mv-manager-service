@@ -6,6 +6,7 @@ import com.achilio.mvm.service.controllers.requests.ACreateProjectRequest;
 import com.achilio.mvm.service.controllers.requests.UpdateProjectRequest;
 import com.achilio.mvm.service.databases.entities.FetchedDataset;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
+import com.achilio.mvm.service.entities.AColumn;
 import com.achilio.mvm.service.entities.ADataset;
 import com.achilio.mvm.service.entities.ATable;
 import com.achilio.mvm.service.entities.Connection;
@@ -14,6 +15,7 @@ import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics;
 import com.achilio.mvm.service.exceptions.DatasetNotFoundException;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import com.achilio.mvm.service.exceptions.TableNotFoundException;
+import com.achilio.mvm.service.repositories.AColumnRepository;
 import com.achilio.mvm.service.repositories.ADatasetRepository;
 import com.achilio.mvm.service.repositories.ATableRepository;
 import com.achilio.mvm.service.repositories.ProjectRepository;
@@ -35,6 +37,7 @@ public class ProjectService {
   @Autowired private ProjectRepository projectRepository;
   @Autowired private ADatasetRepository datasetRepository;
   @Autowired private ATableRepository tableRepository;
+  @Autowired private AColumnRepository columnRepository;
   @Autowired private GooglePublisherService publisherService;
   @Autowired private FetcherService fetcherService;
   @Autowired private ConnectionService connectionService;
@@ -216,10 +219,20 @@ public class ProjectService {
     return datasetRepository.findAllByProject_ProjectId(projectId);
   }
 
+  @Transactional
+  public void deleteDataset(ADataset d) {
+    datasetRepository.deleteByDatasetId(d.getDatasetId());
+  }
+
   public GlobalQueryStatistics getStatistics(String projectId, String teamName, int days)
       throws Exception {
     Project project = getProject(projectId, teamName);
     return fetcherService.getStatistics(projectId, project.getConnection(), days);
+  }
+
+  @Transactional
+  public void deleteTable(ATable toDeleteTable) {
+    tableRepository.deleteByTableId(toDeleteTable.getTableId());
   }
 
   public List<ATable> getAllTables(String projectId, String teamName) {
@@ -236,5 +249,25 @@ public class ProjectService {
     return tableRepository
         .findByTableId(table.getTableId())
         .orElseThrow(() -> new TableNotFoundException(table.getTableId()));
+  }
+
+  public ATable getTable(String tableId) {
+    return tableRepository
+        .findByTableId(tableId)
+        .orElseThrow(() -> new TableNotFoundException(tableId));
+  }
+
+  public List<AColumn> getAllColumns(String projectId) {
+    return columnRepository.findAllByTable_Project_ProjectId(projectId);
+  }
+
+  @Transactional
+  public void createColumns(List<AColumn> toCreateColumn) {
+    columnRepository.saveAll(toCreateColumn);
+  }
+
+  @Transactional
+  public void removeColumns(List<AColumn> allAColumns) {
+    columnRepository.deleteAll(allAColumns);
   }
 }

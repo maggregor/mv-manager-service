@@ -38,9 +38,14 @@ public class ATable {
   @Column(unique = true)
   private String tableId;
 
+
   public ATable() {}
 
-  public ATable(Project project, ADataset dataset, String tableName, FetcherStructJob job) {
+  public ATable(
+      Project project,
+      ADataset dataset,
+      String tableName,
+      FetcherStructJob job) {
     this.lastFetcherStructJob = job;
     this.initialFetcherStructJob = job;
     this.project = project;

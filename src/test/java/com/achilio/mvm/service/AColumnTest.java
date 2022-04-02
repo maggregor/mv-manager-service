@@ -12,13 +12,11 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class AColumnTest {
 
-  private final String customColumnId = "myColumnId";
   private final String columnName = "myCol";
   private final String columnType = "INTEGER";
   private final String tableName = "myTable";
   private final String projectId = "myProjectId";
   private final String datasetName = "myDataset";
-  private final String tableId = "myTableId";
   private final Project project = new Project(projectId);
   private final ADataset dataset = new ADataset(project, datasetName);
   private final ATable table = new ATable(project, dataset, tableName);
@@ -26,18 +24,7 @@ public class AColumnTest {
   @Test
   public void simpleValidationConstructor1() {
     AColumn column = new AColumn(table, columnName, columnType);
-    Assert.assertEquals("myProjectId.myDataset.myTable#myCol", column.getId());
-    Assert.assertEquals(columnName, column.getName());
-    Assert.assertEquals(columnType, column.getType());
-    Assert.assertEquals(project.getProjectId(), column.getTable().getProject().getProjectId());
-    Assert.assertEquals(dataset.getDatasetName(), column.getTable().getDataset().getDatasetName());
-    Assert.assertEquals(tableName, column.getTable().getTableName());
-  }
-
-  @Test
-  public void simpleValidationConstructor2() {
-    AColumn column = new AColumn(customColumnId, table, columnName, columnType);
-    Assert.assertEquals(customColumnId, column.getId());
+    Assert.assertEquals("myProjectId.myDataset.myTable#myCol", column.getColumnId());
     Assert.assertEquals(columnName, column.getName());
     Assert.assertEquals(columnType, column.getType());
     Assert.assertEquals(project.getProjectId(), column.getTable().getProject().getProjectId());
