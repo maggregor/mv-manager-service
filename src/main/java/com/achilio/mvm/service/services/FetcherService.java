@@ -10,6 +10,7 @@ import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.entities.Connection;
+import com.achilio.mvm.service.entities.Connection.ConnectionType;
 import com.achilio.mvm.service.entities.ServiceAccountConnection;
 import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics;
 import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics.Scope;
@@ -101,6 +102,9 @@ public class FetcherService {
 
   private DatabaseFetcher fetcher(String projectId, Connection connection)
       throws ProjectNotFoundException {
+    if (connection.getType() != ConnectionType.SERVICE_ACCOUNT) {
+      throw new IllegalArgumentException("Connection type unknown. Should be a service account");
+    }
     ServiceAccountConnection saConnection = (ServiceAccountConnection) connection;
     String serviceAccount = saConnection.getServiceAccountKey();
     return new BigQueryDatabaseFetcher(serviceAccount, projectId);
