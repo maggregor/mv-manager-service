@@ -30,6 +30,7 @@ public class ATableIdTest {
     assertEquals("goodProject", tableId.getProject());
     assertEquals("superDataset", tableId.getDataset());
     assertEquals("niceTable", tableId.getTable());
+    assertEquals("goodProject.superDataset.niceTable", tableId.getTableId());
   }
 
   @Test

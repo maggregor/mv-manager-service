@@ -12,4 +12,6 @@ public interface ATableRepository extends JpaRepository<ATable, String> {
       String projectId, String datasetName, String tableName);
 
   Optional<ATable> findByTableId(String tableId);
+
+  void deleteByTableId(String tableId);
 }
