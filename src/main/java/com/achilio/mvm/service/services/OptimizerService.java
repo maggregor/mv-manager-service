@@ -61,14 +61,15 @@ public class OptimizerService {
   }
 
   @Async("asyncExecutor")
-  public void optimizeProject(Optimization o) {
+  public void optimizeProject(Optimization o, String teamName) {
     try {
       String projectId = o.getProjectId();
+      Project project = projectService.getProject(projectId, teamName);
       int analysisTimeframe = o.getAnalysisTimeframe();
       int mvMaxPerTable = o.getMvMaxPerTable();
       int maxMvPerTable = Math.min(GOOGLE_MAX_MV_PER_TABLE, mvMaxPerTable);
       List<FetchedDataset> datasets =
-          fetcherService.fetchAllDatasets(projectId).parallelStream()
+          fetcherService.fetchAllDatasets(projectId, project.getConnection()).parallelStream()
               .filter(
                   dataset -> projectService.isDatasetActivated(projectId, dataset.getDatasetName()))
               .collect(toList());
@@ -79,10 +80,11 @@ public class OptimizerService {
       // STEP 1 - Fetch all queries of targeted fetchedProject
       addOptimizationEvent(o, StatusType.FETCHING_QUERIES);
       List<FetchedQuery> allQueries =
-          fetcherService.fetchQueriesSinceLastDays(projectId, analysisTimeframe);
+          fetcherService.fetchQueriesSinceLastDays(
+              projectId, project.getConnection(), analysisTimeframe);
       // STEP 2 - Fetch all tables
       addOptimizationEvent(o, StatusType.FETCHING_TABLES);
-      Set<FetchedTable> tables = fetcherService.fetchAllTables(projectId);
+      Set<FetchedTable> tables = fetcherService.fetchAllTables(projectId, project.getConnection());
       // STEP 3 - Filter queries from targeted dataset
       addOptimizationEvent(o, StatusType.FILTER_QUERIES_FROM_DATASET);
       // STEP 5 - Extract field from queries
@@ -190,7 +192,7 @@ public class OptimizerService {
 
   @Transactional
   public Optimization createNewOptimization(final String projectId) {
-    Project project = projectService.getProjectAsUser(projectId);
+    Project project = projectService.getProject(projectId);
     Optimization optimization = new Optimization(project);
     optimization.setAnalysisTimeframe(project.getAnalysisTimeframe());
     optimization.setMvMaxPerTable(project.getMvMaxPerTable());
@@ -203,7 +205,7 @@ public class OptimizerService {
 
   public List<Optimization> getAllOptimizationByProject(final String projectId) {
     LOGGER.info("Getting all optimizations from project {}", projectId);
-    return optimizerRepository.findAllByProject(projectService.getProjectAsUser(projectId));
+    return optimizerRepository.findAllByProject(projectService.getProject(projectId));
   }
 
   public void destroyAllMaterializedViewsByProject(final String projectId) {
@@ -213,7 +215,7 @@ public class OptimizerService {
 
   public Optimization getOptimization(final String projectId, final Long optimizationId) {
     LOGGER.info("Getting optimization id: {} from project {}", optimizationId, projectId);
-    Project project = projectService.getProjectAsUser(projectId);
+    Project project = projectService.getProject(projectId);
     return optimizerRepository.findByProjectAndId(project, optimizationId);
   }
 

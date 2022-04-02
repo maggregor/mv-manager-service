@@ -23,8 +23,8 @@ public class ServiceAccountConnectionTest extends ConnectionTest {
   public void getters() {
     ServiceAccountConnection connection;
     connection = new ServiceAccountConnection();
-    assertNull(connection.getContent());
+    assertNull(connection.getServiceAccountKey());
     connection = new ServiceAccountConnection(SERVICE_ACCOUNT_JSON);
-    assertEquals(SERVICE_ACCOUNT_JSON, connection.getContent());
+    assertEquals(SERVICE_ACCOUNT_JSON, connection.getServiceAccountKey());
   }
 }

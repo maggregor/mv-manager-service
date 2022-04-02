@@ -1,10 +1,8 @@
 package com.achilio.mvm.service.exception.controllers;
 
-import com.achilio.mvm.service.exceptions.FetcherJobNotFoundException;
+import com.achilio.mvm.service.exceptions.InvalidPayloadException;
 import com.achilio.mvm.service.exceptions.InvalidSettingsException;
-import com.achilio.mvm.service.exceptions.OrganizationNotFoundException;
-import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
-import com.achilio.mvm.service.exceptions.QueryNotFoundException;
+import com.achilio.mvm.service.exceptions.NotFoundException;
 import com.achilio.mvm.service.exceptions.UnauthorizedException;
 import com.google.api.gax.rpc.PermissionDeniedException;
 import com.google.cloud.resourcemanager.ResourceManagerException;
@@ -42,34 +40,18 @@ public class CustomizedResponseEntityExceptionHandler extends ResponseEntityExce
     LOGGER.warn(ex.getMessage());
   }
 
-  @ExceptionHandler(OrganizationNotFoundException.class)
-  public final ResponseEntity<Object> organizationNotFoundException(Exception ex, WebRequest request) {
+  @ExceptionHandler(NotFoundException.class)
+  public final ResponseEntity<Object> NotFoundException(Exception ex, WebRequest request) {
     ExceptionResponse exResponse =
         new ExceptionResponse(new Date(), ex.getMessage(), request.getDescription(false));
     return new ResponseEntity<>(exResponse, HttpStatus.NOT_FOUND);
   }
 
-  @ExceptionHandler(ProjectNotFoundException.class)
-  public final ResponseEntity<Object> projectNotFoundException(Exception ex, WebRequest request) {
+  @ExceptionHandler(InvalidPayloadException.class)
+  public final ResponseEntity<Object> InvalidPayloadException(Exception ex, WebRequest request) {
     ExceptionResponse exResponse =
         new ExceptionResponse(new Date(), ex.getMessage(), request.getDescription(false));
-    return new ResponseEntity<>(exResponse, HttpStatus.NOT_FOUND);
-  }
-
-  @ExceptionHandler(FetcherJobNotFoundException.class)
-  public final ResponseEntity<Object> fetcherJobNotFoundException(
-      Exception ex, WebRequest request) {
-    ExceptionResponse exResponse =
-        new ExceptionResponse(new Date(), ex.getMessage(), request.getDescription(false));
-    return new ResponseEntity<>(exResponse, HttpStatus.NOT_FOUND);
-  }
-
-  @ExceptionHandler(QueryNotFoundException.class)
-  public final ResponseEntity<Object> queryNotFoundException(
-      Exception ex, WebRequest request) {
-    ExceptionResponse exResponse =
-        new ExceptionResponse(new Date(), ex.getMessage(), request.getDescription(false));
-    return new ResponseEntity<>(exResponse, HttpStatus.NOT_FOUND);
+    return new ResponseEntity<>(exResponse, HttpStatus.BAD_REQUEST);
   }
 
   @ExceptionHandler(UnauthorizedException.class)

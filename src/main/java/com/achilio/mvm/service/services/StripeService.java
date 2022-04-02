@@ -142,7 +142,7 @@ public class StripeService {
 
   public ProjectSubscription createSubscription(Customer customer, String priceId, String projectId)
       throws StripeException {
-    Project project = projectService.getProjectAsUser(projectId);
+    Project project = projectService.getProject(projectId);
     Stripe.apiKey = API_KEY;
     Map<String, String> metadata = new HashMap<>();
     metadata.put(PROJECT_ID.getValue(), projectId);
@@ -179,7 +179,7 @@ public class StripeService {
 
   public List<ProjectPlan> getPlans(String projectId) throws StripeException {
     Stripe.apiKey = API_KEY;
-    Project project = projectService.getProjectAsUser(projectId);
+    Project project = projectService.getProject(projectId);
     ProductListParams p = ProductListParams.builder().setActive(true).build();
     // Retrieve product as project plans
     List<ProjectPlan> plans =

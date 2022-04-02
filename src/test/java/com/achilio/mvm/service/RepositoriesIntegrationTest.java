@@ -18,12 +18,11 @@ import com.achilio.mvm.service.repositories.QueryRepository;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import javax.transaction.Transactional;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -101,7 +100,7 @@ public class RepositoriesIntegrationTest {
           LocalDate.of(2020, 1, 8),
           stats);
   private final FetcherStructJob job5 = new FetcherStructJob(TEST_PROJECT_ID1);
-  private final Connection connection = new ServiceAccountConnection("SA_JSON_CONTENT");
+  private final Connection connection1 = new ServiceAccountConnection("SA_JSON_CONTENT");
   private final Connection connection2 = new ServiceAccountConnection("SA_JSON_CONTENT");
   @Autowired FetcherJobRepository fetcherJobRepository;
   @Autowired QueryRepository queryRepository;
@@ -133,7 +132,7 @@ public class RepositoriesIntegrationTest {
             stats);
     queryRepository.saveAndFlush(replacingQuery5);
 
-    connection.setTeamName("myTeam");
+    connection1.setTeamName("myTeam");
     connection2.setTeamName("myTeam");
   }
 
@@ -144,7 +143,7 @@ public class RepositoriesIntegrationTest {
   }
 
   @Test
-  public void save() {
+  public void fetcherJob_save() {
     FetcherQueryJob job = new FetcherQueryJob(TEST_PROJECT_ID2);
     FetcherQueryJob savedJob = fetcherJobRepository.save(job);
     Assert.assertNotNull(savedJob.getCreatedAt());
@@ -153,7 +152,7 @@ public class RepositoriesIntegrationTest {
   }
 
   @Test
-  public void findAllByProjectId() {
+  public void fetcherJob_findAllByProjectId() {
     List<FetcherQueryJob> queryJobs =
         fetcherJobRepository.findFetcherQueryJobsByProjectId(TEST_PROJECT_ID1);
     Assert.assertEquals(3, queryJobs.size());
@@ -171,7 +170,7 @@ public class RepositoriesIntegrationTest {
   }
 
   @Test
-  public void findLastFetcherQueryJob() {
+  public void fetcherJob_findLastFetcherQueryJob() {
     Optional<FetcherQueryJob> optionalJob =
         fetcherJobRepository.findTopFetcherQueryJobByProjectIdOrderByCreatedAtDesc(
             TEST_PROJECT_ID1);
@@ -189,7 +188,7 @@ public class RepositoriesIntegrationTest {
   }
 
   @Test
-  public void findFetcherQueryJobsByProjectIdAndStatus() {
+  public void fetcherJob_findFetcherQueryJobsByProjectIdAndStatus() {
     List<FetcherQueryJob> queryJobs =
         fetcherJobRepository.findFetcherQueryJobsByProjectIdAndStatus(
             TEST_PROJECT_ID1, FetcherJobStatus.PENDING);
@@ -207,7 +206,7 @@ public class RepositoriesIntegrationTest {
   }
 
   @Test
-  public void findTopFetchedQueryJobByProjectIdAndStatusOrderByCreatedAtDesc() {
+  public void fetcherJob_findTopFetchedQueryJobByProjectIdAndStatusOrderByCreatedAtDesc() {
     Optional<FetcherQueryJob> optionalFetcherJob =
         fetcherJobRepository.findTopFetcherQueryJobByProjectIdAndStatusOrderByCreatedAtDesc(
             TEST_PROJECT_ID1, FetcherJobStatus.PENDING);
@@ -220,12 +219,12 @@ public class RepositoriesIntegrationTest {
   }
 
   @Test
-  public void findFetcherQueryJobByProjectIdAndId() {
+  public void fetcherJob_findFetcherQueryJobByProjectIdAndId() {
     Optional<FetcherQueryJob> fetchedJob1 =
         fetcherJobRepository.findFetcherQueryJobByIdAndProjectId(job1.getId(), TEST_PROJECT_ID1);
     Assert.assertTrue(fetchedJob1.isPresent());
     Assert.assertEquals(job1.getId(), fetchedJob1.get().getId());
-    Assert.assertEquals(7, ((FetcherQueryJob) fetchedJob1.get()).getTimeframe());
+    Assert.assertEquals(7, fetchedJob1.get().getTimeframe());
     Optional<FetcherQueryJob> fetchedJob2 =
         fetcherJobRepository.findFetcherQueryJobByIdAndProjectId(job2.getId(), TEST_PROJECT_ID1);
     Assert.assertTrue(fetchedJob2.isPresent());
@@ -240,7 +239,7 @@ public class RepositoriesIntegrationTest {
   }
 
   @Test
-  public void findAllQueriesByFetcherQueryJob() {
+  public void query_findAllQueriesByFetcherQueryJob() {
     List<Query> queries =
         queryRepository.findAllByInitialFetcherQueryJobAndProjectId(job1, TEST_PROJECT_ID1);
     Assert.assertEquals(3, queries.size());
@@ -263,7 +262,7 @@ public class RepositoriesIntegrationTest {
   }
 
   @Test
-  public void findFirstByIdAndProjectId() {
+  public void query_findFirstByIdAndProjectId() {
     Optional<Query> retrievedQuery1 =
         queryRepository.findQueryByIdAndProjectId(
             query1.getId(), query1.getLastFetcherQueryJob().getProjectId());
@@ -272,14 +271,14 @@ public class RepositoriesIntegrationTest {
   }
 
   @Test
-  public void findAllByLastFetcherQueryJobAndProjectId() {
+  public void query_findAllByLastFetcherQueryJobAndProjectId() {
     List<Query> queries =
         queryRepository.findAllByLastFetcherQueryJobAndProjectId(job4, TEST_PROJECT_ID2);
     Assert.assertEquals(1, queries.size());
   }
 
   @Test
-  public void updateQuery() {
+  public void query_updateQuery() {
     Optional<Query> unchangedQuery =
         queryRepository.findQueryByIdAndProjectId(query5.getId(), TEST_PROJECT_ID1);
     Assert.assertTrue(unchangedQuery.isPresent());
@@ -288,33 +287,32 @@ public class RepositoriesIntegrationTest {
     Assert.assertEquals(job1.getId(), finalQuery.getInitialFetcherQueryJob().getId());
   }
 
-  @BeforeEach
-  public void clear() {
-    connectionRepository.deleteAll();
-  }
+  //  @BeforeEach
+  //  public void clear() {
+  //    connectionRepository.deleteAll();
+  //  }
 
   @Test
-  public void findAllByTeamName() {
+  public void connection_findAllByTeamName() {
     assertEquals(0, connectionRepository.findAllByTeamName("myTeam").size());
-    connectionRepository.save(connection);
+    connectionRepository.save(connection1);
     assertEquals(1, connectionRepository.findAllByTeamName("myTeam").size());
     connectionRepository.save(connection2);
     assertEquals(2, connectionRepository.findAllByTeamName("myTeam").size());
   }
 
   @Test
-  @Ignore
-  // org.springframework.dao.InvalidDataAccessApiUsageException: No EntityManager with actual
-  // transaction available for current thread - cannot reliably process 'remove' call; nested
-  public void deleteByIdAndTeamName() {
+  @Transactional
+  public void connection_deleteByIdAndTeamName() {
     assertTrue(connectionRepository.findAllByTeamName("myTeam").isEmpty());
-    connectionRepository.save(connection);
+    connectionRepository.save(connection1);
+    connectionRepository.save(connection2);
     assertFalse(connectionRepository.findAllByTeamName("myTeam").isEmpty());
-    connectionRepository.deleteByIdAndTeamName(connection.getId(), "myTeam");
+    connectionRepository.deleteByIdAndTeamName(connection1.getId(), "myTeam");
     assertFalse(connectionRepository.findAllByTeamName("myTeam").isEmpty());
-    connectionRepository.deleteByIdAndTeamName(connection.getId(), "myTeam");
-    assertFalse(connectionRepository.findAllByTeamName("myTeam").isEmpty());
-    connectionRepository.deleteByIdAndTeamName(connection.getId(), "myTeam");
+    connectionRepository.deleteByIdAndTeamName(connection2.getId(), "myTeam");
+    assertTrue(connectionRepository.findAllByTeamName("myTeam").isEmpty());
+    connectionRepository.deleteByIdAndTeamName(connection1.getId(), "myTeam");
     assertTrue(connectionRepository.findAllByTeamName("myTeam").isEmpty());
   }
 }

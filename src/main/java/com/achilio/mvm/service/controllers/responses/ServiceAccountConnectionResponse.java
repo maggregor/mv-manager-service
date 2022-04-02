@@ -1,4 +1,4 @@
-package com.achilio.mvm.service.controllers.requests;
+package com.achilio.mvm.service.controllers.responses;
 
 import com.achilio.mvm.service.entities.ServiceAccountConnection;
 import lombok.Getter;
@@ -10,6 +10,6 @@ public class ServiceAccountConnectionResponse extends ConnectionResponse {
 
   public ServiceAccountConnectionResponse(ServiceAccountConnection connection) {
     super(connection);
-    this.content = connection.getContent();
+    this.content = "secretkey";
   }
 }

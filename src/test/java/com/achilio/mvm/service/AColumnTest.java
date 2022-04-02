@@ -21,12 +21,12 @@ public class AColumnTest {
   private final String tableId = "myTableId";
   private final Project project = new Project(projectId);
   private final ADataset dataset = new ADataset(project, datasetName);
-  private final ATable table = new ATable(tableId, project, dataset, tableName);
+  private final ATable table = new ATable(project, dataset, tableName);
 
   @Test
   public void simpleValidationConstructor1() {
     AColumn column = new AColumn(table, columnName, columnType);
-    Assert.assertEquals("myProjectId:myDataset.myTable#myCol", column.getId());
+    Assert.assertEquals("myProjectId.myDataset.myTable#myCol", column.getId());
     Assert.assertEquals(columnName, column.getName());
     Assert.assertEquals(columnType, column.getType());
     Assert.assertEquals(project.getProjectId(), column.getTable().getProject().getProjectId());

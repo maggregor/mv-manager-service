@@ -1,5 +1,9 @@
 package com.achilio.mvm.service.controllers;
 
+import static com.achilio.mvm.service.UserContextHelper.getContextTeamName;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
+import com.achilio.mvm.service.controllers.requests.ACreateProjectRequest;
 import com.achilio.mvm.service.controllers.requests.UpdateProjectRequest;
 import com.achilio.mvm.service.controllers.responses.AggregatedStatisticsResponse;
 import com.achilio.mvm.service.controllers.responses.DatasetResponse;
@@ -7,21 +11,21 @@ import com.achilio.mvm.service.controllers.responses.GlobalQueryStatisticsRespon
 import com.achilio.mvm.service.controllers.responses.ProjectResponse;
 import com.achilio.mvm.service.controllers.responses.UpdateDatasetRequestResponse;
 import com.achilio.mvm.service.databases.entities.FetchedDataset;
-import com.achilio.mvm.service.databases.entities.FetchedProject;
+import com.achilio.mvm.service.entities.ADataset;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics;
-import com.achilio.mvm.service.services.FetcherService;
 import com.achilio.mvm.service.services.ProjectService;
 import io.swagger.annotations.ApiOperation;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,28 +38,33 @@ import org.springframework.web.bind.annotation.RestController;
 public class ProjectController {
 
   @Autowired private ProjectService projectService;
-  @Autowired private FetcherService fetcherService;
 
-  @GetMapping(path = "/project", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(path = "/project", produces = APPLICATION_JSON_VALUE)
   @ApiOperation("List all projects")
   public List<ProjectResponse> getAllProjects() {
-    return projectService.findAllProjects().stream()
+    return projectService.getAllActivatedProjects(getContextTeamName()).stream()
         .map(this::toProjectResponse)
         .collect(Collectors.toList());
   }
 
-  @GetMapping(path = "/project/{projectId}", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(path = "/project/{projectId}", produces = APPLICATION_JSON_VALUE)
   @ApiOperation("Get a project for a given projectId")
   public ProjectResponse getProject(@PathVariable final String projectId) {
-    return toProjectResponse(fetcherService.fetchProject(projectId));
+    return toProjectResponse(projectService.getProject(projectId, getContextTeamName()));
   }
 
-  @GetMapping(
-      path = "/project/{projectId}/permissions",
-      produces = MediaType.APPLICATION_JSON_VALUE)
-  @ApiOperation("Check permissions for a given projectId")
-  public List<String> getMissingPermissions(@PathVariable final String projectId) {
-    return fetcherService.fetchMissingPermissions(projectId);
+  @PostMapping(path = "/project", produces = APPLICATION_JSON_VALUE)
+  @ApiOperation("Register a project if not exists")
+  @ResponseStatus(HttpStatus.CREATED)
+  public ProjectResponse createProject(@RequestBody final ACreateProjectRequest payload) {
+    return toProjectResponse(projectService.createProject(payload, getContextTeamName()));
+  }
+
+  @DeleteMapping(path = "/project/{projectId}")
+  @ApiOperation("Unregister and delete a project")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void deleteProject(@PathVariable final String projectId) {
+    projectService.deleteProject(projectId, getContextTeamName());
   }
 
   @PatchMapping(path = "/project/{projectId}")
@@ -69,7 +78,7 @@ public class ProjectController {
 
   @PutMapping(
       path = "/project/{projectId}/dataset/{datasetName}",
-      produces = MediaType.APPLICATION_JSON_VALUE)
+      produces = APPLICATION_JSON_VALUE)
   @ApiOperation("Update metadata of a dataset")
   public UpdateDatasetRequestResponse updateDataset(
       @PathVariable final String projectId,
@@ -79,41 +88,44 @@ public class ProjectController {
         projectService.updateDataset(projectId, datasetName, payload.isActivated()));
   }
 
-  @GetMapping(path = "/project/{projectId}/dataset", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(path = "/project/{projectId}/dataset", produces = APPLICATION_JSON_VALUE)
   @ApiOperation("Get all dataset for a given projectId")
   public List<DatasetResponse> getAllDatasets(@PathVariable final String projectId) {
-    return fetcherService.fetchAllDatasets(projectId).stream()
+    return projectService.getAllDatasets(projectId, getContextTeamName()).stream()
         .map(this::toDatasetResponse)
         .collect(Collectors.toList());
   }
 
   @GetMapping(
       path = "/project/{projectId}/dataset/{datasetName}",
-      produces = MediaType.APPLICATION_JSON_VALUE)
+      produces = APPLICATION_JSON_VALUE)
   @ApiOperation("Get a single dataset for a given projectId")
   public DatasetResponse getDataset(
       @PathVariable final String projectId, @PathVariable final String datasetName) {
-    FetchedDataset fetchedDataset = fetcherService.fetchDataset(projectId, datasetName);
+    FetchedDataset fetchedDataset =
+        projectService.getFetchedDataset(projectId, getContextTeamName(), datasetName);
     return toDatasetResponse(fetchedDataset);
   }
 
   @GetMapping(
       path = "/project/{projectId}/queries/{days}/statistics",
-      produces = MediaType.APPLICATION_JSON_VALUE)
+      produces = APPLICATION_JSON_VALUE)
   @ApiOperation("Get statistics of queries ")
   public GlobalQueryStatisticsResponse getQueryStatistics(
       @PathVariable final String projectId, @PathVariable final int days) throws Exception {
-    GlobalQueryStatistics statistics = fetcherService.getStatistics(projectId, days);
+    GlobalQueryStatistics statistics =
+        projectService.getStatistics(projectId, getContextTeamName(), days);
     return toGlobalQueryStatisticsResponse(statistics);
   }
 
   @GetMapping(
       path = "/project/{projectId}/queries/{days}/statistics/kpi",
-      produces = MediaType.APPLICATION_JSON_VALUE)
+      produces = APPLICATION_JSON_VALUE)
   @ApiOperation("Get statistics of queries grouped per days for charts")
   public AggregatedStatisticsResponse getKPIStatistics(
       @PathVariable final String projectId, @PathVariable final int days) throws Exception {
-    GlobalQueryStatistics statistics = fetcherService.getStatistics(projectId, days);
+    GlobalQueryStatistics statistics =
+        projectService.getStatistics(projectId, getContextTeamName(), days);
     return toAggregatedStatistics(statistics);
   }
 
@@ -124,11 +136,6 @@ public class ProjectController {
 
   public AggregatedStatisticsResponse toAggregatedStatistics(GlobalQueryStatistics statistics) {
     return new AggregatedStatisticsResponse(statistics);
-  }
-
-  private ProjectResponse toProjectResponse(FetchedProject fetchedProject) {
-    Project project = projectService.findProjectOrCreate(fetchedProject.getProjectId());
-    return new ProjectResponse(fetchedProject.getName(), project);
   }
 
   private ProjectResponse toProjectResponse(Project project) {
@@ -154,20 +161,11 @@ public class ProjectController {
         lastModified,
         activated);
   }
-}
 
-/**
- * ZoneId defaultZoneId = ZoneId.systemDefault(); LocalDate localDate =
- * LocalDate.now().minusDays(lastDays); Date date =
- * Date.from(localDate.atStartOfDay(defaultZoneId).toInstant()); List<FetchedQuery> queries =
- * fetcherService.fetchQueriesSince(projectId, date); List<FetchedQuery> queriesCaught = queries
- * .stream() .filter(FetchedQuery::isUsingManagedMV) .collect(Collectors.toList()); long
- * totalNumberOfSelect = queries.size(); long numberOfSelectIn = queriesCaught.size(); long
- * numberOfSelectOut = queriesCaught.size(); long totalBilledBytes =
- * queries.stream().mapToLong(fetcherService ->
- * Math.toIntExact(fetcherService.getBilledBytes())).sum(); long totalProcessedBytes =
- * queriesCaught.stream().mapToInt(fetcherService -> Math.toIntExact(fetcherService.cost())).sum();
- *
- * <p>return new QueryStatisticsResponse(totalSelect, totalSelectCaught, totalScanned,
- * totalScannedCaught);
- */
+  private DatasetResponse toDatasetResponse(ADataset dataset) {
+    final String projectId = dataset.getProject().getProjectId();
+    final String datasetName = dataset.getDatasetName();
+    final boolean activated = projectService.isDatasetActivated(projectId, datasetName);
+    return new DatasetResponse(projectId, datasetName, null, null, null, null, null, activated);
+  }
+}

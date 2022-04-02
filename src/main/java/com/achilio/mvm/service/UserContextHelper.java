@@ -44,4 +44,8 @@ public class UserContextHelper {
   public static String getContextEmail() {
     return getUserProfile().getEmail();
   }
+
+  public static String getContextUsername() {
+    return getUserProfile().getUsername();
+  }
 }

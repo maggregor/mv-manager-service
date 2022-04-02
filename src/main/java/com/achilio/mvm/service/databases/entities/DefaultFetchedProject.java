@@ -1,12 +1,9 @@
 package com.achilio.mvm.service.databases.entities;
 
-import com.achilio.mvm.service.entities.AOrganization;
-
 public class DefaultFetchedProject implements FetchedProject {
 
   private String projectId;
   private String name;
-  private AOrganization organization;
   private String teamName;
 
   public DefaultFetchedProject(String projectId, String name) {
@@ -14,11 +11,9 @@ public class DefaultFetchedProject implements FetchedProject {
     this.name = name;
   }
 
-  public DefaultFetchedProject(
-      String projectId, String name, AOrganization organization, String teamName) {
+  public DefaultFetchedProject(String projectId, String name, String teamName) {
     this.projectId = projectId;
     this.name = name;
-    this.organization = organization;
     this.teamName = teamName;
   }
 
@@ -30,11 +25,6 @@ public class DefaultFetchedProject implements FetchedProject {
   @Override
   public String getName() {
     return this.name;
-  }
-
-  @Override
-  public AOrganization getOrganization() {
-    return this.organization;
   }
 
   @Override
