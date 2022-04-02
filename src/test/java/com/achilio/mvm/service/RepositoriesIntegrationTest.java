@@ -4,16 +4,24 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import com.achilio.mvm.service.entities.AColumn;
+import com.achilio.mvm.service.entities.ADataset;
+import com.achilio.mvm.service.entities.ATable;
 import com.achilio.mvm.service.entities.Connection;
 import com.achilio.mvm.service.entities.FetcherJob;
 import com.achilio.mvm.service.entities.FetcherJob.FetcherJobStatus;
 import com.achilio.mvm.service.entities.FetcherQueryJob;
 import com.achilio.mvm.service.entities.FetcherStructJob;
+import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.entities.Query;
 import com.achilio.mvm.service.entities.ServiceAccountConnection;
 import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
+import com.achilio.mvm.service.repositories.AColumnRepository;
+import com.achilio.mvm.service.repositories.ADatasetRepository;
+import com.achilio.mvm.service.repositories.ATableRepository;
 import com.achilio.mvm.service.repositories.ConnectionRepository;
 import com.achilio.mvm.service.repositories.FetcherJobRepository;
+import com.achilio.mvm.service.repositories.ProjectRepository;
 import com.achilio.mvm.service.repositories.QueryRepository;
 import java.time.LocalDate;
 import java.util.List;
@@ -23,6 +31,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -104,6 +113,10 @@ public class RepositoriesIntegrationTest {
   private final Connection connection2 = new ServiceAccountConnection("SA_JSON_CONTENT");
   @Autowired FetcherJobRepository fetcherJobRepository;
   @Autowired QueryRepository queryRepository;
+  @Autowired ProjectRepository projectRepository;
+  @Autowired ADatasetRepository datasetRepository;
+  @Autowired ATableRepository tableRepository;
+  @Autowired AColumnRepository columnRepository;
   @Autowired private ConnectionRepository connectionRepository;
 
   @Before
@@ -138,6 +151,7 @@ public class RepositoriesIntegrationTest {
 
   @After
   public void cleanUp() {
+    columnRepository.deleteAll();
     queryRepository.deleteAll();
     fetcherJobRepository.deleteAll();
   }
@@ -287,10 +301,10 @@ public class RepositoriesIntegrationTest {
     Assert.assertEquals(job1.getId(), finalQuery.getInitialFetcherQueryJob().getId());
   }
 
-  //  @BeforeEach
-  //  public void clear() {
-  //    connectionRepository.deleteAll();
-  //  }
+  @BeforeEach
+  public void clear() {
+    connectionRepository.deleteAll();
+  }
 
   @Test
   public void connection_findAllByTeamName() {
@@ -314,5 +328,46 @@ public class RepositoriesIntegrationTest {
     assertTrue(connectionRepository.findAllByTeamName("myTeam").isEmpty());
     connectionRepository.deleteByIdAndTeamName(connection1.getId(), "myTeam");
     assertTrue(connectionRepository.findAllByTeamName("myTeam").isEmpty());
+  }
+
+  @Test
+  public void column_findAllByProject() {
+    String PROJECT_ID1 = "project-id1";
+    String PROJECT_ID2 = "project-id2";
+    String PROJECT_NAME1 = "Project 1";
+    String PROJECT_NAME2 = "Project 2";
+    String DATASET_NAME1 = "myDataset1";
+    String DATASET_NAME2 = "myDataset2";
+    String DATASET_NAME3 = "myDataset3";
+    String TABLE_NAME1 = "myTable1";
+    String TABLE_NAME2 = "myTable2";
+    String TABLE_NAME3 = "myTable3";
+    String COLUMN_NAME1 = "myColumn1";
+    String COLUMN_NAME2 = "myColumn2";
+    String COLUMN_TYPE1 = "columnType1";
+    String COLUMN_TYPE2 = "columnType2";
+
+    Project project1 = new Project(PROJECT_ID1, PROJECT_NAME1);
+    Project project2 = new Project(PROJECT_ID2, PROJECT_NAME2);
+    ADataset dataset1 = new ADataset(project1, DATASET_NAME1);
+    ADataset dataset2 = new ADataset(project2, DATASET_NAME2);
+    ATable table1 = new ATable(project1, dataset1, TABLE_NAME1);
+    ATable table2 = new ATable(project2, dataset1, TABLE_NAME1);
+    AColumn column1 = new AColumn(job5, table1, COLUMN_NAME1, COLUMN_TYPE1);
+    AColumn column2 = new AColumn(job5, table2, COLUMN_NAME1, COLUMN_TYPE1);
+    projectRepository.save(project1);
+    projectRepository.save(project2);
+    datasetRepository.save(dataset1);
+    datasetRepository.save(dataset2);
+    tableRepository.save(table1);
+    tableRepository.save(table2);
+    columnRepository.save(column1);
+    columnRepository.save(column2);
+
+    List<AColumn> columns = columnRepository.findAllByTable_Project_ProjectId(PROJECT_ID1);
+    assertEquals(1, columns.size());
+    assertEquals(
+        String.format("%s.%s.%s#%s", PROJECT_ID1, DATASET_NAME1, TABLE_NAME1, COLUMN_NAME1),
+        columns.get(0).getColumnId());
   }
 }
