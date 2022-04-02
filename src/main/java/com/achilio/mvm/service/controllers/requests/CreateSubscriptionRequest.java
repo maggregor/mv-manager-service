@@ -1,12 +1,15 @@
 package com.achilio.mvm.service.controllers.requests;
 
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+
+@AllArgsConstructor
+@NoArgsConstructor
 public class CreateSubscriptionRequest {
 
   private String customerId;
   private String priceId;
   private String projectId;
-
-  public CreateSubscriptionRequest() {}
 
   public String getCustomerId() {
     return this.customerId;

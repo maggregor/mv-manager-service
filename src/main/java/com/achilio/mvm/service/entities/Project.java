@@ -23,8 +23,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 @EntityListeners(AuditingEntityListener.class)
 public class Project {
 
-  private static Logger LOGGER = LoggerFactory.getLogger(Project.class);
-  @ManyToOne AOrganization organization;
+  private static final Logger LOGGER = LoggerFactory.getLogger(Project.class);
 
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
@@ -39,7 +38,7 @@ public class Project {
   @Column private String teamName;
 
   @Column(name = "activated", nullable = false)
-  private Boolean activated = false;
+  private Boolean activated = true;
 
   @Column(name = "automatic", nullable = false, columnDefinition = "boolean default false")
   private Boolean automatic = false;
@@ -52,6 +51,8 @@ public class Project {
 
   @Column(name = "analysis_timeframe", nullable = false, columnDefinition = "numeric default 30")
   private Integer analysisTimeframe = 30;
+
+  @ManyToOne private Connection connection;
 
   @Column(
       name = "mv_max_per_table_limit",
@@ -75,19 +76,19 @@ public class Project {
   }
 
   public Project(String projectId, String stripeSubscriptionId) {
-    this(projectId, stripeSubscriptionId, null);
-  }
-
-  public Project(String projectId, String stripeSubscriptionId, AOrganization organization) {
     this.projectId = projectId;
     this.stripeSubscriptionId = stripeSubscriptionId;
-    this.organization = organization;
+  }
+
+  public Project(String projectId, String projectName, String stripeSubscriptionId) {
+    this.projectId = projectId;
+    this.projectName = projectName;
+    this.stripeSubscriptionId = stripeSubscriptionId;
   }
 
   public Project(FetchedProject fetchedProject) {
     this.projectId = fetchedProject.getProjectId();
     this.projectName = fetchedProject.getName();
-    this.organization = fetchedProject.getOrganization();
     this.teamName = fetchedProject.getTeamName();
   }
 
@@ -221,11 +222,11 @@ public class Project {
     }
   }
 
-  public AOrganization getOrganization() {
-    return organization;
+  public Connection getConnection() {
+    return connection;
   }
 
-  public void setOrganization(AOrganization organization) {
-    this.organization = organization;
+  public void setConnection(Connection connection) {
+    this.connection = connection;
   }
 }

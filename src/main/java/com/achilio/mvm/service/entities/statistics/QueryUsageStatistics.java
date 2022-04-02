@@ -2,9 +2,9 @@ package com.achilio.mvm.service.entities.statistics;
 
 public class QueryUsageStatistics {
 
-  private int queries = 0;
-  private long billedBytes = 0;
-  private long processedBytes = 0;
+  private int queries;
+  private long billedBytes;
+  private long processedBytes;
 
   public QueryUsageStatistics() {
     this(1, 0, 0);

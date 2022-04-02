@@ -30,11 +30,11 @@ public class FetcherServiceTest {
   @Mock ServiceAccountConnection serviceAccountConnection1;
   @Mock ServiceAccountConnection serviceAccountConnection2;
 
-  private String CONNECTION1_CONTENT = "JSON_CONTENT1";
-  private String CONNECTION2_CONTENT = "JSON_CONTENT2";
-  private String TEAM_1 = "Team1";
-  private String TEAM_2 = "Team2";
-  private UserProfile USER_1 =
+  private final String CONNECTION1_CONTENT = "JSON_CONTENT1";
+  private final String CONNECTION2_CONTENT = "JSON_CONTENT2";
+  private final String TEAM_1 = "Team1";
+  private final String TEAM_2 = "Team2";
+  private final UserProfile USER_1 =
       new UserProfile("myUsername", "myEmail", "myFirstName", "myLastName", "myName", TEAM_1);
   @Mock private Authentication mockedJWTAuth;
   @Mock private SecurityContext securityContext;
@@ -45,14 +45,14 @@ public class FetcherServiceTest {
     SecurityContextHolder.setContext(securityContext);
     when(connectionService.getAllConnections(any()))
         .thenReturn(Arrays.asList(serviceAccountConnection1, serviceAccountConnection2));
-    when(serviceAccountConnection1.getContent()).thenReturn(CONNECTION1_CONTENT);
+    when(serviceAccountConnection1.getServiceAccountKey()).thenReturn(CONNECTION1_CONTENT);
     when(mockedJWTAuth.getDetails()).thenReturn(USER_1);
   }
 
   @Test
   public void when_connectionIsTwo_thenReturnsConnection1() {
     ServiceAccountConnection sa = fetcherService.getSAAvailableConnection();
-    Assert.assertEquals(CONNECTION1_CONTENT, sa.getContent());
+    Assert.assertEquals(CONNECTION1_CONTENT, sa.getServiceAccountKey());
   }
 
   @Test
@@ -60,7 +60,7 @@ public class FetcherServiceTest {
     when(connectionService.getAllConnections(any()))
         .thenReturn(Collections.singletonList(serviceAccountConnection1));
     ServiceAccountConnection sa = fetcherService.getSAAvailableConnection();
-    Assert.assertEquals(CONNECTION1_CONTENT, sa.getContent());
+    Assert.assertEquals(CONNECTION1_CONTENT, sa.getServiceAccountKey());
   }
 
   @Test

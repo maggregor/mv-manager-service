@@ -1,11 +1,9 @@
 package com.achilio.mvm.service.databases;
 
 import com.achilio.mvm.service.databases.entities.FetchedDataset;
-import com.achilio.mvm.service.databases.entities.FetchedOrganization;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
-import com.achilio.mvm.service.entities.AOrganization;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import java.util.List;
 import java.util.Set;
@@ -27,22 +25,6 @@ public interface DatabaseFetcher {
    * @return - a list of queries as string
    */
   List<FetchedQuery> fetchAllQueriesFrom(long fromTimestamp);
-
-  /**
-   * Returns metadata for a given table.
-   *
-   * @param datasetName
-   * @param tableName
-   * @return - FetchedTable of targeted table
-   */
-  FetchedTable fetchTable(String datasetName, String tableName);
-
-  /**
-   * Returns all projects id.
-   *
-   * @return
-   */
-  List<FetchedProject> fetchAllProjects();
 
   /**
    * Returns all the information for a given project.
@@ -69,16 +51,6 @@ public interface DatabaseFetcher {
   Set<FetchedTable> fetchAllTables();
 
   Set<FetchedTable> fetchTablesInDataset(String datasetName);
-
-  List<String> fetchMissingPermissions(String projectId);
-
-  List<FetchedOrganization> fetchAllOrganizations();
-
-  List<FetchedProject> fetchAllProjectsFromOrg(AOrganization baseOrganization);
-
-  List<FetchedProject> fetchAllProjectsFromParent(String parentId, AOrganization baseOrganization);
-
-  List<FetchedProject> fetchAllProjectsNoParent(AOrganization baseOrganization);
 
   void close();
 }
