@@ -16,19 +16,16 @@ import com.achilio.mvm.service.controllers.responses.DatasetResponse;
 import com.achilio.mvm.service.controllers.responses.GlobalQueryStatisticsResponse;
 import com.achilio.mvm.service.controllers.responses.ProjectResponse;
 import com.achilio.mvm.service.databases.entities.DefaultFetchedDataset;
-import com.achilio.mvm.service.entities.AOrganization;
-import com.achilio.mvm.service.entities.AOrganization.OrganizationType;
+import com.achilio.mvm.service.entities.ADataset;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import com.achilio.mvm.service.models.UserProfile;
-import com.achilio.mvm.service.services.FetcherService;
 import com.achilio.mvm.service.services.ProjectService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.JsonNodeType;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -59,16 +56,14 @@ public class ProjectControllerTest {
   private static final String STRIPE_SUBSCRIPTION_ID1 = "stripeSubscription1";
   private static final String STRIPE_SUBSCRIPTION_ID2 = "stripeSubscription2";
   private static final String STRIPE_SUBSCRIPTION_ID3 = "stripeSubscription3";
-  private static final String TEAM_ID1 = "myTeam1";
+  private static final String TEAM_NAME1 = "myTeam1";
   private static final String TEAM_ID2 = "myTeam2";
   private static final Long CONNECTION_ID1 = 1L;
-  private static final OrganizationType ORG1 = OrganizationType.ORGANIZATION;
-  private static final AOrganization ORGANIZATION =
-      new AOrganization(
-          "organization/12345", "example.com", "stripeCustomerId", ORG1, "workspaceId");
+  private static final Project project1 = new Project(TEST_PROJECT_ID1);
+  private static final ADataset dataset1 = new ADataset(project1, TEST_DATASET_NAME1);
+  private static final ADataset dataset2 = new ADataset(project1, TEST_DATASET_NAME2);
   private final ObjectMapper objectMapper = new ObjectMapper();
   @InjectMocks ProjectController controller;
-  @Mock FetcherService mockedFetcherService;
   @Mock ProjectService mockedProjectService;
   @Mock private UserProfile mockedUserProfile;
 
@@ -76,7 +71,7 @@ public class ProjectControllerTest {
   public void setup() throws JsonProcessingException {
     Authentication mockedAuth = mock(Authentication.class);
     SecurityContext mockedSecurityContext = mock(SecurityContext.class);
-    when(mockedUserProfile.getTeamName()).thenReturn(TEAM_ID1);
+    when(mockedUserProfile.getTeamName()).thenReturn(TEAM_NAME1);
     when(mockedAuth.getDetails()).thenReturn(mockedUserProfile);
     when(mockedSecurityContext.getAuthentication()).thenReturn(mockedAuth);
     SecurityContextHolder.setContext(mockedSecurityContext);
@@ -89,15 +84,15 @@ public class ProjectControllerTest {
 
   @Test
   public void getAllProject() throws Exception {
-    Project project1 = new Project(TEST_PROJECT_ID1, STRIPE_SUBSCRIPTION_ID1, ORGANIZATION);
-    Project project2 = new Project(TEST_PROJECT_ID2, STRIPE_SUBSCRIPTION_ID2, ORGANIZATION);
-    project1.setTeamName(TEAM_ID1);
+    Project project1 = new Project(TEST_PROJECT_ID1, STRIPE_SUBSCRIPTION_ID1);
+    Project project2 = new Project(TEST_PROJECT_ID2, STRIPE_SUBSCRIPTION_ID2);
+    project1.setTeamName(TEAM_NAME1);
     project2.setAutomaticAvailable(true);
     project2.setActivated(true);
     project2.setAutomatic(true);
     project2.setMvMaxPerTable(10);
     project2.setAnalysisTimeframe(14);
-    when(mockedProjectService.getAllActivatedProjects(TEAM_ID1))
+    when(mockedProjectService.getAllActivatedProjects(TEAM_NAME1))
         .thenReturn(Arrays.asList(project1, project2));
     List<ProjectResponse> responseEntity = controller.getAllProjects();
     assertProjectResponseListEquals(Arrays.asList(project1, project2), responseEntity);
@@ -105,9 +100,9 @@ public class ProjectControllerTest {
 
   @Test
   public void getAllProject__empty() throws Exception {
-    Project localProject1 = new Project(TEST_PROJECT_ID1, STRIPE_SUBSCRIPTION_ID1, ORGANIZATION);
-    Project localProject2 = new Project(TEST_PROJECT_ID2, STRIPE_SUBSCRIPTION_ID2, ORGANIZATION);
-    localProject1.setTeamName(TEAM_ID1);
+    Project localProject1 = new Project(TEST_PROJECT_ID1, STRIPE_SUBSCRIPTION_ID1);
+    Project localProject2 = new Project(TEST_PROJECT_ID2, STRIPE_SUBSCRIPTION_ID2);
+    localProject1.setTeamName(TEAM_NAME1);
     localProject2.setTeamName(TEAM_ID2);
     localProject2.setAutomaticAvailable(true);
     localProject2.setActivated(true);
@@ -120,8 +115,8 @@ public class ProjectControllerTest {
 
   @Test
   public void getProject() throws JsonProcessingException {
-    Project project = new Project(TEST_PROJECT_ID1, STRIPE_SUBSCRIPTION_ID1, ORGANIZATION);
-    when(mockedProjectService.getProject(TEST_PROJECT_ID1, TEAM_ID1)).thenReturn(project);
+    Project project = new Project(TEST_PROJECT_ID1, STRIPE_SUBSCRIPTION_ID1);
+    when(mockedProjectService.getProject(TEST_PROJECT_ID1, TEAM_NAME1)).thenReturn(project);
     ProjectResponse responseEntity;
     // Project 1
     responseEntity = controller.getProject(TEST_PROJECT_ID1);
@@ -143,28 +138,17 @@ public class ProjectControllerTest {
 
   @Test
   public void getProject__whenProjectNotExist_throwException() {
-    when(mockedProjectService.getProject(TEST_PROJECT_ID2, TEAM_ID1))
+    when(mockedProjectService.getProject(TEST_PROJECT_ID2, TEAM_NAME1))
         .thenThrow(new ProjectNotFoundException(TEST_PROJECT_ID2));
     Assert.assertThrows(
         ProjectNotFoundException.class, () -> controller.getProject(TEST_PROJECT_ID2));
   }
 
   @Test
-  public void getProject__whenOrgIsNull() throws JsonProcessingException {
-    Project project = new Project(TEST_PROJECT_ID1, STRIPE_SUBSCRIPTION_ID1, null);
-    when(mockedProjectService.getProject(TEST_PROJECT_ID1, TEAM_ID1)).thenReturn(project);
-    ProjectResponse responseEntity;
-
-    responseEntity = controller.getProject(TEST_PROJECT_ID1);
-    assertProjectResponseEquals(project, responseEntity);
-  }
-
-  @Test
   public void createProject() throws JsonProcessingException {
-    Project project =
-        new Project(TEST_PROJECT_ID1, TEST_PROJECT_NAME1, STRIPE_SUBSCRIPTION_ID1, ORGANIZATION);
+    Project project = new Project(TEST_PROJECT_ID1, TEST_PROJECT_NAME1, STRIPE_SUBSCRIPTION_ID1);
     ACreateProjectRequest payload = new ACreateProjectRequest(TEST_PROJECT_ID1, CONNECTION_ID1);
-    when(mockedProjectService.createProject(payload, TEAM_ID1)).thenReturn(project);
+    when(mockedProjectService.createProject(payload, TEAM_NAME1)).thenReturn(project);
     assertProjectResponseEquals(project, controller.createProject(payload));
   }
 
@@ -172,14 +156,14 @@ public class ProjectControllerTest {
   public void deleteProject() {
     controller.deleteProject(TEST_PROJECT_ID1);
     Mockito.verify(mockedProjectService, Mockito.timeout(1000).times(1))
-        .deleteProject(TEST_PROJECT_ID1, TEAM_ID1);
+        .deleteProject(TEST_PROJECT_ID1, TEAM_NAME1);
   }
 
   @Test
   public void deleteProject__whenProjectNotExists_throwException() {
     doThrow(new ProjectNotFoundException(TEST_PROJECT_ID1))
         .when(mockedProjectService)
-        .deleteProject(TEST_PROJECT_ID1, TEAM_ID1);
+        .deleteProject(TEST_PROJECT_ID1, TEAM_NAME1);
     assertThrows(ProjectNotFoundException.class, () -> controller.deleteProject(TEST_PROJECT_ID1));
   }
 
@@ -187,7 +171,7 @@ public class ProjectControllerTest {
 
   @Test
   public void updateProject() throws JsonProcessingException {
-    Project project = new Project(TEST_PROJECT_ID1, STRIPE_SUBSCRIPTION_ID1, ORGANIZATION);
+    Project project = new Project(TEST_PROJECT_ID1, STRIPE_SUBSCRIPTION_ID1);
     project.setAnalysisTimeframe(20);
     project.setMvMaxPerTable(10);
     project.setAutomaticAvailable(true);
@@ -200,13 +184,7 @@ public class ProjectControllerTest {
 
   @Test
   public void getAllDatasets() throws JsonProcessingException {
-    DefaultFetchedDataset dataset1 =
-        new DefaultFetchedDataset(
-            TEST_PROJECT_ID1, TEST_DATASET_NAME1, null, null, null, null, null, null);
-    DefaultFetchedDataset dataset2 =
-        new DefaultFetchedDataset(
-            TEST_PROJECT_ID1, TEST_DATASET_NAME2, null, null, null, null, null, null);
-    when(mockedFetcherService.fetchAllDatasets(TEST_PROJECT_ID1))
+    when(mockedProjectService.getAllDatasets(TEST_PROJECT_ID1, TEAM_NAME1))
         .thenReturn(Arrays.asList(dataset1, dataset2));
     when(mockedProjectService.isDatasetActivated(TEST_PROJECT_ID1, TEST_DATASET_NAME1))
         .thenReturn(true);
@@ -224,7 +202,7 @@ public class ProjectControllerTest {
     DefaultFetchedDataset dataset =
         new DefaultFetchedDataset(
             TEST_PROJECT_ID1, TEST_DATASET_NAME1, null, null, null, null, null, null);
-    when(mockedFetcherService.fetchDataset(TEST_PROJECT_ID1, TEST_DATASET_NAME1))
+    when(mockedProjectService.getFetchedDataset(TEST_PROJECT_ID1, TEAM_NAME1, TEST_DATASET_NAME1))
         .thenReturn(dataset);
     when(mockedProjectService.isDatasetActivated(TEST_PROJECT_ID1, TEST_DATASET_NAME1))
         .thenReturn(true);
@@ -239,7 +217,8 @@ public class ProjectControllerTest {
   public void getQueryStatistics() throws Exception {
     ObjectMapper mapper = new ObjectMapper();
     GlobalQueryStatistics statistics1 = new GlobalQueryStatistics();
-    when(mockedFetcherService.getStatistics(TEST_PROJECT_ID1, 30)).thenReturn(statistics1);
+    when(mockedProjectService.getStatistics(TEST_PROJECT_ID1, TEAM_NAME1, 30))
+        .thenReturn(statistics1);
     GlobalQueryStatisticsResponse responseEntity1 =
         controller.getQueryStatistics(TEST_PROJECT_ID1, 30);
     String jsonResponse1 = objectMapper.writeValueAsString(responseEntity1);
@@ -249,7 +228,8 @@ public class ProjectControllerTest {
     assertEquals(0, map1.get("global").get("totalProcessedBytes").asInt());
 
     GlobalQueryStatistics statistics2 = new GlobalQueryStatistics();
-    when(mockedFetcherService.getStatistics(TEST_PROJECT_ID2, 30)).thenReturn(statistics2);
+    when(mockedProjectService.getStatistics(TEST_PROJECT_ID2, TEAM_NAME1, 30))
+        .thenReturn(statistics2);
     GlobalQueryStatisticsResponse responseEntity2 =
         controller.getQueryStatistics(TEST_PROJECT_ID2, 30);
     String jsonResponse2 = objectMapper.writeValueAsString(responseEntity2);
@@ -263,42 +243,12 @@ public class ProjectControllerTest {
   @Test
   public void getKPIStatistics() throws Exception {
     GlobalQueryStatistics statistics = new GlobalQueryStatistics();
-    when(mockedFetcherService.getStatistics(TEST_PROJECT_ID1, 30)).thenReturn(statistics);
+    when(mockedProjectService.getStatistics(TEST_PROJECT_ID1, TEAM_NAME1, 30))
+        .thenReturn(statistics);
     String expectedString =
         "{\"totalQueries\":0,\"percentQueriesIn\":0.0,\"averageScannedBytes\":0}";
     AggregatedStatisticsResponse responseEntity = controller.getKPIStatistics(TEST_PROJECT_ID1, 30);
     String jsonResponse = objectMapper.writeValueAsString(responseEntity);
-    assertEquals(expectedString, jsonResponse);
-  }
-
-  @Test
-  public void getMissingPermissions() throws JsonProcessingException {
-    /*
-     * permissions in order are:
-     * "bigquery.jobs.list",
-     * "bigquery.datasets.get",
-     * "resourcemanager.projects.get"
-     */
-
-    when(mockedFetcherService.fetchMissingPermissions(TEST_PROJECT_ID1))
-        .thenReturn(Collections.emptyList());
-    String expectedString = "[]";
-    List<String> responseEntity = controller.getMissingPermissions(TEST_PROJECT_ID1);
-    String jsonResponse = objectMapper.writeValueAsString(responseEntity);
-    assertEquals(expectedString, jsonResponse);
-
-    when(mockedFetcherService.fetchMissingPermissions(TEST_PROJECT_ID1))
-        .thenReturn(Collections.singletonList("bigquery.jobs.list"));
-    expectedString = "[\"bigquery.jobs.list\"]";
-    responseEntity = controller.getMissingPermissions(TEST_PROJECT_ID1);
-    jsonResponse = objectMapper.writeValueAsString(responseEntity);
-    assertEquals(expectedString, jsonResponse);
-
-    when(mockedFetcherService.fetchMissingPermissions(TEST_PROJECT_ID1))
-        .thenReturn(Arrays.asList("bigquery.jobs.list", "bigquery.datasets.get"));
-    expectedString = "[\"bigquery.jobs.list\",\"bigquery.datasets.get\"]";
-    responseEntity = controller.getMissingPermissions(TEST_PROJECT_ID1);
-    jsonResponse = objectMapper.writeValueAsString(responseEntity);
     assertEquals(expectedString, jsonResponse);
   }
 
@@ -316,18 +266,6 @@ public class ProjectControllerTest {
     assertEquals(expected.isActivated(), jsonNode.get("activated").asBoolean());
     assertEquals(expected.isAutomatic(), jsonNode.get("automatic").asBoolean());
     assertEquals(expected.getStripeSubscriptionId(), jsonNode.get("stripeSubscriptionId").asText());
-    assertOrganizationResponseNodeEquals(expected.getOrganization(), jsonNode.get("organization"));
-  }
-
-  private void assertOrganizationResponseNodeEquals(AOrganization expected, JsonNode actual) {
-    if (expected == null) {
-      assertEquals(JsonNodeType.NULL, actual.getNodeType());
-    } else {
-      assertEquals(expected.getId(), actual.get("id").asText());
-      assertEquals(expected.getName(), actual.get("name").asText());
-      assertEquals(expected.getStripeCustomerId(), actual.get("stripeCustomerId").asText());
-      assertEquals(expected.getGoogleWorkspaceId(), actual.get("googleWorkspaceId").asText());
-    }
   }
 
   private void assertProjectResponseListEquals(

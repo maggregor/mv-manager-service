@@ -24,7 +24,6 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 public class Project {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Project.class);
-  @ManyToOne AOrganization organization;
 
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
@@ -77,30 +76,19 @@ public class Project {
   }
 
   public Project(String projectId, String stripeSubscriptionId) {
-    this(projectId, stripeSubscriptionId, null);
-  }
-
-  public Project(String projectId, String stripeSubscriptionId, AOrganization organization) {
     this.projectId = projectId;
     this.stripeSubscriptionId = stripeSubscriptionId;
-    this.organization = organization;
   }
 
-  public Project(
-      String projectId,
-      String projectName,
-      String stripeSubscriptionId,
-      AOrganization organization) {
+  public Project(String projectId, String projectName, String stripeSubscriptionId) {
     this.projectId = projectId;
     this.projectName = projectName;
     this.stripeSubscriptionId = stripeSubscriptionId;
-    this.organization = organization;
   }
 
   public Project(FetchedProject fetchedProject) {
     this.projectId = fetchedProject.getProjectId();
     this.projectName = fetchedProject.getName();
-    this.organization = fetchedProject.getOrganization();
     this.teamName = fetchedProject.getTeamName();
   }
 
@@ -240,13 +228,5 @@ public class Project {
 
   public void setConnection(Connection connection) {
     this.connection = connection;
-  }
-
-  public AOrganization getOrganization() {
-    return organization;
-  }
-
-  public void setOrganization(AOrganization organization) {
-    this.organization = organization;
   }
 }

@@ -46,7 +46,6 @@ public class Optimization {
   @Column(name = "mv_proposal_count")
   private Integer mvProposalCount;
 
-  @Column(name = "analysisTimeframe")
   private Integer analysisTimeframe;
 
   @Column(name = "username", nullable = false, columnDefinition = "varchar(255) default 'unknown'")
@@ -145,7 +144,7 @@ public class Optimization {
     FINISHED("Finished"),
     ERROR("Error");
 
-    private String description;
+    private final String description;
 
     Status(String description) {
       this.description = description;

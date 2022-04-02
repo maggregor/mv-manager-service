@@ -1,8 +1,8 @@
 package com.achilio.mvm.service.controllers;
 
+import static com.achilio.mvm.service.UserContextHelper.getContextTeamName;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import com.achilio.mvm.service.UserContextHelper;
 import com.achilio.mvm.service.controllers.requests.ACreateProjectRequest;
 import com.achilio.mvm.service.controllers.requests.UpdateProjectRequest;
 import com.achilio.mvm.service.controllers.responses.AggregatedStatisticsResponse;
@@ -11,9 +11,9 @@ import com.achilio.mvm.service.controllers.responses.GlobalQueryStatisticsRespon
 import com.achilio.mvm.service.controllers.responses.ProjectResponse;
 import com.achilio.mvm.service.controllers.responses.UpdateDatasetRequestResponse;
 import com.achilio.mvm.service.databases.entities.FetchedDataset;
+import com.achilio.mvm.service.entities.ADataset;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics;
-import com.achilio.mvm.service.services.FetcherService;
 import com.achilio.mvm.service.services.ProjectService;
 import io.swagger.annotations.ApiOperation;
 import java.util.List;
@@ -38,12 +38,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class ProjectController {
 
   @Autowired private ProjectService projectService;
-  @Autowired private FetcherService fetcherService;
 
   @GetMapping(path = "/project", produces = APPLICATION_JSON_VALUE)
   @ApiOperation("List all projects")
   public List<ProjectResponse> getAllProjects() {
-    return projectService.getAllActivatedProjects(UserContextHelper.getContextTeamName()).stream()
+    return projectService.getAllActivatedProjects(getContextTeamName()).stream()
         .map(this::toProjectResponse)
         .collect(Collectors.toList());
   }
@@ -51,31 +50,21 @@ public class ProjectController {
   @GetMapping(path = "/project/{projectId}", produces = APPLICATION_JSON_VALUE)
   @ApiOperation("Get a project for a given projectId")
   public ProjectResponse getProject(@PathVariable final String projectId) {
-    return toProjectResponse(
-        projectService.getProject(projectId, UserContextHelper.getContextTeamName()));
+    return toProjectResponse(projectService.getProject(projectId, getContextTeamName()));
   }
 
   @PostMapping(path = "/project", produces = APPLICATION_JSON_VALUE)
   @ApiOperation("Register a project if not exists")
   @ResponseStatus(HttpStatus.CREATED)
   public ProjectResponse createProject(@RequestBody final ACreateProjectRequest payload) {
-    return toProjectResponse(
-        projectService.createProject(payload, UserContextHelper.getContextTeamName()));
+    return toProjectResponse(projectService.createProject(payload, getContextTeamName()));
   }
 
   @DeleteMapping(path = "/project/{projectId}")
   @ApiOperation("Unregister and delete a project")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteProject(@PathVariable final String projectId) {
-    projectService.deleteProject(projectId, UserContextHelper.getContextTeamName());
-  }
-
-  // Old ProjectController methods
-
-  @GetMapping(path = "/project/{projectId}/permissions", produces = APPLICATION_JSON_VALUE)
-  @ApiOperation("Check permissions for a given projectId")
-  public List<String> getMissingPermissions(@PathVariable final String projectId) {
-    return fetcherService.fetchMissingPermissions(projectId);
+    projectService.deleteProject(projectId, getContextTeamName());
   }
 
   @PatchMapping(path = "/project/{projectId}")
@@ -102,7 +91,7 @@ public class ProjectController {
   @GetMapping(path = "/project/{projectId}/dataset", produces = APPLICATION_JSON_VALUE)
   @ApiOperation("Get all dataset for a given projectId")
   public List<DatasetResponse> getAllDatasets(@PathVariable final String projectId) {
-    return fetcherService.fetchAllDatasets(projectId).stream()
+    return projectService.getAllDatasets(projectId, getContextTeamName()).stream()
         .map(this::toDatasetResponse)
         .collect(Collectors.toList());
   }
@@ -113,7 +102,8 @@ public class ProjectController {
   @ApiOperation("Get a single dataset for a given projectId")
   public DatasetResponse getDataset(
       @PathVariable final String projectId, @PathVariable final String datasetName) {
-    FetchedDataset fetchedDataset = fetcherService.fetchDataset(projectId, datasetName);
+    FetchedDataset fetchedDataset =
+        projectService.getFetchedDataset(projectId, getContextTeamName(), datasetName);
     return toDatasetResponse(fetchedDataset);
   }
 
@@ -123,7 +113,8 @@ public class ProjectController {
   @ApiOperation("Get statistics of queries ")
   public GlobalQueryStatisticsResponse getQueryStatistics(
       @PathVariable final String projectId, @PathVariable final int days) throws Exception {
-    GlobalQueryStatistics statistics = fetcherService.getStatistics(projectId, days);
+    GlobalQueryStatistics statistics =
+        projectService.getStatistics(projectId, getContextTeamName(), days);
     return toGlobalQueryStatisticsResponse(statistics);
   }
 
@@ -133,7 +124,8 @@ public class ProjectController {
   @ApiOperation("Get statistics of queries grouped per days for charts")
   public AggregatedStatisticsResponse getKPIStatistics(
       @PathVariable final String projectId, @PathVariable final int days) throws Exception {
-    GlobalQueryStatistics statistics = fetcherService.getStatistics(projectId, days);
+    GlobalQueryStatistics statistics =
+        projectService.getStatistics(projectId, getContextTeamName(), days);
     return toAggregatedStatistics(statistics);
   }
 
@@ -168,5 +160,12 @@ public class ProjectController {
         createdAt,
         lastModified,
         activated);
+  }
+
+  private DatasetResponse toDatasetResponse(ADataset dataset) {
+    final String projectId = dataset.getProject().getProjectId();
+    final String datasetName = dataset.getDatasetName();
+    final boolean activated = projectService.isDatasetActivated(projectId, datasetName);
+    return new DatasetResponse(projectId, datasetName, null, null, null, null, null, activated);
   }
 }

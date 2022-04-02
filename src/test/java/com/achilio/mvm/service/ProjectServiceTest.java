@@ -2,7 +2,6 @@ package com.achilio.mvm.service;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -12,13 +11,11 @@ import com.achilio.mvm.service.controllers.requests.ACreateProjectRequest;
 import com.achilio.mvm.service.controllers.requests.UpdateProjectRequest;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.entities.ADataset;
-import com.achilio.mvm.service.entities.AOrganization;
-import com.achilio.mvm.service.entities.AOrganization.OrganizationType;
 import com.achilio.mvm.service.entities.Connection;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import com.achilio.mvm.service.models.UserProfile;
-import com.achilio.mvm.service.repositories.DatasetRepository;
+import com.achilio.mvm.service.repositories.ADatasetRepository;
 import com.achilio.mvm.service.repositories.ProjectRepository;
 import com.achilio.mvm.service.services.ConnectionService;
 import com.achilio.mvm.service.services.FetcherService;
@@ -67,20 +64,15 @@ public class ProjectServiceTest {
   private static final String TEST_DATASET_NAME1 = "nyc_trips";
   private static final String TEST_DATASET_NAME2 = "another_one";
   private static final String TEST_DATASET_NAME3 = "other_dataset";
-  private static final String ORGANIZATION_ID = "organization/123456";
   private static final String ORGANIZATION_NAME = "achilio.com";
-  private static final String STRIPE_CUSTOMER_ID = "cus_123456";
   private static final String STRIPE_SUBSCRIPTION_ID = "sub_123456";
-  private static final OrganizationType ORGANIZATION_TYPE = OrganizationType.ORGANIZATION;
-  private static final AOrganization ORGANIZATION =
-      new AOrganization(ORGANIZATION_ID, ORGANIZATION_NAME, STRIPE_CUSTOMER_ID, ORGANIZATION_TYPE);
   private static final Project project1 =
-      new Project(TEST_PROJECT_ID1, TEST_PROJECT_NAME1, STRIPE_SUBSCRIPTION_ID, ORGANIZATION);
+      new Project(TEST_PROJECT_ID1, TEST_PROJECT_NAME1, STRIPE_SUBSCRIPTION_ID);
   private static final Project project2 =
-      new Project(TEST_PROJECT_ID2, TEST_PROJECT_NAME2, STRIPE_SUBSCRIPTION_ID, ORGANIZATION);
+      new Project(TEST_PROJECT_ID2, TEST_PROJECT_NAME2, STRIPE_SUBSCRIPTION_ID);
   private static final List<Project> activatedProjects = Arrays.asList(project1, project2);
   private static final Project project3 =
-      new Project(TEST_PROJECT_ID3, TEST_PROJECT_NAME3, STRIPE_SUBSCRIPTION_ID, ORGANIZATION);
+      new Project(TEST_PROJECT_ID3, TEST_PROJECT_NAME3, STRIPE_SUBSCRIPTION_ID);
   private static final Connection mockedConnection = mock(Connection.class);
   private static final ADataset mockedDataset1 = mock(ADataset.class);
   private static final ADataset mockedDataset2 = mock(ADataset.class);
@@ -89,7 +81,7 @@ public class ProjectServiceTest {
   private final Map<String, String> errorProductMetadata = new HashMap<>();
   @InjectMocks private ProjectService service;
   @Mock private ProjectRepository mockedProjectRepository;
-  @Mock private DatasetRepository mockedDatasetRepository;
+  @Mock private ADatasetRepository mockedADatasetRepository;
   @Mock private Product mockedProduct;
   @Mock private Product errorMockedProduct;
   @Mock private FetcherService mockedFetcherService;
@@ -116,14 +108,14 @@ public class ProjectServiceTest {
         .thenReturn(Optional.of(project1));
     when(mockedDataset1.isActivated()).thenReturn(true);
     when(mockedDataset2.isActivated()).thenReturn(false);
-    when(mockedDatasetRepository.save(any(ADataset.class))).thenReturn(mockedDataset1);
-    when(mockedDatasetRepository.findByProject_ProjectIdAndDatasetName(
+    when(mockedADatasetRepository.save(any(ADataset.class))).thenReturn(mockedDataset1);
+    when(mockedADatasetRepository.findByProject_ProjectIdAndDatasetName(
             project1.getProjectId(), TEST_DATASET_NAME1))
         .thenReturn(Optional.of(mockedDataset1));
-    when(mockedDatasetRepository.findByProject_ProjectIdAndDatasetName(
+    when(mockedADatasetRepository.findByProject_ProjectIdAndDatasetName(
             project1.getProjectId(), TEST_DATASET_NAME2))
         .thenReturn(Optional.of(mockedDataset2));
-    when(mockedDatasetRepository.findByProject_ProjectIdAndDatasetName(
+    when(mockedADatasetRepository.findByProject_ProjectIdAndDatasetName(
             project1.getProjectId(), TEST_DATASET_NAME3))
         .thenReturn(Optional.of(realDataset));
     productMetadata.put("mv_max", "10");
@@ -132,13 +124,10 @@ public class ProjectServiceTest {
     when(errorMockedProduct.getMetadata()).thenReturn(errorProductMetadata);
     when(mockedFetchedProject1.getProjectId()).thenReturn(TEST_PROJECT_ID1);
     when(mockedFetchedProject1.getName()).thenReturn(TEST_PROJECT_NAME1);
-    when(mockedFetchedProject1.getOrganization()).thenReturn(ORGANIZATION);
     when(mockedFetchedProject2.getProjectId()).thenReturn(TEST_PROJECT_ID2);
     when(mockedFetchedProject2.getName()).thenReturn(TEST_PROJECT_NAME2);
-    when(mockedFetchedProject2.getOrganization()).thenReturn(ORGANIZATION);
     when(mockedFetchedProject3.getProjectId()).thenReturn(TEST_PROJECT_ID3);
     when(mockedFetchedProject3.getName()).thenReturn(TEST_PROJECT_NAME3);
-    when(mockedFetchedProject3.getOrganization()).thenReturn(ORGANIZATION);
     when(mockedConnection.getContent()).thenReturn(CONNECTION_CONTENT);
     when(mockedConnectionService.getConnection(any(), any())).thenReturn(mockedConnection);
   }
@@ -176,7 +165,7 @@ public class ProjectServiceTest {
   @Test
   public void createProject() {
     ACreateProjectRequest payload = new ACreateProjectRequest(TEST_PROJECT_ID3, CONNECTION_ID);
-    when(mockedFetcherService.fetchProjectWithConnection(TEST_PROJECT_ID3, mockedConnection))
+    when(mockedFetcherService.fetchProject(TEST_PROJECT_ID3, mockedConnection))
         .thenReturn(mockedFetchedProject3);
     Project project = service.createProject(payload, TEAM_NAME1);
     assertProjectEquals(project3, project);
@@ -187,7 +176,7 @@ public class ProjectServiceTest {
   @Test
   public void createProject__whenExists_SetActivated() {
     ACreateProjectRequest payload = new ACreateProjectRequest(TEST_PROJECT_ID1, CONNECTION_ID);
-    when(mockedFetcherService.fetchProjectWithConnection(TEST_PROJECT_ID1, mockedConnection))
+    when(mockedFetcherService.fetchProject(TEST_PROJECT_ID1, mockedConnection))
         .thenReturn(mockedFetchedProject1);
     Project project = service.createProject(payload, TEAM_NAME1);
     Assert.assertTrue(project.isActivated());
@@ -216,22 +205,11 @@ public class ProjectServiceTest {
 
   // Old ProjectServiceTest methods
 
-  @Test
-  public void createProjectFromFetched() {
-    Project project = service.createProject(TEST_PROJECT_ID1);
-    assertEquals(project1.getProjectId(), project.getProjectId());
-  }
-
-  @Test
-  public void getProjectAsUser() {
-    when(mockedProjectRepository.findByProjectId(TEST_PROJECT_ID1))
-        .thenReturn(Optional.of(project1));
-    Assert.assertNotNull(service.getProjectAsUser(TEST_PROJECT_ID1));
-    Exception e =
-        assertThrows(
-            ProjectNotFoundException.class, () -> service.getProjectAsUser("unknown_project_id"));
-    assertEquals("Project unknown_project_id not found", e.getMessage());
-  }
+  //  @Test
+  //  public void createProjectFromFetched() {
+  //    Project project = service.createProject(TEST_PROJECT_ID1);
+  //    assertEquals(project1.getProjectId(), project.getProjectId());
+  //  }
 
   @Test
   public void findProject() {
@@ -247,12 +225,6 @@ public class ProjectServiceTest {
         .thenReturn(Optional.of(project1));
     assertTrue(service.projectExists(TEST_PROJECT_ID1));
     assertFalse(service.projectExists("unknown_project_id"));
-  }
-
-  @Test
-  public void findOrCreateProject() {
-    assertEquals(TEST_PROJECT_ID1, service.findProjectOrCreate(TEST_PROJECT_ID1).getProjectId());
-    assertEquals(TEST_PROJECT_ID1, service.findProjectOrCreate(TEST_PROJECT_ID1).getProjectId());
   }
 
   @Test
@@ -358,24 +330,6 @@ public class ProjectServiceTest {
     assertFalse(service.isDatasetActivated(TEST_PROJECT_ID1, TEST_DATASET_NAME2));
   }
 
-  @Test
-  public void createProjectFromFetchedProjectExists() {
-    Project project1 = service.createProjectFromFetchedProjectSync(mockedFetchedProject1);
-    assertEquals(TEST_PROJECT_ID1, project1.getProjectId());
-    assertEquals(TEST_PROJECT_NAME1, project1.getProjectName());
-    assertEquals(ORGANIZATION_NAME, project1.getOrganization().getName());
-    assertEquals(TEAM_NAME1, project1.getTeamName());
-  }
-
-  @Test
-  public void createProjectFromFetchedProjectNotExists() {
-    when(mockedProjectRepository.findByProjectId(TEST_PROJECT_ID2)).thenReturn(Optional.empty());
-    Project project2 = service.createProjectFromFetchedProjectSync(mockedFetchedProject2);
-    assertEquals(TEST_PROJECT_ID2, project2.getProjectId());
-    assertEquals(TEST_PROJECT_NAME2, project2.getProjectName());
-    assertEquals(ORGANIZATION_NAME, project2.getOrganization().getName());
-  }
-
   private void assertProjectListEquals(List<Project> expected, List<Project> actual) {
     assertEquals(expected.size(), actual.size());
     for (int i = 0; i < expected.size(); i++) {
@@ -386,6 +340,5 @@ public class ProjectServiceTest {
   private void assertProjectEquals(Project expected, Project actual) {
     assertEquals(expected.getProjectId(), actual.getProjectId());
     assertEquals(expected.getProjectName(), actual.getProjectName());
-    assertEquals(expected.getOrganization(), actual.getOrganization());
   }
 }

@@ -14,14 +14,14 @@ public class ATableTest {
   private final String tableName = "myTable";
   private final String projectId = "myProjectId";
   private final String datasetName = "myDataset";
-  private final String tableId = "myTableId";
+  private final String tableId = "myProjectId.myDataset.myTable";
   private final Project project = new Project(projectId);
   private final ADataset dataset = new ADataset(project, datasetName);
 
   @Test
   public void simpleValidationConstructor() {
-    ATable table = new ATable(tableId, project, dataset, tableName);
-    Assert.assertEquals(tableId, table.getId());
+    ATable table = new ATable(project, dataset, tableName);
+    Assert.assertEquals(tableId, table.getTableId());
     Assert.assertEquals(project.getProjectId(), table.getProject().getProjectId());
     Assert.assertEquals(dataset.getDatasetName(), table.getDataset().getDatasetName());
     Assert.assertEquals(tableName, table.getTableName());

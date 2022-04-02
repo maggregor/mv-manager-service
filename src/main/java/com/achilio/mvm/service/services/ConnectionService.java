@@ -18,7 +18,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class ConnectionService {
 
-  private static final String DEFAULT_CONNECTION_NAME = "Connection to BigQuery";
   private static final Logger LOGGER = LoggerFactory.getLogger(ConnectionService.class);
 
   private final ConnectionRepository repository;
