@@ -1,8 +1,8 @@
 package com.achilio.mvm.service.controllers;
 
+import static com.achilio.mvm.service.UserContextHelper.getContextTeamName;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import com.achilio.mvm.service.UserContextHelper;
 import com.achilio.mvm.service.controllers.requests.ACreateProjectRequest;
 import com.achilio.mvm.service.controllers.requests.UpdateProjectRequest;
 import com.achilio.mvm.service.controllers.responses.AggregatedStatisticsResponse;
@@ -42,7 +42,7 @@ public class ProjectController {
   @GetMapping(path = "/project", produces = APPLICATION_JSON_VALUE)
   @ApiOperation("List all projects")
   public List<ProjectResponse> getAllProjects() {
-    return projectService.getAllActivatedProjects(UserContextHelper.getContextTeamName()).stream()
+    return projectService.getAllActivatedProjects(getContextTeamName()).stream()
         .map(this::toProjectResponse)
         .collect(Collectors.toList());
   }
@@ -50,23 +50,21 @@ public class ProjectController {
   @GetMapping(path = "/project/{projectId}", produces = APPLICATION_JSON_VALUE)
   @ApiOperation("Get a project for a given projectId")
   public ProjectResponse getProject(@PathVariable final String projectId) {
-    return toProjectResponse(
-        projectService.getProject(projectId, UserContextHelper.getContextTeamName()));
+    return toProjectResponse(projectService.getProject(projectId, getContextTeamName()));
   }
 
   @PostMapping(path = "/project", produces = APPLICATION_JSON_VALUE)
   @ApiOperation("Register a project if not exists")
   @ResponseStatus(HttpStatus.CREATED)
   public ProjectResponse createProject(@RequestBody final ACreateProjectRequest payload) {
-    return toProjectResponse(
-        projectService.createProject(payload, UserContextHelper.getContextTeamName()));
+    return toProjectResponse(projectService.createProject(payload, getContextTeamName()));
   }
 
   @DeleteMapping(path = "/project/{projectId}")
   @ApiOperation("Unregister and delete a project")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteProject(@PathVariable final String projectId) {
-    projectService.deleteProject(projectId, UserContextHelper.getContextTeamName());
+    projectService.deleteProject(projectId, getContextTeamName());
   }
 
   @PatchMapping(path = "/project/{projectId}")
@@ -93,7 +91,7 @@ public class ProjectController {
   @GetMapping(path = "/project/{projectId}/dataset", produces = APPLICATION_JSON_VALUE)
   @ApiOperation("Get all dataset for a given projectId")
   public List<DatasetResponse> getAllDatasets(@PathVariable final String projectId) {
-    return projectService.getAllDatasets(projectId, UserContextHelper.getContextTeamName()).stream()
+    return projectService.getAllDatasets(projectId, getContextTeamName()).stream()
         .map(this::toDatasetResponse)
         .collect(Collectors.toList());
   }
@@ -105,8 +103,7 @@ public class ProjectController {
   public DatasetResponse getDataset(
       @PathVariable final String projectId, @PathVariable final String datasetName) {
     FetchedDataset fetchedDataset =
-        projectService.getFetchedDataset(
-            projectId, UserContextHelper.getContextTeamName(), datasetName);
+        projectService.getFetchedDataset(projectId, getContextTeamName(), datasetName);
     return toDatasetResponse(fetchedDataset);
   }
 
@@ -117,7 +114,7 @@ public class ProjectController {
   public GlobalQueryStatisticsResponse getQueryStatistics(
       @PathVariable final String projectId, @PathVariable final int days) throws Exception {
     GlobalQueryStatistics statistics =
-        projectService.getStatistics(projectId, UserContextHelper.getContextTeamName(), days);
+        projectService.getStatistics(projectId, getContextTeamName(), days);
     return toGlobalQueryStatisticsResponse(statistics);
   }
 
@@ -128,7 +125,7 @@ public class ProjectController {
   public AggregatedStatisticsResponse getKPIStatistics(
       @PathVariable final String projectId, @PathVariable final int days) throws Exception {
     GlobalQueryStatistics statistics =
-        projectService.getStatistics(projectId, UserContextHelper.getContextTeamName(), days);
+        projectService.getStatistics(projectId, getContextTeamName(), days);
     return toAggregatedStatistics(statistics);
   }
 
