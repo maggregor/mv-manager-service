@@ -205,12 +205,12 @@ public class ProjectService {
     Project project;
     if (projectExists(p.getProjectId())) {
       project = getProject(p.getProjectId());
-      project.setActivated(true);
     } else {
       project = new Project(p);
-      project.setTeamName(teamName);
-      project.setConnection(connection);
     }
+    project.setActivated(true);
+    project.setTeamName(teamName);
+    project.setConnection(connection);
     return projectRepository.save(project);
   }
 
