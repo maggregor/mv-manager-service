@@ -18,7 +18,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 public class UserContextHelperTest {
 
   private static final UserProfile USER_PROFILE_1 =
-      new UserProfile("moi", "moi@achilio.com", "foo", "bar", "myName", "myTeamName");
+      new UserProfile(
+          "moi", "moi@achilio.com", "foo", "bar", "myName", "myTeamName", "my-customer-1");
   @Mock private Authentication mockedJWTAuth;
   @Mock private SecurityContext securityContext;
 
@@ -35,9 +36,12 @@ public class UserContextHelperTest {
   }
 
   @Test
-  public void getContextTeamName() {
+  public void getContextStaticMethods() {
     when(mockedJWTAuth.getDetails()).thenReturn(USER_PROFILE_1);
     assertEquals(USER_PROFILE_1.getTeamName(), UserContextHelper.getContextTeamName());
+    assertEquals(USER_PROFILE_1.getEmail(), UserContextHelper.getContextEmail());
+    assertEquals(USER_PROFILE_1.getCustomerId(), UserContextHelper.getContextStripeCustomerId());
+    assertEquals(USER_PROFILE_1.getUsername(), UserContextHelper.getContextUsername());
   }
 
   @Test
