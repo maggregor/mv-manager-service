@@ -1,6 +1,6 @@
 package com.achilio.mvm.service.entities;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorColumn;
 import javax.persistence.DiscriminatorType;
@@ -48,7 +48,7 @@ public abstract class Connection {
   @Enumerated(EnumType.STRING)
   private SourceType sourceType;
 
-  @UpdateTimestamp @Column private LocalDateTime lastModifiedAt;
+  @UpdateTimestamp @Column private Date lastModifiedAt;
 
   public abstract ConnectionType getType();
 

@@ -5,7 +5,7 @@ import com.achilio.mvm.service.entities.Connection.SourceType;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
-import java.time.LocalDateTime;
+import java.util.Date;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -22,7 +22,7 @@ public abstract class ConnectionResponse {
   private Long id;
   private String name;
   private String ownerUsername;
-  private LocalDateTime lastModifiedAt;
+  private Date lastModifiedAt;
   private SourceType sourceType;
 
   public ConnectionResponse(Connection connection) {
