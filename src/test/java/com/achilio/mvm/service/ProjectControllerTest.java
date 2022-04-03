@@ -4,6 +4,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -22,6 +23,7 @@ import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import com.achilio.mvm.service.models.UserProfile;
 import com.achilio.mvm.service.services.ProjectService;
+import com.achilio.mvm.service.services.StripeService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -65,12 +67,15 @@ public class ProjectControllerTest {
   private final ObjectMapper objectMapper = new ObjectMapper();
   @InjectMocks ProjectController controller;
   @Mock ProjectService mockedProjectService;
+  @Mock StripeService mockedStripeService;
   @Mock private UserProfile mockedUserProfile;
 
   @Before
   public void setup() throws JsonProcessingException {
     Authentication mockedAuth = mock(Authentication.class);
     SecurityContext mockedSecurityContext = mock(SecurityContext.class);
+    when(mockedProjectService.getAllActivatedProjects(any())).thenReturn(Collections.emptyList());
+    doNothing().when(mockedStripeService).updateSubscriptionQuantity(any(), any());
     when(mockedUserProfile.getTeamName()).thenReturn(TEAM_NAME1);
     when(mockedAuth.getDetails()).thenReturn(mockedUserProfile);
     when(mockedSecurityContext.getAuthentication()).thenReturn(mockedAuth);

@@ -1,36 +1,19 @@
 package com.achilio.mvm.service.controllers;
 
-import com.achilio.mvm.service.controllers.requests.CreateSubscriptionRequest;
-import com.achilio.mvm.service.models.ProjectPlan;
-import com.achilio.mvm.service.models.ProjectSubscription;
+import static com.achilio.mvm.service.UserContextHelper.getContextStripeCustomerId;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
+import com.achilio.mvm.service.controllers.responses.SubscriptionResponse;
 import com.achilio.mvm.service.services.StripeService;
-import com.stripe.exception.EventDataObjectDeserializationException;
+import com.achilio.mvm.service.services.StripeService.SubscriptionCheck;
 import com.stripe.exception.StripeException;
-import com.stripe.model.Customer;
-import com.stripe.model.Event;
-import com.stripe.model.EventDataObjectDeserializer;
-import com.stripe.model.StripeObject;
-import com.stripe.model.Subscription;
-import com.stripe.net.Webhook;
+import com.stripe.model.Price;
+import com.stripe.model.Product;
 import io.swagger.annotations.ApiOperation;
-import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -38,96 +21,41 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 public class StripeController {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(StripeController.class);
-  @Autowired private StripeService stripeService;
+  private final StripeService service;
 
-  @Value("${stripe.endpoint.secret}")
-  private String endpointSecret;
-
-  @GetMapping(path = "/plan", produces = "application/json")
-  public List<ProjectPlan> getProjectPlans(@RequestParam String projectId) throws StripeException {
-    return stripeService.getPlans(projectId);
+  public StripeController(StripeService service) {
+    this.service = service;
   }
 
-  @PostMapping(path = "/subscription", produces = "application/json")
-  public ProjectSubscription createSubscription(@RequestBody CreateSubscriptionRequest request)
-      throws StripeException {
-    Customer customer = stripeService.getCustomer(request.getCustomerId());
-    return stripeService.createSubscription(customer, request.getPriceId(), request.getProjectId());
+  @GetMapping(path = "/create-customer-portal-session", produces = APPLICATION_JSON_VALUE)
+  @ApiOperation("Create a Stripe Portal session to allow user to manage its subscription")
+  public String createPortalSession() throws StripeException {
+    return service.createPortalSession(getContextStripeCustomerId());
   }
 
-  @GetMapping(path = "/subscription/{subscriptionId}", produces = "application/json")
-  public ProjectSubscription getSubscription(@PathVariable String subscriptionId) {
-    return stripeService.getSubscription(subscriptionId);
+  @GetMapping(path = "/subscription", produces = APPLICATION_JSON_VALUE)
+  @ApiOperation(
+      "Get the subscription of the current user's team.\n"
+          + "Each team is supposed to have only one subscription")
+  public SubscriptionResponse getSubscription() throws StripeException {
+    return new SubscriptionResponse(service.getSubscription(getContextStripeCustomerId()));
   }
 
-  @GetMapping(
-      path = "/subscription/{subscriptionId}/latestIntentClientSecret",
-      produces = "application/json")
-  public Map<String, String> getLatestIntentClientSecret(@PathVariable String subscriptionId)
-      throws StripeException {
-    Map<String, String> response = new HashMap<>();
-    response.put("clientSecret", stripeService.getLatestIntentClientSecret(subscriptionId));
-    return response;
+  @GetMapping(path = "/subscription/checks")
+  @ApiOperation("Get list of subscriptions checks")
+  public List<SubscriptionCheck> getSubscriptionChecks() throws StripeException {
+    return service.subscriptionChecks(getContextStripeCustomerId());
   }
 
-  @DeleteMapping(path = "/subscription/{subscriptionId}", produces = "application/json")
-  public ProjectSubscription cancelSubscription(@PathVariable String subscriptionId)
-      throws StripeException {
-    return stripeService.cancelSubscription(subscriptionId);
+  @GetMapping(path = "/products")
+  @ApiOperation("Get all Achilio products from Stripe")
+  public List<Product> getAllProducts() throws StripeException {
+    return service.getAllProducts();
   }
 
-  @PostMapping(path = "/subscription/{subscriptionId}", produces = "application/json")
-  public ProjectSubscription updateSubscription(
-      @PathVariable String subscriptionId, UpdateSubscriptionRequest request)
-      throws StripeException {
-    ProjectSubscription subscription = stripeService.getSubscription(subscriptionId);
-    if (request.getPriceId() != null) {
-      subscription = stripeService.changeSubscriptionPricing(subscriptionId, request.getPriceId());
-    }
-    return subscription;
-  }
-
-  @PostMapping(path = "/webhook")
-  @ApiOperation("Receive Stripe events")
-  public void receiveStripeWebhook(
-      @RequestHeader("Stripe-Signature") String header, @RequestBody String body)
-      throws StripeException, IOException, ExecutionException, InterruptedException {
-    Event event = Webhook.constructEvent(body, header, endpointSecret);
-
-    // Deserialize the nested object inside the event
-    EventDataObjectDeserializer dataObjectDeserializer = event.getDataObjectDeserializer();
-    StripeObject stripeObject;
-    if (dataObjectDeserializer.getObject().isPresent()) {
-      stripeObject = dataObjectDeserializer.getObject().get();
-    } else {
-      // Deserialization failed, probably due to an API version mismatch.
-      // Refer to the Javadoc documentation on `EventDataObjectDeserializer` for
-      // instructions on how to handle this case, or return an error here.
-      throw new EventDataObjectDeserializationException("Deserialization failed", body);
-    }
-
-    Subscription subscription = (Subscription) stripeObject;
-    String customerId = subscription.getCustomer();
-
-    switch (event.getType()) {
-      case "customer.subscription.deleted":
-      case "customer.subscription.updated":
-      case "customer.subscription.created":
-        LOGGER.info(
-            "Processing {} for subscription {} of customer: {}",
-            event.getType(),
-            subscription.getStatus(),
-            customerId);
-        stripeService.handleSubscription(subscription);
-        break;
-      case "product.updated":
-        LOGGER.info("Updating all project settings with new product");
-        // TODO: Be able to match a product to a project ?
-        break;
-      default:
-        // Unhandled event type
-        LOGGER.warn("Unhandled event type: {}", event.getType());
-    }
+  @GetMapping(path = "/prices")
+  @ApiOperation("Get all prices for the main Achilio product")
+  public List<Price> getAllPrices() throws StripeException {
+    return service.getAllPrices();
   }
 }

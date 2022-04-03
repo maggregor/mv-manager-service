@@ -18,8 +18,8 @@ import org.springframework.web.filter.CorsFilter;
 @Configuration
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-  @Value("${server.cors.allowed-origin}")
-  private String allowedOrigin;
+  @Value("${server.webapp.endpoint}")
+  private String webAppEndpoint;
 
   @Override
   protected void configure(HttpSecurity http) throws Exception {
@@ -35,7 +35,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     CorsConfiguration config = new CorsConfiguration();
     config.setAllowCredentials(true);
-    config.addAllowedOrigin(allowedOrigin);
+    config.addAllowedOrigin(webAppEndpoint);
     config.addAllowedHeader("*");
     config.addAllowedMethod("OPTIONS");
     config.addAllowedMethod("HEAD");

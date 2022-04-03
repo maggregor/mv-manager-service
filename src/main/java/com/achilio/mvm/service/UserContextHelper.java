@@ -33,6 +33,10 @@ public class UserContextHelper {
     return getUserProfile().getTeamName();
   }
 
+  public static String getContextStripeCustomerId() {
+    return getUserProfile().getCustomerId();
+  }
+
   public static String getContextEmail() {
     return getUserProfile().getEmail();
   }
