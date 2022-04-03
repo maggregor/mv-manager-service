@@ -21,6 +21,7 @@ public class UserProfile {
 
   private String name;
 
+  @JsonProperty(value = "customer_id")
   private String customerId;
 
   @JsonProperty("hd")

@@ -111,12 +111,12 @@ public class RepositoriesIntegrationTest {
   private final FetcherStructJob job5 = new FetcherStructJob(TEST_PROJECT_ID1);
   private final Connection connection1 = new ServiceAccountConnection("SA_JSON_CONTENT");
   private final Connection connection2 = new ServiceAccountConnection("SA_JSON_CONTENT");
-  @Autowired FetcherJobRepository fetcherJobRepository;
-  @Autowired QueryRepository queryRepository;
-  @Autowired ProjectRepository projectRepository;
-  @Autowired ADatasetRepository datasetRepository;
-  @Autowired ATableRepository tableRepository;
-  @Autowired AColumnRepository columnRepository;
+  @Autowired private FetcherJobRepository fetcherJobRepository;
+  @Autowired private QueryRepository queryRepository;
+  @Autowired private ProjectRepository projectRepository;
+  @Autowired private ADatasetRepository datasetRepository;
+  @Autowired private ATableRepository tableRepository;
+  @Autowired private AColumnRepository columnRepository;
   @Autowired private ConnectionRepository connectionRepository;
 
   @Before
