@@ -34,7 +34,7 @@ public class UserContextHelper {
   }
 
   public static String getContextStripeCustomerId() {
-    return "cus_LRKhp3Btqr9tYo";
+    return getUserProfile().getCustomerId();
   }
 
   public static String getContextEmail() {
