@@ -21,6 +21,8 @@ public class UserProfile {
 
   private String name;
 
+  private String customerId;
+
   @JsonProperty("hd")
   private String teamName;
 
@@ -67,5 +69,9 @@ public class UserProfile {
       return false;
     }
     return Objects.equals(teamName, that.teamName);
+  }
+
+  public String getCustomerId() {
+    return this.customerId;
   }
 }

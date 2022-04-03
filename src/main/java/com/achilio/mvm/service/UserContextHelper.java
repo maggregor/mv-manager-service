@@ -33,12 +33,8 @@ public class UserContextHelper {
     return getUserProfile().getTeamName();
   }
 
-  public static String getContextCustomerId() {
-    return "cus_LQeua8Zr2k2y06";
-  }
-
-  public static String getStripeSubscriptionId() {
-    return "sub_sched_1Kk6QqKz3TV8XBbdTUwR4k88";
+  public static String getContextStripeCustomerId() {
+    return "cus_LRKhp3Btqr9tYo";
   }
 
   public static String getContextEmail() {

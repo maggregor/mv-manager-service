@@ -1,5 +1,6 @@
 package com.achilio.mvm.service.controllers;
 
+import static com.achilio.mvm.service.UserContextHelper.getContextStripeCustomerId;
 import static com.achilio.mvm.service.UserContextHelper.getContextTeamName;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -15,6 +16,7 @@ import com.achilio.mvm.service.entities.ADataset;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics;
 import com.achilio.mvm.service.services.ProjectService;
+import com.achilio.mvm.service.services.StripeService;
 import io.swagger.annotations.ApiOperation;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -38,6 +40,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class ProjectController {
 
   @Autowired private ProjectService projectService;
+  @Autowired private StripeService stripeService;
 
   @GetMapping(path = "/project", produces = APPLICATION_JSON_VALUE)
   @ApiOperation("List all projects")
@@ -57,7 +60,14 @@ public class ProjectController {
   @ApiOperation("Register a project if not exists")
   @ResponseStatus(HttpStatus.CREATED)
   public ProjectResponse createProject(@RequestBody final ACreateProjectRequest payload) {
-    return toProjectResponse(projectService.createProject(payload, getContextTeamName()));
+    Project project = projectService.createProject(payload, getContextTeamName());
+    refreshStripeProjectQuantity();
+    return toProjectResponse(project);
+  }
+
+  private void refreshStripeProjectQuantity() {
+    Long quantity = (long) projectService.getAllActivatedProjects(getContextTeamName()).size();
+    stripeService.updateSubscriptionQuantity(getContextStripeCustomerId(), quantity);
   }
 
   @DeleteMapping(path = "/project/{projectId}")
@@ -65,6 +75,7 @@ public class ProjectController {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteProject(@PathVariable final String projectId) {
     projectService.deleteProject(projectId, getContextTeamName());
+    refreshStripeProjectQuantity();
   }
 
   @PatchMapping(path = "/project/{projectId}")
