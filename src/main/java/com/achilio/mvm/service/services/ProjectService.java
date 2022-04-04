@@ -41,6 +41,7 @@ public class ProjectService {
   @Autowired private GooglePublisherService publisherService;
   @Autowired private FetcherService fetcherService;
   @Autowired private ConnectionService connectionService;
+  @Autowired private QueryService queryService;
 
   public ProjectService() {}
 
@@ -227,7 +228,7 @@ public class ProjectService {
   public GlobalQueryStatistics getStatistics(String projectId, String teamName, int days)
       throws Exception {
     Project project = getProject(projectId, teamName);
-    return fetcherService.getStatistics(projectId, project.getConnection(), days);
+    return queryService.getStatistics(project.getProjectId());
   }
 
   @Transactional

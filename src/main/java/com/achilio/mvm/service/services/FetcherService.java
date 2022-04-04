@@ -12,14 +12,10 @@ import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.entities.Connection;
 import com.achilio.mvm.service.entities.Connection.ConnectionType;
 import com.achilio.mvm.service.entities.ServiceAccountConnection;
-import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics;
-import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics.Scope;
-import com.achilio.mvm.service.entities.statistics.QueryStatistics;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import com.google.common.annotations.VisibleForTesting;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -74,30 +70,6 @@ public class FetcherService {
     Set<FetchedTable> fetchedTableSet = fetcher.fetchAllTables();
     fetcher.close();
     return fetchedTableSet;
-  }
-
-  public GlobalQueryStatistics getStatistics(String projectId, Connection connection, int lastDays)
-      throws Exception {
-    return getStatistics(fetchQueriesSinceLastDays(projectId, connection, lastDays));
-  }
-
-  public GlobalQueryStatistics getStatistics(List<FetchedQuery> queries) {
-    // Select using materialized view
-    List<FetchedQuery> selectIn =
-        queries.stream().filter(FetchedQuery::isUsingMaterializedView).collect(Collectors.toList());
-    // Select using cache
-    List<FetchedQuery> selectCached =
-        queries.stream().filter(FetchedQuery::isUsingCache).collect(Collectors.toList());
-    // Select using table source
-    List<FetchedQuery> selectOut =
-        queries.stream()
-            .filter(q -> !q.isUsingMaterializedView() && !q.isUsingCache())
-            .collect(Collectors.toList());
-    GlobalQueryStatistics global = new GlobalQueryStatistics();
-    global.addStatistic(Scope.IN, new QueryStatistics(selectIn));
-    global.addStatistic(Scope.OUT, new QueryStatistics(selectOut));
-    global.addStatistic(Scope.CACHED, new QueryStatistics(selectCached));
-    return global;
   }
 
   private DatabaseFetcher fetcher(String projectId, Connection connection)

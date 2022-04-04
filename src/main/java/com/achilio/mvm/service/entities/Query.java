@@ -10,11 +10,16 @@ import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 /** Query is finalized fetched query, ready to be used by the Extractor */
 @Entity
+@Getter
+@Setter
 @Table(
     name = "queries",
     indexes = {
@@ -22,6 +27,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
       @Index(name = "project", columnList = "project_id")
     })
 @EnableJpaAuditing
+@NoArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
 public class Query {
 
@@ -76,39 +82,5 @@ public class Query {
     this.startTime = startTime;
     this.billedBytes = statistics.getBilledBytes();
     this.processedBytes = statistics.getProcessedBytes();
-  }
-
-  public Query() {}
-
-  public String getId() {
-    return id;
-  }
-
-  public String getQuery() {
-    return query;
-  }
-
-  public LocalDate getStartTime() {
-    return startTime;
-  }
-
-  public long getBilledBytes() {
-    return billedBytes;
-  }
-
-  public long getProcessedBytes() {
-    return processedBytes;
-  }
-
-  public FetcherQueryJob getLastFetcherQueryJob() {
-    return lastFetcherQueryJob;
-  }
-
-  public String getProjectId() {
-    return projectId;
-  }
-
-  public FetcherQueryJob getInitialFetcherQueryJob() {
-    return initialFetcherQueryJob;
   }
 }
