@@ -14,7 +14,6 @@ import com.achilio.mvm.service.controllers.requests.ACreateProjectRequest;
 import com.achilio.mvm.service.controllers.requests.UpdateProjectRequest;
 import com.achilio.mvm.service.controllers.responses.AggregatedStatisticsResponse;
 import com.achilio.mvm.service.controllers.responses.DatasetResponse;
-import com.achilio.mvm.service.controllers.responses.GlobalQueryStatisticsResponse;
 import com.achilio.mvm.service.controllers.responses.ProjectResponse;
 import com.achilio.mvm.service.databases.entities.DefaultFetchedDataset;
 import com.achilio.mvm.service.entities.ADataset;
@@ -216,33 +215,6 @@ public class ProjectControllerTest {
     DatasetResponse responseEntity = controller.getDataset(TEST_PROJECT_ID1, TEST_DATASET_NAME1);
     String jsonResponse = objectMapper.writeValueAsString(responseEntity);
     assertEquals(expectedResponse, jsonResponse);
-  }
-
-  @Test
-  public void getQueryStatistics() throws Exception {
-    ObjectMapper mapper = new ObjectMapper();
-    GlobalQueryStatistics statistics1 = new GlobalQueryStatistics();
-    when(mockedProjectService.getStatistics(TEST_PROJECT_ID1, TEAM_NAME1, 30))
-        .thenReturn(statistics1);
-    GlobalQueryStatisticsResponse responseEntity1 =
-        controller.getQueryStatistics(TEST_PROJECT_ID1, 30);
-    String jsonResponse1 = objectMapper.writeValueAsString(responseEntity1);
-    JsonNode map1 = mapper.readTree(jsonResponse1);
-    assertEquals(0, map1.get("global").get("totalQueries").asInt());
-    assertEquals(0, map1.get("global").get("totalBilledBytes").asInt());
-    assertEquals(0, map1.get("global").get("totalProcessedBytes").asInt());
-
-    GlobalQueryStatistics statistics2 = new GlobalQueryStatistics();
-    when(mockedProjectService.getStatistics(TEST_PROJECT_ID2, TEAM_NAME1, 30))
-        .thenReturn(statistics2);
-    GlobalQueryStatisticsResponse responseEntity2 =
-        controller.getQueryStatistics(TEST_PROJECT_ID2, 30);
-    String jsonResponse2 = objectMapper.writeValueAsString(responseEntity2);
-
-    JsonNode map2 = mapper.readTree(jsonResponse2);
-    assertEquals(0, map2.get("global").get("totalQueries").asInt());
-    assertEquals(0, map2.get("global").get("totalBilledBytes").asInt());
-    assertEquals(0, map2.get("global").get("totalProcessedBytes").asInt());
   }
 
   @Test

@@ -8,7 +8,6 @@ import com.achilio.mvm.service.controllers.requests.ACreateProjectRequest;
 import com.achilio.mvm.service.controllers.requests.UpdateProjectRequest;
 import com.achilio.mvm.service.controllers.responses.AggregatedStatisticsResponse;
 import com.achilio.mvm.service.controllers.responses.DatasetResponse;
-import com.achilio.mvm.service.controllers.responses.GlobalQueryStatisticsResponse;
 import com.achilio.mvm.service.controllers.responses.ProjectResponse;
 import com.achilio.mvm.service.controllers.responses.UpdateDatasetRequestResponse;
 import com.achilio.mvm.service.databases.entities.FetchedDataset;
@@ -119,17 +118,6 @@ public class ProjectController {
   }
 
   @GetMapping(
-      path = "/project/{projectId}/queries/{days}/statistics",
-      produces = APPLICATION_JSON_VALUE)
-  @ApiOperation("Get statistics of queries ")
-  public GlobalQueryStatisticsResponse getQueryStatistics(
-      @PathVariable final String projectId, @PathVariable final int days) throws Exception {
-    GlobalQueryStatistics statistics =
-        projectService.getStatistics(projectId, getContextTeamName(), days);
-    return toGlobalQueryStatisticsResponse(statistics);
-  }
-
-  @GetMapping(
       path = "/project/{projectId}/queries/{days}/statistics/kpi",
       produces = APPLICATION_JSON_VALUE)
   @ApiOperation("Get statistics of queries grouped per days for charts")
@@ -138,11 +126,6 @@ public class ProjectController {
     GlobalQueryStatistics statistics =
         projectService.getStatistics(projectId, getContextTeamName(), days);
     return toAggregatedStatistics(statistics);
-  }
-
-  private GlobalQueryStatisticsResponse toGlobalQueryStatisticsResponse(
-      GlobalQueryStatistics statistics) {
-    return new GlobalQueryStatisticsResponse(statistics);
   }
 
   public AggregatedStatisticsResponse toAggregatedStatistics(GlobalQueryStatistics statistics) {

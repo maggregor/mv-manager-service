@@ -72,7 +72,7 @@ public class QueryControllerTest {
             stats);
     when(mockQueryService.getAllQueriesByJobIdAndProjectId(1L, TEST_PROJECT_ID))
         .thenReturn(Arrays.asList(query1, query2));
-    when(mockQueryService.getAllQueriesByProjectIdLastJob(TEST_PROJECT_ID))
+    when(mockQueryService.getAllQueriesByProjectId(TEST_PROJECT_ID))
         .thenReturn(Arrays.asList(query1, query2));
     when(mockQueryService.getQuery(googleJobId, TEST_PROJECT_ID)).thenReturn(query1);
     when(mockQueryService.getQuery("unknownQueryId", TEST_PROJECT_ID))
@@ -92,15 +92,10 @@ public class QueryControllerTest {
   }
 
   @Test
-  public void getQueriesOfLastFetcherQueryJobByProjectId() throws JsonProcessingException {
-    ObjectMapper mapper = new ObjectMapper();
-    List<Query> jobResponseEntity =
-        controller.getAllQueriesOfLastFetcherQueryJobByProjectId(TEST_PROJECT_ID);
-    String jsonResponse = objectMapper.writeValueAsString(jobResponseEntity);
-    JsonNode map = mapper.readTree(jsonResponse);
-    Assert.assertTrue(map instanceof ArrayNode);
-    Assert.assertEquals(2, map.size());
-    Assert.assertEquals(queryStatement1, map.get(0).get("query").asText());
+  public void getAllQueriesByProjectId() {
+    List<Query> jobResponseEntity = controller.getAllQueriesByProjectId(TEST_PROJECT_ID);
+    Assert.assertEquals(2, jobResponseEntity.size());
+    Assert.assertEquals(queryStatement1, jobResponseEntity.get(0).getQuery());
   }
 
   @Test
