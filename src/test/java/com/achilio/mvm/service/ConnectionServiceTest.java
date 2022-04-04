@@ -12,6 +12,7 @@ import static org.mockito.Mockito.when;
 import com.achilio.mvm.service.controllers.requests.ServiceAccountConnectionRequest;
 import com.achilio.mvm.service.entities.Connection;
 import com.achilio.mvm.service.entities.Connection.SourceType;
+import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.entities.ServiceAccountConnection;
 import com.achilio.mvm.service.exceptions.ConnectionNotFoundException;
 import com.achilio.mvm.service.exceptions.InvalidPayloadException;
@@ -19,6 +20,7 @@ import com.achilio.mvm.service.repositories.ConnectionRepository;
 import com.achilio.mvm.service.services.ConnectionService;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -114,9 +116,21 @@ public class ConnectionServiceTest {
 
   @Test
   public void deleteConnection() {
+    Project project1 = new Project("projectId1");
+    SA_CONNECTION.setProjects(Collections.singletonList(project1));
+    Assert.assertThrows(
+        IllegalArgumentException.class, () -> service.deleteConnection(456L, TEAM_NAME));
+    SA_CONNECTION.setProjects(Collections.emptyList());
     service.deleteConnection(456L, TEAM_NAME);
-    Mockito.verify(mockedRepository, Mockito.timeout(1000).times(1))
-        .deleteByIdAndTeamName(456L, TEAM_NAME);
+    Mockito.verify(mockedRepository, Mockito.timeout(1000).times(1)).delete(SA_CONNECTION);
+
+  }
+
+  @Test
+  public void deleteConnection__whenNotFound_doNothing() {
+    when(mockedRepository.findByIdAndTeamName(789L, TEAM_NAME)).thenReturn(Optional.empty());
+    service.deleteConnection(789L, TEAM_NAME);
+    Mockito.verify(mockedRepository, Mockito.timeout(1000).times(0)).delete(any());
   }
 
   @Test

@@ -1,6 +1,7 @@
 package com.achilio.mvm.service.entities;
 
 import java.util.Date;
+import java.util.List;
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorColumn;
 import javax.persistence.DiscriminatorType;
@@ -13,6 +14,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -34,14 +36,15 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 @DiscriminatorColumn(name = "type", discriminatorType = DiscriminatorType.STRING)
 public abstract class Connection {
 
+  @OneToMany(mappedBy = "connection")
+  List<Project> projects;
+
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Long id;
 
   @Column private String name;
-
   @Column private String teamName;
-
   @Column private String ownerUsername;
 
   @Column

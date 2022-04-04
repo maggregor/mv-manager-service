@@ -40,7 +40,17 @@ public class ConnectionService {
 
   @Transactional
   public void deleteConnection(Long id, String teamName) {
-    repository.deleteByIdAndTeamName(id, teamName);
+    Optional<Connection> optionalConnection = repository.findByIdAndTeamName(id, teamName);
+    if (optionalConnection.isPresent()) {
+      Connection connection = optionalConnection.get();
+      if (connection.getProjects().size() != 0) {
+        throw new IllegalArgumentException(
+            String.format(
+                "Connection %s is used by one or more projects and cannot be deleted",
+                connection.getName()));
+      }
+      repository.delete(connection);
+    }
   }
 
   @Transactional
