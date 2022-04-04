@@ -4,6 +4,7 @@ import com.achilio.mvm.service.controllers.requests.ConnectionRequest;
 import com.achilio.mvm.service.controllers.requests.ServiceAccountConnectionRequest;
 import com.achilio.mvm.service.entities.Connection;
 import com.achilio.mvm.service.entities.ServiceAccountConnection;
+import com.achilio.mvm.service.exceptions.ConnectionInUseException;
 import com.achilio.mvm.service.exceptions.ConnectionNotFoundException;
 import com.achilio.mvm.service.exceptions.InvalidPayloadException;
 import com.achilio.mvm.service.repositories.ConnectionRepository;
@@ -44,10 +45,12 @@ public class ConnectionService {
     if (optionalConnection.isPresent()) {
       Connection connection = optionalConnection.get();
       if (connection.getProjects().size() != 0) {
-        throw new IllegalArgumentException(
+        String errorMessage =
             String.format(
                 "Connection %s is used by one or more projects and cannot be deleted",
-                connection.getName()));
+                connection.getName());
+        LOGGER.warn(errorMessage);
+        throw new ConnectionInUseException(errorMessage);
       }
       repository.delete(connection);
     }

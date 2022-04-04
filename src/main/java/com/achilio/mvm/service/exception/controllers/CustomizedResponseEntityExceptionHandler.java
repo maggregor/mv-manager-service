@@ -1,5 +1,6 @@
 package com.achilio.mvm.service.exception.controllers;
 
+import com.achilio.mvm.service.exceptions.ConnectionInUseException;
 import com.achilio.mvm.service.exceptions.InvalidPayloadException;
 import com.achilio.mvm.service.exceptions.InvalidSettingsException;
 import com.achilio.mvm.service.exceptions.NotFoundException;
@@ -45,6 +46,13 @@ public class CustomizedResponseEntityExceptionHandler extends ResponseEntityExce
     ExceptionResponse exResponse =
         new ExceptionResponse(new Date(), ex.getMessage(), request.getDescription(false));
     return new ResponseEntity<>(exResponse, HttpStatus.NOT_FOUND);
+  }
+
+  @ExceptionHandler(ConnectionInUseException.class)
+  public final ResponseEntity<Object> ConnectionIsUseException(Exception ex, WebRequest request) {
+    ExceptionResponse exResponse =
+        new ExceptionResponse(new Date(), ex.getMessage(), request.getDescription(false));
+    return new ResponseEntity<>(exResponse, HttpStatus.BAD_REQUEST);
   }
 
   @ExceptionHandler(InvalidPayloadException.class)
