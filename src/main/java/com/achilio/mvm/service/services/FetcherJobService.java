@@ -117,6 +117,7 @@ public class FetcherJobService {
         fetchedQuery.getQuery(),
         fetchedQuery.getGoogleJobId(),
         fetchedQuery.getProjectId(),
+        fetchedQuery.getDefaultDataset(),
         fetchedQuery.isUsingMaterializedView(),
         fetchedQuery.isUsingCache(),
         fetchedQuery.getDate(),

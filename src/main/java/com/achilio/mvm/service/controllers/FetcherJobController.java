@@ -7,7 +7,6 @@ import com.achilio.mvm.service.entities.FetcherJob.FetcherJobStatus;
 import com.achilio.mvm.service.entities.FetcherQueryJob;
 import com.achilio.mvm.service.entities.FetcherStructJob;
 import com.achilio.mvm.service.exceptions.FetcherJobNotFoundException;
-import com.achilio.mvm.service.repositories.FetcherJobRepository;
 import com.achilio.mvm.service.services.FetcherJobService;
 import io.swagger.annotations.ApiOperation;
 import java.util.Collections;
@@ -15,7 +14,6 @@ import java.util.List;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,8 +31,11 @@ public class FetcherJobController {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(FetcherJobController.class);
 
-  @Autowired private FetcherJobService fetcherJobService;
-  @Autowired private FetcherJobRepository fetcherJobRepository;
+  private final FetcherJobService fetcherJobService;
+
+  public FetcherJobController(FetcherJobService fetcherJobService) {
+    this.fetcherJobService = fetcherJobService;
+  }
 
   // Fetcher for Queries
 

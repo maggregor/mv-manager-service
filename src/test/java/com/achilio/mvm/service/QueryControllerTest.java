@@ -31,7 +31,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 public class QueryControllerTest {
 
   private final String TEST_PROJECT_ID = "myProjectId";
-  private final int TIMEFRAME1 = 7;
   private final int TIMEFRAME2 = 14;
   private final ObjectMapper objectMapper = new ObjectMapper();
   private final FetcherQueryJob realFetcherJob1 = new FetcherQueryJob(TEST_PROJECT_ID);
@@ -56,6 +55,7 @@ public class QueryControllerTest {
             queryStatement1,
             googleJobId,
             TEST_PROJECT_ID,
+            "",
             useMaterializedView,
             useCache,
             startTime,
@@ -66,6 +66,7 @@ public class QueryControllerTest {
             queryStatement2,
             googleJobId,
             TEST_PROJECT_ID,
+            "",
             useMaterializedView,
             useCache,
             startTime,

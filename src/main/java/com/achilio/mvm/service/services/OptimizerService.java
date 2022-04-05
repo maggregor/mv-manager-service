@@ -83,7 +83,7 @@ public class OptimizerService {
       addOptimizationEvent(o, StatusType.FILTER_QUERIES_FROM_DATASET);
       // STEP 5 - Extract field from queries
       addOptimizationEvent(o, StatusType.EXTRACTING_FIELD_SETS);
-      List<FieldSet> allFieldSets = extractFields(projectId, tables, allQueries);
+      List<FieldSet> allFieldSets = extractFields(tables, allQueries);
       // STEP 6 - Filter eligible fieldSets
       List<FieldSet> fieldSets =
           allFieldSets.stream().filter(FieldSet::isEligible).collect(toList());
@@ -165,8 +165,8 @@ public class OptimizerService {
     return o.optimize(fieldSets);
   }
 
-  private List<FieldSet> extractFields(String project, Set<ATable> tables, List<Query> queries) {
-    FieldSetExtract extractor = FieldSetExtractFactory.createFieldSetExtract(project, tables);
+  private List<FieldSet> extractFields(Set<ATable> tables, List<Query> queries) {
+    FieldSetExtract extractor = FieldSetExtractFactory.createFieldSetExtract(tables);
     return extractor.extractAll(queries);
   }
 

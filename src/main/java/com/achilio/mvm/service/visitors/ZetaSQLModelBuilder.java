@@ -9,23 +9,25 @@ import com.google.zetasql.TypeFactory;
 import com.google.zetasql.ZetaSQLBuiltinFunctionOptions;
 import com.google.zetasql.ZetaSQLType;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.util.Strings;
 
 public abstract class ZetaSQLModelBuilder implements ModelBuilder {
 
-  private final SimpleCatalog catalog;
-  private final SimpleCatalog catalogProject;
+  private static final String CATALOG_ROOT_NAME = "root";
+  private final SimpleCatalog rootCatalog = new SimpleCatalog(CATALOG_ROOT_NAME);
   private final Set<ATable> tables;
-  private final String projectId;
 
-  public ZetaSQLModelBuilder(String projectId, Set<ATable> tables) {
-    this.catalog = new SimpleCatalog("root");
-    this.projectId = projectId;
-    catalogProject = this.catalog.addNewSimpleCatalog(projectId);
-    this.catalog.addZetaSQLFunctions(new ZetaSQLBuiltinFunctionOptions());
+  public ZetaSQLModelBuilder() {
+    this(Collections.emptySet());
+  }
+
+  public ZetaSQLModelBuilder(Set<ATable> tables) {
+    this.rootCatalog.addZetaSQLFunctions(new ZetaSQLBuiltinFunctionOptions());
     this.tables = tables;
     this.registerTables(tables);
   }
@@ -36,10 +38,13 @@ public abstract class ZetaSQLModelBuilder implements ModelBuilder {
 
   @Override
   public void registerTable(ATable table) {
-    SimpleCatalog dataset = createDatasetAndGet(catalog, table.getDatasetName());
-    SimpleCatalog datasetInProject = createDatasetAndGet(catalogProject, table.getDatasetName());
+    SimpleCatalog dataset = createDatasetAndGet(rootCatalog, table.getDatasetName());
     registerTable(dataset, table);
-    registerTable(datasetInProject, table);
+    if (Strings.isNotBlank(table.getProjectId())) {
+      SimpleCatalog catalogProject = createDatasetAndGet(rootCatalog, table.getProjectId());
+      SimpleCatalog datasetInProject = createDatasetAndGet(catalogProject, table.getDatasetName());
+      registerTable(datasetInProject, table);
+    }
   }
 
   public void registerTable(SimpleCatalog catalog, ATable table) {
@@ -57,10 +62,10 @@ public abstract class ZetaSQLModelBuilder implements ModelBuilder {
   }
 
   public void setDefaultDataset(String datasetName) {
-    getCatalog().getTableNameList().forEach(name -> getCatalog().removeSimpleTable(name));
+    getRootCatalog().getTableNameList().forEach(name -> getRootCatalog().removeSimpleTable(name));
     tables.stream()
         .filter(table -> table.getDatasetName().equalsIgnoreCase(datasetName))
-        .forEach(table -> registerTable(getCatalog(), table));
+        .forEach(table -> registerTable(getRootCatalog(), table));
   }
 
   @Override
@@ -72,7 +77,7 @@ public abstract class ZetaSQLModelBuilder implements ModelBuilder {
       }
       paths.add(table.getDatasetName());
       paths.add(table.getTableName());
-      this.catalog.findTable(paths);
+      this.rootCatalog.findTable(paths);
       return true;
     } catch (Exception e) {
       return false;
@@ -90,12 +95,8 @@ public abstract class ZetaSQLModelBuilder implements ModelBuilder {
         .findFirst();
   }
 
-  public SimpleCatalog getCatalog() {
-    return this.catalog;
-  }
-
-  public String getProjectId() {
-    return this.projectId;
+  public SimpleCatalog getRootCatalog() {
+    return this.rootCatalog;
   }
 
   @Override

@@ -30,7 +30,7 @@ public class QueryService {
   }
 
   public List<Query> getAllQueriesSince(String projectId, LocalDate date) {
-    return queryRepository.findAllByProjectIdGreaterThan(projectId, date);
+    return queryRepository.findAllByProjectIdAndStartTimeGreaterThanEqual(projectId, date);
   }
 
   public List<Query> getAllQueriesByJobIdAndProjectId(Long fetcherJobId, String projectId) {

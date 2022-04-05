@@ -219,7 +219,7 @@ public class ProjectService {
 
   public List<ADataset> getAllActivatedDatasets(String projectId, String teamName) {
     getProject(projectId, teamName);
-    return datasetRepository.findAllByProject_ProjectIdAndActivated(projectId);
+    return datasetRepository.findAllByProject_ProjectIdAndActivated(projectId, true);
   }
 
   public List<ADataset> getAllDatasets(String projectId, String teamName) {

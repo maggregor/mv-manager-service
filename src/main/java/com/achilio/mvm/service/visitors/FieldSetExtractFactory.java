@@ -5,7 +5,7 @@ import java.util.Set;
 
 public class FieldSetExtractFactory {
 
-  public static FieldSetExtract createFieldSetExtract(String projectId, Set<ATable> tables) {
-    return new ZetaSQLExtract(projectId, tables);
+  public static FieldSetExtract createFieldSetExtract(Set<ATable> tables) {
+    return new ZetaSQLExtract(tables);
   }
 }

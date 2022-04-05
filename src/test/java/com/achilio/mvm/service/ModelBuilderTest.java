@@ -1,7 +1,6 @@
 package com.achilio.mvm.service;
 
-import static com.achilio.mvm.service.MockHelper.createMockATable;
-import static org.junit.Assert.assertEquals;
+import static com.achilio.mvm.service.MockHelper.tableMock;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -9,9 +8,6 @@ import com.achilio.mvm.service.entities.ATable;
 import com.achilio.mvm.service.visitors.ATableId;
 import com.achilio.mvm.service.visitors.ModelBuilder;
 import com.achilio.mvm.service.visitors.ZetaSQLExtract;
-import com.achilio.mvm.service.visitors.ZetaSQLModelBuilder;
-import java.util.Arrays;
-import java.util.HashSet;
 import org.junit.Test;
 
 public class ModelBuilderTest {
@@ -21,12 +17,11 @@ public class ModelBuilderTest {
   private final ATableId tableIdWithoutProject = ATableId.of("myDataset", "myTable");
   private final ATableId tableIdSame = ATableId.of("same", "same", "myTable");
 
-  private final ATable mockATable = createMockATable(tableId1);
-  private final ATable mockATable2 = createMockATable(tableId2);
-  private final ATable mockATableSame = createMockATable(tableIdSame);
-  private final ModelBuilder builder =
-      new ZetaSQLExtract("myProject", new HashSet<>(Arrays.asList(mockATableSame)));
-  private final ATable mockATableWithoutProject = createMockATable(tableIdWithoutProject);
+  private final ATable mockATable = tableMock(tableId1);
+  private final ATable mockATable2 = tableMock(tableId2);
+  private final ATable mockATableSame = tableMock(tableIdSame);
+  private final ATable mockATableWithoutProject = tableMock(tableIdWithoutProject);
+  private final ModelBuilder builder = new ZetaSQLExtract();
 
   @Test
   public void isTableRegistered() {
@@ -41,7 +36,6 @@ public class ModelBuilderTest {
   @Test
   public void getters() {
     assertTrue(builder.getTables().isEmpty());
-    assertEquals("myProject", ((ZetaSQLModelBuilder) builder).getProjectId());
   }
 
   @Test

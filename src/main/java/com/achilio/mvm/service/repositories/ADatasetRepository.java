@@ -18,7 +18,7 @@ public interface ADatasetRepository extends JpaRepository<ADataset, Integer> {
 
   List<ADataset> findAllByProject_ProjectId(String projectId);
 
-  List<ADataset> findAllByProject_ProjectIdAndActivated(String projectId);
+  List<ADataset> findAllByProject_ProjectIdAndActivated(String projectId, Boolean activated);
 
   void deleteByDatasetId(String datasetId);
 }

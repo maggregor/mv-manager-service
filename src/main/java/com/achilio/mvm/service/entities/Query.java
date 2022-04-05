@@ -72,6 +72,7 @@ public class Query {
       String query,
       String id,
       String projectId,
+      String defaultDataset,
       boolean useMaterializedView,
       boolean useCache,
       LocalDate startTime,
@@ -81,6 +82,7 @@ public class Query {
     this.query = query;
     this.id = id;
     this.projectId = projectId;
+    this.defaultDataset = defaultDataset;
     this.useMaterializedView = useMaterializedView;
     this.useCache = useCache;
     this.startTime = startTime;

@@ -10,7 +10,6 @@ import com.google.zetasql.ParseResumeLocation;
 import com.google.zetasql.SimpleCatalog;
 import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedStatement;
 import com.google.zetasql.resolvedast.ResolvedNodes.Visitor;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
@@ -23,12 +22,12 @@ public class ZetaSQLExtract extends ZetaSQLModelBuilder implements FieldSetExtra
   private static final String BACKTICK = "`";
   private final AnalyzerOptions options = defaultAnalyzerOptions();
 
-  public ZetaSQLExtract(String projectName) {
-    super(projectName, Collections.emptySet());
+  public ZetaSQLExtract() {
+    super();
   }
 
-  public ZetaSQLExtract(String projectName, Set<ATable> tables) {
-    super(projectName, tables);
+  public ZetaSQLExtract(Set<ATable> tables) {
+    super(tables);
   }
 
   private AnalyzerOptions defaultAnalyzerOptions() {
@@ -46,13 +45,13 @@ public class ZetaSQLExtract extends ZetaSQLModelBuilder implements FieldSetExtra
       setDefaultDataset(query.getDefaultDataset());
     }
     ZetaSQLFieldSetExtractEntryPointVisitor v =
-        new ZetaSQLFieldSetExtractEntryPointVisitor(query.getProjectId(), getCatalog());
+        new ZetaSQLFieldSetExtractEntryPointVisitor(query.getProjectId(), getRootCatalog());
     resolveStatementAndVisit(query.getQuery(), v);
     return v.getAllFieldSets();
   }
 
   private void resolveStatementAndVisit(String statement, Visitor visitor) {
-    final SimpleCatalog catalog = super.getCatalog();
+    final SimpleCatalog catalog = super.getRootCatalog();
     statement = removeTableNamesBackticks(statement);
     try {
       ParseResumeLocation location = new ParseResumeLocation(statement);
