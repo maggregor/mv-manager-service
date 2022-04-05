@@ -1,7 +1,6 @@
 package com.achilio.mvm.service.services;
 
 import static com.achilio.mvm.service.UserContextHelper.getContextEmail;
-import static java.util.stream.Collectors.groupingBy;
 
 import com.achilio.mvm.service.controllers.requests.ACreateProjectRequest;
 import com.achilio.mvm.service.controllers.requests.UpdateProjectRequest;
@@ -22,7 +21,6 @@ import com.achilio.mvm.service.repositories.ATableRepository;
 import com.achilio.mvm.service.repositories.ProjectRepository;
 import com.stripe.model.Product;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import javax.transaction.Transactional;
 import org.slf4j.Logger;
@@ -266,12 +264,6 @@ public class ProjectService {
 
   public List<AColumn> getAllColumns(String projectId) {
     return columnRepository.findAllByTable_Project_ProjectId(projectId);
-  }
-
-  public Map<ATable, List<AColumn>> getAllTablesAndColumnsOnActivatedDataset(String projectId) {
-    return getAllColumns(projectId).stream()
-        .filter(AColumn::isDatasetActivated)
-        .collect(groupingBy(AColumn::getTable));
   }
 
   @Transactional

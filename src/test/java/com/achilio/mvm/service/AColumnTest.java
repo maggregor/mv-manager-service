@@ -1,11 +1,12 @@
 package com.achilio.mvm.service;
 
+import static org.junit.Assert.assertEquals;
+
 import com.achilio.mvm.service.entities.AColumn;
 import com.achilio.mvm.service.entities.ADataset;
 import com.achilio.mvm.service.entities.ATable;
 import com.achilio.mvm.service.entities.FetcherStructJob;
 import com.achilio.mvm.service.entities.Project;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -26,11 +27,12 @@ public class AColumnTest {
   @Test
   public void simpleValidationConstructor1() {
     AColumn column = new AColumn(job, table, columnName, columnType);
-    Assert.assertEquals("myProjectId.myDataset.myTable#myCol", column.getColumnId());
-    Assert.assertEquals(columnName, column.getName());
-    Assert.assertEquals(columnType, column.getType());
-    Assert.assertEquals(project.getProjectId(), column.getTable().getProject().getProjectId());
-    Assert.assertEquals(dataset.getDatasetName(), column.getTable().getDataset().getDatasetName());
-    Assert.assertEquals(tableName, column.getTable().getTableName());
+    assertEquals("myProjectId.myDataset.myTable#myCol", column.getColumnId());
+    assertEquals(columnName, column.getName());
+    assertEquals(columnType, column.getType());
+    assertEquals(project.getProjectId(), column.getTable().getProject().getProjectId());
+    assertEquals(dataset.getDatasetName(), column.getTable().getDataset().getDatasetName());
+    assertEquals(tableName, column.getTable().getTableName());
+    assertEquals(dataset.isActivated(), column.isDatasetActivated());
   }
 }
