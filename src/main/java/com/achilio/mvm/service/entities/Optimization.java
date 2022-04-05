@@ -37,9 +37,6 @@ public class Optimization {
   @Column(name = "mv_max_table")
   private Integer mvMaxPerTable;
 
-  @Column(name = "mv_max_plan")
-  private Integer mvMaxPlan;
-
   @Column(name = "mv_applied_count")
   private Integer mvAppliedCount;
 
@@ -88,14 +85,6 @@ public class Optimization {
 
   public void setMvMaxPerTable(Integer mvMaxPerTable) {
     this.mvMaxPerTable = mvMaxPerTable;
-  }
-
-  public Integer getMvMaxPlan() {
-    return this.mvMaxPlan;
-  }
-
-  public void setMvMaxPlan(Integer mvMaxPlan) {
-    this.mvMaxPlan = mvMaxPlan;
   }
 
   public Integer getMvAppliedCount() {

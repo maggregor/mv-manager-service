@@ -1,15 +1,12 @@
 package com.achilio.mvm.service.controllers.responses;
 
 import com.achilio.mvm.service.entities.Optimization;
-import java.util.Date;
 
 public class OptimizationResponse {
 
   private final Long id;
-  private final Date createdDate;
   private final String projectId;
   private final Double eligiblePercent;
-  private final Integer mvMaxPlan;
   private final Integer mvAppliedCount;
   private final Integer mvProposalCount;
   private final Integer mvMaxPerTable;
@@ -18,10 +15,8 @@ public class OptimizationResponse {
 
   public OptimizationResponse(Optimization optimization) {
     this.id = optimization.getId();
-    this.createdDate = optimization.getCreatedDate();
     this.projectId = optimization.getProjectId();
     this.eligiblePercent = optimization.getQueryEligiblePercentage();
-    this.mvMaxPlan = optimization.getMvMaxPlan();
     this.mvAppliedCount = optimization.getMvAppliedCount();
     this.mvProposalCount = optimization.getMvProposalCount();
     this.mvMaxPerTable = optimization.getMvMaxPerTable();
@@ -39,14 +34,6 @@ public class OptimizationResponse {
 
   public Double getEligiblePercent() {
     return this.eligiblePercent;
-  }
-
-  public Date getCreatedDate() {
-    return createdDate;
-  }
-
-  public Integer getMvMaxPlan() {
-    return mvMaxPlan;
   }
 
   public Integer getMvAppliedCount() {

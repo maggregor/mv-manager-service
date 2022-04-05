@@ -10,6 +10,7 @@ import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import com.achilio.mvm.service.exceptions.QueryNotFoundException;
 import com.achilio.mvm.service.repositories.FetcherJobRepository;
 import com.achilio.mvm.service.repositories.QueryRepository;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -24,8 +25,12 @@ public class QueryService {
   @Autowired private FetcherJobRepository fetcherJobRepository;
   @Autowired private QueryRepository queryRepository;
 
-  public List<Query> getAllQueriesByProjectId(String projectId) {
+  public List<Query> getAllQueries(String projectId) {
     return queryRepository.findAllByProjectId(projectId);
+  }
+
+  public List<Query> getAllQueriesSince(String projectId, LocalDate date) {
+    return queryRepository.findAllByProjectIdGreaterThan(projectId, date);
   }
 
   public List<Query> getAllQueriesByJobIdAndProjectId(Long fetcherJobId, String projectId) {
@@ -55,7 +60,7 @@ public class QueryService {
   }
 
   public GlobalQueryStatistics getStatistics(String projectId) {
-    return getStatistics(getAllQueriesByProjectId(projectId));
+    return getStatistics(getAllQueries(projectId));
   }
 
   public GlobalQueryStatistics getStatistics(List<Query> queries) {

@@ -1,7 +1,7 @@
 package com.achilio.mvm.service.visitors;
 
-import com.achilio.mvm.service.databases.entities.FetchedQuery;
-import com.achilio.mvm.service.databases.entities.FetchedTable;
+import com.achilio.mvm.service.entities.ATable;
+import com.achilio.mvm.service.entities.Query;
 import com.achilio.mvm.service.visitors.fields.FieldSet;
 import com.google.zetasql.Analyzer;
 import com.google.zetasql.AnalyzerOptions;
@@ -27,7 +27,7 @@ public class ZetaSQLExtract extends ZetaSQLModelBuilder implements FieldSetExtra
     super(projectName, Collections.emptySet());
   }
 
-  public ZetaSQLExtract(String projectName, Set<FetchedTable> tables) {
+  public ZetaSQLExtract(String projectName, Set<ATable> tables) {
     super(projectName, tables);
   }
 
@@ -41,16 +41,13 @@ public class ZetaSQLExtract extends ZetaSQLModelBuilder implements FieldSetExtra
   }
 
   @Override
-  public List<FieldSet> extractAll(FetchedQuery fetchedQuery) {
-    if (fetchedQuery.hasDefaultDataset()) {
-      setDefaultDataset(fetchedQuery.getDefaultDataset());
+  public List<FieldSet> extractAll(Query query) {
+    if (query.hasDefaultDataset()) {
+      setDefaultDataset(query.getDefaultDataset());
     }
     ZetaSQLFieldSetExtractEntryPointVisitor v =
-        new ZetaSQLFieldSetExtractEntryPointVisitor(fetchedQuery.getProjectId(), getCatalog());
-    resolveStatementAndVisit(fetchedQuery.getQuery(), v);
-    if (!v.getAllFieldSets().isEmpty()) {
-      fetchedQuery.setCanUseMaterializedViews(true);
-    }
+        new ZetaSQLFieldSetExtractEntryPointVisitor(query.getProjectId(), getCatalog());
+    resolveStatementAndVisit(query.getQuery(), v);
     return v.getAllFieldSets();
   }
 

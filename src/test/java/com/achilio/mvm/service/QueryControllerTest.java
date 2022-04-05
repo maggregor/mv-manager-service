@@ -72,8 +72,7 @@ public class QueryControllerTest {
             stats);
     when(mockQueryService.getAllQueriesByJobIdAndProjectId(1L, TEST_PROJECT_ID))
         .thenReturn(Arrays.asList(query1, query2));
-    when(mockQueryService.getAllQueriesByProjectId(TEST_PROJECT_ID))
-        .thenReturn(Arrays.asList(query1, query2));
+    when(mockQueryService.getAllQueries(TEST_PROJECT_ID)).thenReturn(Arrays.asList(query1, query2));
     when(mockQueryService.getQuery(googleJobId, TEST_PROJECT_ID)).thenReturn(query1);
     when(mockQueryService.getQuery("unknownQueryId", TEST_PROJECT_ID))
         .thenThrow(new QueryNotFoundException("unknownQueryId"));

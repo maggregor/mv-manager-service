@@ -1,14 +1,16 @@
 package com.achilio.mvm.service;
 
-import static com.achilio.mvm.service.FetchedTableHelper.createFetchedTable;
 import static com.achilio.mvm.service.FieldSetHelper.createFieldSet;
+import static com.achilio.mvm.service.MockHelper.createMockATable;
 import static com.achilio.mvm.service.visitors.FieldSetIneligibilityReason.CONTAINS_UNSUPPORTED_JOIN;
 import static com.achilio.mvm.service.visitors.FieldSetIneligibilityReason.DOES_NOT_CONTAIN_A_GROUP_BY;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-import com.achilio.mvm.service.databases.entities.FetchedQuery;
-import com.achilio.mvm.service.databases.entities.FetchedTable;
+import com.achilio.mvm.service.entities.ATable;
+import com.achilio.mvm.service.entities.Query;
 import com.achilio.mvm.service.visitors.ATableId;
 import com.achilio.mvm.service.visitors.FieldSetExtract;
 import com.achilio.mvm.service.visitors.JoinType;
@@ -47,16 +49,13 @@ public abstract class FieldSetExtractTest {
       ATableId.of(PROJECT_ID, "mydataset", "mythirdtable");
   private static final ATableId FOURTH_TABLE_ID =
       ATableId.of(PROJECT_ID, "myotherdataset", "myfourthtable");
-  private final FetchedTable MAIN_TABLE = createFetchedTable(MAIN_TABLE_ID, SIMPLE_TABLE_COLUMNS);
-  private final FetchedTable SECONDARY_TABLE =
-      createFetchedTable(SECONDARY_TABLE_ID, SIMPLE_TABLE_COLUMNS);
-  private final FetchedTable THIRD_TABLE = createFetchedTable(THIRD_TABLE_ID, SIMPLE_TABLE_COLUMNS);
-  private final FetchedTable FOURTH_TABLE =
-      createFetchedTable(FOURTH_TABLE_ID, SIMPLE_TABLE_COLUMNS);
+  private final ATable MAIN_TABLE = createMockATable(MAIN_TABLE_ID);
+  private final ATable SECONDARY_TABLE = createMockATable(SECONDARY_TABLE_ID);
+  private final ATable THIRD_TABLE = createMockATable(THIRD_TABLE_ID);
+  private final ATable FOURTH_TABLE = createMockATable(FOURTH_TABLE_ID);
   private FieldSetExtract extractor;
 
-  protected abstract FieldSetExtract createFieldSetExtract(
-      String projectId, Set<FetchedTable> metadata);
+  protected abstract FieldSetExtract createFieldSetExtract(String projectId, Set<ATable> tables);
 
   @Before
   public void setUp() {
@@ -438,11 +437,20 @@ public abstract class FieldSetExtractTest {
   public void multipleExtracts() {
     final FieldSet EXPECTED_1 = fieldSetBuilder(MAIN_TABLE_ID).addRef("col1").build();
     final FieldSet EXPECTED_2 = fieldSetBuilder(SECONDARY_TABLE_ID).addRef("col2").build();
-    FetchedQuery q1 =
-        new FetchedQuery(PROJECT_ID, "SELECT col1 FROM myproject.mydataset.mytable GROUP BY 1");
-    FetchedQuery q2 =
-        new FetchedQuery(PROJECT_ID, "SELECT col2 FROM mydataset.myothertable GROUP BY 1");
+    Query q1 = createMock("SELECT col1 FROM myproject.mydataset.mytable GROUP BY 1");
+    Query q2 = createMock("SELECT col2 FROM mydataset.myothertable GROUP BY 1");
     assertExpectedFieldSet(extractor.extractAll(Arrays.asList(q1, q2)), EXPECTED_1, EXPECTED_2);
+  }
+
+  private Query createMock(String statement) {
+    return createMock(PROJECT_ID, statement);
+  }
+
+  private Query createMock(String projectId, String statement) {
+    Query mockedQuery = mock(Query.class);
+    when(mockedQuery.getProjectId()).thenReturn(projectId);
+    when(mockedQuery.getQuery()).thenReturn(statement);
+    return mockedQuery;
   }
 
   @Test
@@ -517,12 +525,12 @@ public abstract class FieldSetExtractTest {
 
   private void assertExpectedFieldSet(
       String statement, String defaultDataset, FieldSet... expectedFieldSets) {
-    FetchedQuery query = new FetchedQuery(PROJECT_ID, statement);
+    Query query = createMock(statement);
     query.setDefaultDataset(defaultDataset);
     assertExpectedFieldSet(query, expectedFieldSets);
   }
 
-  private void assertExpectedFieldSet(FetchedQuery query, FieldSet... expectedFieldSets) {
+  private void assertExpectedFieldSet(Query query, FieldSet... expectedFieldSets) {
     assertExpectedFieldSet(extractor.extractAll(query), expectedFieldSets);
   }
 

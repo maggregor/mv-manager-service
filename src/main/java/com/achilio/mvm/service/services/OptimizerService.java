@@ -6,15 +6,15 @@ import static java.util.stream.Collectors.toList;
 import com.achilio.mvm.service.Optimizer;
 import com.achilio.mvm.service.OptimizerFactory;
 import com.achilio.mvm.service.databases.bigquery.BigQueryMaterializedViewStatementBuilder;
-import com.achilio.mvm.service.databases.entities.FetchedDataset;
-import com.achilio.mvm.service.databases.entities.FetchedQuery;
-import com.achilio.mvm.service.databases.entities.FetchedTable;
+import com.achilio.mvm.service.entities.ADataset;
+import com.achilio.mvm.service.entities.ATable;
 import com.achilio.mvm.service.entities.Optimization;
 import com.achilio.mvm.service.entities.OptimizationEvent;
 import com.achilio.mvm.service.entities.OptimizationEvent.StatusType;
 import com.achilio.mvm.service.entities.OptimizationResult;
 import com.achilio.mvm.service.entities.OptimizationResult.Status;
 import com.achilio.mvm.service.entities.Project;
+import com.achilio.mvm.service.entities.Query;
 import com.achilio.mvm.service.repositories.OptimizerRepository;
 import com.achilio.mvm.service.repositories.OptimizerResultRepository;
 import com.achilio.mvm.service.visitors.ATableId;
@@ -22,7 +22,9 @@ import com.achilio.mvm.service.visitors.FieldSetExtract;
 import com.achilio.mvm.service.visitors.FieldSetExtractFactory;
 import com.achilio.mvm.service.visitors.FieldSetMerger;
 import com.achilio.mvm.service.visitors.fields.FieldSet;
+import java.time.LocalDate;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -42,9 +44,8 @@ import org.springframework.stereotype.Service;
 @Transactional
 public class OptimizerService {
 
-  private static final int DEFAULT_PLAN_MAX_MV = 20;
   private static final int GOOGLE_MAX_MV_PER_TABLE = 20;
-  private static Logger LOGGER = LoggerFactory.getLogger(OptimizerService.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(OptimizerService.class);
   BigQueryMaterializedViewStatementBuilder statementBuilder;
 
   @Autowired private OptimizerRepository optimizerRepository;
@@ -52,8 +53,8 @@ public class OptimizerService {
   @Autowired private OptimizerResultRepository optimizerResultRepository;
 
   @Autowired private ProjectService projectService;
+  @Autowired private QueryService queryService;
 
-  @Autowired private FetcherService fetcherService;
   @Autowired private GooglePublisherService publisherService;
 
   public OptimizerService() {
@@ -64,27 +65,20 @@ public class OptimizerService {
   public void optimizeProject(Optimization o, String teamName) {
     try {
       String projectId = o.getProjectId();
-      Project project = projectService.getProject(projectId, teamName);
       int analysisTimeframe = o.getAnalysisTimeframe();
       int mvMaxPerTable = o.getMvMaxPerTable();
       int maxMvPerTable = Math.min(GOOGLE_MAX_MV_PER_TABLE, mvMaxPerTable);
-      List<FetchedDataset> datasets =
-          fetcherService.fetchAllDatasets(projectId, project.getConnection()).parallelStream()
-              .filter(
-                  dataset -> projectService.isDatasetActivated(projectId, dataset.getDatasetName()))
-              .collect(toList());
+      List<ADataset> datasets = projectService.getAllActivatedDatasets(projectId, teamName);
       LOGGER.info("Run a new optimization on {} with activated datasets {}", projectId, datasets);
       LOGGER.info("Username used for optimization {} is {}", o.getId(), o.getUsername());
-      o.setMvMaxPlan(DEFAULT_PLAN_MAX_MV);
       o.setMvMaxPerTable(maxMvPerTable);
       // STEP 1 - Fetch all queries of targeted fetchedProject
       addOptimizationEvent(o, StatusType.FETCHING_QUERIES);
-      List<FetchedQuery> allQueries =
-          fetcherService.fetchQueriesSinceLastDays(
-              projectId, project.getConnection(), analysisTimeframe);
+      LocalDate date = LocalDate.now().minusDays(analysisTimeframe);
+      List<Query> allQueries = queryService.getAllQueriesSince(projectId, date);
       // STEP 2 - Fetch all tables
       addOptimizationEvent(o, StatusType.FETCHING_TABLES);
-      Set<FetchedTable> tables = fetcherService.fetchAllTables(projectId, project.getConnection());
+      Set<ATable> tables = new HashSet<>(projectService.getAllTables(projectId));
       // STEP 3 - Filter queries from targeted dataset
       addOptimizationEvent(o, StatusType.FILTER_QUERIES_FROM_DATASET);
       // STEP 5 - Extract field from queries
@@ -99,24 +93,11 @@ public class OptimizerService {
       // STEP 7 - Optimize field sets
       addOptimizationEvent(o, StatusType.OPTIMIZING_FIELD_SETS);
       List<FieldSet> optimized = optimizeFieldSets(distinctFieldSets);
-      List<String> datasetNames =
-          datasets.stream()
-              .map(FetchedDataset::getDatasetName)
-              .map(String::toLowerCase)
-              .collect(toList());
-      List<FieldSet> fieldSetOnDataset =
-          optimized.stream()
-              .filter(fieldSet -> datasetNames.contains(fieldSet.getReferenceTable().getDataset()))
-              .collect(toList());
       // STEP 8 - Build materialized views statements
       addOptimizationEvent(o, StatusType.BUILD_MATERIALIZED_VIEWS_STATEMENT);
-      List<OptimizationResult> results = buildOptimizationsResults(o, fieldSetOnDataset);
+      List<OptimizationResult> results = buildOptimizationsResults(o, optimized);
       // STEP 9 - Publishing optimization
       applyStatus(o, results);
-      long eligibleQueries =
-          allQueries.stream().filter(FetchedQuery::canUseMaterializedViews).count();
-      Double percent = (double) eligibleQueries / allQueries.size();
-      o.setQueryEligiblePercentage(percent);
       addOptimizationEvent(o, StatusType.PUBLISHING);
       List<OptimizationResult> resultsToPublish =
           results.stream().filter(r -> r.getStatus().equals(Status.APPLY)).collect(toList());
@@ -184,8 +165,7 @@ public class OptimizerService {
     return o.optimize(fieldSets);
   }
 
-  private List<FieldSet> extractFields(
-      String project, Set<FetchedTable> tables, List<FetchedQuery> queries) {
+  private List<FieldSet> extractFields(String project, Set<ATable> tables, List<Query> queries) {
     FieldSetExtract extractor = FieldSetExtractFactory.createFieldSetExtract(project, tables);
     return extractor.extractAll(queries);
   }

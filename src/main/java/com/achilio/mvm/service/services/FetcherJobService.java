@@ -164,7 +164,7 @@ public class FetcherJobService {
     updateJobStatus(fetcherStructJob, FetcherJobStatus.WORKING);
     try {
       syncDatasets(fetcherStructJob, teamName);
-      Set<FetchedTable> allCurrentTables = syncTables(fetcherStructJob, teamName);
+      Set<FetchedTable> allCurrentTables = syncTables(fetcherStructJob);
       syncColumns(fetcherStructJob, teamName, allCurrentTables);
     } catch (Exception e) {
       updateJobStatus(fetcherStructJob, FetcherJobStatus.ERROR);
@@ -202,9 +202,9 @@ public class FetcherJobService {
   }
 
   @VisibleForTesting
-  public Set<FetchedTable> syncTables(FetcherStructJob fetcherStructJob, String teamName) {
-    Project project = projectService.getProject(fetcherStructJob.getProjectId(), teamName);
-    List<ATable> allATables = projectService.getAllTables(project.getProjectId(), teamName);
+  public Set<FetchedTable> syncTables(FetcherStructJob fetcherStructJob) {
+    Project project = projectService.getProject(fetcherStructJob.getProjectId());
+    List<ATable> allATables = projectService.getAllTables(project.getProjectId());
     Set<FetchedTable> allFetchedTables =
         fetcherService.fetchAllTables(project.getProjectId(), project.getConnection());
     List<ATable> allCurrentTables =
