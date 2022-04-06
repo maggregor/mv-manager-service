@@ -52,8 +52,8 @@ public class FetcherJobServiceTest {
   @Mock ProjectService mockProjectService;
   @Mock Project mockProject;
   @Mock Connection mockConnection;
-  FetcherQueryJobRequest request1 = new FetcherQueryJobRequest(null);
-  FetcherQueryJobRequest request2 = new FetcherQueryJobRequest(14);
+  FetcherQueryJobRequest request1 = new FetcherQueryJobRequest(PROJECT_ID, null);
+  FetcherQueryJobRequest request2 = new FetcherQueryJobRequest(PROJECT_ID, 14);
   FetcherStructJob structJob1 = new FetcherStructJob();
   FetcherStructJob structJob2 = new FetcherStructJob();
   FetchedQuery fetchedQuery1 = new FetchedQuery(PROJECT_ID, QUERY1);

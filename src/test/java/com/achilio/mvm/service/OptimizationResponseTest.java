@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 import com.achilio.mvm.service.controllers.responses.OptimizationResponse;
 import com.achilio.mvm.service.entities.Optimization;
 import com.achilio.mvm.service.entities.Optimization.Status;
+import java.util.Date;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,6 +28,7 @@ public class OptimizationResponseTest {
     when(mockOptimization.getMvProposalCount()).thenReturn(15);
     when(mockOptimization.getUsername()).thenReturn("myUser");
     when(mockOptimization.getStatus()).thenReturn(Status.FINISHED);
+    when(mockOptimization.getCreatedDate()).thenReturn(new Date(1000));
   }
 
   @Test
@@ -40,5 +42,6 @@ public class OptimizationResponseTest {
     assertEquals(Integer.valueOf(11), response.getMvAppliedCount());
     assertEquals(Integer.valueOf(15), response.getMvProposalCount());
     assertEquals("Finished", response.getStatus());
+    assertEquals(new Date(1000), response.getCreatedDate());
   }
 }

@@ -59,8 +59,8 @@ public class QueryService {
     return query.get();
   }
 
-  public GlobalQueryStatistics getStatistics(String projectId) {
-    return getStatistics(getAllQueries(projectId));
+  public GlobalQueryStatistics getStatistics(String projectId, LocalDate from) {
+    return getStatistics(getAllQueriesSince(projectId, from));
   }
 
   public GlobalQueryStatistics getStatistics(List<Query> queries) {

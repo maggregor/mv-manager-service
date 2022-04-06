@@ -1,10 +1,12 @@
 package com.achilio.mvm.service.controllers.responses;
 
 import com.achilio.mvm.service.entities.Optimization;
+import java.util.Date;
 
 public class OptimizationResponse {
 
   private final Long id;
+  private final Date createdDate;
   private final String projectId;
   private final Double eligiblePercent;
   private final Integer mvAppliedCount;
@@ -15,6 +17,7 @@ public class OptimizationResponse {
 
   public OptimizationResponse(Optimization optimization) {
     this.id = optimization.getId();
+    this.createdDate = optimization.getCreatedDate();
     this.projectId = optimization.getProjectId();
     this.eligiblePercent = optimization.getQueryEligiblePercentage();
     this.mvAppliedCount = optimization.getMvAppliedCount();
@@ -54,5 +57,9 @@ public class OptimizationResponse {
 
   public String getStatus() {
     return this.status;
+  }
+
+  public Date getCreatedDate() {
+    return this.createdDate;
   }
 }

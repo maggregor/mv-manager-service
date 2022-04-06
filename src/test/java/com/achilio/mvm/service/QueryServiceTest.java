@@ -124,9 +124,10 @@ public class QueryServiceTest {
 
   @Test
   public void getStatisticsByProject() {
-    when(mockQueryRepository.findAllByProjectId(PROJECT_ID1))
+    LocalDate from = LocalDate.now().minusDays(10);
+    when(mockQueryRepository.findAllByProjectIdAndStartTimeGreaterThanEqual(PROJECT_ID1, from))
         .thenReturn(Collections.singletonList(QUERY1));
-    GlobalQueryStatistics global = service.getStatistics(PROJECT_ID1);
+    GlobalQueryStatistics global = service.getStatistics(PROJECT_ID1, from);
     Assert.assertEquals(1, global.getTotalStatistics().getTotalQueries());
     Assert.assertEquals(10L, global.getTotalStatistics().getTotalProcessedBytes());
     Assert.assertEquals(100L, global.getTotalStatistics().getTotalBilledBytes());
