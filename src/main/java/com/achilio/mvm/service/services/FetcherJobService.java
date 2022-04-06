@@ -164,7 +164,7 @@ public class FetcherJobService {
     return fetcherJobRepository.save(job);
   }
 
-  @Async("asyncExecutor")
+  // @Async("asyncExecutor")
   public void syncAllStructsJob(FetcherStructJob fetcherStructJob, String teamName) {
     updateJobStatus(fetcherStructJob, FetcherJobStatus.WORKING);
     try {

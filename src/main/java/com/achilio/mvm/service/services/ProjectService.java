@@ -94,11 +94,6 @@ public class ProjectService {
     return projectRepository.findByProjectId(projectId).isPresent();
   }
 
-  public Project updateProjectSubscription(Project project, String subscriptionId) {
-    project.setStripeSubscriptionId(subscriptionId);
-    return projectRepository.save(project);
-  }
-
   @Transactional
   public Project updateProject(String projectId, UpdateProjectRequest payload) {
     Project project = getProject(projectId);

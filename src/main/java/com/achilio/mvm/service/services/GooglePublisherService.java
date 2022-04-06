@@ -1,7 +1,6 @@
 package com.achilio.mvm.service.services;
 
 import com.achilio.mvm.service.OptimizerApplication;
-import com.achilio.mvm.service.configuration.SimpleGoogleCredentialsAuthentication;
 import com.achilio.mvm.service.entities.Optimization;
 import com.achilio.mvm.service.entities.OptimizationResult;
 import com.achilio.mvm.service.entities.Project;
@@ -25,7 +24,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
@@ -200,7 +198,7 @@ public class GooglePublisherService {
             .putAttributes(ATTRIBUTE_CMD_TYPE, cmdType)
             .putAttributes(ATTRIBUTE_PROJECT_ID, projectId);
     if (requireAccessToken) {
-      builder.putAttributes(ATTRIBUTE_ACCESS_TOKEN, getAccessToken());
+      builder.putAttributes(ATTRIBUTE_ACCESS_TOKEN, "");
     }
     if (StringUtils.isNotEmpty(message)) {
       ByteString data = ByteString.copyFromUtf8(message);
@@ -237,13 +235,5 @@ public class GooglePublisherService {
         pubsubMessage.getAttributesMap(),
         topicName);
     return true;
-  }
-
-  private String getAccessToken() {
-    return ((SimpleGoogleCredentialsAuthentication)
-            SecurityContextHolder.getContext().getAuthentication())
-        .getCredentials()
-        .getAccessToken()
-        .getTokenValue();
   }
 }
