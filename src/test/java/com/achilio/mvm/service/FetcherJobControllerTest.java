@@ -62,17 +62,17 @@ public class FetcherJobControllerTest {
     MockHelper.setupMockedAuthenticationContext();
     realFetcherJob3.setStatus(FetcherJobStatus.FINISHED);
     doNothing().when(mockedFetcherJobService).fetchAllQueriesJob(any(), any());
-    when(mockedFetcherJobService.getAllQueryJobs(TEST_PROJECT_ID))
+    when(mockedFetcherJobService.getAllQueryJobs(TEST_PROJECT_ID, null))
         .thenReturn(Arrays.asList(realFetcherJob1, realFetcherJob2, realFetcherJob3));
-    when(mockedFetcherJobService.getLastFetcherQueryJob(TEST_PROJECT_ID))
+    when(mockedFetcherJobService.getLastFetcherQueryJob(TEST_PROJECT_ID, null))
         .thenReturn(Optional.of(realFetcherJob3));
     when(mockedFetcherJobService.getLastFetcherQueryJob(TEST_PROJECT_ID, PENDING))
         .thenReturn(Optional.of(realFetcherJob2));
-    when(mockedFetcherJobService.getLastFetcherQueryJob(TEST_PROJECT_ID, FetcherJobStatus.FINISHED))
+    when(mockedFetcherJobService.getLastFetcherQueryJob(TEST_PROJECT_ID, FINISHED))
         .thenReturn(Optional.of(realFetcherJob3));
     when(mockedFetcherJobService.getAllQueryJobs(TEST_PROJECT_ID, PENDING))
         .thenReturn(Arrays.asList(realFetcherJob1, realFetcherJob2));
-    when(mockedFetcherJobService.getAllQueryJobs(TEST_PROJECT_ID, FetcherJobStatus.FINISHED))
+    when(mockedFetcherJobService.getAllQueryJobs(TEST_PROJECT_ID, FINISHED))
         .thenReturn(Collections.singletonList(realFetcherJob3));
     when(mockedFetcherJobService.getFetcherQueryJob(1L, TEST_PROJECT_ID))
         .thenReturn(Optional.of(realFetcherJob1));
