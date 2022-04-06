@@ -20,6 +20,7 @@ import com.achilio.mvm.service.repositories.ADatasetRepository;
 import com.achilio.mvm.service.repositories.ATableRepository;
 import com.achilio.mvm.service.repositories.ProjectRepository;
 import com.stripe.model.Product;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import javax.transaction.Transactional;
@@ -233,7 +234,8 @@ public class ProjectService {
   public GlobalQueryStatistics getStatistics(String projectId, String teamName, int days)
       throws Exception {
     Project project = getProject(projectId, teamName);
-    return queryService.getStatistics(project.getProjectId());
+    LocalDate from = LocalDate.now().minusDays(days);
+    return queryService.getStatistics(project.getProjectId(), from);
   }
 
   @Transactional

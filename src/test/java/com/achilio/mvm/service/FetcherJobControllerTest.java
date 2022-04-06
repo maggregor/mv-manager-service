@@ -1,5 +1,7 @@
 package com.achilio.mvm.service;
 
+import static com.achilio.mvm.service.entities.FetcherJob.FetcherJobStatus.FINISHED;
+import static com.achilio.mvm.service.entities.FetcherJob.FetcherJobStatus.PENDING;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
@@ -44,8 +46,9 @@ public class FetcherJobControllerTest {
   private final FetcherQueryJob realFetcherJob1 = new FetcherQueryJob(TEST_PROJECT_ID);
   private final FetcherQueryJob realFetcherJob2 = new FetcherQueryJob(TEST_PROJECT_ID, TIMEFRAME2);
   private final FetcherQueryJob realFetcherJob3 = new FetcherQueryJob(TEST_PROJECT_ID, TIMEFRAME2);
-  private final FetcherQueryJobRequest request1 = new FetcherQueryJobRequest(null);
-  private final FetcherQueryJobRequest request2 = new FetcherQueryJobRequest(TIMEFRAME2);
+  private final FetcherQueryJobRequest request1 = new FetcherQueryJobRequest(TEST_PROJECT_ID, null);
+  private final FetcherQueryJobRequest request2 =
+      new FetcherQueryJobRequest(TEST_PROJECT_ID, TIMEFRAME2);
 
   @InjectMocks FetcherJobController controller;
   @Mock private FetcherJobService mockedFetcherJobService;
@@ -58,11 +61,11 @@ public class FetcherJobControllerTest {
         .thenReturn(Arrays.asList(realFetcherJob1, realFetcherJob2, realFetcherJob3));
     when(mockedFetcherJobService.getLastFetcherQueryJob(TEST_PROJECT_ID))
         .thenReturn(Optional.of(realFetcherJob3));
-    when(mockedFetcherJobService.getLastFetcherQueryJob(TEST_PROJECT_ID, FetcherJobStatus.PENDING))
+    when(mockedFetcherJobService.getLastFetcherQueryJob(TEST_PROJECT_ID, PENDING))
         .thenReturn(Optional.of(realFetcherJob2));
     when(mockedFetcherJobService.getLastFetcherQueryJob(TEST_PROJECT_ID, FetcherJobStatus.FINISHED))
         .thenReturn(Optional.of(realFetcherJob3));
-    when(mockedFetcherJobService.getAllQueryJobs(TEST_PROJECT_ID, FetcherJobStatus.PENDING))
+    when(mockedFetcherJobService.getAllQueryJobs(TEST_PROJECT_ID, PENDING))
         .thenReturn(Arrays.asList(realFetcherJob1, realFetcherJob2));
     when(mockedFetcherJobService.getAllQueryJobs(TEST_PROJECT_ID, FetcherJobStatus.FINISHED))
         .thenReturn(Collections.singletonList(realFetcherJob3));
@@ -88,13 +91,13 @@ public class FetcherJobControllerTest {
     // Job1
     Assert.assertEquals(TEST_PROJECT_ID, map.get(0).get("projectId").asText());
     Assert.assertEquals(TIMEFRAME1, map.get(0).get("timeframe").asLong());
-    Assert.assertEquals(FetcherJobStatus.PENDING.toString(), map.get(0).get("status").asText());
+    Assert.assertEquals(PENDING.toString(), map.get(0).get("status").asText());
     Assert.assertTrue(map.get(0).get("id") instanceof NullNode);
     Assert.assertTrue(map.get(0).get("createdAt") instanceof NullNode);
     // Job2
     Assert.assertEquals(TEST_PROJECT_ID, map.get(1).get("projectId").asText());
     Assert.assertEquals(TIMEFRAME2, map.get(1).get("timeframe").asLong());
-    Assert.assertEquals(FetcherJobStatus.PENDING.toString(), map.get(0).get("status").asText());
+    Assert.assertEquals(PENDING.toString(), map.get(0).get("status").asText());
     Assert.assertTrue(map.get(1).get("id") instanceof NullNode);
     Assert.assertTrue(map.get(1).get("createdAt") instanceof NullNode);
     // Job3
@@ -126,25 +129,25 @@ public class FetcherJobControllerTest {
     ObjectMapper mapper = new ObjectMapper();
     // List of pending
     List<FetcherQueryJob> jobResponseEntity =
-        controller.getAllFetcherQueryJobsByProjectId(TEST_PROJECT_ID, false, "pending");
+        controller.getAllFetcherQueryJobsByProjectId(TEST_PROJECT_ID, false, PENDING);
     String jsonResponse = objectMapper.writeValueAsString(jobResponseEntity);
     JsonNode map = mapper.readTree(jsonResponse);
     Assert.assertTrue(map instanceof ArrayNode);
     Assert.assertEquals(2, map.size());
     Assert.assertEquals(TEST_PROJECT_ID, map.get(0).get("projectId").asText());
     Assert.assertEquals(TIMEFRAME1, map.get(0).get("timeframe").asLong());
-    Assert.assertEquals(FetcherJobStatus.PENDING.toString(), map.get(0).get("status").asText());
+    Assert.assertEquals(PENDING.toString(), map.get(0).get("status").asText());
     Assert.assertTrue(map.get(0).get("id") instanceof NullNode);
     Assert.assertTrue(map.get(0).get("createdAt") instanceof NullNode);
     Assert.assertEquals(TEST_PROJECT_ID, map.get(1).get("projectId").asText());
     Assert.assertEquals(TIMEFRAME2, map.get(1).get("timeframe").asLong());
-    Assert.assertEquals(FetcherJobStatus.PENDING.toString(), map.get(1).get("status").asText());
+    Assert.assertEquals(PENDING.toString(), map.get(1).get("status").asText());
     Assert.assertTrue(map.get(1).get("id") instanceof NullNode);
     Assert.assertTrue(map.get(1).get("createdAt") instanceof NullNode);
 
     // No job with status
     jobResponseEntity =
-        controller.getAllFetcherQueryJobsByProjectId(TEST_PROJECT_ID, false, "finished");
+        controller.getAllFetcherQueryJobsByProjectId(TEST_PROJECT_ID, false, FINISHED);
     jsonResponse = objectMapper.writeValueAsString(jobResponseEntity);
     map = mapper.readTree(jsonResponse);
     Assert.assertTrue(map instanceof ArrayNode);
@@ -152,7 +155,7 @@ public class FetcherJobControllerTest {
 
     // Last job with status
     jobResponseEntity =
-        controller.getAllFetcherQueryJobsByProjectId(TEST_PROJECT_ID, true, "pending");
+        controller.getAllFetcherQueryJobsByProjectId(TEST_PROJECT_ID, true, PENDING);
     jsonResponse = objectMapper.writeValueAsString(jobResponseEntity);
     map = mapper.readTree(jsonResponse);
     Assert.assertTrue(map instanceof ArrayNode);
@@ -160,7 +163,7 @@ public class FetcherJobControllerTest {
 
     // No Last job with status
     jobResponseEntity =
-        controller.getAllFetcherQueryJobsByProjectId(TEST_PROJECT_ID, true, "finished");
+        controller.getAllFetcherQueryJobsByProjectId(TEST_PROJECT_ID, true, FINISHED);
     jsonResponse = objectMapper.writeValueAsString(jobResponseEntity);
     map = mapper.readTree(jsonResponse);
     Assert.assertTrue(map instanceof ArrayNode);
@@ -176,7 +179,7 @@ public class FetcherJobControllerTest {
     Assert.assertTrue(map instanceof ObjectNode);
     Assert.assertEquals(TEST_PROJECT_ID, map.get("projectId").asText());
     Assert.assertEquals(TIMEFRAME1, map.get("timeframe").asLong());
-    Assert.assertEquals(FetcherJobStatus.PENDING.toString(), map.get("status").asText());
+    Assert.assertEquals(PENDING.toString(), map.get("status").asText());
     Assert.assertTrue(map.get("id") instanceof NullNode);
     Assert.assertTrue(map.get("createdAt") instanceof NullNode);
 
@@ -186,7 +189,7 @@ public class FetcherJobControllerTest {
     Assert.assertTrue(map instanceof ObjectNode);
     Assert.assertEquals(TEST_PROJECT_ID, map.get("projectId").asText());
     Assert.assertEquals(TIMEFRAME2, map.get("timeframe").asLong());
-    Assert.assertEquals(FetcherJobStatus.PENDING.toString(), map.get("status").asText());
+    Assert.assertEquals(PENDING.toString(), map.get("status").asText());
     Assert.assertTrue(map.get("id") instanceof NullNode);
     Assert.assertTrue(map.get("createdAt") instanceof NullNode);
 
@@ -201,14 +204,14 @@ public class FetcherJobControllerTest {
     ObjectMapper mapper = new ObjectMapper();
 
     // Request 1
-    FetcherJob jobResponseEntity = controller.createNewFetcherQueryJob(TEST_PROJECT_ID, request1);
+    FetcherJob jobResponseEntity = controller.createNewFetcherQueryJob(request1);
     Mockito.verify(mockedFetcherJobService, Mockito.timeout(1000).times(1))
         .fetchAllQueriesJob(ArgumentMatchers.any(FetcherQueryJob.class), any());
     String jsonResponse = objectMapper.writeValueAsString(jobResponseEntity);
     JsonNode map = mapper.readTree(jsonResponse);
     Assert.assertEquals(TEST_PROJECT_ID, map.get("projectId").asText());
     Assert.assertEquals(TIMEFRAME1, map.get("timeframe").asLong());
-    Assert.assertEquals(FetcherJobStatus.PENDING.toString(), map.get("status").asText());
+    Assert.assertEquals(PENDING.toString(), map.get("status").asText());
     Assert.assertTrue(map.get("id") instanceof NullNode);
     Assert.assertTrue(map.get("createdAt") instanceof NullNode);
   }
@@ -218,14 +221,14 @@ public class FetcherJobControllerTest {
     ObjectMapper mapper = new ObjectMapper();
 
     // Request 2
-    FetcherJob jobResponseEntity = controller.createNewFetcherQueryJob(TEST_PROJECT_ID, request2);
+    FetcherJob jobResponseEntity = controller.createNewFetcherQueryJob(request2);
     Mockito.verify(mockedFetcherJobService, Mockito.timeout(1000).times(1))
         .fetchAllQueriesJob(ArgumentMatchers.any(FetcherQueryJob.class), any());
     String jsonResponse = objectMapper.writeValueAsString(jobResponseEntity);
     JsonNode map = mapper.readTree(jsonResponse);
     Assert.assertEquals(TEST_PROJECT_ID, map.get("projectId").asText());
     Assert.assertEquals(TIMEFRAME2, map.get("timeframe").asLong());
-    Assert.assertEquals(FetcherJobStatus.PENDING.toString(), map.get("status").asText());
+    Assert.assertEquals(PENDING.toString(), map.get("status").asText());
     Assert.assertTrue(map.get("id") instanceof NullNode);
     Assert.assertTrue(map.get("createdAt") instanceof NullNode);
   }

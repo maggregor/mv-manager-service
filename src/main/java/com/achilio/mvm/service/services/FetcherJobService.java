@@ -59,11 +59,14 @@ public class FetcherJobService {
   }
 
   public List<FetcherQueryJob> getAllQueryJobs(String projectId, FetcherJobStatus status) {
+    if (status == null) {
+      return fetcherJobRepository.findFetcherQueryJobsByProjectId(projectId);
+    }
     return fetcherJobRepository.findFetcherQueryJobsByProjectIdAndStatus(projectId, status);
   }
 
   public List<FetcherQueryJob> getAllQueryJobs(String projectId) {
-    return fetcherJobRepository.findFetcherQueryJobsByProjectId(projectId);
+    return getAllQueryJobs(projectId, null);
   }
 
   public Optional<FetcherQueryJob> getFetcherQueryJob(Long fetcherQueryJobId, String projectId) {
@@ -134,20 +137,18 @@ public class FetcherJobService {
 
   public Optional<FetcherStructJob> getLastFetcherStructJob(
       String projectId, FetcherJobStatus status) {
+    if (status == null) {
+      return fetcherJobRepository.findTopFetcherStructJobByProjectIdOrderByCreatedAtDesc(projectId);
+    }
     return fetcherJobRepository.findTopFetcherStructJobByProjectIdAndStatusOrderByCreatedAtDesc(
         projectId, status);
   }
 
-  public Optional<FetcherStructJob> getLastFetcherStructJob(String projectId) {
-    return fetcherJobRepository.findTopFetcherStructJobByProjectIdOrderByCreatedAtDesc(projectId);
-  }
-
   public List<FetcherStructJob> getAllStructJobs(String projectId, FetcherJobStatus status) {
+    if (status == null) {
+      return fetcherJobRepository.findFetcherStructJobsByProjectId(projectId);
+    }
     return fetcherJobRepository.findFetcherStructJobsByProjectIdAndStatus(projectId, status);
-  }
-
-  public List<FetcherStructJob> getAllStructJobs(String projectId) {
-    return fetcherJobRepository.findFetcherStructJobsByProjectId(projectId);
   }
 
   public Optional<FetcherStructJob> getFetcherStructJob(Long fetcherQueryJobId, String projectId) {

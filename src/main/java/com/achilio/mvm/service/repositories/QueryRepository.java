@@ -18,5 +18,5 @@ public interface QueryRepository extends JpaRepository<Query, String> {
 
   List<Query> findAllByProjectId(String projectId);
 
-  List<Query> findAllByProjectIdAndStartTimeLessThanEqual(String projectId, LocalDate date);
+  List<Query> findAllByProjectIdAndStartTimeGreaterThanEqual(String projectId, LocalDate date);
 }
