@@ -29,7 +29,6 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatchers;
@@ -97,21 +96,20 @@ public class FetcherJobServiceTest {
   }
 
   @Test
-  @Ignore
   public void syncDatasets() {
     when(mockProject.getProjectId()).thenReturn(PROJECT_ID);
     when(mockProjectService.getProject(any(), any())).thenReturn(mockProject);
-    when(mockProjectService.getProject(any())).thenReturn(mockProject);
+    //  when(mockProjectService.getProject(any())).thenReturn(mockProject);
     ADataset dataset1 = new ADataset(mockProject, "dataset1");
     ADataset dataset2 = new ADataset(mockProject, "dataset2");
     ADataset dataset3 = new ADataset(mockProject, "dataset3");
-    when(mockADatasetRepository.findByProjectAndDatasetName(mockProject, "dataset1"))
-        .thenReturn(Optional.of(dataset1));
+    // when(mockADatasetRepository.findByProjectAndDatasetName(mockProject, "dataset1"))
+    //    .thenReturn(Optional.of(dataset1));
     when(mockADatasetRepository.findByProjectAndDatasetName(mockProject, "dataset2"))
         .thenReturn(Optional.of(dataset2));
-    FetchedDataset fetchedDataset1 =
-        new DefaultFetchedDataset(
-            PROJECT_ID, "dataset1", "myProjectId:dataset1", null, null, null, null, null);
+    // when(mockProjectService.getDataset(dataset1.getDatasetId())).thenReturn(dataset1);
+    when(mockProjectService.getDataset(dataset2.getDatasetId())).thenReturn(dataset2);
+    // when(mockProjectService.getDataset(dataset3.getDatasetId())).thenReturn(dataset3);
     FetchedDataset fetchedDataset2 =
         new DefaultFetchedDataset(
             PROJECT_ID, "dataset2", "myProjectId:dataset2", null, null, null, null, null);
