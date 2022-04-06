@@ -1,17 +1,17 @@
 package com.achilio.mvm.service.visitors;
 
-import com.achilio.mvm.service.databases.entities.FetchedTable;
+import com.achilio.mvm.service.entities.ATable;
 import java.util.Set;
 
 public interface ModelBuilder {
 
-  default void registerTables(Set<FetchedTable> tables) {
+  default void registerTables(Set<ATable> tables) {
     tables.forEach(this::registerTable);
   }
 
-  void registerTable(FetchedTable table);
+  void registerTable(ATable table);
 
-  boolean isTableRegistered(FetchedTable table);
+  boolean isTableRegistered(ATable table);
 
-  Set<FetchedTable> getTables();
+  Set<ATable> getTables();
 }

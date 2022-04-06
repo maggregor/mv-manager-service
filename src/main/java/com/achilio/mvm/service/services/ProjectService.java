@@ -20,6 +20,7 @@ import com.achilio.mvm.service.repositories.ADatasetRepository;
 import com.achilio.mvm.service.repositories.ATableRepository;
 import com.achilio.mvm.service.repositories.ProjectRepository;
 import com.stripe.model.Product;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import javax.transaction.Transactional;
@@ -91,11 +92,6 @@ public class ProjectService {
 
   public boolean projectExists(String projectId) {
     return projectRepository.findByProjectId(projectId).isPresent();
-  }
-
-  public Project updateProjectSubscription(Project project, String subscriptionId) {
-    project.setStripeSubscriptionId(subscriptionId);
-    return projectRepository.save(project);
   }
 
   @Transactional
@@ -215,6 +211,11 @@ public class ProjectService {
     return projectRepository.save(project);
   }
 
+  public List<ADataset> getAllActivatedDatasets(String projectId, String teamName) {
+    getProject(projectId, teamName);
+    return datasetRepository.findAllByProject_ProjectIdAndActivated(projectId, true);
+  }
+
   public List<ADataset> getAllDatasets(String projectId, String teamName) {
     getProject(projectId, teamName);
     return datasetRepository.findAllByProject_ProjectId(projectId);
@@ -228,7 +229,8 @@ public class ProjectService {
   public GlobalQueryStatistics getStatistics(String projectId, String teamName, int days)
       throws Exception {
     Project project = getProject(projectId, teamName);
-    return queryService.getStatistics(project.getProjectId());
+    LocalDate from = LocalDate.now().minusDays(days);
+    return queryService.getStatistics(project.getProjectId(), from);
   }
 
   @Transactional
@@ -236,8 +238,7 @@ public class ProjectService {
     tableRepository.deleteByTableId(toDeleteTable.getTableId());
   }
 
-  public List<ATable> getAllTables(String projectId, String teamName) {
-    getProject(projectId, teamName);
+  public List<ATable> getAllTables(String projectId) {
     return tableRepository.findAllByProject_ProjectId(projectId);
   }
 

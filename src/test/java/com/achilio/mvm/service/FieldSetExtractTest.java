@@ -1,21 +1,24 @@
 package com.achilio.mvm.service;
 
-import static com.achilio.mvm.service.FetchedTableHelper.createFetchedTable;
 import static com.achilio.mvm.service.FieldSetHelper.createFieldSet;
+import static com.achilio.mvm.service.MockHelper.columnMock;
+import static com.achilio.mvm.service.MockHelper.queryMock;
+import static com.achilio.mvm.service.MockHelper.tableMock;
 import static com.achilio.mvm.service.visitors.FieldSetIneligibilityReason.CONTAINS_UNSUPPORTED_JOIN;
 import static com.achilio.mvm.service.visitors.FieldSetIneligibilityReason.DOES_NOT_CONTAIN_A_GROUP_BY;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.when;
 
-import com.achilio.mvm.service.databases.entities.FetchedQuery;
-import com.achilio.mvm.service.databases.entities.FetchedTable;
+import com.achilio.mvm.service.entities.AColumn;
+import com.achilio.mvm.service.entities.ATable;
+import com.achilio.mvm.service.entities.Query;
 import com.achilio.mvm.service.visitors.ATableId;
 import com.achilio.mvm.service.visitors.FieldSetExtract;
 import com.achilio.mvm.service.visitors.JoinType;
 import com.achilio.mvm.service.visitors.fields.AggregateField;
 import com.achilio.mvm.service.visitors.fields.FieldSet;
 import com.achilio.mvm.service.visitors.fields.ReferenceField;
-import com.google.zetasql.ZetaSQLType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -32,14 +35,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 public abstract class FieldSetExtractTest {
 
   private static final String PROJECT_ID = "myproject";
-  private static final String[][] SIMPLE_TABLE_COLUMNS =
-      new String[][] {
-        {"col1", ZetaSQLType.TypeKind.TYPE_STRING.name()},
-        {"col2", ZetaSQLType.TypeKind.TYPE_STRING.name()},
-        {"col3", ZetaSQLType.TypeKind.TYPE_INT64.name()},
-        {"col4", ZetaSQLType.TypeKind.TYPE_INT64.name()},
-        {"ts", ZetaSQLType.TypeKind.TYPE_TIMESTAMP.name()}
-      };
   private static final ATableId MAIN_TABLE_ID = ATableId.of(PROJECT_ID, "mydataset", "mytable");
   private static final ATableId SECONDARY_TABLE_ID =
       ATableId.of(PROJECT_ID, "mydataset", "myothertable");
@@ -47,23 +42,28 @@ public abstract class FieldSetExtractTest {
       ATableId.of(PROJECT_ID, "mydataset", "mythirdtable");
   private static final ATableId FOURTH_TABLE_ID =
       ATableId.of(PROJECT_ID, "myotherdataset", "myfourthtable");
-  private final FetchedTable MAIN_TABLE = createFetchedTable(MAIN_TABLE_ID, SIMPLE_TABLE_COLUMNS);
-  private final FetchedTable SECONDARY_TABLE =
-      createFetchedTable(SECONDARY_TABLE_ID, SIMPLE_TABLE_COLUMNS);
-  private final FetchedTable THIRD_TABLE = createFetchedTable(THIRD_TABLE_ID, SIMPLE_TABLE_COLUMNS);
-  private final FetchedTable FOURTH_TABLE =
-      createFetchedTable(FOURTH_TABLE_ID, SIMPLE_TABLE_COLUMNS);
+  private final ATable MAIN_TABLE = simpleTableMock(MAIN_TABLE_ID);
+  private final ATable SECONDARY_TABLE = simpleTableMock(SECONDARY_TABLE_ID);
+  private final ATable THIRD_TABLE = simpleTableMock(THIRD_TABLE_ID);
+  private final ATable FOURTH_TABLE = simpleTableMock(FOURTH_TABLE_ID);
   private FieldSetExtract extractor;
 
-  protected abstract FieldSetExtract createFieldSetExtract(
-      String projectId, Set<FetchedTable> metadata);
+  private ATable simpleTableMock(ATableId tableId) {
+    List<AColumn> columns = new ArrayList<>();
+    columns.add(columnMock("col1", "TYPE_STRING"));
+    columns.add(columnMock("col2", "TYPE_STRING"));
+    columns.add(columnMock("col3", "TYPE_INT64"));
+    columns.add(columnMock("col4", "TYPE_INT64"));
+    columns.add(columnMock("ts", "TYPE_TIMESTAMP"));
+    return tableMock(tableId, columns);
+  }
+
+  protected abstract FieldSetExtract createFieldSetExtract(Set<ATable> tables);
 
   @Before
   public void setUp() {
-    this.extractor =
-        createFieldSetExtract(
-            PROJECT_ID,
-            Sets.newLinkedHashSet(MAIN_TABLE, SECONDARY_TABLE, THIRD_TABLE, FOURTH_TABLE));
+    Set<ATable> t = Sets.newLinkedHashSet(MAIN_TABLE, SECONDARY_TABLE, THIRD_TABLE, FOURTH_TABLE);
+    this.extractor = createFieldSetExtract(t);
   }
 
   @Test
@@ -438,10 +438,8 @@ public abstract class FieldSetExtractTest {
   public void multipleExtracts() {
     final FieldSet EXPECTED_1 = fieldSetBuilder(MAIN_TABLE_ID).addRef("col1").build();
     final FieldSet EXPECTED_2 = fieldSetBuilder(SECONDARY_TABLE_ID).addRef("col2").build();
-    FetchedQuery q1 =
-        new FetchedQuery(PROJECT_ID, "SELECT col1 FROM myproject.mydataset.mytable GROUP BY 1");
-    FetchedQuery q2 =
-        new FetchedQuery(PROJECT_ID, "SELECT col2 FROM mydataset.myothertable GROUP BY 1");
+    Query q1 = queryMock("SELECT col1 FROM myproject.mydataset.mytable GROUP BY 1");
+    Query q2 = queryMock("SELECT col2 FROM mydataset.myothertable GROUP BY 1");
     assertExpectedFieldSet(extractor.extractAll(Arrays.asList(q1, q2)), EXPECTED_1, EXPECTED_2);
   }
 
@@ -517,12 +515,13 @@ public abstract class FieldSetExtractTest {
 
   private void assertExpectedFieldSet(
       String statement, String defaultDataset, FieldSet... expectedFieldSets) {
-    FetchedQuery query = new FetchedQuery(PROJECT_ID, statement);
-    query.setDefaultDataset(defaultDataset);
+    Query query = queryMock(statement);
+    when(query.hasDefaultDataset()).thenReturn(true);
+    when(query.getDefaultDataset()).thenReturn(defaultDataset);
     assertExpectedFieldSet(query, expectedFieldSets);
   }
 
-  private void assertExpectedFieldSet(FetchedQuery query, FieldSet... expectedFieldSets) {
+  private void assertExpectedFieldSet(Query query, FieldSet... expectedFieldSets) {
     assertExpectedFieldSet(extractor.extractAll(query), expectedFieldSets);
   }
 

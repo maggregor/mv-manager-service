@@ -13,6 +13,7 @@ import javax.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.codehaus.plexus.util.StringUtils;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
@@ -63,11 +64,15 @@ public class Query {
   @Column(name = "processed_bytes")
   private long processedBytes = 0;
 
+  @Column(name = "default_dataset")
+  private String defaultDataset = null;
+
   public Query(
       FetcherQueryJob lastFetcherQueryJob,
       String query,
       String id,
       String projectId,
+      String defaultDataset,
       boolean useMaterializedView,
       boolean useCache,
       LocalDate startTime,
@@ -77,10 +82,15 @@ public class Query {
     this.query = query;
     this.id = id;
     this.projectId = projectId;
+    this.defaultDataset = defaultDataset;
     this.useMaterializedView = useMaterializedView;
     this.useCache = useCache;
     this.startTime = startTime;
     this.billedBytes = statistics.getBilledBytes();
     this.processedBytes = statistics.getProcessedBytes();
+  }
+
+  public boolean hasDefaultDataset() {
+    return StringUtils.isNotEmpty(defaultDataset);
   }
 }

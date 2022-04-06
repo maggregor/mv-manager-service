@@ -30,17 +30,15 @@ import org.mockito.junit.MockitoJUnitRunner;
 public class QueryServiceTest {
 
   private final String PROJECT_ID1 = "myProjectId";
-  private final String PROJECT_ID2 = "myOtherProjectId";
-  private final String FETCHER_JOB_ID1 = "fetchedJobId1";
   private final String QUERY_ID1 = "queryId1";
   private final String QUERY_ID2 = "queryId2";
   private final LocalDate startTime = LocalDate.of(2020, 1, 8);
   private final QueryUsageStatistics stats = new QueryUsageStatistics(1, 100L, 10L);
   private final FetcherQueryJob JOB1 = new FetcherQueryJob(PROJECT_ID1);
   private final Query QUERY1 =
-      new Query(JOB1, "SELECT 1", QUERY_ID1, PROJECT_ID1, false, false, startTime, stats);
+      new Query(JOB1, "SELECT 1", QUERY_ID1, PROJECT_ID1, "", false, false, startTime, stats);
   private final Query QUERY2 =
-      new Query(JOB1, "SELECT 2", QUERY_ID2, PROJECT_ID1, false, false, startTime, stats);
+      new Query(JOB1, "SELECT 2", QUERY_ID2, PROJECT_ID1, "", false, false, startTime, stats);
   private final FetcherQueryJob JOB2 = new FetcherQueryJob(PROJECT_ID1);
   @InjectMocks private QueryService service;
   @Mock private QueryRepository mockQueryRepository;
@@ -126,9 +124,10 @@ public class QueryServiceTest {
 
   @Test
   public void getStatisticsByProject() {
-    when(mockQueryRepository.findAllByProjectId(PROJECT_ID1))
+    LocalDate from = LocalDate.now().minusDays(10);
+    when(mockQueryRepository.findAllByProjectIdAndStartTimeGreaterThanEqual(PROJECT_ID1, from))
         .thenReturn(Collections.singletonList(QUERY1));
-    GlobalQueryStatistics global = service.getStatistics(PROJECT_ID1);
+    GlobalQueryStatistics global = service.getStatistics(PROJECT_ID1, from);
     Assert.assertEquals(1, global.getTotalStatistics().getTotalQueries());
     Assert.assertEquals(10L, global.getTotalStatistics().getTotalProcessedBytes());
     Assert.assertEquals(100L, global.getTotalStatistics().getTotalBilledBytes());

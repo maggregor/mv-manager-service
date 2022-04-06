@@ -49,21 +49,27 @@ public class FetcherJobService {
   public FetcherJobService() {}
 
   public Optional<FetcherQueryJob> getLastFetcherQueryJob(String projectId) {
-    return fetcherJobRepository.findTopFetcherQueryJobByProjectIdOrderByCreatedAtDesc(projectId);
+    return getLastFetcherQueryJob(projectId, null);
   }
 
   public Optional<FetcherQueryJob> getLastFetcherQueryJob(
       String projectId, FetcherJobStatus status) {
+    if (status == null) {
+      return fetcherJobRepository.findTopFetcherQueryJobByProjectIdOrderByCreatedAtDesc(projectId);
+    }
     return fetcherJobRepository.findTopFetcherQueryJobByProjectIdAndStatusOrderByCreatedAtDesc(
         projectId, status);
   }
 
   public List<FetcherQueryJob> getAllQueryJobs(String projectId, FetcherJobStatus status) {
+    if (status == null) {
+      return fetcherJobRepository.findFetcherQueryJobsByProjectId(projectId);
+    }
     return fetcherJobRepository.findFetcherQueryJobsByProjectIdAndStatus(projectId, status);
   }
 
   public List<FetcherQueryJob> getAllQueryJobs(String projectId) {
-    return fetcherJobRepository.findFetcherQueryJobsByProjectId(projectId);
+    return getAllQueryJobs(projectId, null);
   }
 
   public Optional<FetcherQueryJob> getFetcherQueryJob(Long fetcherQueryJobId, String projectId) {
@@ -117,6 +123,7 @@ public class FetcherJobService {
         fetchedQuery.getQuery(),
         fetchedQuery.getGoogleJobId(),
         fetchedQuery.getProjectId(),
+        fetchedQuery.getDefaultDataset(),
         fetchedQuery.isUsingMaterializedView(),
         fetchedQuery.isUsingCache(),
         fetchedQuery.getDate(),
@@ -133,20 +140,18 @@ public class FetcherJobService {
 
   public Optional<FetcherStructJob> getLastFetcherStructJob(
       String projectId, FetcherJobStatus status) {
+    if (status == null) {
+      return fetcherJobRepository.findTopFetcherStructJobByProjectIdOrderByCreatedAtDesc(projectId);
+    }
     return fetcherJobRepository.findTopFetcherStructJobByProjectIdAndStatusOrderByCreatedAtDesc(
         projectId, status);
   }
 
-  public Optional<FetcherStructJob> getLastFetcherStructJob(String projectId) {
-    return fetcherJobRepository.findTopFetcherStructJobByProjectIdOrderByCreatedAtDesc(projectId);
-  }
-
   public List<FetcherStructJob> getAllStructJobs(String projectId, FetcherJobStatus status) {
+    if (status == null) {
+      return fetcherJobRepository.findFetcherStructJobsByProjectId(projectId);
+    }
     return fetcherJobRepository.findFetcherStructJobsByProjectIdAndStatus(projectId, status);
-  }
-
-  public List<FetcherStructJob> getAllStructJobs(String projectId) {
-    return fetcherJobRepository.findFetcherStructJobsByProjectId(projectId);
   }
 
   public Optional<FetcherStructJob> getFetcherStructJob(Long fetcherQueryJobId, String projectId) {
@@ -159,12 +164,12 @@ public class FetcherJobService {
     return fetcherJobRepository.save(job);
   }
 
-  @Async("asyncExecutor")
+  // @Async("asyncExecutor")
   public void syncAllStructsJob(FetcherStructJob fetcherStructJob, String teamName) {
     updateJobStatus(fetcherStructJob, FetcherJobStatus.WORKING);
     try {
       syncDatasets(fetcherStructJob, teamName);
-      Set<FetchedTable> allCurrentTables = syncTables(fetcherStructJob, teamName);
+      Set<FetchedTable> allCurrentTables = syncTables(fetcherStructJob);
       syncColumns(fetcherStructJob, teamName, allCurrentTables);
     } catch (Exception e) {
       updateJobStatus(fetcherStructJob, FetcherJobStatus.ERROR);
@@ -202,9 +207,9 @@ public class FetcherJobService {
   }
 
   @VisibleForTesting
-  public Set<FetchedTable> syncTables(FetcherStructJob fetcherStructJob, String teamName) {
-    Project project = projectService.getProject(fetcherStructJob.getProjectId(), teamName);
-    List<ATable> allATables = projectService.getAllTables(project.getProjectId(), teamName);
+  public Set<FetchedTable> syncTables(FetcherStructJob fetcherStructJob) {
+    Project project = projectService.getProject(fetcherStructJob.getProjectId());
+    List<ATable> allATables = projectService.getAllTables(project.getProjectId());
     Set<FetchedTable> allFetchedTables =
         fetcherService.fetchAllTables(project.getProjectId(), project.getConnection());
     List<ATable> allCurrentTables =

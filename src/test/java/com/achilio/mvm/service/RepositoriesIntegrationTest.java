@@ -61,6 +61,7 @@ public class RepositoriesIntegrationTest {
           "SELECT 1",
           GOOGLE_JOB_ID1,
           TEST_PROJECT_ID1,
+          "",
           false,
           false,
           LocalDate.of(2020, 1, 8),
@@ -71,6 +72,7 @@ public class RepositoriesIntegrationTest {
           "SELECT 2",
           GOOGLE_JOB_ID2,
           TEST_PROJECT_ID1,
+          "",
           false,
           false,
           LocalDate.of(2020, 1, 8),
@@ -81,6 +83,7 @@ public class RepositoriesIntegrationTest {
           "SELECT 1",
           GOOGLE_JOB_ID5,
           TEST_PROJECT_ID1,
+          "",
           false,
           false,
           LocalDate.of(2020, 1, 8),
@@ -92,6 +95,7 @@ public class RepositoriesIntegrationTest {
           "SELECT 2",
           GOOGLE_JOB_ID3,
           TEST_PROJECT_ID1,
+          "",
           false,
           false,
           LocalDate.of(2020, 1, 8),
@@ -104,6 +108,7 @@ public class RepositoriesIntegrationTest {
           "SELECT 1",
           GOOGLE_JOB_ID4,
           TEST_PROJECT_ID2,
+          "",
           false,
           false,
           LocalDate.of(2020, 1, 8),
@@ -139,6 +144,7 @@ public class RepositoriesIntegrationTest {
             "SELECT 2",
             GOOGLE_JOB_ID5,
             TEST_PROJECT_ID1,
+            "",
             false,
             false,
             LocalDate.of(2020, 1, 8),
@@ -338,14 +344,9 @@ public class RepositoriesIntegrationTest {
     String PROJECT_NAME2 = "Project 2";
     String DATASET_NAME1 = "myDataset1";
     String DATASET_NAME2 = "myDataset2";
-    String DATASET_NAME3 = "myDataset3";
     String TABLE_NAME1 = "myTable1";
-    String TABLE_NAME2 = "myTable2";
-    String TABLE_NAME3 = "myTable3";
     String COLUMN_NAME1 = "myColumn1";
-    String COLUMN_NAME2 = "myColumn2";
     String COLUMN_TYPE1 = "columnType1";
-    String COLUMN_TYPE2 = "columnType2";
 
     Project project1 = new Project(PROJECT_ID1, PROJECT_NAME1);
     Project project2 = new Project(PROJECT_ID2, PROJECT_NAME2);
@@ -369,5 +370,49 @@ public class RepositoriesIntegrationTest {
     assertEquals(
         String.format("%s.%s.%s#%s", PROJECT_ID1, DATASET_NAME1, TABLE_NAME1, COLUMN_NAME1),
         columns.get(0).getColumnId());
+  }
+
+  @Test
+  public void query_findAllByProjectIdAndStartTimeGreaterThanEqual() {
+    final String projectId = "theProjectId";
+    Query query = new Query();
+    query.setId("myId");
+    query.setProjectId(projectId);
+    LocalDate date = LocalDate.now();
+    query.setStartTime(date);
+    queryRepository.save(query);
+    List<Query> queries;
+    queries = queryRepository.findAllByProjectIdAndStartTimeGreaterThanEqual(projectId, date);
+    assertEquals(1, queries.size());
+    assertEquals("myId", queries.get(0).getId());
+    //
+    queryRepository.deleteAll();
+    queryRepository.save(simpleQuery(projectId, "id-1", LocalDate.now().minusDays(10)));
+    queryRepository.save(simpleQuery(projectId, "id-2", LocalDate.now().minusDays(5)));
+    queryRepository.save(simpleQuery(projectId, "id-3", LocalDate.now().minusDays(1)));
+    LocalDate from;
+    from = LocalDate.now().minusDays(100);
+    queries = queryRepository.findAllByProjectIdAndStartTimeGreaterThanEqual(projectId, from);
+    assertEquals(3, queries.size());
+    //
+    from = LocalDate.now().minusDays(9);
+    queries = queryRepository.findAllByProjectIdAndStartTimeGreaterThanEqual(projectId, from);
+    assertEquals(2, queries.size());
+    //
+    from = LocalDate.now().minusDays(4);
+    queries = queryRepository.findAllByProjectIdAndStartTimeGreaterThanEqual(projectId, from);
+    assertEquals(1, queries.size());
+    //
+    from = LocalDate.now();
+    queries = queryRepository.findAllByProjectIdAndStartTimeGreaterThanEqual(projectId, from);
+    assertEquals(0, queries.size());
+  }
+
+  private Query simpleQuery(String projectId, String id, LocalDate startTime) {
+    Query q = new Query();
+    q.setProjectId(projectId);
+    q.setId(id);
+    q.setStartTime(startTime);
+    return q;
   }
 }

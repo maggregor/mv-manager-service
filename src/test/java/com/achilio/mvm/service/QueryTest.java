@@ -22,6 +22,7 @@ public class QueryTest {
   private final String googleJobId = "google-id";
   private final LocalDate startTime = LocalDate.of(2020, 1, 8);
   private final QueryUsageStatistics stats = new QueryUsageStatistics(1, 10L, 100L);
+  private final String defaultDataset = "myDefaultDataset";
 
   @Test
   public void simpleValidation() {
@@ -31,6 +32,7 @@ public class QueryTest {
             queryStatement,
             googleJobId,
             projectId,
+            defaultDataset,
             useMaterializedView,
             useCache,
             startTime,
@@ -38,6 +40,7 @@ public class QueryTest {
     assertEquals(queryStatement, query.getQuery());
     assertEquals(googleJobId, query.getId());
     assertEquals(projectId, query.getProjectId());
+    assertEquals(defaultDataset, query.getDefaultDataset());
     assertFalse(useMaterializedView);
     assertFalse(useCache);
     assertEquals(startTime, query.getStartTime());

@@ -31,7 +31,7 @@ public class QueryController {
   @GetMapping(path = "/query/{projectId}", produces = MediaType.APPLICATION_JSON_VALUE)
   @ApiOperation("List all queries for a given projectId.\n")
   public List<Query> getAllQueriesByProjectId(@PathVariable String projectId) {
-    return queryService.getAllQueriesByProjectId(projectId);
+    return queryService.getAllQueries(projectId);
   }
 
   @GetMapping(path = "/query/{projectId}/{queryId}", produces = MediaType.APPLICATION_JSON_VALUE)

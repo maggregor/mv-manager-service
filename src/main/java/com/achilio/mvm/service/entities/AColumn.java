@@ -71,4 +71,8 @@ public class AColumn {
 
     return columnId.equals(aColumn.columnId);
   }
+
+  public boolean isDatasetActivated() {
+    return this.table.getDataset().isActivated();
+  }
 }

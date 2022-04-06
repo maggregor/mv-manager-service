@@ -1,71 +1,54 @@
 package com.achilio.mvm.service;
 
-import static org.junit.Assert.assertEquals;
+import static com.achilio.mvm.service.MockHelper.tableMock;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
-import com.achilio.mvm.service.databases.entities.FetchedTable;
+import com.achilio.mvm.service.entities.ATable;
 import com.achilio.mvm.service.visitors.ATableId;
 import com.achilio.mvm.service.visitors.ModelBuilder;
 import com.achilio.mvm.service.visitors.ZetaSQLExtract;
-import com.achilio.mvm.service.visitors.ZetaSQLModelBuilder;
-import java.util.HashMap;
-import org.junit.Before;
 import org.junit.Test;
 
 public class ModelBuilderTest {
 
-  private final FetchedTable mockFetchedTable = mock(FetchedTable.class);
-  private final FetchedTable mockFetchedTable2 = mock(FetchedTable.class);
-  private final FetchedTable mockFetchedTableSame = mock(FetchedTable.class);
-  private final FetchedTable mockFetchedTableWithoutProject = mock(FetchedTable.class);
-  private final ModelBuilder builder = new ZetaSQLExtract("myProject");
+  private final ATableId tableId1 = ATableId.of("myProject", "myDataset", "myTable");
+  private final ATableId tableId2 = ATableId.of("myProject", "myDataset", "myOtherTable");
+  private final ATableId tableIdWithoutProject = ATableId.of("myDataset", "myTable");
+  private final ATableId tableIdSame = ATableId.of("same", "same", "myTable");
 
-  @Before
-  public void setUp() {
-    ATableId tableId1 = ATableId.of("myProject", "myDataset", "myTable");
-    ATableId tableId2 = ATableId.of("myProject", "myDataset", "myOtherTable");
-    ATableId tableIdWithoutProject = ATableId.of("myDataset", "myTable");
-    ATableId tableIdSame = ATableId.of("same", "same", "myTable");
-    when(mockFetchedTable.getTableId()).thenReturn(tableId1);
-    when(mockFetchedTable.getColumns()).thenReturn(new HashMap<>());
-    when(mockFetchedTable2.getTableId()).thenReturn(tableId2);
-    when(mockFetchedTable2.getColumns()).thenReturn(new HashMap<>());
-    when(mockFetchedTableWithoutProject.getTableId()).thenReturn(tableIdWithoutProject);
-    when(mockFetchedTableWithoutProject.getColumns()).thenReturn(new HashMap<>());
-    when(mockFetchedTableSame.getTableId()).thenReturn(tableIdSame);
-    when(mockFetchedTableSame.getColumns()).thenReturn(new HashMap<>());
-  }
+  private final ATable mockATable = tableMock(tableId1);
+  private final ATable mockATable2 = tableMock(tableId2);
+  private final ATable mockATableSame = tableMock(tableIdSame);
+  private final ATable mockATableWithoutProject = tableMock(tableIdWithoutProject);
+  private final ModelBuilder builder = new ZetaSQLExtract();
 
   @Test
   public void isTableRegistered() {
-    assertFalse(builder.isTableRegistered(mockFetchedTable));
-    assertFalse(builder.isTableRegistered(mockFetchedTable2));
-    builder.registerTable(mockFetchedTable);
-    builder.registerTable(mockFetchedTable2);
-    assertTrue(builder.isTableRegistered(mockFetchedTable));
-    assertTrue(builder.isTableRegistered(mockFetchedTable2));
+    assertFalse(builder.isTableRegistered(mockATable));
+    assertFalse(builder.isTableRegistered(mockATable2));
+    builder.registerTable(mockATable);
+    builder.registerTable(mockATable2);
+    assertTrue(builder.isTableRegistered(mockATable));
+    assertTrue(builder.isTableRegistered(mockATable2));
   }
 
   @Test
   public void getters() {
     assertTrue(builder.getTables().isEmpty());
-    assertEquals("myProject", ((ZetaSQLModelBuilder) builder).getProjectId());
   }
 
   @Test
   public void isTableRegisteredWithoutProjectId() {
-    assertFalse(builder.isTableRegistered(mockFetchedTableWithoutProject));
-    builder.registerTable(mockFetchedTableWithoutProject);
-    assertTrue(builder.isTableRegistered(mockFetchedTableWithoutProject));
+    assertFalse(builder.isTableRegistered(mockATableWithoutProject));
+    builder.registerTable(mockATableWithoutProject);
+    assertTrue(builder.isTableRegistered(mockATableWithoutProject));
   }
 
   @Test
   public void registeredAmbiguousProjectAndDatasetNames() {
-    assertFalse(builder.isTableRegistered(mockFetchedTableSame));
-    builder.registerTable(mockFetchedTableSame);
-    assertTrue(builder.isTableRegistered(mockFetchedTableSame));
+    assertFalse(builder.isTableRegistered(mockATableSame));
+    builder.registerTable(mockATableSame);
+    assertTrue(builder.isTableRegistered(mockATableSame));
   }
 }

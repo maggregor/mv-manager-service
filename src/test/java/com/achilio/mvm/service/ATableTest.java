@@ -1,9 +1,10 @@
 package com.achilio.mvm.service;
 
+import static org.junit.Assert.assertEquals;
+
 import com.achilio.mvm.service.entities.ADataset;
 import com.achilio.mvm.service.entities.ATable;
 import com.achilio.mvm.service.entities.Project;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -21,9 +22,11 @@ public class ATableTest {
   @Test
   public void simpleValidationConstructor() {
     ATable table = new ATable(project, dataset, tableName);
-    Assert.assertEquals(tableId, table.getTableId());
-    Assert.assertEquals(project.getProjectId(), table.getProject().getProjectId());
-    Assert.assertEquals(dataset.getDatasetName(), table.getDataset().getDatasetName());
-    Assert.assertEquals(tableName, table.getTableName());
+    assertEquals(tableId, table.getTableId());
+    assertEquals(project.getProjectId(), table.getProject().getProjectId());
+    assertEquals(dataset.getDatasetName(), table.getDataset().getDatasetName());
+    assertEquals(tableName, table.getTableName());
+    assertEquals(projectId, table.getProjectId());
+    assertEquals(datasetName, table.getDatasetName());
   }
 }

@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 import com.achilio.mvm.service.controllers.responses.OptimizationResponse;
 import com.achilio.mvm.service.entities.Optimization;
 import com.achilio.mvm.service.entities.Optimization.Status;
+import java.util.Date;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,11 +24,11 @@ public class OptimizationResponseTest {
     when(mockOptimization.getProjectId()).thenReturn("myProject");
     when(mockOptimization.getQueryEligiblePercentage()).thenReturn(1.0);
     when(mockOptimization.getMvMaxPerTable()).thenReturn(5);
-    when(mockOptimization.getMvMaxPlan()).thenReturn(20);
     when(mockOptimization.getMvAppliedCount()).thenReturn(11);
     when(mockOptimization.getMvProposalCount()).thenReturn(15);
     when(mockOptimization.getUsername()).thenReturn("myUser");
     when(mockOptimization.getStatus()).thenReturn(Status.FINISHED);
+    when(mockOptimization.getCreatedDate()).thenReturn(new Date(1000));
   }
 
   @Test
@@ -38,9 +39,9 @@ public class OptimizationResponseTest {
     assertEquals("myUser", response.getUsername());
     assertEquals(Double.valueOf(1.0), response.getEligiblePercent());
     assertEquals(Integer.valueOf(5), response.getMvMaxPerTable());
-    assertEquals(Integer.valueOf(20), response.getMvMaxPlan());
     assertEquals(Integer.valueOf(11), response.getMvAppliedCount());
     assertEquals(Integer.valueOf(15), response.getMvProposalCount());
-    assertEquals(String.valueOf("Finished"), response.getStatus());
+    assertEquals("Finished", response.getStatus());
+    assertEquals(new Date(1000), response.getCreatedDate());
   }
 }

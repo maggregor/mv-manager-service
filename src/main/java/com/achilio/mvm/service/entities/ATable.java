@@ -1,5 +1,6 @@
 package com.achilio.mvm.service.entities;
 
+import java.util.List;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -7,6 +8,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
@@ -25,14 +27,15 @@ public class ATable {
 
   @ManyToOne Project project;
 
+  @OneToMany(mappedBy = "table")
+  List<AColumn> columns;
+
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Long id;
 
   @Column private String tableName;
-
   @ManyToOne private FetcherStructJob lastFetcherStructJob;
-
   @ManyToOne @JoinColumn private FetcherStructJob initialFetcherStructJob;
 
   @Column(unique = true)
@@ -79,5 +82,13 @@ public class ATable {
     ATable aTable = (ATable) o;
 
     return tableId.equals(aTable.tableId);
+  }
+
+  public String getDatasetName() {
+    return this.dataset.getDatasetName();
+  }
+
+  public String getProjectId() {
+    return this.project.getProjectId();
   }
 }
