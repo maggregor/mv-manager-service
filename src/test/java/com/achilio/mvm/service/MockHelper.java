@@ -6,9 +6,13 @@ import static org.mockito.Mockito.when;
 import com.achilio.mvm.service.entities.AColumn;
 import com.achilio.mvm.service.entities.ATable;
 import com.achilio.mvm.service.entities.Query;
+import com.achilio.mvm.service.models.UserProfile;
 import com.achilio.mvm.service.visitors.ATableId;
 import java.util.Collections;
 import java.util.List;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 public class MockHelper {
 
@@ -43,5 +47,19 @@ public class MockHelper {
     when(mockedQuery.getProjectId()).thenReturn(projectId);
     when(mockedQuery.getQuery()).thenReturn(statement);
     return mockedQuery;
+  }
+
+  public static void setupMockedAuthenticationContext() {
+    setupMockedAuthenticationContext("myDefaultTeam");
+  }
+
+  public static void setupMockedAuthenticationContext(String teamName) {
+    Authentication mockedAuth = mock(Authentication.class);
+    SecurityContext mockedSecurityContext = mock(SecurityContext.class);
+    UserProfile mockedUserProfile = mock(UserProfile.class);
+    when(mockedUserProfile.getTeamName()).thenReturn(teamName);
+    when(mockedAuth.getDetails()).thenReturn(mockedUserProfile);
+    when(mockedSecurityContext.getAuthentication()).thenReturn(mockedAuth);
+    SecurityContextHolder.setContext(mockedSecurityContext);
   }
 }

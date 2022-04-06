@@ -4,6 +4,7 @@ import static com.achilio.mvm.service.entities.FetcherJob.FetcherJobStatus.FINIS
 import static com.achilio.mvm.service.entities.FetcherJob.FetcherJobStatus.PENDING;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.achilio.mvm.service.controllers.FetcherJobController;
@@ -11,8 +12,10 @@ import com.achilio.mvm.service.controllers.requests.FetcherQueryJobRequest;
 import com.achilio.mvm.service.entities.FetcherJob;
 import com.achilio.mvm.service.entities.FetcherJob.FetcherJobStatus;
 import com.achilio.mvm.service.entities.FetcherQueryJob;
+import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.exceptions.FetcherJobNotFoundException;
 import com.achilio.mvm.service.services.FetcherJobService;
+import com.achilio.mvm.service.services.ProjectService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -52,9 +55,11 @@ public class FetcherJobControllerTest {
 
   @InjectMocks FetcherJobController controller;
   @Mock private FetcherJobService mockedFetcherJobService;
+  @Mock private ProjectService mockedProjectService;
 
   @Before
   public void setup() {
+    MockHelper.setupMockedAuthenticationContext();
     realFetcherJob3.setStatus(FetcherJobStatus.FINISHED);
     doNothing().when(mockedFetcherJobService).fetchAllQueriesJob(any(), any());
     when(mockedFetcherJobService.getAllQueryJobs(TEST_PROJECT_ID))
@@ -77,6 +82,7 @@ public class FetcherJobControllerTest {
         .thenReturn(realFetcherJob1);
     when(mockedFetcherJobService.createNewFetcherQueryJob(TEST_PROJECT_ID, request2))
         .thenReturn(realFetcherJob2);
+    when(mockedProjectService.getProject(any(), any())).thenReturn(mock(Project.class));
   }
 
   @Test

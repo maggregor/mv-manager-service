@@ -49,11 +49,14 @@ public class FetcherJobService {
   public FetcherJobService() {}
 
   public Optional<FetcherQueryJob> getLastFetcherQueryJob(String projectId) {
-    return fetcherJobRepository.findTopFetcherQueryJobByProjectIdOrderByCreatedAtDesc(projectId);
+    return getLastFetcherQueryJob(projectId, null);
   }
 
   public Optional<FetcherQueryJob> getLastFetcherQueryJob(
       String projectId, FetcherJobStatus status) {
+    if (status == null) {
+      return fetcherJobRepository.findTopFetcherQueryJobByProjectIdOrderByCreatedAtDesc(projectId);
+    }
     return fetcherJobRepository.findTopFetcherQueryJobByProjectIdAndStatusOrderByCreatedAtDesc(
         projectId, status);
   }

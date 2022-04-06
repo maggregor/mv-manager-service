@@ -51,7 +51,7 @@ public class FetcherJobController {
       @RequestParam String projectId,
       @RequestParam(required = false) Boolean last,
       @RequestParam(required = false) FetcherJobStatus status) {
-    projectService.getProject(projectId);
+    projectService.getProject(projectId, getContextTeamName());
     if (Boolean.TRUE == last) {
       Optional<FetcherQueryJob> optionalFetcherJob;
       optionalFetcherJob = fetcherJobService.getLastFetcherQueryJob(projectId, status);
@@ -64,7 +64,7 @@ public class FetcherJobController {
   @ApiOperation("Get a fetcher query job for a the given fetcherQueryJobId.")
   public FetcherQueryJob getFetcherQueryJob(
       @RequestParam String projectId, @PathVariable Long fetcherQueryJobId) {
-    projectService.getProject(projectId);
+    projectService.getProject(projectId, getContextTeamName());
     Optional<FetcherQueryJob> optionalFetcherJob =
         fetcherJobService.getFetcherQueryJob(fetcherQueryJobId, projectId);
     if (!optionalFetcherJob.isPresent()) {
@@ -77,7 +77,7 @@ public class FetcherJobController {
   @ApiOperation("Create and start a new query fetching job")
   public FetcherQueryJob createNewFetcherQueryJob(@RequestBody FetcherQueryJobRequest payload) {
     String projectId = payload.getProjectId();
-    projectService.getProject(projectId);
+    projectService.getProject(projectId, getContextTeamName());
     FetcherQueryJob currentJob = fetcherJobService.createNewFetcherQueryJob(projectId, payload);
     LOGGER.info("Starting FetcherQueryJob {}", currentJob.getId());
     fetcherJobService.fetchAllQueriesJob(currentJob, getContextTeamName());
@@ -94,7 +94,7 @@ public class FetcherJobController {
       @RequestParam String projectId,
       @RequestParam(required = false) Boolean last,
       @RequestParam(required = false) FetcherJobStatus status) {
-    projectService.getProject(projectId);
+    projectService.getProject(projectId, getContextTeamName());
     if (Boolean.TRUE == last) {
       Optional<FetcherStructJob> optionalFetcherJob;
       optionalFetcherJob = fetcherJobService.getLastFetcherStructJob(projectId, status);
@@ -107,7 +107,7 @@ public class FetcherJobController {
   @ApiOperation("Get a fetcher query job for a given id.")
   public FetcherStructJob getFetcherStructJob(
       @PathVariable Long fetcherQueryJobId, @RequestParam String projectId) {
-    projectService.getProject(projectId);
+    projectService.getProject(projectId, getContextTeamName());
     Optional<FetcherStructJob> optionalFetcherJob =
         fetcherJobService.getFetcherStructJob(fetcherQueryJobId, projectId);
     if (!optionalFetcherJob.isPresent()) {

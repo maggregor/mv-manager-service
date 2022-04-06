@@ -6,7 +6,6 @@ import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.achilio.mvm.service.controllers.ProjectController;
@@ -20,7 +19,6 @@ import com.achilio.mvm.service.entities.ADataset;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
-import com.achilio.mvm.service.models.UserProfile;
 import com.achilio.mvm.service.services.ProjectService;
 import com.achilio.mvm.service.services.StripeService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -40,9 +38,6 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 @ExtendWith(MockitoExtension.class)
 @RunWith(MockitoJUnitRunner.class)
@@ -67,18 +62,12 @@ public class ProjectControllerTest {
   @InjectMocks ProjectController controller;
   @Mock ProjectService mockedProjectService;
   @Mock StripeService mockedStripeService;
-  @Mock private UserProfile mockedUserProfile;
 
   @Before
   public void setup() throws JsonProcessingException {
-    Authentication mockedAuth = mock(Authentication.class);
-    SecurityContext mockedSecurityContext = mock(SecurityContext.class);
+    MockHelper.setupMockedAuthenticationContext(TEAM_NAME1);
     when(mockedProjectService.getAllActivatedProjects(any())).thenReturn(Collections.emptyList());
     doNothing().when(mockedStripeService).updateSubscriptionQuantity(any(), any());
-    when(mockedUserProfile.getTeamName()).thenReturn(TEAM_NAME1);
-    when(mockedAuth.getDetails()).thenReturn(mockedUserProfile);
-    when(mockedSecurityContext.getAuthentication()).thenReturn(mockedAuth);
-    SecurityContextHolder.setContext(mockedSecurityContext);
   }
 
   @Test
