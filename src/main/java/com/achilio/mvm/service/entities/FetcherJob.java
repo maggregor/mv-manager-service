@@ -1,6 +1,6 @@
 package com.achilio.mvm.service.entities;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
@@ -30,7 +30,7 @@ public class FetcherJob {
 
   @Column(name = "created_at", updatable = false)
   @CreationTimestamp
-  private LocalDateTime createdAt;
+  private Date createdAt;
 
   @Column(name = "project_id", nullable = false)
   private String projectId;
@@ -54,7 +54,7 @@ public class FetcherJob {
     this.id = id;
   }
 
-  public LocalDateTime getCreatedAt() {
+  public Date getCreatedAt() {
     return createdAt;
   }
 

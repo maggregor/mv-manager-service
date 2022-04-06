@@ -202,8 +202,8 @@ public class RepositoriesIntegrationTest {
     FetcherQueryJob job = optionalJob.get();
     Assert.assertEquals(TEST_PROJECT_ID1, job.getProjectId());
     Assert.assertNotNull(job.getCreatedAt());
-    allJobs.forEach(j -> job.getCreatedAt().isAfter(j.getCreatedAt()));
-    job.getCreatedAt().isEqual(lastJob.getCreatedAt());
+    allJobs.forEach(j -> job.getCreatedAt().toInstant().isAfter(j.getCreatedAt().toInstant()));
+    assertEquals(job.getCreatedAt(), lastJob.getCreatedAt());
     Assert.assertEquals(14, job.getTimeframe());
   }
 

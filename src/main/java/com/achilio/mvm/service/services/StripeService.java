@@ -81,10 +81,6 @@ public class StripeService {
     return subscriptions.get(0);
   }
 
-  public Customer getCustomer(String customerId) throws StripeException {
-    return Customer.retrieve(customerId);
-  }
-
   public List<Product> getAllProducts() throws StripeException {
     Stripe.apiKey = API_KEY;
     return Product.list(ProductListParams.builder().build()).getData().stream()

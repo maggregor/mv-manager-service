@@ -68,10 +68,6 @@ public class FetcherJobService {
     return fetcherJobRepository.findFetcherQueryJobsByProjectIdAndStatus(projectId, status);
   }
 
-  public List<FetcherQueryJob> getAllQueryJobs(String projectId) {
-    return getAllQueryJobs(projectId, null);
-  }
-
   public Optional<FetcherQueryJob> getFetcherQueryJob(Long fetcherQueryJobId, String projectId) {
     return fetcherJobRepository.findFetcherQueryJobByIdAndProjectId(fetcherQueryJobId, projectId);
   }

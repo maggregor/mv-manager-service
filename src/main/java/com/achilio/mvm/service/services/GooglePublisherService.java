@@ -158,20 +158,6 @@ public class GooglePublisherService {
     }
   }
 
-  public void publishProjectActivation(String projectId)
-      throws IOException, ExecutionException, InterruptedException {
-    String message = new ObjectMapper().writeValueAsString(Collections.emptyList());
-    if (publishMessage(
-        buildMaterializedViewsPubsubMessage(projectId, message, CMD_TYPE_WORKSPACE, false),
-        EXECUTOR_TOPIC_NAME)) {
-      LOGGER.info("Activating project {}", projectId);
-    } else {
-      LOGGER.info(
-          "Project {} is activated in database. But pubsub has not been sent and Workspace may not be created",
-          projectId);
-    }
-  }
-
   public String buildSchedulerMessage(List<Project> projects) throws JsonProcessingException {
     List<Map<String, String>> entries =
         projects.stream()
