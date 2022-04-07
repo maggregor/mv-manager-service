@@ -160,6 +160,7 @@ public class ProjectService {
         "Project {} is being deactivated. Turning off automatic mode", project.getProjectId());
     project.setActivated(false);
     project.setAutomaticAvailable(false);
+    project.setMvMaxPerTableLimit(0);
     projectRepository.save(project);
   }
 
