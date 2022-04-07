@@ -46,7 +46,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 public class ProjectServiceTest {
 
   private static final String TEAM_NAME1 = "myTeamName";
-  private static final String TEAM_NOT_EXISTS = "notExistsTeamName";
   private static final Long CONNECTION_ID = 1L;
   private static final String CONNECTION_CONTENT = "serviceAccountContent";
   private static final UserProfile USER_PROFILE_1 =
@@ -54,7 +53,6 @@ public class ProjectServiceTest {
   private static final String TEST_PROJECT_ID1 = "achilio-dev";
   private static final String TEST_PROJECT_ID2 = "other-project";
   private static final String TEST_PROJECT_ID3 = "new-project";
-  private static final String PROJECT_NOT_EXISTS = "notExists";
   private static final String TEST_PROJECT_NAME1 = "Achilio Dev";
   private static final String TEST_PROJECT_NAME2 = "Other Project";
   private static final String TEST_PROJECT_NAME3 = "New Project";
@@ -64,7 +62,6 @@ public class ProjectServiceTest {
   private static final String TEST_DATASET_NAME1 = "nyc_trips";
   private static final String TEST_DATASET_NAME2 = "another_one";
   private static final String TEST_DATASET_NAME3 = "other_dataset";
-  private static final String ORGANIZATION_NAME = "achilio.com";
   private static final String STRIPE_SUBSCRIPTION_ID = "sub_123456";
   private static final Project project1 =
       new Project(TEST_PROJECT_ID1, TEST_PROJECT_NAME1, STRIPE_SUBSCRIPTION_ID);
@@ -186,9 +183,9 @@ public class ProjectServiceTest {
   public void deleteProject() {
     project1.setTeamName(TEAM_NAME1);
     project1.setActivated(true);
-    when(mockedProjectRepository.findByProjectIdAndTeamName(TEST_PROJECT_ID1, TEAM_NAME1))
+    when(mockedProjectRepository.findByProjectId(TEST_PROJECT_ID1))
         .thenReturn(Optional.of(project1));
-    service.deleteProject(TEST_PROJECT_ID1, TEAM_NAME1);
+    service.deleteProject(TEST_PROJECT_ID1);
     Mockito.verify(mockedProjectRepository, Mockito.timeout(1000).times(1))
         .save(any(Project.class));
     assertFalse(project1.isActivated());
@@ -196,9 +193,8 @@ public class ProjectServiceTest {
 
   @Test
   public void deleteProject__whenNotFound_throwException() {
-    when(mockedProjectRepository.findByProjectIdAndTeamName(TEST_PROJECT_ID1, TEAM_NAME1))
-        .thenReturn(Optional.empty());
-    service.deleteProject(TEST_PROJECT_ID1, TEAM_NAME1);
+    when(mockedProjectRepository.findByProjectId(TEST_PROJECT_ID1)).thenReturn(Optional.empty());
+    service.deleteProject(TEST_PROJECT_ID1);
     Mockito.verify(mockedProjectRepository, Mockito.timeout(1000).times(0))
         .save(any(Project.class));
   }

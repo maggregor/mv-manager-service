@@ -93,24 +93,6 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     }
   }
 
-  public BigQueryDatabaseFetcher(final GoogleCredentials credentials, final String projectId)
-      throws ProjectNotFoundException {
-    BigQueryOptions.Builder bqOptBuilder = BigQueryOptions.newBuilder().setCredentials(credentials);
-    ResourceManagerOptions.Builder rmOptBuilder =
-        ResourceManagerOptions.newBuilder().setCredentials(credentials);
-    if (StringUtils.isNotEmpty(projectId)) {
-      // Change default project of BigQuery instance
-      bqOptBuilder.setProjectId(projectId);
-      rmOptBuilder.setProjectId(projectId);
-    }
-    this.bigquery = bqOptBuilder.build().getService();
-    this.resourceManager = rmOptBuilder.build().getService();
-    // Checks if the Google credentials have access.
-    if (StringUtils.isNotEmpty(projectId)) {
-      fetchProject(projectId);
-    }
-  }
-
   @Override
   public List<FetchedQuery> fetchAllQueries() {
     return fetchAllQueriesFrom(0);
@@ -126,6 +108,7 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
 
   @Override
   public FetchedProject fetchProject(String projectId) throws ProjectNotFoundException {
+    projectId = projectId.toLowerCase();
     Project project = resourceManager.get(projectId);
     if (project == null) {
       throw new ProjectNotFoundException(projectId);

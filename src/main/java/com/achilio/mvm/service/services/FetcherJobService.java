@@ -230,7 +230,7 @@ public class FetcherJobService {
   @VisibleForTesting
   public void syncDatasets(FetcherStructJob fetcherStructJob, String teamName) {
     Project project = projectService.getProject(fetcherStructJob.getProjectId(), teamName);
-    List<ADataset> allADatasets = projectService.getAllDatasets(project.getProjectId(), teamName);
+    List<ADataset> allADatasets = projectService.getAllDatasets(project.getProjectId());
     List<ADataset> allFetchedDatasets =
         fetcherService
             .fetchAllDatasets(fetcherStructJob.getProjectId(), project.getConnection())

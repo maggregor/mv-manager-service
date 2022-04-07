@@ -1,22 +1,23 @@
 package com.achilio.mvm.service.services;
 
 import com.achilio.mvm.service.OptimizerApplication;
+import com.achilio.mvm.service.entities.Connection;
 import com.achilio.mvm.service.entities.Optimization;
 import com.achilio.mvm.service.entities.OptimizationResult;
 import com.achilio.mvm.service.entities.Project;
+import com.achilio.mvm.service.entities.ServiceAccountConnection;
+import com.achilio.mvm.service.models.OptimizationPublishMessage;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.cloud.pubsub.v1.Publisher;
 import com.google.protobuf.ByteString;
 import com.google.pubsub.v1.PubsubMessage;
 import com.google.pubsub.v1.TopicName;
-import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
@@ -33,15 +34,15 @@ public class GooglePublisherService {
 
   private static final String ATTRIBUTE_CMD_TYPE = "cmdType";
   private static final String ATTRIBUTE_PROJECT_ID = "projectId";
-  private static final String ATTRIBUTE_ACCESS_TOKEN = "accessToken";
   private static final String CMD_TYPE_APPLY = "apply";
-  private static final String CMD_TYPE_WORKSPACE = "workspace";
   private static final String CMD_TYPE_DESTROY = "destroy";
+  private static final String CMD_TYPE_WORKSPACE = "workspace";
   private static final Logger LOGGER = LoggerFactory.getLogger(OptimizerApplication.class);
-
   private boolean PUBLISHER_ENABLED;
   private TopicName EXECUTOR_TOPIC_NAME;
   private TopicName SCHEDULER_TOPIC_NAME;
+
+  @Autowired private ProjectService projectService;
 
   public GooglePublisherService() {
     new GooglePublisherService(false, "achilio-dev", "mvExecutorTopic", "mvScheduleManagerTopic");
@@ -93,12 +94,12 @@ public class GooglePublisherService {
       return false;
     }
     try {
-      String formattedMessage = buildMaterializedViewsMessage(mViews);
+      Connection c = projectService.getProject(projectId).getConnection();
+      String serviceAccountKey = ((ServiceAccountConnection) c).getServiceAccountKey();
+      String formattedMessage = buildOptimizationMessage(serviceAccountKey, mViews);
       Boolean published =
           publishMessage(
-              buildMaterializedViewsPubsubMessage(
-                  projectId, formattedMessage, CMD_TYPE_APPLY, true),
-              EXECUTOR_TOPIC_NAME);
+              buildPubSubMessage(projectId, formattedMessage, CMD_TYPE_APPLY), EXECUTOR_TOPIC_NAME);
       if (published) {
         LOGGER.info("{} results published for the project {}", mViews.size(), projectId);
         return true;
@@ -106,38 +107,35 @@ public class GooglePublisherService {
     } catch (JsonProcessingException e) {
       LOGGER.error("Error during results JSON formatting", e);
       return false;
-    } catch (IOException | ExecutionException | InterruptedException e) {
-      LOGGER.error("Results publishing failed for the project {}", projectId, e);
-      return false;
     }
     return false;
   }
 
-  public String buildMaterializedViewsMessage(List<OptimizationResult> mViews)
+  public String buildOptimizationMessage(String serviceAccount, List<OptimizationResult> mViews)
       throws JsonProcessingException {
-    List<Map<String, String>> entries =
+    OptimizationPublishMessage message = new OptimizationPublishMessage();
+    List<Map<String, String>> results =
         mViews.stream()
             .filter(Objects::nonNull)
             .filter(result -> StringUtils.isNotEmpty(result.getStatement()))
             .map(this::toResultEntry)
             .collect(Collectors.toList());
-    return new ObjectMapper().writeValueAsString(entries);
+    message.setOptimizationResults(results);
+    message.setServiceAccount(serviceAccount);
+    return new ObjectMapper().writeValueAsString(message);
   }
 
   public void publishDestroyMaterializedViews(String projectId) {
     try {
       String message = new ObjectMapper().writeValueAsString(Collections.emptyList());
       if (publishMessage(
-          buildMaterializedViewsPubsubMessage(projectId, message, CMD_TYPE_DESTROY, true),
-          EXECUTOR_TOPIC_NAME)) {
+          buildPubSubMessage(projectId, message, CMD_TYPE_DESTROY), EXECUTOR_TOPIC_NAME)) {
         LOGGER.info("All MMVs destroyed for the project {}", projectId);
       } else {
         LOGGER.info("No actual materialized view will be destroyed");
       }
     } catch (JsonProcessingException e) {
       LOGGER.error("Error during results JSON formatting", e);
-    } catch (IOException | ExecutionException | InterruptedException e) {
-      LOGGER.error("Results publishing failed for the project {}", projectId, e);
     }
   }
 
@@ -145,7 +143,7 @@ public class GooglePublisherService {
     try {
       String formattedMessage = buildSchedulerMessage(projects);
       if (publishMessage(
-          buildSchedulerPubSubMessage(CMD_TYPE_APPLY, formattedMessage), SCHEDULER_TOPIC_NAME)) {
+          buildPubSubMessage(CMD_TYPE_APPLY, formattedMessage), SCHEDULER_TOPIC_NAME)) {
         LOGGER.info("Published update of all projects schedulers");
       } else {
         LOGGER.info(
@@ -153,8 +151,6 @@ public class GooglePublisherService {
       }
     } catch (JsonProcessingException e) {
       LOGGER.error("Error during results JSON formatting", e);
-    } catch (IOException | ExecutionException | InterruptedException e) {
-      LOGGER.error("Automatic scheduler publishing failed", e);
     }
   }
 
@@ -169,32 +165,22 @@ public class GooglePublisherService {
     return new ObjectMapper().writeValueAsString(entries);
   }
 
-  public PubsubMessage buildSchedulerPubSubMessage(String cmdType, String message) {
+  public PubsubMessage buildPubSubMessage(String cmdType, String message) {
+    return buildPubSubMessage(null, cmdType, message);
+  }
+
+  public PubsubMessage buildPubSubMessage(String projectId, String cmdType, String message) {
     PubsubMessage.Builder builder =
         PubsubMessage.newBuilder().putAttributes(ATTRIBUTE_CMD_TYPE, cmdType);
+    if (StringUtils.isNotEmpty(projectId)) {
+      builder.putAttributes(ATTRIBUTE_PROJECT_ID, projectId);
+    }
     ByteString data = ByteString.copyFromUtf8(message);
     builder.setData(data);
     return builder.build();
   }
 
-  public PubsubMessage buildMaterializedViewsPubsubMessage(
-      String projectId, String message, String cmdType, boolean requireAccessToken) {
-    PubsubMessage.Builder builder =
-        PubsubMessage.newBuilder()
-            .putAttributes(ATTRIBUTE_CMD_TYPE, cmdType)
-            .putAttributes(ATTRIBUTE_PROJECT_ID, projectId);
-    if (requireAccessToken) {
-      builder.putAttributes(ATTRIBUTE_ACCESS_TOKEN, "");
-    }
-    if (StringUtils.isNotEmpty(message)) {
-      ByteString data = ByteString.copyFromUtf8(message);
-      builder.setData(data);
-    }
-    return builder.build();
-  }
-
-  public Boolean publishMessage(PubsubMessage pubsubMessage, TopicName topicName)
-      throws IOException, ExecutionException, InterruptedException {
+  public Boolean publishMessage(PubsubMessage pubsubMessage, TopicName topicName) {
     Publisher publisher = null;
     if (!PUBLISHER_ENABLED) {
       LOGGER.info(
@@ -212,7 +198,10 @@ public class GooglePublisherService {
     } finally {
       if (publisher != null) {
         publisher.shutdown();
-        publisher.awaitTermination(1, TimeUnit.MINUTES);
+        try {
+          publisher.awaitTermination(1, TimeUnit.MINUTES);
+        } catch (InterruptedException ignored) {
+        }
       }
     }
     LOGGER.info(
@@ -221,5 +210,10 @@ public class GooglePublisherService {
         pubsubMessage.getAttributesMap(),
         topicName);
     return true;
+  }
+
+  public void publishNewProjectRegistered(String projectId) {
+    final String msg = "New project registered" + projectId;
+    publishMessage(buildPubSubMessage(projectId, CMD_TYPE_WORKSPACE, msg), EXECUTOR_TOPIC_NAME);
   }
 }

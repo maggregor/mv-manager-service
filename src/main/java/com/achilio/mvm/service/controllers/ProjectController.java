@@ -73,7 +73,8 @@ public class ProjectController {
   @ApiOperation("Unregister and delete a project")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteProject(@PathVariable final String projectId) {
-    projectService.deleteProject(projectId, getContextTeamName());
+    projectService.getProject(projectId, getContextTeamName());
+    projectService.deleteProject(projectId);
     refreshStripeProjectQuantity();
   }
 
@@ -82,6 +83,7 @@ public class ProjectController {
   @ResponseStatus(HttpStatus.ACCEPTED)
   public ProjectResponse updateProject(
       @PathVariable final String projectId, @RequestBody final UpdateProjectRequest payload) {
+    projectService.getProject(projectId, getContextTeamName());
     Project updatedProject = projectService.updateProject(projectId, payload);
     return toProjectResponse(updatedProject);
   }
@@ -94,6 +96,7 @@ public class ProjectController {
       @PathVariable final String projectId,
       @PathVariable final String datasetName,
       @RequestBody final UpdateDatasetRequestResponse payload) {
+    projectService.getProject(projectId, getContextTeamName());
     return new UpdateDatasetRequestResponse(
         projectService.updateDataset(projectId, datasetName, payload.isActivated()));
   }
@@ -101,7 +104,8 @@ public class ProjectController {
   @GetMapping(path = "/project/{projectId}/dataset", produces = APPLICATION_JSON_VALUE)
   @ApiOperation("Get all dataset for a given projectId")
   public List<DatasetResponse> getAllDatasets(@PathVariable final String projectId) {
-    return projectService.getAllDatasets(projectId, getContextTeamName()).stream()
+    projectService.getProject(projectId, getContextTeamName());
+    return projectService.getAllDatasets(projectId).stream()
         .map(this::toDatasetResponse)
         .collect(Collectors.toList());
   }
@@ -112,8 +116,8 @@ public class ProjectController {
   @ApiOperation("Get a single dataset for a given projectId")
   public DatasetResponse getDataset(
       @PathVariable final String projectId, @PathVariable final String datasetName) {
-    FetchedDataset fetchedDataset =
-        projectService.getFetchedDataset(projectId, getContextTeamName(), datasetName);
+    projectService.getProject(projectId, getContextTeamName());
+    FetchedDataset fetchedDataset = projectService.getFetchedDataset(projectId, datasetName);
     return toDatasetResponse(fetchedDataset);
   }
 
@@ -123,8 +127,8 @@ public class ProjectController {
   @ApiOperation("Get statistics of queries grouped per days for charts")
   public AggregatedStatisticsResponse getKPIStatistics(
       @PathVariable final String projectId, @PathVariable final int days) throws Exception {
-    GlobalQueryStatistics statistics =
-        projectService.getStatistics(projectId, getContextTeamName(), days);
+    projectService.getProject(projectId, getContextTeamName());
+    GlobalQueryStatistics statistics = projectService.getStatistics(projectId, days);
     return toAggregatedStatistics(statistics);
   }
 

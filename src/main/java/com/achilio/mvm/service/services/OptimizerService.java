@@ -62,13 +62,13 @@ public class OptimizerService {
   }
 
   @Async("asyncExecutor")
-  public void optimizeProject(Optimization o, String teamName) {
+  public void optimizeProject(Optimization o) {
     try {
       String projectId = o.getProjectId();
       int analysisTimeframe = o.getAnalysisTimeframe();
       int mvMaxPerTable = o.getMvMaxPerTable();
       int maxMvPerTable = Math.min(GOOGLE_MAX_MV_PER_TABLE, mvMaxPerTable);
-      List<ADataset> datasets = projectService.getAllActivatedDatasets(projectId, teamName);
+      List<ADataset> datasets = projectService.getAllActivatedDatasets(projectId);
       LOGGER.info("Run a new optimization on {} with activated datasets {}", projectId, datasets);
       LOGGER.info("Username used for optimization {} is {}", o.getId(), o.getUsername());
       o.setMvMaxPerTable(maxMvPerTable);

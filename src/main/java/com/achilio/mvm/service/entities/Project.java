@@ -10,7 +10,6 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -102,10 +101,6 @@ public class Project {
 
   public String getProjectName() {
     return projectName;
-  }
-
-  public void setProjectName(String projectName) {
-    this.projectName = projectName;
   }
 
   public String getTeamName() {
@@ -209,16 +204,6 @@ public class Project {
       if (!automaticAvailable) {
         setAutomatic(false);
       }
-    }
-  }
-
-  public String getStripeSubscriptionId() {
-    return this.stripeSubscriptionId;
-  }
-
-  public void setStripeSubscriptionId(String stripeCustomerId) {
-    if (StringUtils.isNotEmpty(stripeCustomerId)) {
-      this.stripeSubscriptionId = stripeCustomerId;
     }
   }
 
