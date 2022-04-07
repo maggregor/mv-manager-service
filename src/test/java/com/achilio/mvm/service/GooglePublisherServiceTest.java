@@ -75,13 +75,13 @@ public class GooglePublisherServiceTest {
     jsonResults = service.buildOptimizationMessage("secretKey", mockResults);
     ObjectMapper mapper = new ObjectMapper();
     JsonNode jsonNode;
-    jsonNode = mapper.readTree(jsonResults).get("optimizationResults");
+    jsonNode = mapper.readTree(jsonResults).get("queries");
     assertEquals(3, jsonNode.size());
     assertEquals(expected, mapper.writeValueAsString(jsonNode));
     // mockResultNullStatement must be ignored
     mockResults = Lists.newArrayList(result1, result2, result3, mockResultNullStatement);
     jsonResults = service.buildOptimizationMessage("secretKey", mockResults);
-    jsonNode = mapper.readTree(jsonResults).get("optimizationResults");
+    jsonNode = mapper.readTree(jsonResults).get("queries");
     assertEquals(3, jsonNode.size());
     assertEquals(expected, mapper.writeValueAsString(jsonNode));
   }
