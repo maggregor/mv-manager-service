@@ -1,7 +1,5 @@
 package com.achilio.mvm.service.services;
 
-import static com.achilio.mvm.service.UserContextHelper.getContextTeamName;
-
 import com.achilio.mvm.service.databases.DatabaseFetcher;
 import com.achilio.mvm.service.databases.bigquery.BigQueryDatabaseFetcher;
 import com.achilio.mvm.service.databases.bigquery.BigQueryMaterializedViewStatementBuilder;
@@ -13,7 +11,6 @@ import com.achilio.mvm.service.entities.Connection;
 import com.achilio.mvm.service.entities.Connection.ConnectionType;
 import com.achilio.mvm.service.entities.ServiceAccountConnection;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
-import com.google.common.annotations.VisibleForTesting;
 import java.util.List;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,17 +77,6 @@ public class FetcherService {
     ServiceAccountConnection saConnection = (ServiceAccountConnection) connection;
     String serviceAccount = saConnection.getServiceAccountKey();
     return new BigQueryDatabaseFetcher(serviceAccount, projectId);
-  }
-
-  @VisibleForTesting
-  public ServiceAccountConnection getSAAvailableConnection() {
-    return connectionService.getAllConnections(getContextTeamName()).stream()
-        .filter(c -> c instanceof ServiceAccountConnection)
-        .map(c -> (ServiceAccountConnection) c)
-        .findFirst()
-        .orElseThrow(
-            () ->
-                new IllegalArgumentException("Can't initialize the fetcher: no connection found"));
   }
 
   private long daysToMillis(int days) {

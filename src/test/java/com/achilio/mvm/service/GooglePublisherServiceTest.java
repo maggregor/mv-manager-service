@@ -8,6 +8,8 @@ import com.achilio.mvm.service.entities.OptimizationResult;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.services.GooglePublisherService;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import org.assertj.core.util.Lists;
 import org.junit.Before;
@@ -70,12 +72,18 @@ public class GooglePublisherServiceTest {
     OptimizationResult mockResultNullStatement = mock(OptimizationResult.class);
     when(mockResultNullStatement.getStatement()).thenReturn(null);
     mockResults = Lists.newArrayList(result1, result2, result3);
-    jsonResults = service.buildMaterializedViewsMessage(mockResults);
-    assertEquals(expected, jsonResults);
+    jsonResults = service.buildOptimizationMessage("secretKey", mockResults);
+    ObjectMapper mapper = new ObjectMapper();
+    JsonNode jsonNode;
+    jsonNode = mapper.readTree(jsonResults).get("optimizationResults");
+    assertEquals(3, jsonNode.size());
+    assertEquals(expected, mapper.writeValueAsString(jsonNode));
     // mockResultNullStatement must be ignored
     mockResults = Lists.newArrayList(result1, result2, result3, mockResultNullStatement);
-    jsonResults = service.buildMaterializedViewsMessage(mockResults);
-    assertEquals(expected, jsonResults);
+    jsonResults = service.buildOptimizationMessage("secretKey", mockResults);
+    jsonNode = mapper.readTree(jsonResults).get("optimizationResults");
+    assertEquals(3, jsonNode.size());
+    assertEquals(expected, mapper.writeValueAsString(jsonNode));
   }
 
   @Test

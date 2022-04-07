@@ -19,7 +19,6 @@ import com.achilio.mvm.service.repositories.ADatasetRepository;
 import com.achilio.mvm.service.repositories.ProjectRepository;
 import com.achilio.mvm.service.services.ConnectionService;
 import com.achilio.mvm.service.services.FetcherService;
-import com.achilio.mvm.service.services.GooglePublisherService;
 import com.achilio.mvm.service.services.ProjectService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.stripe.model.Product;
@@ -88,7 +87,6 @@ public class ProjectServiceTest {
   @Mock private Authentication mockedJWTAuth;
   @Mock private SecurityContext mockedSecurityContext;
   @Mock private ConnectionService mockedConnectionService;
-  @Mock private GooglePublisherService mockedPublisherService;
 
   @Before
   public void setup() throws JsonProcessingException {
@@ -186,9 +184,9 @@ public class ProjectServiceTest {
   public void deleteProject() {
     project1.setTeamName(TEAM_NAME1);
     project1.setActivated(true);
-    when(mockedProjectRepository.findByProjectIdAndTeamName(TEST_PROJECT_ID1, TEAM_NAME1))
+    when(mockedProjectRepository.findByProjectId(TEST_PROJECT_ID1))
         .thenReturn(Optional.of(project1));
-    service.deleteProject(TEST_PROJECT_ID1, TEAM_NAME1);
+    service.deleteProject(TEST_PROJECT_ID1);
     Mockito.verify(mockedProjectRepository, Mockito.timeout(1000).times(1))
         .save(any(Project.class));
     assertFalse(project1.isActivated());
@@ -196,9 +194,8 @@ public class ProjectServiceTest {
 
   @Test
   public void deleteProject__whenNotFound_throwException() {
-    when(mockedProjectRepository.findByProjectIdAndTeamName(TEST_PROJECT_ID1, TEAM_NAME1))
-        .thenReturn(Optional.empty());
-    service.deleteProject(TEST_PROJECT_ID1, TEAM_NAME1);
+    when(mockedProjectRepository.findByProjectId(TEST_PROJECT_ID1)).thenReturn(Optional.empty());
+    service.deleteProject(TEST_PROJECT_ID1);
     Mockito.verify(mockedProjectRepository, Mockito.timeout(1000).times(0))
         .save(any(Project.class));
   }

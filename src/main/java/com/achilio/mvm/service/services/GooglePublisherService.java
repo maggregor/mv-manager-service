@@ -1,9 +1,12 @@
 package com.achilio.mvm.service.services;
 
 import com.achilio.mvm.service.OptimizerApplication;
+import com.achilio.mvm.service.entities.Connection;
 import com.achilio.mvm.service.entities.Optimization;
 import com.achilio.mvm.service.entities.OptimizationResult;
 import com.achilio.mvm.service.entities.Project;
+import com.achilio.mvm.service.entities.ServiceAccountConnection;
+import com.achilio.mvm.service.models.OptimizationPublishMessage;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.cloud.pubsub.v1.Publisher;
@@ -33,15 +36,14 @@ public class GooglePublisherService {
 
   private static final String ATTRIBUTE_CMD_TYPE = "cmdType";
   private static final String ATTRIBUTE_PROJECT_ID = "projectId";
-  private static final String ATTRIBUTE_ACCESS_TOKEN = "accessToken";
   private static final String CMD_TYPE_APPLY = "apply";
-  private static final String CMD_TYPE_WORKSPACE = "workspace";
   private static final String CMD_TYPE_DESTROY = "destroy";
   private static final Logger LOGGER = LoggerFactory.getLogger(OptimizerApplication.class);
-
   private boolean PUBLISHER_ENABLED;
   private TopicName EXECUTOR_TOPIC_NAME;
   private TopicName SCHEDULER_TOPIC_NAME;
+
+  @Autowired private ProjectService projectService;
 
   public GooglePublisherService() {
     new GooglePublisherService(false, "achilio-dev", "mvExecutorTopic", "mvScheduleManagerTopic");
@@ -93,11 +95,12 @@ public class GooglePublisherService {
       return false;
     }
     try {
-      String formattedMessage = buildMaterializedViewsMessage(mViews);
+      Connection c = projectService.getProject(projectId).getConnection();
+      String serviceAccountKey = ((ServiceAccountConnection) c).getServiceAccountKey();
+      String formattedMessage = buildOptimizationMessage(serviceAccountKey, mViews);
       Boolean published =
           publishMessage(
-              buildMaterializedViewsPubsubMessage(
-                  projectId, formattedMessage, CMD_TYPE_APPLY, true),
+              buildMaterializedViewsPubsubMessage(projectId, formattedMessage, CMD_TYPE_APPLY),
               EXECUTOR_TOPIC_NAME);
       if (published) {
         LOGGER.info("{} results published for the project {}", mViews.size(), projectId);
@@ -113,22 +116,25 @@ public class GooglePublisherService {
     return false;
   }
 
-  public String buildMaterializedViewsMessage(List<OptimizationResult> mViews)
+  public String buildOptimizationMessage(String serviceAccount, List<OptimizationResult> mViews)
       throws JsonProcessingException {
-    List<Map<String, String>> entries =
+    OptimizationPublishMessage message = new OptimizationPublishMessage();
+    List<Map<String, String>> results =
         mViews.stream()
             .filter(Objects::nonNull)
             .filter(result -> StringUtils.isNotEmpty(result.getStatement()))
             .map(this::toResultEntry)
             .collect(Collectors.toList());
-    return new ObjectMapper().writeValueAsString(entries);
+    message.setOptimizationResults(results);
+    message.setServiceAccount(serviceAccount);
+    return new ObjectMapper().writeValueAsString(message);
   }
 
   public void publishDestroyMaterializedViews(String projectId) {
     try {
       String message = new ObjectMapper().writeValueAsString(Collections.emptyList());
       if (publishMessage(
-          buildMaterializedViewsPubsubMessage(projectId, message, CMD_TYPE_DESTROY, true),
+          buildMaterializedViewsPubsubMessage(projectId, message, CMD_TYPE_DESTROY),
           EXECUTOR_TOPIC_NAME)) {
         LOGGER.info("All MMVs destroyed for the project {}", projectId);
       } else {
@@ -178,14 +184,11 @@ public class GooglePublisherService {
   }
 
   public PubsubMessage buildMaterializedViewsPubsubMessage(
-      String projectId, String message, String cmdType, boolean requireAccessToken) {
+      String projectId, String message, String cmdType) {
     PubsubMessage.Builder builder =
         PubsubMessage.newBuilder()
             .putAttributes(ATTRIBUTE_CMD_TYPE, cmdType)
             .putAttributes(ATTRIBUTE_PROJECT_ID, projectId);
-    if (requireAccessToken) {
-      builder.putAttributes(ATTRIBUTE_ACCESS_TOKEN, "");
-    }
     if (StringUtils.isNotEmpty(message)) {
       ByteString data = ByteString.copyFromUtf8(message);
       builder.setData(data);

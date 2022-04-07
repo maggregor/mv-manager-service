@@ -66,10 +66,8 @@ public class ProjectService {
    * deleteProject does not actually delete the object in DB but set the project to activated: false
    */
   @Transactional
-  public void deleteProject(String projectId, String teamName) {
-    projectRepository
-        .findByProjectIdAndTeamName(projectId, teamName)
-        .ifPresent(this::deactivateProject);
+  public void deleteProject(String projectId) {
+    projectRepository.findByProjectId(projectId).ifPresent(this::deactivateProject);
   }
 
   private Optional<Project> findProjectByTeamId(String projectId, String teamName) {
@@ -129,10 +127,10 @@ public class ProjectService {
         .orElseThrow(() -> new DatasetNotFoundException(datasetName));
   }
 
-  public FetchedDataset getFetchedDataset(String projectId, String teamName, String datasetName) {
+  public FetchedDataset getFetchedDataset(String projectId, String datasetName) {
     Project project =
         projectRepository
-            .findByProjectIdAndTeamName(projectId, teamName)
+            .findByProjectId(projectId)
             .orElseThrow(() -> new ProjectNotFoundException(projectId));
     return fetcherService.fetchDataset(projectId, datasetName, project.getConnection());
   }
@@ -211,13 +209,11 @@ public class ProjectService {
     return projectRepository.save(project);
   }
 
-  public List<ADataset> getAllActivatedDatasets(String projectId, String teamName) {
-    getProject(projectId, teamName);
+  public List<ADataset> getAllActivatedDatasets(String projectId) {
     return datasetRepository.findAllByProject_ProjectIdAndActivated(projectId, true);
   }
 
-  public List<ADataset> getAllDatasets(String projectId, String teamName) {
-    getProject(projectId, teamName);
+  public List<ADataset> getAllDatasets(String projectId) {
     return datasetRepository.findAllByProject_ProjectId(projectId);
   }
 
@@ -226,11 +222,9 @@ public class ProjectService {
     datasetRepository.deleteByDatasetId(d.getDatasetId());
   }
 
-  public GlobalQueryStatistics getStatistics(String projectId, String teamName, int days)
-      throws Exception {
-    Project project = getProject(projectId, teamName);
+  public GlobalQueryStatistics getStatistics(String projectId, int days) throws Exception {
     LocalDate from = LocalDate.now().minusDays(days);
-    return queryService.getStatistics(project.getProjectId(), from);
+    return queryService.getStatistics(projectId, from);
   }
 
   @Transactional

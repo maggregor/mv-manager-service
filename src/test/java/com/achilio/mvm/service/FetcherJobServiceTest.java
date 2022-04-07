@@ -119,7 +119,7 @@ public class FetcherJobServiceTest {
     List<ADataset> localDatasets = new ArrayList<>(Arrays.asList(dataset1, dataset2));
     List<FetchedDataset> allFetchedDatasets =
         new ArrayList<>(Arrays.asList(fetchedDataset2, fetchedDataset3));
-    when(mockProjectService.getAllDatasets(any(), any())).thenReturn(localDatasets);
+    when(mockProjectService.getAllDatasets(any())).thenReturn(localDatasets);
     when(mockFetcherService.fetchAllDatasets(any(), any())).thenReturn(allFetchedDatasets);
     service.syncDatasets(structJob1, TEAM_NAME1);
   }

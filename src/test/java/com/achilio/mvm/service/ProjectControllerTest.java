@@ -149,14 +149,14 @@ public class ProjectControllerTest {
   public void deleteProject() {
     controller.deleteProject(TEST_PROJECT_ID1);
     Mockito.verify(mockedProjectService, Mockito.timeout(1000).times(1))
-        .deleteProject(TEST_PROJECT_ID1, TEAM_NAME1);
+        .deleteProject(TEST_PROJECT_ID1);
   }
 
   @Test
   public void deleteProject__whenProjectNotExists_throwException() {
     doThrow(new ProjectNotFoundException(TEST_PROJECT_ID1))
         .when(mockedProjectService)
-        .deleteProject(TEST_PROJECT_ID1, TEAM_NAME1);
+        .deleteProject(TEST_PROJECT_ID1);
     assertThrows(ProjectNotFoundException.class, () -> controller.deleteProject(TEST_PROJECT_ID1));
   }
 
@@ -177,7 +177,7 @@ public class ProjectControllerTest {
 
   @Test
   public void getAllDatasets() throws JsonProcessingException {
-    when(mockedProjectService.getAllDatasets(TEST_PROJECT_ID1, TEAM_NAME1))
+    when(mockedProjectService.getAllDatasets(TEST_PROJECT_ID1))
         .thenReturn(Arrays.asList(dataset1, dataset2));
     when(mockedProjectService.isDatasetActivated(TEST_PROJECT_ID1, TEST_DATASET_NAME1))
         .thenReturn(true);
@@ -195,7 +195,7 @@ public class ProjectControllerTest {
     DefaultFetchedDataset dataset =
         new DefaultFetchedDataset(
             TEST_PROJECT_ID1, TEST_DATASET_NAME1, null, null, null, null, null, null);
-    when(mockedProjectService.getFetchedDataset(TEST_PROJECT_ID1, TEAM_NAME1, TEST_DATASET_NAME1))
+    when(mockedProjectService.getFetchedDataset(TEST_PROJECT_ID1, TEST_DATASET_NAME1))
         .thenReturn(dataset);
     when(mockedProjectService.isDatasetActivated(TEST_PROJECT_ID1, TEST_DATASET_NAME1))
         .thenReturn(true);
@@ -209,8 +209,7 @@ public class ProjectControllerTest {
   @Test
   public void getKPIStatistics() throws Exception {
     GlobalQueryStatistics statistics = new GlobalQueryStatistics();
-    when(mockedProjectService.getStatistics(TEST_PROJECT_ID1, TEAM_NAME1, 30))
-        .thenReturn(statistics);
+    when(mockedProjectService.getStatistics(TEST_PROJECT_ID1, 30)).thenReturn(statistics);
     String expectedString =
         "{\"totalQueries\":0,\"percentQueriesIn\":0.0,\"averageScannedBytes\":0}";
     AggregatedStatisticsResponse responseEntity = controller.getKPIStatistics(TEST_PROJECT_ID1, 30);
@@ -231,7 +230,6 @@ public class ProjectControllerTest {
         Integer.valueOf(jsonNode.get("analysisTimeframe").asInt()));
     assertEquals(expected.isActivated(), jsonNode.get("activated").asBoolean());
     assertEquals(expected.isAutomatic(), jsonNode.get("automatic").asBoolean());
-    assertEquals(expected.getStripeSubscriptionId(), jsonNode.get("stripeSubscriptionId").asText());
   }
 
   private void assertProjectResponseListEquals(
