@@ -1,7 +1,6 @@
 package com.achilio.mvm.service.entities;
 
 import com.achilio.mvm.service.databases.entities.FetchedProject;
-import com.achilio.mvm.service.exceptions.InvalidSettingsException;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
@@ -53,42 +52,24 @@ public class Project {
 
   @ManyToOne private Connection connection;
 
-  @Column(
-      name = "mv_max_per_table_limit",
-      nullable = false,
-      columnDefinition = "numeric default 20")
-  private Integer mvMaxPerTableLimit = 20;
-
-  @Column(
-      name = "automatic_available",
-      nullable = false,
-      columnDefinition = "boolean default false")
-  private Boolean automaticAvailable = false;
-
-  @Column(name = "stripe_subscription_id")
-  private String stripeSubscriptionId;
-
   public Project() {}
 
   public Project(String projectId) {
-    this(projectId, null);
+    this(projectId, null, null);
   }
 
-  public Project(String projectId, String stripeSubscriptionId) {
-    this.projectId = projectId;
-    this.stripeSubscriptionId = stripeSubscriptionId;
+  public Project(String projectId, String projectName) {
+    this(projectId, projectName, null);
   }
 
-  public Project(String projectId, String projectName, String stripeSubscriptionId) {
+  public Project(String projectId, String projectName, String teamName) {
     this.projectId = projectId;
     this.projectName = projectName;
-    this.stripeSubscriptionId = stripeSubscriptionId;
+    this.teamName = teamName;
   }
 
   public Project(FetchedProject fetchedProject) {
-    this.projectId = fetchedProject.getProjectId();
-    this.projectName = fetchedProject.getName();
-    this.teamName = fetchedProject.getTeamName();
+    this(fetchedProject.getProjectId(), fetchedProject.getName(), fetchedProject.getTeamName());
   }
 
   public Long getId() {
@@ -121,12 +102,6 @@ public class Project {
 
   public Boolean setAutomatic(Boolean automatic) {
     if (automatic != null) {
-      if (automatic && !this.automaticAvailable) {
-        throw new InvalidSettingsException(
-            String.format(
-                "ProjectId %s: Cannot set to automatic mode. Automatic mode is not available on this project",
-                projectId));
-      }
       this.automatic = automatic;
       LOGGER.info("ProjectId {}: Set automatic mode to {}", projectId, automatic);
       return true;
@@ -156,12 +131,6 @@ public class Project {
 
   public void setMvMaxPerTable(Integer mvMaxPerTable) {
     if (mvMaxPerTable != null) {
-      if (mvMaxPerTable > mvMaxPerTableLimit) {
-        throw new InvalidSettingsException(
-            String.format(
-                "ProjectId %s: Cannot set max MV per table to %s. Limit is %s",
-                projectId, mvMaxPerTable, mvMaxPerTableLimit));
-      }
       this.mvMaxPerTable = mvMaxPerTable;
       LOGGER.info("ProjectId {}: Set mvMaxPerTable to {}", projectId, mvMaxPerTable);
     }
@@ -174,36 +143,6 @@ public class Project {
   public void setAnalysisTimeframe(Integer analysisTimeframe) {
     if (analysisTimeframe != null) {
       this.analysisTimeframe = analysisTimeframe;
-    }
-  }
-
-  public Integer getMvMaxPerTableLimit() {
-    return mvMaxPerTableLimit;
-  }
-
-  public void setMvMaxPerTableLimit(Integer mvMaxPerTableLimit) {
-    // We automatically update the mvMaxPerTable field if it is not compatible with the new
-    // mvMaxPerTableLimit value
-    if (mvMaxPerTableLimit != null) {
-      this.mvMaxPerTableLimit = mvMaxPerTableLimit;
-      if (mvMaxPerTableLimit < mvMaxPerTable) {
-        setMvMaxPerTable(mvMaxPerTableLimit);
-      }
-    }
-  }
-
-  public Boolean isAutomaticAvailable() {
-    return automaticAvailable;
-  }
-
-  public void setAutomaticAvailable(Boolean automaticAvailable) {
-    // We automatically update the automatic field if it is not compatible with the new
-    // automaticAvailable value
-    if (automaticAvailable != null) {
-      this.automaticAvailable = automaticAvailable;
-      if (!automaticAvailable) {
-        setAutomatic(false);
-      }
     }
   }
 
