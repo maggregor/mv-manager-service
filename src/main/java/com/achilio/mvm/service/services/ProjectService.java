@@ -59,7 +59,9 @@ public class ProjectService {
   public Project createProject(ACreateProjectRequest payload, String teamName) {
     Connection connection = connectionService.getConnection(payload.getConnectionId(), teamName);
     FetchedProject fetchedProject = fetcherService.fetchProject(payload.getProjectId(), connection);
-    return createProjectFromFetchedProject(fetchedProject, teamName, connection);
+    Project project = createProjectFromFetchedProject(fetchedProject, teamName, connection);
+    publisherService.publishNewProjectRegistered(project.getProjectId());
+    return project;
   }
 
   /**
