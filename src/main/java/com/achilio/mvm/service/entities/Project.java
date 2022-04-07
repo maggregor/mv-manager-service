@@ -65,30 +65,24 @@ public class Project {
       columnDefinition = "boolean default false")
   private Boolean automaticAvailable = false;
 
-  @Column(name = "stripe_subscription_id")
-  private String stripeSubscriptionId;
-
   public Project() {}
 
   public Project(String projectId) {
-    this(projectId, null);
+    this(projectId, null, null);
   }
 
-  public Project(String projectId, String stripeSubscriptionId) {
-    this.projectId = projectId;
-    this.stripeSubscriptionId = stripeSubscriptionId;
+  public Project(String projectId, String projectName) {
+    this(projectId, projectName, null);
   }
 
-  public Project(String projectId, String projectName, String stripeSubscriptionId) {
+  public Project(String projectId, String projectName, String teamName) {
     this.projectId = projectId;
     this.projectName = projectName;
-    this.stripeSubscriptionId = stripeSubscriptionId;
+    this.teamName = teamName;
   }
 
   public Project(FetchedProject fetchedProject) {
-    this.projectId = fetchedProject.getProjectId();
-    this.projectName = fetchedProject.getName();
-    this.teamName = fetchedProject.getTeamName();
+    this(fetchedProject.getProjectId(), fetchedProject.getName(), fetchedProject.getTeamName());
   }
 
   public Long getId() {
