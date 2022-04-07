@@ -78,7 +78,6 @@ public class ProjectControllerTest {
     Project project1 = new Project(TEST_PROJECT_ID1);
     Project project2 = new Project(TEST_PROJECT_ID2);
     project1.setTeamName(TEAM_NAME1);
-    project2.setAutomaticAvailable(true);
     project2.setActivated(true);
     project2.setAutomatic(true);
     project2.setMvMaxPerTable(10);
@@ -109,7 +108,6 @@ public class ProjectControllerTest {
     assertProjectResponseEquals(project, responseEntity);
 
     // Project 3
-    project.setAutomaticAvailable(true);
     project.setActivated(true);
     project.setAutomatic(true);
     project.setMvMaxPerTable(10);
@@ -156,7 +154,6 @@ public class ProjectControllerTest {
     Project project = new Project(TEST_PROJECT_ID1);
     project.setAnalysisTimeframe(20);
     project.setMvMaxPerTable(10);
-    project.setAutomaticAvailable(true);
     project.setAutomatic(true);
     UpdateProjectRequest payload = new UpdateProjectRequest(TEST_PROJECT_NAME1, true, 20, 10);
     when(mockedProjectService.updateProject(any(), any())).thenReturn(project);

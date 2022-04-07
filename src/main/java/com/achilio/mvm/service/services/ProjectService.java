@@ -19,7 +19,6 @@ import com.achilio.mvm.service.repositories.AColumnRepository;
 import com.achilio.mvm.service.repositories.ADatasetRepository;
 import com.achilio.mvm.service.repositories.ATableRepository;
 import com.achilio.mvm.service.repositories.ProjectRepository;
-import com.stripe.model.Product;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -162,36 +161,6 @@ public class ProjectService {
         "Project {} is being deactivated. Turning off automatic mode", project.getProjectId());
     project.setActivated(false);
     projectRepository.save(project);
-  }
-
-  @Transactional
-  public void updateMvMaxPerTableLimit(Project project, Integer mvMaxPerTableLimit) {
-    project.setMvMaxPerTableLimit(mvMaxPerTableLimit);
-    if (project.getMvMaxPerTableLimit() < project.getMvMaxPerTable()) {
-      project.setMvMaxPerTable(project.getMvMaxPerTableLimit());
-    }
-    projectRepository.save(project);
-  }
-
-  @Transactional
-  public void updateProjectAutomaticAvailable(Project project, boolean automaticAvailable) {
-    project.setAutomaticAvailable(automaticAvailable);
-    if (!project.isAutomaticAvailable()) {
-      project.setAutomatic(false);
-    }
-    projectRepository.save(project);
-  }
-
-  // Set and save the plan settings based on the product subscribed to
-  public void updatePlanSettings(Project project, Product product) {
-    String mvMax = product.getMetadata().get("mv_max");
-    String automaticAvailable = product.getMetadata().get("automatic_available");
-    if (mvMax != null) {
-      updateMvMaxPerTableLimit(project, Integer.valueOf(mvMax));
-    }
-    if (automaticAvailable != null) {
-      updateProjectAutomaticAvailable(project, Boolean.parseBoolean(automaticAvailable));
-    }
   }
 
   @Transactional

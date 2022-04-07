@@ -117,8 +117,6 @@ public class ProjectServiceTest {
         .thenReturn(Optional.of(realDataset));
     productMetadata.put("mv_max", "10");
     productMetadata.put("automatic_available", "true");
-    when(mockedProduct.getMetadata()).thenReturn(productMetadata);
-    when(errorMockedProduct.getMetadata()).thenReturn(errorProductMetadata);
     when(mockedFetchedProject1.getProjectId()).thenReturn(TEST_PROJECT_ID1);
     when(mockedFetchedProject1.getName()).thenReturn(TEST_PROJECT_NAME1);
     when(mockedFetchedProject2.getProjectId()).thenReturn(TEST_PROJECT_ID2);
@@ -244,7 +242,6 @@ public class ProjectServiceTest {
     assertFalse(project.isAutomatic());
     assertEquals(14, project.getAnalysisTimeframe());
     assertEquals(12, project.getMvMaxPerTable());
-    project.setAutomaticAvailable(true);
     analysisTimeFrame = null;
     mvMaxPerTable = null;
     UpdateProjectRequest payload2 =
@@ -257,54 +254,12 @@ public class ProjectServiceTest {
   @Test
   public void deactivateProject() {
     Project project = new Project(TEST_PROJECT_ID1);
-    project.setAutomaticAvailable(true);
     project.setActivated(true);
     project.setAutomatic(true);
     assertTrue(project.isActivated());
     assertTrue(project.isAutomatic());
     service.deactivateProject(project);
     assertFalse(project.isActivated());
-  }
-
-  @Test
-  public void updateMvMaxPerTableLimit() {
-    Project project = new Project(TEST_PROJECT_ID1);
-    assertEquals(5, project.getMvMaxPerTable());
-    assertEquals(20, project.getMvMaxPerTableLimit());
-    service.updateMvMaxPerTableLimit(project, 3);
-    assertEquals(3, project.getMvMaxPerTable());
-    assertEquals(3, project.getMvMaxPerTableLimit());
-    service.updateMvMaxPerTableLimit(project, 12);
-    assertEquals(3, project.getMvMaxPerTable());
-    assertEquals(12, project.getMvMaxPerTableLimit());
-  }
-
-  @Test
-  public void updateProjectAutomaticAvailable() {
-    Project project = new Project(TEST_PROJECT_ID1);
-    assertFalse(project.isAutomatic());
-    assertFalse(project.isAutomaticAvailable());
-    service.updateProjectAutomaticAvailable(project, true);
-    assertFalse(project.isAutomatic());
-    assertTrue(project.isAutomaticAvailable());
-    project.setAutomatic(true);
-    assertTrue(project.isAutomatic());
-    service.updateProjectAutomaticAvailable(project, false);
-    assertFalse(project.isAutomatic());
-    assertFalse(project.isAutomaticAvailable());
-  }
-
-  @Test
-  public void updatePlanSettings() {
-    Project project = new Project(TEST_PROJECT_ID1);
-    assertFalse(project.isAutomaticAvailable());
-    assertEquals(20, project.getMvMaxPerTableLimit());
-    service.updatePlanSettings(project, mockedProduct);
-    assertTrue(project.isAutomaticAvailable());
-    assertEquals(10, project.getMvMaxPerTableLimit());
-    service.updatePlanSettings(project, errorMockedProduct);
-    assertTrue(project.isAutomaticAvailable());
-    assertEquals(10, project.getMvMaxPerTableLimit());
   }
 
   @Test
