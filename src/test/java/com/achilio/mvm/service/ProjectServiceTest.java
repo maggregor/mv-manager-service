@@ -19,6 +19,7 @@ import com.achilio.mvm.service.repositories.ADatasetRepository;
 import com.achilio.mvm.service.repositories.ProjectRepository;
 import com.achilio.mvm.service.services.ConnectionService;
 import com.achilio.mvm.service.services.FetcherService;
+import com.achilio.mvm.service.services.GooglePublisherService;
 import com.achilio.mvm.service.services.ProjectService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.stripe.model.Product;
@@ -45,7 +46,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 public class ProjectServiceTest {
 
   private static final String TEAM_NAME1 = "myTeamName";
-  private static final String TEAM_NOT_EXISTS = "notExistsTeamName";
   private static final Long CONNECTION_ID = 1L;
   private static final String CONNECTION_CONTENT = "serviceAccountContent";
   private static final UserProfile USER_PROFILE_1 =
@@ -53,7 +53,6 @@ public class ProjectServiceTest {
   private static final String TEST_PROJECT_ID1 = "achilio-dev";
   private static final String TEST_PROJECT_ID2 = "other-project";
   private static final String TEST_PROJECT_ID3 = "new-project";
-  private static final String PROJECT_NOT_EXISTS = "notExists";
   private static final String TEST_PROJECT_NAME1 = "Achilio Dev";
   private static final String TEST_PROJECT_NAME2 = "Other Project";
   private static final String TEST_PROJECT_NAME3 = "New Project";
@@ -63,7 +62,6 @@ public class ProjectServiceTest {
   private static final String TEST_DATASET_NAME1 = "nyc_trips";
   private static final String TEST_DATASET_NAME2 = "another_one";
   private static final String TEST_DATASET_NAME3 = "other_dataset";
-  private static final String ORGANIZATION_NAME = "achilio.com";
   private static final String STRIPE_SUBSCRIPTION_ID = "sub_123456";
   private static final Project project1 =
       new Project(TEST_PROJECT_ID1, TEST_PROJECT_NAME1, STRIPE_SUBSCRIPTION_ID);
@@ -87,6 +85,7 @@ public class ProjectServiceTest {
   @Mock private Authentication mockedJWTAuth;
   @Mock private SecurityContext mockedSecurityContext;
   @Mock private ConnectionService mockedConnectionService;
+  @Mock private GooglePublisherService mockedPublisherService;
 
   @Before
   public void setup() throws JsonProcessingException {
