@@ -1,13 +1,26 @@
 package com.achilio.mvm.service.services;
 
+import static com.achilio.mvm.service.UserContextHelper.getContextEmail;
+
+import com.achilio.mvm.service.controllers.requests.ACreateProjectRequest;
 import com.achilio.mvm.service.controllers.requests.UpdateProjectRequest;
-import com.achilio.mvm.service.entities.Dataset;
+import com.achilio.mvm.service.databases.entities.FetchedDataset;
+import com.achilio.mvm.service.databases.entities.FetchedProject;
+import com.achilio.mvm.service.entities.AColumn;
+import com.achilio.mvm.service.entities.ADataset;
+import com.achilio.mvm.service.entities.ATable;
+import com.achilio.mvm.service.entities.Connection;
 import com.achilio.mvm.service.entities.Project;
+import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics;
+import com.achilio.mvm.service.exceptions.DatasetNotFoundException;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
-import com.achilio.mvm.service.repositories.DatasetRepository;
+import com.achilio.mvm.service.exceptions.TableNotFoundException;
+import com.achilio.mvm.service.repositories.AColumnRepository;
+import com.achilio.mvm.service.repositories.ADatasetRepository;
+import com.achilio.mvm.service.repositories.ATableRepository;
 import com.achilio.mvm.service.repositories.ProjectRepository;
-import com.stripe.model.Customer;
 import com.stripe.model.Product;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import javax.transaction.Transactional;
@@ -23,26 +36,50 @@ public class ProjectService {
   private static final Logger LOGGER = LoggerFactory.getLogger(ProjectService.class);
 
   @Autowired private ProjectRepository projectRepository;
-  @Autowired private DatasetRepository datasetRepository;
+  @Autowired private ADatasetRepository datasetRepository;
+  @Autowired private ATableRepository tableRepository;
+  @Autowired private AColumnRepository columnRepository;
   @Autowired private GooglePublisherService publisherService;
   @Autowired private FetcherService fetcherService;
-  @Autowired private StripeService stripeService;
+  @Autowired private ConnectionService connectionService;
+  @Autowired private QueryService queryService;
 
   public ProjectService() {}
 
-  private List<Project> getAllActivatedProjects() {
+  public List<Project> getAllActivatedProjects(String teamName) {
+    return projectRepository.findAllByActivatedAndTeamName(true, teamName);
+  }
+
+  public Project getProject(String projectId, String teamName) {
+    return findProjectByTeamId(projectId, teamName)
+        .orElseThrow(() -> new ProjectNotFoundException(projectId));
+  }
+
+  @Transactional
+  public Project createProject(ACreateProjectRequest payload, String teamName) {
+    Connection connection = connectionService.getConnection(payload.getConnectionId(), teamName);
+    FetchedProject fetchedProject = fetcherService.fetchProject(payload.getProjectId(), connection);
+    Project project = createProjectFromFetchedProject(fetchedProject, teamName, connection);
+    publisherService.publishNewProjectRegistered(project.getProjectId());
+    return project;
+  }
+
+  /**
+   * deleteProject does not actually delete the object in DB but set the project to activated: false
+   */
+  @Transactional
+  public void deleteProject(String projectId) {
+    projectRepository.findByProjectId(projectId).ifPresent(this::deactivateProject);
+  }
+
+  private Optional<Project> findProjectByTeamId(String projectId, String teamName) {
+    return projectRepository.findByProjectIdAndTeamName(projectId, teamName);
+  }
+
+  // Old ProjectService
+
+  public List<Project> getAllActivatedProjects() {
     return projectRepository.findAllByActivated(true);
-  }
-
-  public Project findProjectOrCreate(String projectId) {
-    return findProject(projectId).orElseGet(() -> createProject(projectId));
-  }
-
-  public Project createProject(String projectId) {
-    // To date the customerName is the projectId
-    Customer customer = stripeService.createCustomer(projectId, projectId);
-    Project project = new Project(projectId, customer.getId());
-    return projectRepository.save(project);
   }
 
   public Optional<Project> findProject(String projectId) {
@@ -63,7 +100,6 @@ public class ProjectService {
     // If automatic has been sent in the payload (or if the project is being deactivated), we need
     // to publish a potential config change on the schedulers
     Boolean automaticChanged = project.setAutomatic(payload.isAutomatic());
-
     project.setAnalysisTimeframe(payload.getAnalysisTimeframe());
     project.setMvMaxPerTable(payload.getMvMaxPerTable());
     projectRepository.save(project);
@@ -71,42 +107,46 @@ public class ProjectService {
       publisherService.publishProjectSchedulers(getAllActivatedProjects());
       if (payload.isAutomatic()) {
         // Automatic mode has just been activated by this current user
-        project.setUsername(fetcherService.getUserInfo().getEmail());
+        project.setUsername(getContextEmail());
       }
     }
     return project;
   }
 
-  private Optional<Dataset> getDataset(String projectId, String datasetName) {
-    return getDataset(getProject(projectId), datasetName);
+  public Optional<ADataset> findDataset(String projectId, String datasetName) {
+    return datasetRepository.findByProject_ProjectIdAndDatasetName(projectId, datasetName);
   }
 
-  private Optional<Dataset> getDataset(Project project, String datasetName) {
-    return datasetRepository.findByProjectAndDatasetName(project, datasetName);
+  public ADataset getDataset(String datasetId) {
+    return datasetRepository
+        .findByDatasetId(datasetId)
+        .orElseThrow(() -> new DatasetNotFoundException(datasetId));
   }
 
-  private Dataset findDatasetOrCreate(String projectId, String dataset) {
-    return getDataset(projectId, dataset).orElseGet(() -> createDataset(projectId, dataset));
+  public ADataset getDatasetByProjectAndDatasetName(String projectId, String datasetName) {
+    return datasetRepository
+        .findByProject_ProjectIdAndDatasetName(projectId, datasetName)
+        .orElseThrow(() -> new DatasetNotFoundException(datasetName));
   }
 
-  private Dataset createDataset(String projectId, String datasetName) {
-    return createDataset(getProject(projectId), datasetName);
-  }
-
-  private Dataset createDataset(Project project, String datasetName) {
-    return datasetRepository.save(new Dataset(project, datasetName));
+  public FetchedDataset getFetchedDataset(String projectId, String datasetName) {
+    Project project =
+        projectRepository
+            .findByProjectId(projectId)
+            .orElseThrow(() -> new ProjectNotFoundException(projectId));
+    return fetcherService.fetchDataset(projectId, datasetName, project.getConnection());
   }
 
   @Transactional
-  public Dataset updateDataset(String projectId, String datasetName, Boolean activated) {
-    Dataset dataset = findDatasetOrCreate(projectId, datasetName);
+  public ADataset updateDataset(String projectId, String datasetName, Boolean activated) {
+    ADataset dataset = getDatasetByProjectAndDatasetName(projectId, datasetName);
     dataset.setActivated(activated);
     datasetRepository.save(dataset);
     return dataset;
   }
 
   public boolean isDatasetActivated(String projectId, String datasetName) {
-    return getDataset(projectId, datasetName).map(Dataset::isActivated).orElse(false);
+    return getDatasetByProjectAndDatasetName(projectId, datasetName).isActivated();
   }
 
   @Transactional
@@ -121,8 +161,6 @@ public class ProjectService {
     LOGGER.info(
         "Project {} is being deactivated. Turning off automatic mode", project.getProjectId());
     project.setActivated(false);
-    project.setAutomaticAvailable(false);
-    project.setMvMaxPerTableLimit(0);
     projectRepository.save(project);
   }
 
@@ -154,5 +192,78 @@ public class ProjectService {
     if (automaticAvailable != null) {
       updateProjectAutomaticAvailable(project, Boolean.parseBoolean(automaticAvailable));
     }
+  }
+
+  @Transactional
+  public Project createProjectFromFetchedProject(
+      FetchedProject p, String teamName, Connection connection) {
+    Project project;
+    if (projectExists(p.getProjectId())) {
+      project = getProject(p.getProjectId());
+    } else {
+      project = new Project(p);
+    }
+    project.setActivated(true);
+    project.setTeamName(teamName);
+    project.setConnection(connection);
+    return projectRepository.save(project);
+  }
+
+  public List<ADataset> getAllActivatedDatasets(String projectId) {
+    return datasetRepository.findAllByProject_ProjectIdAndActivated(projectId, true);
+  }
+
+  public List<ADataset> getAllDatasets(String projectId) {
+    return datasetRepository.findAllByProject_ProjectId(projectId);
+  }
+
+  @Transactional
+  public void deleteDataset(ADataset d) {
+    datasetRepository.deleteByDatasetId(d.getDatasetId());
+  }
+
+  public GlobalQueryStatistics getStatistics(String projectId, int days) throws Exception {
+    LocalDate from = LocalDate.now().minusDays(days);
+    return queryService.getStatistics(projectId, from);
+  }
+
+  @Transactional
+  public void deleteTable(ATable toDeleteTable) {
+    tableRepository.deleteByTableId(toDeleteTable.getTableId());
+  }
+
+  public List<ATable> getAllTables(String projectId) {
+    return tableRepository.findAllByProject_ProjectId(projectId);
+  }
+
+  public Optional<ATable> findTable(ADataset dataset, String tableName) {
+    return tableRepository.findByProject_ProjectIdAndDataset_DatasetNameAndTableName(
+        dataset.getProject().getProjectId(), dataset.getDatasetName(), tableName);
+  }
+
+  public ATable getTable(ATable table) {
+    return tableRepository
+        .findByTableId(table.getTableId())
+        .orElseThrow(() -> new TableNotFoundException(table.getTableId()));
+  }
+
+  public ATable getTable(String tableId) {
+    return tableRepository
+        .findByTableId(tableId)
+        .orElseThrow(() -> new TableNotFoundException(tableId));
+  }
+
+  public List<AColumn> getAllColumns(String projectId) {
+    return columnRepository.findAllByTable_Project_ProjectId(projectId);
+  }
+
+  @Transactional
+  public void createColumns(List<AColumn> toCreateColumn) {
+    columnRepository.saveAll(toCreateColumn);
+  }
+
+  @Transactional
+  public void removeColumns(List<AColumn> allAColumns) {
+    columnRepository.deleteAll(allAColumns);
   }
 }

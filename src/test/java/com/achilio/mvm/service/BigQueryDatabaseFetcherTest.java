@@ -5,8 +5,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -45,6 +43,9 @@ import com.google.cloud.bigquery.TableDefinition;
 import com.google.cloud.bigquery.TableId;
 import com.google.cloud.resourcemanager.Project;
 import com.google.cloud.resourcemanager.ResourceManager;
+import com.google.cloud.resourcemanager.v3.FoldersClient;
+import com.google.cloud.resourcemanager.v3.OrganizationsClient;
+import com.google.cloud.resourcemanager.v3.ProjectsClient;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -59,8 +60,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 public class BigQueryDatabaseFetcherTest {
 
   private static final String defaultDatasetName = "defaultDataset";
-  private static final QueryJobConfiguration COUNT_QUERY_JOB_CONFIGURATION =
-      QueryJobConfiguration.of("SELECT COUNT(*) FROM toto");
   private static final TableId DEFAULT_TABLE_ID =
       TableId.of("test-project", "test-dataset", "test-table");
   private static final TableId DEFAULT_TABLE_ID_2 =
@@ -69,7 +68,7 @@ public class BigQueryDatabaseFetcherTest {
       LoadJobConfiguration.newBuilder(DEFAULT_TABLE_ID, "gs://").build();
   private static final JobConfiguration DEFAULT_COPY_JOB_CONFIGURATION =
       CopyJobConfiguration.newBuilder(DEFAULT_TABLE_ID, DEFAULT_TABLE_ID_2).build();
-  private static QueryJobConfiguration DEFAULT_QUERY_JOB_CONFIGURATION =
+  private static final QueryJobConfiguration DEFAULT_QUERY_JOB_CONFIGURATION =
       QueryJobConfiguration.newBuilder("SELECT * FROM toto")
           .setDefaultDataset(defaultDatasetName)
           .build();
@@ -84,12 +83,18 @@ public class BigQueryDatabaseFetcherTest {
   private JobStatistics.QueryStatistics mockJobStats;
   private BigQuery mockBigquery;
   private ResourceManager mockResourceManager;
+  private OrganizationsClient mockOrganizationClient;
+  private ProjectsClient mockProjectClient;
+  private FoldersClient mockFolderClient;
   private JobId mockJobId;
 
   @Before
   public void setUp() {
     mockBigquery = mock(BigQuery.class);
     mockResourceManager = mock(ResourceManager.class);
+    mockOrganizationClient = mock(OrganizationsClient.class);
+    mockProjectClient = mock(ProjectsClient.class);
+    mockFolderClient = mock(FoldersClient.class);
     fetcher = new BigQueryDatabaseFetcher(mockBigquery, mockResourceManager);
     initializeJobMockDefault();
   }
@@ -392,53 +397,5 @@ public class BigQueryDatabaseFetcherTest {
     when(dataset.getCreationTime()).thenReturn(creationTime);
     when(dataset.getLastModified()).thenReturn(lastModified);
     return dataset;
-  }
-
-  @Test
-  public void fetchMissingPermissions() {
-    /*
-     * permissions in order are:
-     * "bigquery.jobs.list",
-     * "bigquery.datasets.get",
-     * "resourcemanager.projects.get"
-     */
-
-    // Test 1
-    when(mockResourceManager.testPermissions(anyString(), anyList()))
-        .thenReturn(Arrays.asList(true, true, false));
-    List<String> r1 = fetcher.fetchMissingPermissions("test-project");
-    assertEquals(1, r1.size());
-    assertEquals("resourcemanager.projects.get", r1.get(0));
-
-    // Test 2
-    when(mockResourceManager.testPermissions(anyString(), anyList()))
-        .thenReturn(Arrays.asList(true, false, false));
-    List<String> r2 = fetcher.fetchMissingPermissions("test-project");
-    assertEquals(2, r2.size());
-    assertEquals("bigquery.datasets.get", r2.get(0));
-    assertEquals("resourcemanager.projects.get", r2.get(1));
-
-    // Test 3
-    when(mockResourceManager.testPermissions(anyString(), anyList()))
-        .thenReturn(Arrays.asList(false, true, false));
-    List<String> r3 = fetcher.fetchMissingPermissions("test-project");
-    assertEquals(2, r3.size());
-    assertEquals("bigquery.jobs.list", r3.get(0));
-    assertEquals("resourcemanager.projects.get", r3.get(1));
-
-    // Test 4
-    when(mockResourceManager.testPermissions(anyString(), anyList()))
-        .thenReturn(Arrays.asList(false, false, false));
-    List<String> r4 = fetcher.fetchMissingPermissions("test-project");
-    assertEquals(3, r4.size());
-    assertEquals("bigquery.jobs.list", r4.get(0));
-    assertEquals("bigquery.datasets.get", r4.get(1));
-    assertEquals("resourcemanager.projects.get", r4.get(2));
-
-    // Test 5
-    when(mockResourceManager.testPermissions(anyString(), anyList()))
-        .thenReturn(Arrays.asList(true, true, true));
-    List<String> r5 = fetcher.fetchMissingPermissions("test-project");
-    assertEquals(0, r5.size());
   }
 }

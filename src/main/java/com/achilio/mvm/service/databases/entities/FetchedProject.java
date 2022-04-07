@@ -16,4 +16,6 @@ public interface FetchedProject {
    * @return the project name.
    */
   String getName();
+
+  String getTeamName();
 }

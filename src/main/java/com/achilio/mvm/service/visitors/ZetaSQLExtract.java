@@ -1,7 +1,7 @@
 package com.achilio.mvm.service.visitors;
 
-import com.achilio.mvm.service.databases.entities.FetchedQuery;
-import com.achilio.mvm.service.databases.entities.FetchedTable;
+import com.achilio.mvm.service.entities.ATable;
+import com.achilio.mvm.service.entities.Query;
 import com.achilio.mvm.service.visitors.fields.FieldSet;
 import com.google.zetasql.Analyzer;
 import com.google.zetasql.AnalyzerOptions;
@@ -10,7 +10,6 @@ import com.google.zetasql.ParseResumeLocation;
 import com.google.zetasql.SimpleCatalog;
 import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedStatement;
 import com.google.zetasql.resolvedast.ResolvedNodes.Visitor;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
@@ -23,12 +22,12 @@ public class ZetaSQLExtract extends ZetaSQLModelBuilder implements FieldSetExtra
   private static final String BACKTICK = "`";
   private final AnalyzerOptions options = defaultAnalyzerOptions();
 
-  public ZetaSQLExtract(String projectName) {
-    super(projectName, Collections.emptySet());
+  public ZetaSQLExtract() {
+    super();
   }
 
-  public ZetaSQLExtract(String projectName, Set<FetchedTable> tables) {
-    super(projectName, tables);
+  public ZetaSQLExtract(Set<ATable> tables) {
+    super(tables);
   }
 
   private AnalyzerOptions defaultAnalyzerOptions() {
@@ -41,21 +40,18 @@ public class ZetaSQLExtract extends ZetaSQLModelBuilder implements FieldSetExtra
   }
 
   @Override
-  public List<FieldSet> extractAll(FetchedQuery fetchedQuery) {
-    if (fetchedQuery.hasDefaultDataset()) {
-      setDefaultDataset(fetchedQuery.getDefaultDataset());
+  public List<FieldSet> extractAll(Query query) {
+    if (query.hasDefaultDataset()) {
+      setDefaultDataset(query.getDefaultDataset());
     }
     ZetaSQLFieldSetExtractEntryPointVisitor v =
-        new ZetaSQLFieldSetExtractEntryPointVisitor(fetchedQuery.getProjectId(), getCatalog());
-    resolveStatementAndVisit(fetchedQuery.getQuery(), v);
-    if (!v.getAllFieldSets().isEmpty()) {
-      fetchedQuery.setCanUseMaterializedViews(true);
-    }
+        new ZetaSQLFieldSetExtractEntryPointVisitor(query.getProjectId(), getRootCatalog());
+    resolveStatementAndVisit(query.getQuery(), v);
     return v.getAllFieldSets();
   }
 
   private void resolveStatementAndVisit(String statement, Visitor visitor) {
-    final SimpleCatalog catalog = super.getCatalog();
+    final SimpleCatalog catalog = super.getRootCatalog();
     statement = removeTableNamesBackticks(statement);
     try {
       ParseResumeLocation location = new ParseResumeLocation(statement);

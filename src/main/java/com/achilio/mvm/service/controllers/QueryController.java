@@ -29,9 +29,9 @@ public class QueryController {
   }
 
   @GetMapping(path = "/query/{projectId}", produces = MediaType.APPLICATION_JSON_VALUE)
-  @ApiOperation("List all queries for a given projectId and the last fetcherQueryJobId.\n")
-  public List<Query> getAllQueriesOfLastFetcherQueryJobByProjectId(@PathVariable String projectId) {
-    return queryService.getAllQueriesByProjectIdLastJob(projectId);
+  @ApiOperation("List all queries for a given projectId.\n")
+  public List<Query> getAllQueriesByProjectId(@PathVariable String projectId) {
+    return queryService.getAllQueries(projectId);
   }
 
   @GetMapping(path = "/query/{projectId}/{queryId}", produces = MediaType.APPLICATION_JSON_VALUE)

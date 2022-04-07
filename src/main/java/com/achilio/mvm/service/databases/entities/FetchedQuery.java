@@ -5,7 +5,6 @@ import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * Represent a fetched query from data warehouse fetching process.
@@ -88,10 +87,6 @@ public class FetchedQuery {
 
   public boolean canUseMaterializedViews() {
     return canUseMaterializedViews;
-  }
-
-  public boolean hasDefaultDataset() {
-    return StringUtils.isNotEmpty(defaultDataset);
   }
 
   public String getDefaultDataset() {

@@ -9,7 +9,6 @@ public class OptimizationResponse {
   private final Date createdDate;
   private final String projectId;
   private final Double eligiblePercent;
-  private final Integer mvMaxPlan;
   private final Integer mvAppliedCount;
   private final Integer mvProposalCount;
   private final Integer mvMaxPerTable;
@@ -21,7 +20,6 @@ public class OptimizationResponse {
     this.createdDate = optimization.getCreatedDate();
     this.projectId = optimization.getProjectId();
     this.eligiblePercent = optimization.getQueryEligiblePercentage();
-    this.mvMaxPlan = optimization.getMvMaxPlan();
     this.mvAppliedCount = optimization.getMvAppliedCount();
     this.mvProposalCount = optimization.getMvProposalCount();
     this.mvMaxPerTable = optimization.getMvMaxPerTable();
@@ -39,14 +37,6 @@ public class OptimizationResponse {
 
   public Double getEligiblePercent() {
     return this.eligiblePercent;
-  }
-
-  public Date getCreatedDate() {
-    return createdDate;
-  }
-
-  public Integer getMvMaxPlan() {
-    return mvMaxPlan;
   }
 
   public Integer getMvAppliedCount() {
@@ -67,5 +57,9 @@ public class OptimizationResponse {
 
   public String getStatus() {
     return this.status;
+  }
+
+  public Date getCreatedDate() {
+    return this.createdDate;
   }
 }

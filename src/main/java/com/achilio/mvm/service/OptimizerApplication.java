@@ -19,7 +19,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @EnableSwagger2
 public class OptimizerApplication implements CommandLineRunner {
 
-  private static Logger LOGGER = LoggerFactory.getLogger(OptimizerApplication.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(OptimizerApplication.class);
 
   @Value("${server.port}")
   private int serverPort;

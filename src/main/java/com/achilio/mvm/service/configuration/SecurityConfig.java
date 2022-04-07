@@ -1,6 +1,7 @@
 package com.achilio.mvm.service.configuration;
 
 import javax.servlet.Filter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,6 +18,9 @@ import org.springframework.web.filter.CorsFilter;
 @Configuration
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
+  @Value("${server.webapp.endpoint}")
+  private String webAppEndpoint;
+
   @Override
   protected void configure(HttpSecurity http) throws Exception {
     http.addFilterBefore(corsFilter(), ChannelProcessingFilter.class)
@@ -30,7 +34,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 
     CorsConfiguration config = new CorsConfiguration();
-    config.addAllowedOrigin("*");
+    config.setAllowCredentials(true);
+    config.addAllowedOrigin(webAppEndpoint);
     config.addAllowedHeader("*");
     config.addAllowedMethod("OPTIONS");
     config.addAllowedMethod("HEAD");

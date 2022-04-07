@@ -14,6 +14,7 @@ public class ATableId {
   private final String project;
   private final String dataset;
   private final String table;
+  private String tableId;
 
   private ATableId(String project, String dataset, String table) {
     Preconditions.checkArgument(
@@ -22,6 +23,7 @@ public class ATableId {
     this.project = project;
     this.dataset = dataset;
     this.table = table;
+    setTableId(project, dataset, table);
   }
 
   public static ATableId of(String project, String dataset, String table) {
@@ -47,6 +49,10 @@ public class ATableId {
     return ATableId.of(t.getProject(), t.getDataset(), t.getTable());
   }
 
+  private void setTableId(String project, String dataset, String table) {
+    this.tableId = String.format("%s.%s.%s", project, dataset, table);
+  }
+
   public String asPath() {
     StringJoiner joiner = new StringJoiner(".");
     if (StringUtils.isNotEmpty(project)) {
@@ -69,6 +75,10 @@ public class ATableId {
     return this.table;
   }
 
+  public String getTableId() {
+    return this.tableId;
+  }
+
   @Deprecated
   public String getProjectId() {
     return this.project;
@@ -82,6 +92,11 @@ public class ATableId {
   @Deprecated
   public String getTableName() {
     return this.table;
+  }
+
+  @Override
+  public int hashCode() {
+    return new HashCodeBuilder(17, 37).append(project).append(dataset).append(table).toHashCode();
   }
 
   @Override
@@ -101,11 +116,6 @@ public class ATableId {
         .append(dataset, tableId.dataset)
         .append(table, tableId.table)
         .isEquals();
-  }
-
-  @Override
-  public int hashCode() {
-    return new HashCodeBuilder(17, 37).append(project).append(dataset).append(table).toHashCode();
   }
 
   @Override

@@ -42,8 +42,6 @@ public class OptimizationTest {
     assertEquals("myUser", o.getUsername());
     o.setMvAppliedCount(10);
     assertEquals(10, o.getMvAppliedCount());
-    o.setMvMaxPlan(11);
-    assertEquals(11, o.getMvMaxPlan());
     o.setMvMaxPerTable(20);
     assertEquals(20, o.getMvMaxPerTable());
     o.setMvProposalCount(40);

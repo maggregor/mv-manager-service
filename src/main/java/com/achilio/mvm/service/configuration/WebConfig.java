@@ -23,17 +23,12 @@ import org.springframework.web.util.UrlPathHelper;
 @EnableAutoConfiguration
 public class WebConfig implements WebMvcConfigurer {
 
-  @Autowired GoogleProjectInterceptor googleProjectInterceptor;
-  @Autowired AccessTokenInterceptor accessTokenInterceptor;
+  @Autowired JWTInterceptor jwtInterceptor;
 
   @Override
   public void addInterceptors(InterceptorRegistry registry) {
     registry
-        .addInterceptor(accessTokenInterceptor)
-        .addPathPatterns("/**")
-        .excludePathPatterns("/api/v1/webhook/**");
-    registry
-        .addInterceptor(googleProjectInterceptor)
+        .addInterceptor(jwtInterceptor)
         .addPathPatterns("/**")
         .excludePathPatterns("/api/v1/webhook/**");
   }

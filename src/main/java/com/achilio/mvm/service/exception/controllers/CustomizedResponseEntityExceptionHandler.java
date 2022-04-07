@@ -1,10 +1,11 @@
 package com.achilio.mvm.service.exception.controllers;
 
-import com.achilio.mvm.service.exceptions.FetcherJobNotFoundException;
+import com.achilio.mvm.service.exceptions.ConnectionInUseException;
+import com.achilio.mvm.service.exceptions.InvalidPayloadException;
 import com.achilio.mvm.service.exceptions.InvalidSettingsException;
-import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
-import com.achilio.mvm.service.exceptions.QueryNotFoundException;
+import com.achilio.mvm.service.exceptions.NotFoundException;
 import com.achilio.mvm.service.exceptions.UnauthorizedException;
+import com.google.api.gax.rpc.PermissionDeniedException;
 import com.google.cloud.resourcemanager.ResourceManagerException;
 import java.util.Date;
 import org.apache.catalina.connector.ClientAbortException;
@@ -40,27 +41,25 @@ public class CustomizedResponseEntityExceptionHandler extends ResponseEntityExce
     LOGGER.warn(ex.getMessage());
   }
 
-  @ExceptionHandler(ProjectNotFoundException.class)
-  public final ResponseEntity<Object> projectNotFoundException(Exception ex, WebRequest request) {
+  @ExceptionHandler(NotFoundException.class)
+  public final ResponseEntity<Object> NotFoundException(Exception ex, WebRequest request) {
     ExceptionResponse exResponse =
         new ExceptionResponse(new Date(), ex.getMessage(), request.getDescription(false));
     return new ResponseEntity<>(exResponse, HttpStatus.NOT_FOUND);
   }
 
-  @ExceptionHandler(FetcherJobNotFoundException.class)
-  public final ResponseEntity<Object> fetcherJobNotFoundException(
-      Exception ex, WebRequest request) {
+  @ExceptionHandler(ConnectionInUseException.class)
+  public final ResponseEntity<Object> ConnectionIsUseException(Exception ex, WebRequest request) {
     ExceptionResponse exResponse =
         new ExceptionResponse(new Date(), ex.getMessage(), request.getDescription(false));
-    return new ResponseEntity<>(exResponse, HttpStatus.NOT_FOUND);
+    return new ResponseEntity<>(exResponse, HttpStatus.BAD_REQUEST);
   }
 
-  @ExceptionHandler(QueryNotFoundException.class)
-  public final ResponseEntity<Object> queryNotFoundException(
-      Exception ex, WebRequest request) {
+  @ExceptionHandler(InvalidPayloadException.class)
+  public final ResponseEntity<Object> InvalidPayloadException(Exception ex, WebRequest request) {
     ExceptionResponse exResponse =
         new ExceptionResponse(new Date(), ex.getMessage(), request.getDescription(false));
-    return new ResponseEntity<>(exResponse, HttpStatus.NOT_FOUND);
+    return new ResponseEntity<>(exResponse, HttpStatus.BAD_REQUEST);
   }
 
   @ExceptionHandler(UnauthorizedException.class)
@@ -90,6 +89,15 @@ public class CustomizedResponseEntityExceptionHandler extends ResponseEntityExce
       return new ResponseEntity<>(exResponse, HttpStatus.FORBIDDEN);
     }
     return new ResponseEntity<>(exResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+  }
+
+  @ExceptionHandler(PermissionDeniedException.class)
+  public final ResponseEntity<Object> handleGooglePermissionDenied(
+      PermissionDeniedException ex, WebRequest request) {
+    ExceptionResponse exResponse =
+        new ExceptionResponse(new Date(), ex.getMessage(), request.getDescription(false));
+    LOGGER.warn(ex.getMessage());
+    return new ResponseEntity<>(exResponse, HttpStatus.FORBIDDEN);
   }
 
   /** Handling invalid User Fields send in the request. */

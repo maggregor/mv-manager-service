@@ -26,21 +26,13 @@ public class ProjectResponse {
   @JsonProperty("automatic")
   private Boolean automatic;
 
-  @JsonProperty("stripeCustomerId")
-  private String stripeCustomerId;
-
-  public ProjectResponse(String projectId, String projectName) {
-    this.projectId = projectId;
-    this.projectName = projectName;
-  }
-
-  public ProjectResponse(String projectName, Project project) {
-    this(project.getProjectId(), projectName);
+  public ProjectResponse(Project project) {
+    this.projectId = project.getProjectId();
+    this.projectName = project.getProjectName();
     this.activated = project.isActivated();
     this.automatic = project.isAutomatic();
     this.username = project.getUsername();
     this.mvMaxPerTable = project.getMvMaxPerTable();
     this.analysisTimeframe = project.getAnalysisTimeframe();
-    this.stripeCustomerId = project.getStripeCustomerId();
   }
 }

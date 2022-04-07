@@ -30,6 +30,7 @@ public class ATableIdTest {
     assertEquals("goodProject", tableId.getProject());
     assertEquals("superDataset", tableId.getDataset());
     assertEquals("niceTable", tableId.getTable());
+    assertEquals("goodProject.superDataset.niceTable", tableId.getTableId());
   }
 
   @Test
@@ -84,11 +85,11 @@ public class ATableIdTest {
     final String expectedTableName = "myTaaaable";
     TableId googleTableId;
     ATableId actual;
-    // Dataset, Table
+    // ADataset, Table
     googleTableId = TableId.of(expectedDatasetName, expectedTableName);
     actual = ATableId.fromGoogleTableId(googleTableId);
     assertEquals(ATableId.of(expectedDatasetName, expectedTableName), actual);
-    // Project, Dataset, Table
+    // Project, ADataset, Table
     googleTableId = TableId.of(expectedProjectId, expectedDatasetName, expectedTableName);
     actual = ATableId.fromGoogleTableId(googleTableId);
     assertEquals(ATableId.of(expectedProjectId, expectedDatasetName, expectedTableName), actual);

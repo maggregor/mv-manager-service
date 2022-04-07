@@ -5,6 +5,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import com.achilio.mvm.service.databases.entities.DefaultFetchedProject;
+import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.entities.Project;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,6 +25,16 @@ public class ProjectTest {
     assertFalse(project.isActivated());
     project.setUsername("myUser");
     assertEquals("myUser", project.getUsername());
+  }
+
+  @Test
+  public void simpleValidationConstructorFetchedProject() {
+    FetchedProject fetchedProject =
+        new DefaultFetchedProject("projectId", "Project Name", "myTeam");
+    Project project = new Project(fetchedProject);
+    assertEquals("projectId", project.getProjectId());
+    assertEquals("Project Name", project.getProjectName());
+    assertEquals("myTeam", project.getTeamName());
   }
 
   @Test

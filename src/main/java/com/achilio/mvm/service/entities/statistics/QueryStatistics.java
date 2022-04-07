@@ -1,6 +1,6 @@
 package com.achilio.mvm.service.entities.statistics;
 
-import com.achilio.mvm.service.databases.entities.FetchedQuery;
+import com.achilio.mvm.service.entities.Query;
 import java.util.List;
 
 public class QueryStatistics {
@@ -11,14 +11,14 @@ public class QueryStatistics {
 
   public QueryStatistics() {}
 
-  public QueryStatistics(List<FetchedQuery> queries) {
+  public QueryStatistics(List<Query> queries) {
     queries.forEach(this::addQuery);
   }
 
-  private void addQuery(FetchedQuery query) {
+  private void addQuery(Query query) {
     incrementQueries();
-    addBilledBytes(query.getStatistics().getBilledBytes());
-    addProcessedBytes(query.getStatistics().getProcessedBytes());
+    addBilledBytes(query.getBilledBytes());
+    addProcessedBytes(query.getProcessedBytes());
   }
 
   public int getTotalQueries() {

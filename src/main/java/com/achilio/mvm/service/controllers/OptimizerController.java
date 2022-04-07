@@ -1,10 +1,13 @@
 package com.achilio.mvm.service.controllers;
 
+import static com.achilio.mvm.service.UserContextHelper.getContextTeamName;
+
 import com.achilio.mvm.service.controllers.responses.OptimizationResponse;
 import com.achilio.mvm.service.controllers.responses.OptimizationResultsResponse;
 import com.achilio.mvm.service.entities.Optimization;
 import com.achilio.mvm.service.entities.OptimizationResult;
 import com.achilio.mvm.service.services.OptimizerService;
+import com.achilio.mvm.service.services.ProjectService;
 import io.swagger.annotations.ApiOperation;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -26,6 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class OptimizerController {
 
   @Autowired private OptimizerService service;
+  @Autowired private ProjectService projectService;
 
   @GetMapping(path = "/optimize/{projectId}", produces = MediaType.APPLICATION_JSON_VALUE)
   @ApiOperation("Get all optimizations by projectId")
@@ -42,6 +46,8 @@ public class OptimizerController {
   // something
   //  to where the user can follow the steps
   public OptimizationResponse optimizeProject(@PathVariable("projectId") String projectId) {
+    final String teamName = getContextTeamName();
+    projectService.getProject(projectId, teamName);
     Optimization optimization = service.createNewOptimization(projectId);
     service.optimizeProject(optimization);
     return new OptimizationResponse(optimization);

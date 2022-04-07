@@ -27,22 +27,6 @@ public interface DatabaseFetcher {
   List<FetchedQuery> fetchAllQueriesFrom(long fromTimestamp);
 
   /**
-   * Returns metadata for a given table.
-   *
-   * @param datasetName
-   * @param tableName
-   * @return - FetchedTable of targeted table
-   */
-  FetchedTable fetchTable(String datasetName, String tableName);
-
-  /**
-   * Returns all projects id.
-   *
-   * @return
-   */
-  List<FetchedProject> fetchAllProjects();
-
-  /**
    * Returns all the information for a given project.
    *
    * @return
@@ -68,5 +52,5 @@ public interface DatabaseFetcher {
 
   Set<FetchedTable> fetchTablesInDataset(String datasetName);
 
-  List<String> fetchMissingPermissions(String projectId);
+  void close();
 }

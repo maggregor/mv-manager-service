@@ -12,11 +12,8 @@ public class OptimizerFactory {
   }
 
   public static Optimizer createOptimizer(OptimizerStrategyType strategyType) {
-    switch (strategyType) {
-      case MERGING_BY_COUNT_DISTINCT:
-        return new CountDistinctMergingOptimizer();
-      case DONT_DO_NOTHING:
-        return new DontDoNothingOptimizer();
+    if (strategyType == OptimizerStrategyType.DONT_DO_NOTHING) {
+      return new DontDoNothingOptimizer();
     }
     throw new IllegalArgumentException("Factory doesn't support this strategy: " + strategyType);
   }

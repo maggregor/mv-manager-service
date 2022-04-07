@@ -1,19 +1,37 @@
 package com.achilio.mvm.service;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import com.achilio.mvm.service.entities.AColumn;
+import com.achilio.mvm.service.entities.ADataset;
+import com.achilio.mvm.service.entities.ATable;
+import com.achilio.mvm.service.entities.Connection;
 import com.achilio.mvm.service.entities.FetcherJob;
 import com.achilio.mvm.service.entities.FetcherJob.FetcherJobStatus;
 import com.achilio.mvm.service.entities.FetcherQueryJob;
+import com.achilio.mvm.service.entities.FetcherStructJob;
+import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.entities.Query;
+import com.achilio.mvm.service.entities.ServiceAccountConnection;
 import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
+import com.achilio.mvm.service.repositories.AColumnRepository;
+import com.achilio.mvm.service.repositories.ADatasetRepository;
+import com.achilio.mvm.service.repositories.ATableRepository;
+import com.achilio.mvm.service.repositories.ConnectionRepository;
 import com.achilio.mvm.service.repositories.FetcherJobRepository;
+import com.achilio.mvm.service.repositories.ProjectRepository;
 import com.achilio.mvm.service.repositories.QueryRepository;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import javax.transaction.Transactional;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -43,6 +61,7 @@ public class RepositoriesIntegrationTest {
           "SELECT 1",
           GOOGLE_JOB_ID1,
           TEST_PROJECT_ID1,
+          "",
           false,
           false,
           LocalDate.of(2020, 1, 8),
@@ -53,6 +72,7 @@ public class RepositoriesIntegrationTest {
           "SELECT 2",
           GOOGLE_JOB_ID2,
           TEST_PROJECT_ID1,
+          "",
           false,
           false,
           LocalDate.of(2020, 1, 8),
@@ -63,6 +83,7 @@ public class RepositoriesIntegrationTest {
           "SELECT 1",
           GOOGLE_JOB_ID5,
           TEST_PROJECT_ID1,
+          "",
           false,
           false,
           LocalDate.of(2020, 1, 8),
@@ -74,6 +95,7 @@ public class RepositoriesIntegrationTest {
           "SELECT 2",
           GOOGLE_JOB_ID3,
           TEST_PROJECT_ID1,
+          "",
           false,
           false,
           LocalDate.of(2020, 1, 8),
@@ -86,13 +108,21 @@ public class RepositoriesIntegrationTest {
           "SELECT 1",
           GOOGLE_JOB_ID4,
           TEST_PROJECT_ID2,
+          "",
           false,
           false,
           LocalDate.of(2020, 1, 8),
           stats);
-
-  @Autowired FetcherJobRepository fetcherJobRepository;
-  @Autowired QueryRepository queryRepository;
+  private final FetcherStructJob job5 = new FetcherStructJob(TEST_PROJECT_ID1);
+  private final Connection connection1 = new ServiceAccountConnection("SA_JSON_CONTENT");
+  private final Connection connection2 = new ServiceAccountConnection("SA_JSON_CONTENT");
+  @Autowired private FetcherJobRepository fetcherJobRepository;
+  @Autowired private QueryRepository queryRepository;
+  @Autowired private ProjectRepository projectRepository;
+  @Autowired private ADatasetRepository datasetRepository;
+  @Autowired private ATableRepository tableRepository;
+  @Autowired private AColumnRepository columnRepository;
+  @Autowired private ConnectionRepository connectionRepository;
 
   @Before
   public void setup() {
@@ -101,6 +131,7 @@ public class RepositoriesIntegrationTest {
     fetcherJobRepository.save(job2);
     fetcherJobRepository.save(job3);
     fetcherJobRepository.save(job4);
+    fetcherJobRepository.save(job5);
 
     queryRepository.save(query1);
     queryRepository.save(query2);
@@ -113,21 +144,26 @@ public class RepositoriesIntegrationTest {
             "SELECT 2",
             GOOGLE_JOB_ID5,
             TEST_PROJECT_ID1,
+            "",
             false,
             false,
             LocalDate.of(2020, 1, 8),
             stats);
     queryRepository.saveAndFlush(replacingQuery5);
+
+    connection1.setTeamName("myTeam");
+    connection2.setTeamName("myTeam");
   }
 
   @After
   public void cleanUp() {
+    columnRepository.deleteAll();
     queryRepository.deleteAll();
     fetcherJobRepository.deleteAll();
   }
 
   @Test
-  public void saveTest() {
+  public void fetcherJob_save() {
     FetcherQueryJob job = new FetcherQueryJob(TEST_PROJECT_ID2);
     FetcherQueryJob savedJob = fetcherJobRepository.save(job);
     Assert.assertNotNull(savedJob.getCreatedAt());
@@ -136,20 +172,27 @@ public class RepositoriesIntegrationTest {
   }
 
   @Test
-  public void findAllByProjectIdTest() {
-    List<FetcherQueryJob> jobs =
+  public void fetcherJob_findAllByProjectId() {
+    List<FetcherQueryJob> queryJobs =
         fetcherJobRepository.findFetcherQueryJobsByProjectId(TEST_PROJECT_ID1);
-    Assert.assertEquals(3, jobs.size());
-    FetcherJob job = jobs.get(0);
+    Assert.assertEquals(3, queryJobs.size());
+    FetcherJob job = queryJobs.get(0);
     Assert.assertEquals(TEST_PROJECT_ID1, job.getProjectId());
     Assert.assertNotNull(job.getCreatedAt());
     Assert.assertEquals("PENDING", job.getStatus().toString());
+
+    List<FetcherStructJob> structJobs =
+        fetcherJobRepository.findFetcherStructJobsByProjectId(TEST_PROJECT_ID1);
+    Assert.assertEquals(1, structJobs.size());
+
+    List<FetcherJob> allJobs = fetcherJobRepository.findFetcherJobsByProjectId(TEST_PROJECT_ID1);
+    Assert.assertEquals(4, allJobs.size());
   }
 
   @Test
-  public void findLastFetcherQueryJobTest() {
+  public void fetcherJob_findLastFetcherQueryJob() {
     Optional<FetcherQueryJob> optionalJob =
-        fetcherJobRepository.findTopFetchedQueryJobByProjectIdOrderByCreatedAtDesc(
+        fetcherJobRepository.findTopFetcherQueryJobByProjectIdOrderByCreatedAtDesc(
             TEST_PROJECT_ID1);
     List<FetcherQueryJob> allJobs =
         fetcherJobRepository.findFetcherQueryJobsByProjectId(TEST_PROJECT_ID1);
@@ -159,34 +202,44 @@ public class RepositoriesIntegrationTest {
     FetcherQueryJob job = optionalJob.get();
     Assert.assertEquals(TEST_PROJECT_ID1, job.getProjectId());
     Assert.assertNotNull(job.getCreatedAt());
-    allJobs.forEach(j -> job.getCreatedAt().isAfter(j.getCreatedAt()));
-    job.getCreatedAt().isEqual(lastJob.getCreatedAt());
+    allJobs.forEach(j -> job.getCreatedAt().toInstant().isAfter(j.getCreatedAt().toInstant()));
+    assertEquals(job.getCreatedAt(), lastJob.getCreatedAt());
     Assert.assertEquals(14, job.getTimeframe());
   }
 
   @Test
-  public void findFetcherQueryJobsByProjectIdAndStatusTest() {
-    List<FetcherQueryJob> jobs =
+  public void fetcherJob_findFetcherQueryJobsByProjectIdAndStatus() {
+    List<FetcherQueryJob> queryJobs =
         fetcherJobRepository.findFetcherQueryJobsByProjectIdAndStatus(
             TEST_PROJECT_ID1, FetcherJobStatus.PENDING);
-    Assert.assertEquals(2, jobs.size());
+    Assert.assertEquals(2, queryJobs.size());
+
+    List<FetcherStructJob> structJobs =
+        fetcherJobRepository.findFetcherStructJobsByProjectIdAndStatus(
+            TEST_PROJECT_ID1, FetcherJobStatus.PENDING);
+    Assert.assertEquals(1, structJobs.size());
+
+    List<FetcherJob> allJobs =
+        fetcherJobRepository.findFetcherJobsByProjectIdAndStatus(
+            TEST_PROJECT_ID1, FetcherJobStatus.PENDING);
+    Assert.assertEquals(3, allJobs.size());
   }
 
   @Test
-  public void findTopFetchedQueryJobByProjectIdAndStatusOrderByCreatedAtDescTest() {
+  public void fetcherJob_findTopFetchedQueryJobByProjectIdAndStatusOrderByCreatedAtDesc() {
     Optional<FetcherQueryJob> optionalFetcherJob =
-        fetcherJobRepository.findTopFetchedQueryJobByProjectIdAndStatusOrderByCreatedAtDesc(
+        fetcherJobRepository.findTopFetcherQueryJobByProjectIdAndStatusOrderByCreatedAtDesc(
             TEST_PROJECT_ID1, FetcherJobStatus.PENDING);
     Assert.assertTrue(optionalFetcherJob.isPresent());
 
     optionalFetcherJob =
-        fetcherJobRepository.findTopFetchedQueryJobByProjectIdAndStatusOrderByCreatedAtDesc(
+        fetcherJobRepository.findTopFetcherQueryJobByProjectIdAndStatusOrderByCreatedAtDesc(
             TEST_PROJECT_ID1, FetcherJobStatus.WORKING);
     Assert.assertFalse(optionalFetcherJob.isPresent());
   }
 
   @Test
-  public void findFetcherQueryJobByProjectIdAndIdTest() {
+  public void fetcherJob_findFetcherQueryJobByProjectIdAndId() {
     Optional<FetcherQueryJob> fetchedJob1 =
         fetcherJobRepository.findFetcherQueryJobByIdAndProjectId(job1.getId(), TEST_PROJECT_ID1);
     Assert.assertTrue(fetchedJob1.isPresent());
@@ -206,7 +259,7 @@ public class RepositoriesIntegrationTest {
   }
 
   @Test
-  public void findAllQueriesByFetcherQueryJobTest() {
+  public void query_findAllQueriesByFetcherQueryJob() {
     List<Query> queries =
         queryRepository.findAllByInitialFetcherQueryJobAndProjectId(job1, TEST_PROJECT_ID1);
     Assert.assertEquals(3, queries.size());
@@ -229,7 +282,7 @@ public class RepositoriesIntegrationTest {
   }
 
   @Test
-  public void findFirstByIdAndProjectIdTest() {
+  public void query_findFirstByIdAndProjectId() {
     Optional<Query> retrievedQuery1 =
         queryRepository.findQueryByIdAndProjectId(
             query1.getId(), query1.getLastFetcherQueryJob().getProjectId());
@@ -238,19 +291,128 @@ public class RepositoriesIntegrationTest {
   }
 
   @Test
-  public void findAllByLastFetcherQueryJobAndProjectIdTest() {
+  public void query_findAllByLastFetcherQueryJobAndProjectId() {
     List<Query> queries =
         queryRepository.findAllByLastFetcherQueryJobAndProjectId(job4, TEST_PROJECT_ID2);
     Assert.assertEquals(1, queries.size());
   }
 
   @Test
-  public void updateQueryTest() {
+  public void query_updateQuery() {
     Optional<Query> unchangedQuery =
         queryRepository.findQueryByIdAndProjectId(query5.getId(), TEST_PROJECT_ID1);
     Assert.assertTrue(unchangedQuery.isPresent());
     Query finalQuery = unchangedQuery.get();
     Assert.assertEquals(job2.getId(), finalQuery.getLastFetcherQueryJob().getId());
     Assert.assertEquals(job1.getId(), finalQuery.getInitialFetcherQueryJob().getId());
+  }
+
+  @BeforeEach
+  public void clear() {
+    connectionRepository.deleteAll();
+  }
+
+  @Test
+  public void connection_findAllByTeamName() {
+    assertEquals(0, connectionRepository.findAllByTeamName("myTeam").size());
+    connectionRepository.save(connection1);
+    assertEquals(1, connectionRepository.findAllByTeamName("myTeam").size());
+    connectionRepository.save(connection2);
+    assertEquals(2, connectionRepository.findAllByTeamName("myTeam").size());
+  }
+
+  @Test
+  @Transactional
+  public void connection_deleteByIdAndTeamName() {
+    assertTrue(connectionRepository.findAllByTeamName("myTeam").isEmpty());
+    connectionRepository.save(connection1);
+    connectionRepository.save(connection2);
+    assertFalse(connectionRepository.findAllByTeamName("myTeam").isEmpty());
+    connectionRepository.deleteByIdAndTeamName(connection1.getId(), "myTeam");
+    assertFalse(connectionRepository.findAllByTeamName("myTeam").isEmpty());
+    connectionRepository.deleteByIdAndTeamName(connection2.getId(), "myTeam");
+    assertTrue(connectionRepository.findAllByTeamName("myTeam").isEmpty());
+    connectionRepository.deleteByIdAndTeamName(connection1.getId(), "myTeam");
+    assertTrue(connectionRepository.findAllByTeamName("myTeam").isEmpty());
+  }
+
+  @Test
+  public void column_findAllByProject() {
+    String PROJECT_ID1 = "project-id1";
+    String PROJECT_ID2 = "project-id2";
+    String PROJECT_NAME1 = "Project 1";
+    String PROJECT_NAME2 = "Project 2";
+    String DATASET_NAME1 = "myDataset1";
+    String DATASET_NAME2 = "myDataset2";
+    String TABLE_NAME1 = "myTable1";
+    String COLUMN_NAME1 = "myColumn1";
+    String COLUMN_TYPE1 = "columnType1";
+
+    Project project1 = new Project(PROJECT_ID1, PROJECT_NAME1);
+    Project project2 = new Project(PROJECT_ID2, PROJECT_NAME2);
+    ADataset dataset1 = new ADataset(project1, DATASET_NAME1);
+    ADataset dataset2 = new ADataset(project2, DATASET_NAME2);
+    ATable table1 = new ATable(project1, dataset1, TABLE_NAME1);
+    ATable table2 = new ATable(project2, dataset1, TABLE_NAME1);
+    AColumn column1 = new AColumn(job5, table1, COLUMN_NAME1, COLUMN_TYPE1);
+    AColumn column2 = new AColumn(job5, table2, COLUMN_NAME1, COLUMN_TYPE1);
+    projectRepository.save(project1);
+    projectRepository.save(project2);
+    datasetRepository.save(dataset1);
+    datasetRepository.save(dataset2);
+    tableRepository.save(table1);
+    tableRepository.save(table2);
+    columnRepository.save(column1);
+    columnRepository.save(column2);
+
+    List<AColumn> columns = columnRepository.findAllByTable_Project_ProjectId(PROJECT_ID1);
+    assertEquals(1, columns.size());
+    assertEquals(
+        String.format("%s.%s.%s#%s", PROJECT_ID1, DATASET_NAME1, TABLE_NAME1, COLUMN_NAME1),
+        columns.get(0).getColumnId());
+  }
+
+  @Test
+  public void query_findAllByProjectIdAndStartTimeGreaterThanEqual() {
+    final String projectId = "theProjectId";
+    Query query = new Query();
+    query.setId("myId");
+    query.setProjectId(projectId);
+    LocalDate date = LocalDate.now();
+    query.setStartTime(date);
+    queryRepository.save(query);
+    List<Query> queries;
+    queries = queryRepository.findAllByProjectIdAndStartTimeGreaterThanEqual(projectId, date);
+    assertEquals(1, queries.size());
+    assertEquals("myId", queries.get(0).getId());
+    //
+    queryRepository.deleteAll();
+    queryRepository.save(simpleQuery(projectId, "id-1", LocalDate.now().minusDays(10)));
+    queryRepository.save(simpleQuery(projectId, "id-2", LocalDate.now().minusDays(5)));
+    queryRepository.save(simpleQuery(projectId, "id-3", LocalDate.now().minusDays(1)));
+    LocalDate from;
+    from = LocalDate.now().minusDays(100);
+    queries = queryRepository.findAllByProjectIdAndStartTimeGreaterThanEqual(projectId, from);
+    assertEquals(3, queries.size());
+    //
+    from = LocalDate.now().minusDays(9);
+    queries = queryRepository.findAllByProjectIdAndStartTimeGreaterThanEqual(projectId, from);
+    assertEquals(2, queries.size());
+    //
+    from = LocalDate.now().minusDays(4);
+    queries = queryRepository.findAllByProjectIdAndStartTimeGreaterThanEqual(projectId, from);
+    assertEquals(1, queries.size());
+    //
+    from = LocalDate.now();
+    queries = queryRepository.findAllByProjectIdAndStartTimeGreaterThanEqual(projectId, from);
+    assertEquals(0, queries.size());
+  }
+
+  private Query simpleQuery(String projectId, String id, LocalDate startTime) {
+    Query q = new Query();
+    q.setProjectId(projectId);
+    q.setId(id);
+    q.setStartTime(startTime);
+    return q;
   }
 }

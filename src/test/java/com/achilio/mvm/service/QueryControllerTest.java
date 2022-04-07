@@ -31,7 +31,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 public class QueryControllerTest {
 
   private final String TEST_PROJECT_ID = "myProjectId";
-  private final int TIMEFRAME1 = 7;
   private final int TIMEFRAME2 = 14;
   private final ObjectMapper objectMapper = new ObjectMapper();
   private final FetcherQueryJob realFetcherJob1 = new FetcherQueryJob(TEST_PROJECT_ID);
@@ -56,6 +55,7 @@ public class QueryControllerTest {
             queryStatement1,
             googleJobId,
             TEST_PROJECT_ID,
+            "",
             useMaterializedView,
             useCache,
             startTime,
@@ -66,21 +66,21 @@ public class QueryControllerTest {
             queryStatement2,
             googleJobId,
             TEST_PROJECT_ID,
+            "",
             useMaterializedView,
             useCache,
             startTime,
             stats);
     when(mockQueryService.getAllQueriesByJobIdAndProjectId(1L, TEST_PROJECT_ID))
         .thenReturn(Arrays.asList(query1, query2));
-    when(mockQueryService.getAllQueriesByProjectIdLastJob(TEST_PROJECT_ID))
-        .thenReturn(Arrays.asList(query1, query2));
+    when(mockQueryService.getAllQueries(TEST_PROJECT_ID)).thenReturn(Arrays.asList(query1, query2));
     when(mockQueryService.getQuery(googleJobId, TEST_PROJECT_ID)).thenReturn(query1);
     when(mockQueryService.getQuery("unknownQueryId", TEST_PROJECT_ID))
         .thenThrow(new QueryNotFoundException("unknownQueryId"));
   }
 
   @Test
-  public void getAllQueriesByProjectIdAndFetcherQueryJobIdTest() throws JsonProcessingException {
+  public void getAllQueriesByProjectIdAndFetcherQueryJobId() throws JsonProcessingException {
     ObjectMapper mapper = new ObjectMapper();
     List<Query> jobResponseEntity =
         controller.getAllQueriesByProjectIdAndFetcherQueryJobId(TEST_PROJECT_ID, 1L);
@@ -92,19 +92,14 @@ public class QueryControllerTest {
   }
 
   @Test
-  public void getQueriesOfLastFetcherQueryJobByProjectIdTest() throws JsonProcessingException {
-    ObjectMapper mapper = new ObjectMapper();
-    List<Query> jobResponseEntity =
-        controller.getAllQueriesOfLastFetcherQueryJobByProjectId(TEST_PROJECT_ID);
-    String jsonResponse = objectMapper.writeValueAsString(jobResponseEntity);
-    JsonNode map = mapper.readTree(jsonResponse);
-    Assert.assertTrue(map instanceof ArrayNode);
-    Assert.assertEquals(2, map.size());
-    Assert.assertEquals(queryStatement1, map.get(0).get("query").asText());
+  public void getAllQueriesByProjectId() {
+    List<Query> jobResponseEntity = controller.getAllQueriesByProjectId(TEST_PROJECT_ID);
+    Assert.assertEquals(2, jobResponseEntity.size());
+    Assert.assertEquals(queryStatement1, jobResponseEntity.get(0).getQuery());
   }
 
   @Test
-  public void getQueryTesT() throws JsonProcessingException {
+  public void getQuery() throws JsonProcessingException {
     ObjectMapper mapper = new ObjectMapper();
     Query jobResponseEntity = controller.getSingleQuery(TEST_PROJECT_ID, googleJobId);
     String jsonResponse = objectMapper.writeValueAsString(jobResponseEntity);

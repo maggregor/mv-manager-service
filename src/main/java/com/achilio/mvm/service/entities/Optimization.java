@@ -37,16 +37,12 @@ public class Optimization {
   @Column(name = "mv_max_table")
   private Integer mvMaxPerTable;
 
-  @Column(name = "mv_max_plan")
-  private Integer mvMaxPlan;
-
   @Column(name = "mv_applied_count")
   private Integer mvAppliedCount;
 
   @Column(name = "mv_proposal_count")
   private Integer mvProposalCount;
 
-  @Column(name = "analysisTimeframe")
   private Integer analysisTimeframe;
 
   @Column(name = "username", nullable = false, columnDefinition = "varchar(255) default 'unknown'")
@@ -89,14 +85,6 @@ public class Optimization {
 
   public void setMvMaxPerTable(Integer mvMaxPerTable) {
     this.mvMaxPerTable = mvMaxPerTable;
-  }
-
-  public Integer getMvMaxPlan() {
-    return this.mvMaxPlan;
-  }
-
-  public void setMvMaxPlan(Integer mvMaxPlan) {
-    this.mvMaxPlan = mvMaxPlan;
   }
 
   public Integer getMvAppliedCount() {
@@ -145,7 +133,7 @@ public class Optimization {
     FINISHED("Finished"),
     ERROR("Error");
 
-    private String description;
+    private final String description;
 
     Status(String description) {
       this.description = description;
