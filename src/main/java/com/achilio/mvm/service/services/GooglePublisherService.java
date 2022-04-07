@@ -126,7 +126,7 @@ public class GooglePublisherService {
             .map(this::toResultEntry)
             .collect(Collectors.toList());
     message.setOptimizationResults(results);
-    message.setServiceAccount(serviceAccount);
+    message.setServiceAccount(serviceAccount.replaceAll("\n", ""));
     return new ObjectMapper().writeValueAsString(message);
   }
 
