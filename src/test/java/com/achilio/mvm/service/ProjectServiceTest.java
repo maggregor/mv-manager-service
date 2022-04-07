@@ -264,10 +264,6 @@ public class ProjectServiceTest {
     assertTrue(project.isAutomatic());
     service.deactivateProject(project);
     assertFalse(project.isActivated());
-    assertFalse(project.isAutomatic());
-    assertFalse(project.isAutomaticAvailable());
-    assertEquals(0, project.getMvMaxPerTableLimit());
-    assertEquals(0, project.getMvMaxPerTable());
   }
 
   @Test

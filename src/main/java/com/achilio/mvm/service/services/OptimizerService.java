@@ -190,7 +190,7 @@ public class OptimizerService {
 
   public void destroyAllMaterializedViewsByProject(final String projectId) {
     LOGGER.info("Ready to destroy");
-    publisherService.publishDestroyMaterializedViews(projectId);
+    publisherService.deleteAllMaterializedViews(projectId);
   }
 
   public Optimization getOptimization(final String projectId, final Long optimizationId) {

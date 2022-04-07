@@ -89,7 +89,16 @@ public class GooglePublisherService {
   }
 
   private Boolean publishMaterializedViews(String projectId, List<OptimizationResult> mViews) {
-    if (mViews.isEmpty()) {
+    return publishMaterializedViews(projectId, mViews, false);
+  }
+
+  public void deleteAllMaterializedViews(String projectId) {
+    publishMaterializedViews(projectId, Collections.emptyList(), true);
+  }
+
+  private Boolean publishMaterializedViews(
+      String projectId, List<OptimizationResult> mViews, boolean deleteIfEmpty) {
+    if (mViews.isEmpty() && !deleteIfEmpty) {
       LOGGER.info("Empty results for the project {}: publishing skipped", projectId);
       return false;
     }
@@ -99,7 +108,7 @@ public class GooglePublisherService {
       String formattedMessage = buildOptimizationMessage(serviceAccountKey, mViews);
       Boolean published =
           publishMessage(
-              buildPubSubMessage(projectId, formattedMessage, CMD_TYPE_APPLY), EXECUTOR_TOPIC_NAME);
+              buildPubSubMessage(projectId, CMD_TYPE_APPLY, formattedMessage), EXECUTOR_TOPIC_NAME);
       if (published) {
         LOGGER.info("{} results published for the project {}", mViews.size(), projectId);
         return true;
@@ -123,20 +132,6 @@ public class GooglePublisherService {
     message.setOptimizationResults(results);
     message.setServiceAccount(serviceAccount);
     return new ObjectMapper().writeValueAsString(message);
-  }
-
-  public void publishDestroyMaterializedViews(String projectId) {
-    try {
-      String message = new ObjectMapper().writeValueAsString(Collections.emptyList());
-      if (publishMessage(
-          buildPubSubMessage(projectId, message, CMD_TYPE_DESTROY), EXECUTOR_TOPIC_NAME)) {
-        LOGGER.info("All MMVs destroyed for the project {}", projectId);
-      } else {
-        LOGGER.info("No actual materialized view will be destroyed");
-      }
-    } catch (JsonProcessingException e) {
-      LOGGER.error("Error during results JSON formatting", e);
-    }
   }
 
   public void publishProjectSchedulers(List<Project> projects) {
@@ -213,7 +208,7 @@ public class GooglePublisherService {
   }
 
   public void publishNewProjectRegistered(String projectId) {
-    final String msg = "New project registered" + projectId;
+    final String msg = "New project registered " + projectId;
     publishMessage(buildPubSubMessage(projectId, CMD_TYPE_WORKSPACE, msg), EXECUTOR_TOPIC_NAME);
   }
 }
