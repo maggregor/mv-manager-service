@@ -168,6 +168,7 @@
     <dependency>
       <artifactId>google-cloud-storage</artifactId>
       <groupId>com.google.cloud</groupId>
+      <version>2.6.0</version>
     </dependency>
 
     <!-- https://mvnrepository.com/artifact/com.google.zetasql/zetasql-client -->

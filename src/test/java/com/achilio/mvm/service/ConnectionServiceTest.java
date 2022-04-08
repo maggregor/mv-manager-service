@@ -19,8 +19,7 @@ import com.achilio.mvm.service.exceptions.ConnectionNotFoundException;
 import com.achilio.mvm.service.exceptions.InvalidPayloadException;
 import com.achilio.mvm.service.repositories.ConnectionRepository;
 import com.achilio.mvm.service.services.ConnectionService;
-import com.achilio.mvm.service.utils.GoogleCloudStorage;
-import com.google.cloud.storage.Storage;
+import com.achilio.mvm.service.services.GoogleCloudStorageService;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,7 +38,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -52,15 +50,16 @@ public class ConnectionServiceTest {
   private static final String OWNER_USERNAME = "myUsername";
   private static final String TEAM_NAME = "myTeam";
   private static final String JSON_SA_CONTENT = "json_content_service_account_xxx";
+  private static final String GCS_URL = "gcs://test-bucket/connections/1.json";
   private static ServiceAccountConnectionRequest SA_REQUEST;
   private static ServiceAccountConnection SA_CONNECTION;
   @InjectMocks private ConnectionService service;
   @Mock private ConnectionRepository mockedRepository;
-  @Mock private Storage mockedStorage;
+  @Mock private GoogleCloudStorageService mockedStorage;
   private Validator validator;
 
   @Before
-  public void setup() {
+  public void setup() throws IOException {
     SA_CONNECTION =
         new ServiceAccountConnection(
             CONNECTION_NAME1, TEAM_NAME, OWNER_USERNAME, SourceType.BIGQUERY, JSON_SA_CONTENT);
@@ -70,6 +69,7 @@ public class ConnectionServiceTest {
     when(mockedRepository.findByIdAndTeamName(456L, TEAM_NAME))
         .thenReturn(Optional.of(SA_CONNECTION));
     //
+    when(mockedStorage.uploadObject(any(), any())).thenReturn(GCS_URL);
     ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
     validator = factory.getValidator();
   }
@@ -77,23 +77,17 @@ public class ConnectionServiceTest {
   @Test
   public void createServiceAccountConnection() throws IOException {
     Connection connection;
-    try (MockedStatic<GoogleCloudStorage> utilities =
-        Mockito.mockStatic(GoogleCloudStorage.class)) {
-      utilities
-          .when(() -> GoogleCloudStorage.uploadObject(any(), any(), any(), any()))
-          .thenReturn("gcs://test-bucket/connections/1.json");
-      connection = service.createConnection(TEAM_NAME, OWNER_USERNAME, SA_REQUEST);
-      assertExpectedServiceAccount(SA_CONNECTION, connection);
-      // Empty service account
-      SA_REQUEST = new ServiceAccountConnectionRequest(CONNECTION_NAME1, SOURCE_BIGQUERY, "");
-      connection = service.createConnection(TEAM_NAME, OWNER_USERNAME, SA_REQUEST);
-      Set<ConstraintViolation<Connection>> violations = validator.validate(connection);
-      assertFalse(violations.isEmpty());
-      assertEquals(
-          "Service account must not be empty",
-          ((ConstraintViolation<?>) violations.toArray()[0]).getMessage());
-      assertEquals("gcs://test-bucket/connections/1.json", connection.getConnectionFileUrl());
-    }
+    connection = service.createConnection(TEAM_NAME, OWNER_USERNAME, SA_REQUEST);
+    assertExpectedServiceAccount(SA_CONNECTION, connection);
+    // Empty service account
+    SA_REQUEST = new ServiceAccountConnectionRequest(CONNECTION_NAME1, SOURCE_BIGQUERY, "");
+    connection = service.createConnection(TEAM_NAME, OWNER_USERNAME, SA_REQUEST);
+    Set<ConstraintViolation<Connection>> violations = validator.validate(connection);
+    assertFalse(violations.isEmpty());
+    assertEquals(
+        "Service account must not be empty",
+        ((ConstraintViolation<?>) violations.toArray()[0]).getMessage());
+    assertEquals("gcs://test-bucket/connections/1.json", connection.getConnectionFileUrl());
   }
 
   @Test
@@ -108,24 +102,18 @@ public class ConnectionServiceTest {
   public void updateServiceAccountConnection() throws IOException {
     ServiceAccountConnectionRequest updateRequest =
         new ServiceAccountConnectionRequest(CONNECTION_NAME1, SOURCE_BIGQUERY, "another");
-    try (MockedStatic<GoogleCloudStorage> utilities =
-        Mockito.mockStatic(GoogleCloudStorage.class)) {
-      utilities
-          .when(() -> GoogleCloudStorage.uploadObject(any(), any(), any(), any()))
-          .thenReturn("gcs://test-bucket/connections/1.json");
-      Connection connection = SA_CONNECTION;
-      connection.setConnectionFileUrl("gcs://oldbucket/connections/oldconnection.json");
-      assertEquals(
-          "gcs://oldbucket/connections/oldconnection.json", connection.getConnectionFileUrl());
-      connection = service.updateConnection(456L, TEAM_NAME, updateRequest);
-      assertExpectedServiceAccount(updateRequest, connection);
-      Exception e =
-          assertThrows(
-              ConnectionNotFoundException.class,
-              () -> service.updateConnection(9999L, TEAM_NAME, SA_REQUEST));
-      assertEquals("Connection 9999 not found", e.getMessage());
-      assertEquals("gcs://test-bucket/connections/1.json", connection.getConnectionFileUrl());
-    }
+    Connection connection = SA_CONNECTION;
+    connection.setConnectionFileUrl("gcs://oldbucket/connections/oldconnection.json");
+    assertEquals(
+        "gcs://oldbucket/connections/oldconnection.json", connection.getConnectionFileUrl());
+    connection = service.updateConnection(456L, TEAM_NAME, updateRequest);
+    assertExpectedServiceAccount(updateRequest, connection);
+    Exception e =
+        assertThrows(
+            ConnectionNotFoundException.class,
+            () -> service.updateConnection(9999L, TEAM_NAME, SA_REQUEST));
+    assertEquals("Connection 9999 not found", e.getMessage());
+    assertEquals("gcs://test-bucket/connections/1.json", connection.getConnectionFileUrl());
   }
 
   @Test

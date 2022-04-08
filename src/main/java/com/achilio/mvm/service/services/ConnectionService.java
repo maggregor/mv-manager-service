@@ -1,7 +1,5 @@
 package com.achilio.mvm.service.services;
 
-import static com.achilio.mvm.service.utils.GoogleCloudStorage.uploadObject;
-
 import com.achilio.mvm.service.controllers.requests.ConnectionRequest;
 import com.achilio.mvm.service.controllers.requests.ServiceAccountConnectionRequest;
 import com.achilio.mvm.service.entities.Connection;
@@ -16,7 +14,6 @@ import java.util.Optional;
 import javax.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /** Services to manage connection resources. */
@@ -26,16 +23,12 @@ public class ConnectionService {
   private static final Logger LOGGER = LoggerFactory.getLogger(ConnectionService.class);
 
   private final ConnectionRepository repository;
-  private final String projectId;
-  private final String bucketName;
+  private final GoogleCloudStorageService googleCloudStorageService;
 
   public ConnectionService(
-      ConnectionRepository repository,
-      @Value("${publisher.google-project-id}") String projectId,
-      @Value("${connection.bucket.name}") String bucketName) {
+      ConnectionRepository repository, GoogleCloudStorageService googleCloudStorageService) {
     this.repository = repository;
-    this.projectId = projectId;
-    this.bucketName = bucketName;
+    this.googleCloudStorageService = googleCloudStorageService;
   }
 
   public List<Connection> getAllConnections(String teamName) {
@@ -79,7 +72,7 @@ public class ConnectionService {
     } else {
       throw new IllegalArgumentException("Unsupported connection type");
     }
-    connection.setConnectionFileUrl(uploadConnection(projectId, bucketName, connection));
+    connection.setConnectionFileUrl(uploadConnectionToGCS(connection));
     connection.setName(request.getName());
     connection.setTeamName(teamName);
     connection.setOwnerUsername(ownerUsername);
@@ -87,10 +80,9 @@ public class ConnectionService {
     return repository.save(connection);
   }
 
-  private String uploadConnection(String projectId, String bucketName, Connection connection)
-      throws IOException {
+  private String uploadConnectionToGCS(Connection connection) throws IOException {
     String objectName = connection.getTeamName() + "/" + connection.getId() + ".json";
-    return uploadObject(projectId, bucketName, objectName, connection.getContent());
+    return googleCloudStorageService.uploadObject(objectName, connection.getContent());
   }
 
   public Connection updateConnection(Long id, String teamName, ConnectionRequest request)
@@ -101,7 +93,7 @@ public class ConnectionService {
       connection.setName(request.getName());
       if (!request.getContent().isEmpty()) {
         connection.setContent(request.getContent());
-        connection.setConnectionFileUrl(uploadConnection(projectId, bucketName, connection));
+        connection.setConnectionFileUrl(uploadConnectionToGCS(connection));
       }
       LOGGER.info("Connection {} updated", id);
       return repository.save(connection);
