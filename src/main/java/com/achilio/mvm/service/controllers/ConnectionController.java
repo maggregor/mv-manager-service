@@ -11,6 +11,7 @@ import com.achilio.mvm.service.entities.Connection;
 import com.achilio.mvm.service.entities.ServiceAccountConnection;
 import com.achilio.mvm.service.services.ConnectionService;
 import io.swagger.annotations.ApiOperation;
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +44,8 @@ public class ConnectionController {
 
   @PostMapping(path = "/connection", produces = APPLICATION_JSON_VALUE)
   @ApiOperation("List all connection")
-  public ConnectionResponse createConnection(@RequestBody ConnectionRequest request) {
+  public ConnectionResponse createConnection(@RequestBody ConnectionRequest request)
+      throws IOException {
     return toConnectionResponse(
         service.createConnection(getContextTeamName(), getContextUsername(), request));
   }
@@ -57,7 +59,7 @@ public class ConnectionController {
   @PatchMapping(path = "/connection/{id}", produces = APPLICATION_JSON_VALUE)
   @ApiOperation("Update connection")
   public ConnectionResponse updateConnection(
-      @PathVariable Long id, @RequestBody ConnectionRequest request) {
+      @PathVariable Long id, @RequestBody ConnectionRequest request) throws IOException {
     return toConnectionResponse(service.updateConnection(id, getContextTeamName(), request));
   }
 
