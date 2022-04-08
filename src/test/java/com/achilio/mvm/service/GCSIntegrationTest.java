@@ -57,7 +57,7 @@ public class GCSIntegrationTest {
 
   @Before
   public void setup() throws IOException {
-    BlobId blobId = BlobId.of(BUCKET_NAME, "dummyObject");
+    BlobId blobId = BlobId.of(BUCKET_NAME, "connections/dummyObject");
     BlobInfo blobInfo = BlobInfo.newBuilder(blobId).build();
     byte[] content = CONNECTION_CONTENT.getBytes(StandardCharsets.UTF_8);
     helperStorageClient.createFrom(blobInfo, new ByteArrayInputStream(content));

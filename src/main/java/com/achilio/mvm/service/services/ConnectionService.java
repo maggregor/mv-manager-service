@@ -56,13 +56,19 @@ public class ConnectionService {
         LOGGER.warn(errorMessage);
         throw new ConnectionInUseException(errorMessage);
       }
+      deleteObjectFromGCS(connection);
       repository.delete(connection);
     }
   }
 
+  private void deleteObjectFromGCS(Connection connection) {
+    String objectName = connection.getTeamName() + "/" + connection.getId() + ".json";
+    googleCloudStorageService.deleteObject(objectName);
+  }
+
   @Transactional
   public Connection createConnection(
-      String teamName, String ownerUsername, ConnectionRequest request) throws IOException {
+      String teamName, String ownerUsername, ConnectionRequest request) {
     Connection connection;
     if (request.getSourceType() == null) {
       throw new InvalidPayloadException();
@@ -72,7 +78,6 @@ public class ConnectionService {
     } else {
       throw new IllegalArgumentException("Unsupported connection type");
     }
-    connection.setConnectionFileUrl(uploadConnectionToGCS(connection));
     connection.setName(request.getName());
     connection.setTeamName(teamName);
     connection.setOwnerUsername(ownerUsername);
@@ -80,20 +85,25 @@ public class ConnectionService {
     return repository.save(connection);
   }
 
-  private String uploadConnectionToGCS(Connection connection) throws IOException {
-    String objectName = connection.getTeamName() + "/" + connection.getId() + ".json";
-    return googleCloudStorageService.uploadObject(objectName, connection.getContent());
+  public void uploadConnectionToGCS(Connection connection) {
+    try {
+      String objectName = connection.getTeamName() + "/" + connection.getId() + ".json";
+      connection.setConnectionFileUrl(
+          googleCloudStorageService.uploadObject(objectName, connection.getContent()));
+      repository.save(connection);
+    } catch (IOException e) {
+      deleteConnection(connection.getId(), connection.getTeamName());
+      throw new RuntimeException("Error during connection creation", e);
+    }
   }
 
-  public Connection updateConnection(Long id, String teamName, ConnectionRequest request)
-      throws IOException {
+  public Connection updateConnection(Long id, String teamName, ConnectionRequest request) {
     if (request instanceof ServiceAccountConnectionRequest) {
       // Update a service account
       Connection connection = getConnection(id, teamName);
       connection.setName(request.getName());
-      if (!request.getContent().isEmpty()) {
+      if (request.getContent() != null && !request.getContent().isEmpty()) {
         connection.setContent(request.getContent());
-        connection.setConnectionFileUrl(uploadConnectionToGCS(connection));
       }
       LOGGER.info("Connection {} updated", id);
       return repository.save(connection);

@@ -34,23 +34,19 @@ public class GoogleCloudStorageService {
     BlobInfo blobInfo = BlobInfo.newBuilder(blobId).build();
     byte[] content = contents.getBytes(StandardCharsets.UTF_8);
     storage.createFrom(blobInfo, new ByteArrayInputStream(content));
-    LOGGER.info(
-        "Object "
-            + objectFullName
-            + " uploaded to bucket "
-            + BUCKET_NAME
-            + " with contents "
-            + contents);
+    LOGGER.info("Object " + objectFullName + " uploaded to bucket " + BUCKET_NAME);
     return GCS_PREFIX + OBJECT_PREFIX + objectName;
   }
 
   public String readObject(String objectName) {
-    byte[] content = storage.readAllBytes(BUCKET_NAME, objectName);
+    String objectFullName = OBJECT_PREFIX + objectName;
+    byte[] content = storage.readAllBytes(BUCKET_NAME, objectFullName);
     return new String(content);
   }
 
   public Boolean deleteObject(String objectName) {
-    BlobId blobId = BlobId.of(BUCKET_NAME, objectName);
+    String objectFullName = OBJECT_PREFIX + objectName;
+    BlobId blobId = BlobId.of(BUCKET_NAME, objectFullName);
     return storage.delete(blobId);
   }
 }

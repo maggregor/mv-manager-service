@@ -1,5 +1,6 @@
 package com.achilio.mvm.service;
 
+import static com.achilio.mvm.service.MockHelper.connectionMock;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -75,7 +76,7 @@ public class ConnectionServiceTest {
   }
 
   @Test
-  public void createServiceAccountConnection() throws IOException {
+  public void createServiceAccountConnection() {
     Connection connection;
     connection = service.createConnection(TEAM_NAME, OWNER_USERNAME, SA_REQUEST);
     assertExpectedServiceAccount(SA_CONNECTION, connection);
@@ -87,7 +88,16 @@ public class ConnectionServiceTest {
     assertEquals(
         "Service account must not be empty",
         ((ConstraintViolation<?>) violations.toArray()[0]).getMessage());
-    assertEquals("gcs://test-bucket/connections/1.json", connection.getConnectionFileUrl());
+  }
+
+  @Test
+  public void createGCSObject() throws IOException {
+    Connection connection = connectionMock();
+    service.uploadConnectionToGCS(connection);
+    Mockito.verify(mockedStorage, Mockito.timeout(1000).times(1)).uploadObject(any(), any());
+    Mockito.verify(mockedRepository, Mockito.timeout(1000).times(1)).save(any());
+    when(mockedStorage.uploadObject(any(), any())).thenThrow(new IOException());
+    assertThrows(RuntimeException.class, () -> service.uploadConnectionToGCS(connection));
   }
 
   @Test
@@ -99,13 +109,10 @@ public class ConnectionServiceTest {
   }
 
   @Test
-  public void updateServiceAccountConnection() throws IOException {
+  public void updateServiceAccountConnection() {
     ServiceAccountConnectionRequest updateRequest =
         new ServiceAccountConnectionRequest(CONNECTION_NAME1, SOURCE_BIGQUERY, "another");
     Connection connection = SA_CONNECTION;
-    connection.setConnectionFileUrl("gcs://oldbucket/connections/oldconnection.json");
-    assertEquals(
-        "gcs://oldbucket/connections/oldconnection.json", connection.getConnectionFileUrl());
     connection = service.updateConnection(456L, TEAM_NAME, updateRequest);
     assertExpectedServiceAccount(updateRequest, connection);
     Exception e =
@@ -113,12 +120,10 @@ public class ConnectionServiceTest {
             ConnectionNotFoundException.class,
             () -> service.updateConnection(9999L, TEAM_NAME, SA_REQUEST));
     assertEquals("Connection 9999 not found", e.getMessage());
-    assertEquals("gcs://test-bucket/connections/1.json", connection.getConnectionFileUrl());
   }
 
   @Test
-  public void updateServiceAccountConnection__whenContentEmpty_updateAllButContent()
-      throws IOException {
+  public void updateServiceAccountConnection__whenContentEmpty_updateAllButContent() {
     ServiceAccountConnectionRequest updateRequest =
         new ServiceAccountConnectionRequest(CONNECTION_NAME2, SOURCE_BIGQUERY, "");
     ServiceAccountConnection expected =
@@ -137,6 +142,7 @@ public class ConnectionServiceTest {
     SA_CONNECTION.setProjects(Collections.emptyList());
     service.deleteConnection(456L, TEAM_NAME);
     Mockito.verify(mockedRepository, Mockito.timeout(1000).times(1)).delete(SA_CONNECTION);
+    Mockito.verify(mockedStorage, Mockito.timeout(1000).times(1)).deleteObject(any());
   }
 
   @Test
@@ -144,6 +150,7 @@ public class ConnectionServiceTest {
     when(mockedRepository.findByIdAndTeamName(789L, TEAM_NAME)).thenReturn(Optional.empty());
     service.deleteConnection(789L, TEAM_NAME);
     Mockito.verify(mockedRepository, Mockito.timeout(1000).times(0)).delete(any());
+    Mockito.verify(mockedStorage, Mockito.timeout(1000).times(0)).deleteObject(any());
   }
 
   @Test
@@ -182,6 +189,7 @@ public class ConnectionServiceTest {
     assertEquals(expected.getOwnerUsername(), actual.getOwnerUsername());
   }
 
+  /** TODO: How can we make a ConnectionType null ? */
   @Test
   @Ignore
   public void whenConnectionTypeNull_thenThrowIllegalArgumentException() {
