@@ -21,7 +21,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 @Setter
 @Getter
 @Entity
-@Table(name = "fetcher_jobs")
+@Table(name = "jobs")
 @EnableJpaAuditing
 @EntityListeners(AuditingEntityListener.class)
 public class Job {
