@@ -6,6 +6,7 @@ import static org.mockito.Mockito.when;
 import com.achilio.mvm.service.entities.AColumn;
 import com.achilio.mvm.service.entities.ADataset;
 import com.achilio.mvm.service.entities.ATable;
+import com.achilio.mvm.service.entities.Connection;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.entities.Query;
 import com.achilio.mvm.service.models.UserProfile;
@@ -71,5 +72,13 @@ public class MockHelper {
     when(mockedAuth.getDetails()).thenReturn(mockedUserProfile);
     when(mockedSecurityContext.getAuthentication()).thenReturn(mockedAuth);
     SecurityContextHolder.setContext(mockedSecurityContext);
+  }
+
+  public static Connection connectionMock() {
+    Connection connection = mock(Connection.class);
+    when(connection.getContent()).thenReturn("serviceAccountJson");
+    when(connection.getId()).thenReturn(1L);
+    when(connection.getTeamName()).thenReturn("achilio.com");
+    return connection;
   }
 }

@@ -44,8 +44,10 @@ public class ConnectionController {
   @PostMapping(path = "/connection", produces = APPLICATION_JSON_VALUE)
   @ApiOperation("List all connection")
   public ConnectionResponse createConnection(@RequestBody ConnectionRequest request) {
-    return toConnectionResponse(
-        service.createConnection(getContextTeamName(), getContextUsername(), request));
+    Connection connection =
+        service.createConnection(getContextTeamName(), getContextUsername(), request);
+    service.uploadConnectionToGCS(connection);
+    return toConnectionResponse(connection);
   }
 
   @GetMapping(path = "/connection/{id}", produces = APPLICATION_JSON_VALUE)
@@ -58,7 +60,9 @@ public class ConnectionController {
   @ApiOperation("Update connection")
   public ConnectionResponse updateConnection(
       @PathVariable Long id, @RequestBody ConnectionRequest request) {
-    return toConnectionResponse(service.updateConnection(id, getContextTeamName(), request));
+    Connection connection = service.updateConnection(id, getContextTeamName(), request);
+    service.uploadConnectionToGCS(connection);
+    return toConnectionResponse(connection);
   }
 
   @DeleteMapping(path = "/connection/{id}", produces = APPLICATION_JSON_VALUE)
