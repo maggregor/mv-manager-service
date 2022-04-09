@@ -10,12 +10,16 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
+@Setter
+@Getter
 @Entity
 @Table(name = "fetcher_jobs")
 @EnableJpaAuditing
@@ -44,26 +48,6 @@ public class Job {
   public Job(String projectId) {
     this.projectId = projectId;
     this.status = JobStatus.PENDING;
-  }
-
-  public Long getId() {
-    return id;
-  }
-
-  public void setId(Long id) {
-    this.id = id;
-  }
-
-  public Date getCreatedAt() {
-    return createdAt;
-  }
-
-  public String getProjectId() {
-    return projectId;
-  }
-
-  public JobStatus getStatus() {
-    return status;
   }
 
   public void setStatus(JobStatus status) {
