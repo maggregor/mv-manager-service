@@ -55,7 +55,7 @@ public class FetcherJobController {
     if (Boolean.TRUE == last) {
       Optional<FetcherQueryJob> optionalFetcherJob;
       optionalFetcherJob = fetcherJobService.getLastFetcherQueryJob(projectId, status);
-      return optionalFetcherJob.map(Collections::singletonList).orElse(Collections.EMPTY_LIST);
+      return optionalFetcherJob.map(Collections::singletonList).orElse(Collections.emptyList());
     }
     return fetcherJobService.getAllQueryJobs(projectId, status);
   }
@@ -98,7 +98,7 @@ public class FetcherJobController {
     if (Boolean.TRUE == last) {
       Optional<FetcherStructJob> optionalFetcherJob;
       optionalFetcherJob = fetcherJobService.getLastFetcherStructJob(projectId, status);
-      return optionalFetcherJob.map(Collections::singletonList).orElse(Collections.EMPTY_LIST);
+      return optionalFetcherJob.map(Collections::singletonList).orElse(Collections.emptyList());
     }
     return fetcherJobService.getAllStructJobs(projectId, status);
   }

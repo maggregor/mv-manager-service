@@ -17,7 +17,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 @AllArgsConstructor
 @EnableJpaAuditing
 @EntityListeners(AuditingEntityListener.class)
-public class MaterializedViewJob extends Job {
+public class FindMVJob extends Job {
 
   @Column(name = "timeframe", nullable = false)
   private int timeframe;
@@ -25,11 +25,11 @@ public class MaterializedViewJob extends Job {
   @Column(name = "mv_proposal_count")
   private Integer mvProposalCount;
 
-  public MaterializedViewJob(String projectId) {
+  public FindMVJob(String projectId) {
     this(projectId, 7);
   }
 
-  public MaterializedViewJob(String projectId, int timeframe) {
+  public FindMVJob(String projectId, int timeframe) {
     super(projectId);
     this.timeframe = timeframe;
   }
