@@ -52,7 +52,7 @@ public class FindMVJobService {
   public FindMVJob createMVJob(String projectId, int timeframe) {
     FindMVJob job = new FindMVJob(projectId, timeframe);
     startMVJob(job);
-    return job;
+    return repository.save(job);
   }
 
   private void startMVJob(FindMVJob job) {

@@ -2,6 +2,8 @@ package com.achilio.mvm.service;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
+import static org.mockito.AdditionalAnswers.returnsFirstArg;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import com.achilio.mvm.service.entities.FindMVJob;
@@ -59,6 +61,7 @@ public class FindMVJobServiceTest {
     when(findMVJobRepository.findTopByProjectIdAndStatusOrderByCreatedAtDesc(
             PROJECT_ID, JobStatus.ERROR))
         .thenReturn(Optional.empty());
+    when(findMVJobRepository.save(any())).then(returnsFirstArg());
   }
 
   @Test
