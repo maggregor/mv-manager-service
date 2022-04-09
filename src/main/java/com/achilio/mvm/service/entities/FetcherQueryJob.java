@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 @Entity
 @EnableJpaAuditing
 @EntityListeners(AuditingEntityListener.class)
-public class FetcherQueryJob extends FetcherJob {
+public class FetcherQueryJob extends Job {
 
   /** Timeframe is the number of days before today the fetching query job starts from */
   @Column private int timeframe;

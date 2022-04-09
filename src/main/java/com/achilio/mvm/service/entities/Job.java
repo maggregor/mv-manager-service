@@ -20,8 +20,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 @Table(name = "fetcher_jobs")
 @EnableJpaAuditing
 @EntityListeners(AuditingEntityListener.class)
-public class FetcherJob {
-  private static Logger LOGGER = LoggerFactory.getLogger(FetcherJob.class);
+public class Job {
+  private static final Logger LOGGER = LoggerFactory.getLogger(Job.class);
 
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
@@ -37,13 +37,13 @@ public class FetcherJob {
 
   @Column(name = "status")
   @Enumerated(EnumType.STRING)
-  private FetcherJobStatus status;
+  private JobStatus status;
 
-  protected FetcherJob() {}
+  protected Job() {}
 
-  public FetcherJob(String projectId) {
+  public Job(String projectId) {
     this.projectId = projectId;
-    this.status = FetcherJobStatus.PENDING;
+    this.status = JobStatus.PENDING;
   }
 
   public Long getId() {
@@ -62,16 +62,16 @@ public class FetcherJob {
     return projectId;
   }
 
-  public FetcherJobStatus getStatus() {
+  public JobStatus getStatus() {
     return status;
   }
 
-  public void setStatus(FetcherJobStatus status) {
-    LOGGER.info("FetcherJob {} set to {}", this.getId(), status);
+  public void setStatus(JobStatus status) {
+    LOGGER.info("Job {} set to {}", this.getId(), status);
     this.status = status;
   }
 
-  public enum FetcherJobStatus {
+  public enum JobStatus {
     PENDING,
     WORKING,
     FINISHED,

@@ -7,10 +7,10 @@ import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.entities.AColumn;
 import com.achilio.mvm.service.entities.ADataset;
 import com.achilio.mvm.service.entities.ATable;
-import com.achilio.mvm.service.entities.FetcherJob;
-import com.achilio.mvm.service.entities.FetcherJob.FetcherJobStatus;
 import com.achilio.mvm.service.entities.FetcherQueryJob;
 import com.achilio.mvm.service.entities.FetcherStructJob;
+import com.achilio.mvm.service.entities.Job;
+import com.achilio.mvm.service.entities.Job.JobStatus;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.entities.Query;
 import com.achilio.mvm.service.repositories.ADatasetRepository;
@@ -52,8 +52,7 @@ public class FetcherJobService {
     return getLastFetcherQueryJob(projectId, null);
   }
 
-  public Optional<FetcherQueryJob> getLastFetcherQueryJob(
-      String projectId, FetcherJobStatus status) {
+  public Optional<FetcherQueryJob> getLastFetcherQueryJob(String projectId, JobStatus status) {
     if (status == null) {
       return fetcherJobRepository.findTopFetcherQueryJobByProjectIdOrderByCreatedAtDesc(projectId);
     }
@@ -61,7 +60,7 @@ public class FetcherJobService {
         projectId, status);
   }
 
-  public List<FetcherQueryJob> getAllQueryJobs(String projectId, FetcherJobStatus status) {
+  public List<FetcherQueryJob> getAllQueryJobs(String projectId, JobStatus status) {
     if (status == null) {
       return fetcherJobRepository.findFetcherQueryJobsByProjectId(projectId);
     }
@@ -85,15 +84,15 @@ public class FetcherJobService {
 
   @Async("asyncExecutor")
   public void fetchAllQueriesJob(FetcherQueryJob fetcherQueryJob, String teamName) {
-    updateJobStatus(fetcherQueryJob, FetcherJobStatus.WORKING);
+    updateJobStatus(fetcherQueryJob, JobStatus.WORKING);
     try {
       List<Query> queries = fetchQueries(fetcherQueryJob, teamName);
       saveAllQueries(queries);
     } catch (Exception e) {
-      updateJobStatus(fetcherQueryJob, FetcherJobStatus.ERROR);
+      updateJobStatus(fetcherQueryJob, JobStatus.ERROR);
       throw e;
     }
-    updateJobStatus(fetcherQueryJob, FetcherJobStatus.FINISHED);
+    updateJobStatus(fetcherQueryJob, JobStatus.FINISHED);
   }
 
   @Transactional
@@ -127,15 +126,14 @@ public class FetcherJobService {
   }
 
   @Transactional
-  void updateJobStatus(FetcherJob job, FetcherJobStatus status) {
+  void updateJobStatus(Job job, JobStatus status) {
     job.setStatus(status);
     fetcherJobRepository.save(job);
   }
 
   // Struct
 
-  public Optional<FetcherStructJob> getLastFetcherStructJob(
-      String projectId, FetcherJobStatus status) {
+  public Optional<FetcherStructJob> getLastFetcherStructJob(String projectId, JobStatus status) {
     if (status == null) {
       return fetcherJobRepository.findTopFetcherStructJobByProjectIdOrderByCreatedAtDesc(projectId);
     }
@@ -143,7 +141,7 @@ public class FetcherJobService {
         projectId, status);
   }
 
-  public List<FetcherStructJob> getAllStructJobs(String projectId, FetcherJobStatus status) {
+  public List<FetcherStructJob> getAllStructJobs(String projectId, JobStatus status) {
     if (status == null) {
       return fetcherJobRepository.findFetcherStructJobsByProjectId(projectId);
     }
@@ -162,16 +160,16 @@ public class FetcherJobService {
 
   // @Async("asyncExecutor")
   public void syncAllStructsJob(FetcherStructJob fetcherStructJob, String teamName) {
-    updateJobStatus(fetcherStructJob, FetcherJobStatus.WORKING);
+    updateJobStatus(fetcherStructJob, JobStatus.WORKING);
     try {
       syncDatasets(fetcherStructJob, teamName);
       Set<FetchedTable> allCurrentTables = syncTables(fetcherStructJob);
       syncColumns(fetcherStructJob, teamName, allCurrentTables);
     } catch (Exception e) {
-      updateJobStatus(fetcherStructJob, FetcherJobStatus.ERROR);
+      updateJobStatus(fetcherStructJob, JobStatus.ERROR);
       throw e;
     }
-    updateJobStatus(fetcherStructJob, FetcherJobStatus.FINISHED);
+    updateJobStatus(fetcherStructJob, JobStatus.FINISHED);
   }
 
   private void syncColumns(

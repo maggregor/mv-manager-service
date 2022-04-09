@@ -11,9 +11,9 @@ import com.achilio.mvm.service.databases.entities.FetchedDataset;
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.entities.ADataset;
 import com.achilio.mvm.service.entities.Connection;
-import com.achilio.mvm.service.entities.FetcherJob.FetcherJobStatus;
 import com.achilio.mvm.service.entities.FetcherQueryJob;
 import com.achilio.mvm.service.entities.FetcherStructJob;
+import com.achilio.mvm.service.entities.Job.JobStatus;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
 import com.achilio.mvm.service.repositories.ADatasetRepository;
@@ -77,7 +77,7 @@ public class FetcherJobServiceTest {
     when(mockProjectService.getProject(any(), any())).thenReturn(mockProject);
     service.fetchAllQueriesJob(job, TEAM_NAME1);
     TimeUnit.SECONDS.sleep(1);
-    Assert.assertEquals(FetcherJobStatus.FINISHED, job.getStatus());
+    Assert.assertEquals(JobStatus.FINISHED, job.getStatus());
     Mockito.verify(mockFetcherJobRepository, Mockito.timeout(1000).times(2))
         .save(ArgumentMatchers.any(FetcherQueryJob.class));
     Mockito.verify(mockQueryRepository, Mockito.timeout(1000).times(1))

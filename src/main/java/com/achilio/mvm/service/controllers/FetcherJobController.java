@@ -4,9 +4,9 @@ import static com.achilio.mvm.service.UserContextHelper.getContextTeamName;
 
 import com.achilio.mvm.service.controllers.requests.FetcherQueryJobRequest;
 import com.achilio.mvm.service.controllers.requests.FetcherStructJobRequest;
-import com.achilio.mvm.service.entities.FetcherJob.FetcherJobStatus;
 import com.achilio.mvm.service.entities.FetcherQueryJob;
 import com.achilio.mvm.service.entities.FetcherStructJob;
+import com.achilio.mvm.service.entities.Job.JobStatus;
 import com.achilio.mvm.service.exceptions.FetcherJobNotFoundException;
 import com.achilio.mvm.service.services.FetcherJobService;
 import com.achilio.mvm.service.services.ProjectService;
@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping(path = "${v1API}/fetcher/job")
+@RequestMapping(path = "${v1API}/job/fetcher")
 @Validated
 public class FetcherJobController {
 
@@ -50,7 +50,7 @@ public class FetcherJobController {
   public List<FetcherQueryJob> getAllFetcherQueryJobsByProjectId(
       @RequestParam String projectId,
       @RequestParam(required = false) Boolean last,
-      @RequestParam(required = false) FetcherJobStatus status) {
+      @RequestParam(required = false) JobStatus status) {
     projectService.getProject(projectId, getContextTeamName());
     if (Boolean.TRUE == last) {
       Optional<FetcherQueryJob> optionalFetcherJob;
@@ -93,7 +93,7 @@ public class FetcherJobController {
   public List<FetcherStructJob> getAllFetcherStructJobsByProjectId(
       @RequestParam String projectId,
       @RequestParam(required = false) Boolean last,
-      @RequestParam(required = false) FetcherJobStatus status) {
+      @RequestParam(required = false) JobStatus status) {
     projectService.getProject(projectId, getContextTeamName());
     if (Boolean.TRUE == last) {
       Optional<FetcherStructJob> optionalFetcherJob;
