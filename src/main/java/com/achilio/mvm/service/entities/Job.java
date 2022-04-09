@@ -56,9 +56,19 @@ public class Job {
   }
 
   public enum JobStatus {
-    PENDING,
-    WORKING,
-    FINISHED,
-    ERROR
+    PENDING("Pending"),
+    WORKING("Working"),
+    FINISHED("Finished"),
+    ERROR("Error");
+
+    private final String description;
+
+    JobStatus(String description) {
+      this.description = description;
+    }
+
+    public String description() {
+      return this.description;
+    }
   }
 }

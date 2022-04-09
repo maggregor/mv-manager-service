@@ -11,8 +11,6 @@ import io.swagger.annotations.ApiOperation;
 import java.util.List;
 import java.util.Locale;
 import javax.validation.Valid;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,8 +25,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(path = "${v1API}/job/")
 @Validated
 public class FindMVJobController {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(FetcherJobController.class);
 
   private final ProjectService projectService;
   private final FindMVJobService mvJobService;
@@ -50,13 +46,14 @@ public class FindMVJobController {
   @ApiOperation(
       "Get a single find mv job for a given projectId.\n"
           + "If mvId is equals to last, returns the last job based on creation date")
-  public FindMVJob getFindMVJob(@PathVariable String mvId, @RequestParam String projectId) {
+  public FindMVJob getFindMVJob(
+      @PathVariable String mvId, @RequestParam String projectId, @RequestParam JobStatus status) {
     projectService.getProject(projectId, getContextTeamName());
     if (mvId.toLowerCase(Locale.ROOT).equals("last")) {
-      return mvJobService.getLastMVJob(projectId);
+      return mvJobService.getLastMVJobByStatus(projectId, status);
     }
     Long id = Long.valueOf(mvId);
-    return mvJobService.getMVJob(projectId, id);
+    return mvJobService.getMVJob(id, projectId);
   }
 
   @PostMapping(path = "/mv", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -65,6 +62,6 @@ public class FindMVJobController {
           + "with the status PENDING.")
   public FindMVJob startFindMVJob(@Valid @RequestBody FindMVJobRequest payload) {
     projectService.getProject(payload.getProjectId(), getContextTeamName());
-    return mvJobService.createMVJob(payload);
+    return mvJobService.createMVJob(payload.getProjectId(), payload.getTimeframe());
   }
 }
