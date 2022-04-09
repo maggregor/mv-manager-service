@@ -6,6 +6,7 @@ import com.achilio.mvm.service.exceptions.FindMVJobNotFoundException;
 import com.achilio.mvm.service.repositories.FindMVJobRepository;
 import java.util.List;
 import java.util.Optional;
+import javax.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -49,6 +50,7 @@ public class FindMVJobService {
         .orElseThrow(() -> new FindMVJobNotFoundException(id.toString()));
   }
 
+  @Transactional
   public FindMVJob createMVJob(String projectId, int timeframe) {
     FindMVJob job = new FindMVJob(projectId, timeframe);
     startMVJob(job);
