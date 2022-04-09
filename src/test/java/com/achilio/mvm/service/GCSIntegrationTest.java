@@ -23,7 +23,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -33,18 +32,20 @@ import org.springframework.test.context.junit4.SpringRunner;
 public class GCSIntegrationTest {
 
   private static final String PROJECT_ID = "achilio-dev";
-  private static final String BUCKET_NAME = "achilio_connections_test_dev";
   private static final String OBJECT_PREFIX = "connections/";
   private static final String OBJECT_NAME = "achilio.com/1.json";
   private static final String CONNECTION_CONTENT = "{\"service_account\":\"content\"}";
   private static Storage helperStorageClient;
   private static Storage storageClient;
+  private static String BUCKET_NAME;
 
-  @Autowired private GoogleCloudStorageService googleCloudStorageService;
+  private static GoogleCloudStorageService googleCloudStorageService;
 
   @BeforeClass
   public static void setupBucket() {
     RemoteStorageHelper helper = RemoteStorageHelper.create();
+    BUCKET_NAME = RemoteStorageHelper.generateBucketName();
+    googleCloudStorageService = new GoogleCloudStorageService(PROJECT_ID, BUCKET_NAME);
     helperStorageClient = helper.getOptions().getService();
     helperStorageClient.create(BucketInfo.of(BUCKET_NAME));
     storageClient = StorageOptions.newBuilder().setProjectId(PROJECT_ID).build().getService();
@@ -66,7 +67,7 @@ public class GCSIntegrationTest {
   @Test
   public void uploadObject() throws IOException {
     String objectUrl = googleCloudStorageService.uploadObject(OBJECT_NAME, CONNECTION_CONTENT);
-    assertEquals("gcs://connections/" + OBJECT_NAME, objectUrl);
+    assertEquals("gcs://" + BUCKET_NAME + "/connections/" + OBJECT_NAME, objectUrl);
     Blob object = storageClient.get(BUCKET_NAME, OBJECT_NAME);
     assertNull(object);
     object = storageClient.get(BUCKET_NAME, OBJECT_PREFIX + OBJECT_NAME);

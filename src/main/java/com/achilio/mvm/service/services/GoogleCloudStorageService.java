@@ -35,7 +35,7 @@ public class GoogleCloudStorageService {
     byte[] content = contents.getBytes(StandardCharsets.UTF_8);
     storage.createFrom(blobInfo, new ByteArrayInputStream(content));
     LOGGER.info("Object " + objectFullName + " uploaded to bucket " + BUCKET_NAME);
-    return GCS_PREFIX + OBJECT_PREFIX + objectName;
+    return GCS_PREFIX + BUCKET_NAME + "/" + OBJECT_PREFIX + objectName;
   }
 
   public String readObject(String objectName) {
