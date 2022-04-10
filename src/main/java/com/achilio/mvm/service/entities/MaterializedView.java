@@ -94,12 +94,15 @@ public class MaterializedView {
   public enum MVStatus {
     APPLIED,
     NOT_APPLIED,
+    UNKNOWN,
   }
 
   public enum MVStatusReason {
     // When MVStatus is NOT_APPLIED, MVStatus adds the reason for it
     WAITING_APPROVAL,
-    DELETED,
+    DELETED_BY_USER,
     ERROR,
+    ERROR_DURING_DELETION,
+    ERROR_DURING_CREATION,
   }
 }

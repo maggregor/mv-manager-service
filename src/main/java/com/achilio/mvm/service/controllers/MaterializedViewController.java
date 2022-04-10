@@ -3,6 +3,7 @@ package com.achilio.mvm.service.controllers;
 import static com.achilio.mvm.service.UserContextHelper.getContextTeamName;
 
 import com.achilio.mvm.service.entities.MaterializedView;
+import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.services.MaterializedViewService;
 import com.achilio.mvm.service.services.ProjectService;
 import io.swagger.annotations.ApiOperation;
@@ -57,8 +58,8 @@ public class MaterializedViewController {
   @ResponseStatus(code = HttpStatus.OK)
   public MaterializedView applyMaterializedView(
       @PathVariable Long id, @RequestParam String projectId) {
-    projectService.getProject(projectId, getContextTeamName());
-    return service.applyMaterializedView(id);
+    Project project = projectService.getProject(projectId, getContextTeamName());
+    return service.applyMaterializedView(id, project.getConnection());
   }
 
   @DeleteMapping(path = "/mv/{id}")
@@ -68,7 +69,7 @@ public class MaterializedViewController {
   @ResponseStatus(code = HttpStatus.OK)
   public MaterializedView deleteMaterializedView(
       @PathVariable Long id, @RequestParam String projectId) {
-    projectService.getProject(projectId, getContextTeamName());
-    return service.deleteMaterializedView(id);
+    Project project = projectService.getProject(projectId, getContextTeamName());
+    return service.unapplyMaterializedView(id, project.getConnection());
   }
 }

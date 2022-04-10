@@ -1,5 +1,6 @@
 package com.achilio.mvm.service.services;
 
+import com.achilio.mvm.service.entities.Connection;
 import com.achilio.mvm.service.entities.MaterializedView;
 import com.achilio.mvm.service.entities.MaterializedView.MVStatus;
 import com.achilio.mvm.service.entities.MaterializedView.MVStatusReason;
@@ -7,14 +8,22 @@ import com.achilio.mvm.service.exceptions.MaterializedViewNotFoundException;
 import com.achilio.mvm.service.repositories.MaterializedViewRepository;
 import java.util.List;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
 public class MaterializedViewService {
-  private final MaterializedViewRepository repository;
 
-  public MaterializedViewService(MaterializedViewRepository repository) {
+  private static final Logger LOGGER = LoggerFactory.getLogger(MaterializedViewService.class);
+
+  private final MaterializedViewRepository repository;
+  private final FetcherService fetcherService;
+
+  public MaterializedViewService(
+      MaterializedViewRepository repository, FetcherService fetcherService) {
     this.repository = repository;
+    this.fetcherService = fetcherService;
   }
 
   public Optional<MaterializedView> findMaterializedView(Long id) {
@@ -31,21 +40,41 @@ public class MaterializedViewService {
     return findMaterializedView(id).orElseThrow(() -> new MaterializedViewNotFoundException(id));
   }
 
-  public MaterializedView applyMaterializedView(Long id) {
+  public MaterializedView applyMaterializedView(Long id, Connection connection) {
     MaterializedView mv = getMaterializedView(id);
     try {
       // TODO: Create the view on BigQuery
+      createMaterializedView(mv, connection);
       mv.setStatus(MVStatus.APPLIED);
       mv.setStatusReason(null);
     } catch (Exception e) {
-      // TODO: Delete the view from BigQuery for coherence (even if not present)
+      LOGGER.error("Error during creation of MV {}", mv.getId(), e);
       mv.setStatus(MVStatus.NOT_APPLIED);
-      mv.setStatusReason(MVStatusReason.ERROR);
+      mv.setStatusReason(MVStatusReason.ERROR_DURING_CREATION);
+      // TODO: Delete the view from BigQuery for coherence (even if not present)
     }
     return mv;
   }
 
-  public MaterializedView deleteMaterializedView(Long id) {
-    return null;
+  public MaterializedView unapplyMaterializedView(Long id, Connection connection) {
+    MaterializedView mv = getMaterializedView(id);
+    try {
+      deleteMaterializedView(mv, connection);
+      mv.setStatus(MVStatus.NOT_APPLIED);
+      mv.setStatusReason(MVStatusReason.DELETED_BY_USER);
+    } catch (Exception e) {
+      LOGGER.error("Error during deletion of MV {}", mv.getId(), e);
+      mv.setStatus(MVStatus.UNKNOWN);
+      mv.setStatusReason(MVStatusReason.ERROR_DURING_DELETION);
+    }
+    return mv;
+  }
+
+  private void deleteMaterializedView(MaterializedView mv, Connection connection) {
+    fetcherService.deleteMaterializedView(mv, connection);
+  }
+
+  private void createMaterializedView(MaterializedView mv, Connection connection) {
+    fetcherService.createMaterializedView(mv, connection);
   }
 }

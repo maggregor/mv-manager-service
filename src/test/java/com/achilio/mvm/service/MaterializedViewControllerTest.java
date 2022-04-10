@@ -1,5 +1,6 @@
 package com.achilio.mvm.service;
 
+import static com.achilio.mvm.service.AssertHelper.assertMVEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -7,9 +8,11 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import com.achilio.mvm.service.controllers.MaterializedViewController;
+import com.achilio.mvm.service.entities.Connection;
 import com.achilio.mvm.service.entities.MaterializedView;
 import com.achilio.mvm.service.entities.MaterializedView.MVStatus;
 import com.achilio.mvm.service.entities.MaterializedView.MVStatusReason;
+import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.exceptions.MaterializedViewNotFoundException;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import com.achilio.mvm.service.services.MaterializedViewService;
@@ -39,7 +42,8 @@ public class MaterializedViewControllerTest {
   MaterializedView mv2 = MockHelper.mvMock(2L, PROJECT1, DATASET1, TABLE1, STATEMENT2);
   MaterializedView mv3 = MockHelper.mvMock(3L, PROJECT2, DATASET1, TABLE1, STATEMENT1);
   MaterializedView mv4 = MockHelper.mvMock(4L, PROJECT2, DATASET2, TABLE1, STATEMENT1);
-
+  Connection connection1 = MockHelper.connectionMock();
+  Project project1 = MockHelper.projectMock(PROJECT1, connection1);
   @InjectMocks MaterializedViewController controller;
   @Mock MaterializedViewService mockedService;
   @Mock ProjectService mockedProjectService;
@@ -47,6 +51,7 @@ public class MaterializedViewControllerTest {
   @Before
   public void setup() {
     MockHelper.setupMockedAuthenticationContext();
+    when(mockedProjectService.getProject(eq(PROJECT1), any())).thenReturn(project1);
     when(mockedProjectService.getProject(eq(UNKNOWN_PROJECT), any()))
         .thenThrow(new ProjectNotFoundException(UNKNOWN_PROJECT));
     when(mockedService.getAllMaterializedViews(eq(PROJECT1), any(), any(), any()))
@@ -60,7 +65,7 @@ public class MaterializedViewControllerTest {
     when(mv3.getStatus()).thenReturn(MVStatus.NOT_APPLIED);
     when(mv3.getStatusReason()).thenReturn(MVStatusReason.ERROR);
     when(mv4.getStatus()).thenReturn(MVStatus.NOT_APPLIED);
-    when(mv4.getStatusReason()).thenReturn(MVStatusReason.DELETED);
+    when(mv4.getStatusReason()).thenReturn(MVStatusReason.DELETED_BY_USER);
   }
 
   @Test
@@ -104,7 +109,7 @@ public class MaterializedViewControllerTest {
 
   @Test
   public void applyMaterializedView() {
-    when(mockedService.applyMaterializedView(3L)).thenReturn(mv3);
+    when(mockedService.applyMaterializedView(eq(3L), any())).thenReturn(mv3);
     MaterializedView getMV1 = controller.applyMaterializedView(3L, PROJECT1);
     assertMVEquals(mv3, getMV1);
     assertEquals(MVStatus.NOT_APPLIED, getMV1.getStatus());
@@ -120,7 +125,7 @@ public class MaterializedViewControllerTest {
 
   @Test
   public void applyMaterializedView__whenMVNotFound_throwException() {
-    when(mockedService.applyMaterializedView(99L))
+    when(mockedService.applyMaterializedView(eq(99L), any()))
         .thenThrow(new MaterializedViewNotFoundException(99L));
     assertThrows(
         MaterializedViewNotFoundException.class,
@@ -129,11 +134,11 @@ public class MaterializedViewControllerTest {
 
   @Test
   public void deleteMaterializedView() {
-    when(mockedService.deleteMaterializedView(4L)).thenReturn(mv4);
+    when(mockedService.unapplyMaterializedView(eq(4L), any())).thenReturn(mv4);
     MaterializedView getMV1 = controller.deleteMaterializedView(4L, PROJECT1);
     assertMVEquals(mv4, getMV1);
     assertEquals(MVStatus.NOT_APPLIED, getMV1.getStatus());
-    assertEquals(MVStatusReason.DELETED, getMV1.getStatusReason());
+    assertEquals(MVStatusReason.DELETED_BY_USER, getMV1.getStatusReason());
   }
 
   @Test
@@ -145,21 +150,10 @@ public class MaterializedViewControllerTest {
 
   @Test
   public void deleteMaterializedView__whenMVNotFound_throwException() {
-    when(mockedService.deleteMaterializedView(99L))
+    when(mockedService.unapplyMaterializedView(eq(99L), any()))
         .thenThrow(new MaterializedViewNotFoundException(99L));
     assertThrows(
         MaterializedViewNotFoundException.class,
         () -> controller.deleteMaterializedView(99L, PROJECT1));
-  }
-
-  private void assertMVEquals(MaterializedView expected, MaterializedView actual) {
-    assertEquals(expected.getId(), actual.getId());
-    assertEquals(expected.getProjectId(), actual.getProjectId());
-    assertEquals(expected.getDatasetName(), actual.getDatasetName());
-    assertEquals(expected.getTableName(), actual.getTableName());
-    assertEquals(expected.getMvName(), actual.getMvName());
-    assertEquals(expected.getMvUniqueName(), actual.getMvUniqueName());
-    assertEquals(expected.getStatement(), actual.getStatement());
-    assertEquals(expected.getStatementHashCode(), actual.getStatementHashCode());
   }
 }
