@@ -7,6 +7,7 @@ import com.achilio.mvm.service.entities.MaterializedView.MVStatusReason;
 import com.achilio.mvm.service.exceptions.MaterializedViewAppliedException;
 import com.achilio.mvm.service.exceptions.MaterializedViewNotFoundException;
 import com.achilio.mvm.service.repositories.MaterializedViewRepository;
+import com.achilio.mvm.service.visitors.ATableId;
 import java.util.List;
 import java.util.Optional;
 import org.slf4j.Logger;
@@ -88,5 +89,12 @@ public class MaterializedViewService {
       }
       repository.delete(mv);
     }
+  }
+
+  public MaterializedView addMaterializedView(
+      String projectId, String datasetName, String tableName, String statement) {
+    ATableId referenceTable = ATableId.of(projectId, datasetName, tableName);
+    MaterializedView mv = new MaterializedView(referenceTable, statement);
+    return repository.save(mv);
   }
 }

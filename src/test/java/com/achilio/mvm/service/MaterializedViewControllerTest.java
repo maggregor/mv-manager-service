@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 import com.achilio.mvm.service.controllers.MaterializedViewController;
 import com.achilio.mvm.service.controllers.requests.MaterializedViewActionRequest;
 import com.achilio.mvm.service.controllers.requests.MaterializedViewActionRequest.Action;
+import com.achilio.mvm.service.controllers.requests.MaterializedViewRequest;
 import com.achilio.mvm.service.entities.Connection;
 import com.achilio.mvm.service.entities.MaterializedView;
 import com.achilio.mvm.service.entities.MaterializedView.MVStatus;
@@ -108,6 +109,22 @@ public class MaterializedViewControllerTest {
     assertThrows(
         MaterializedViewNotFoundException.class,
         () -> controller.getMaterializedView(99L, PROJECT1));
+  }
+
+  @Test
+  public void addMaterializedView() {
+    when(mockedService.addMaterializedView(any(), any(), any(), any())).thenReturn(mv1);
+    MaterializedViewRequest payload =
+        new MaterializedViewRequest(PROJECT1, DATASET1, TABLE1, STATEMENT1);
+    MaterializedView mv = controller.addMaterializedView(payload);
+    assertMVEquals(mv1, mv);
+  }
+
+  @Test
+  public void addMaterializedView__whenProjectNotFound_throwException() {
+    MaterializedViewRequest payload =
+        new MaterializedViewRequest(UNKNOWN_PROJECT, DATASET1, TABLE1, STATEMENT1);
+    assertThrows(ProjectNotFoundException.class, () -> controller.addMaterializedView(payload));
   }
 
   @Test

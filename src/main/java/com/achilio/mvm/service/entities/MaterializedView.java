@@ -12,7 +12,6 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -20,7 +19,6 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "materialized_views")
 public class MaterializedView {
@@ -70,6 +68,10 @@ public class MaterializedView {
 
   @Column(name = "hits")
   private Integer hits;
+
+  public MaterializedView(ATableId referenceTable, String statement) {
+    this(null, referenceTable, statement, 0);
+  }
 
   public MaterializedView(
       final FindMVJob job, final ATableId referenceTable, final String statement) {

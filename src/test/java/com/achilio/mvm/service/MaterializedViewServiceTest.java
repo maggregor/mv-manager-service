@@ -4,6 +4,7 @@ import static com.achilio.mvm.service.AssertHelper.assertMVEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
+import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
@@ -101,6 +102,21 @@ public class MaterializedViewServiceTest {
     List<MaterializedView> mvList2 =
         service.getAllMaterializedViews(PROJECT1, UNKNOWN_DATASET, null, null);
     assertEquals(0, mvList2.size());
+  }
+
+  @Test
+  public void addMaterializedView() {
+    when(mockedRepository.save(any())).then(returnsFirstArg());
+    MaterializedView mv = service.addMaterializedView(PROJECT1, DATASET1, TABLE1, STATEMENT1);
+    assertEquals(PROJECT1, mv.getProjectId());
+    assertEquals(DATASET1, mv.getDatasetName());
+    assertEquals(TABLE1, mv.getTableName());
+    assertEquals(STATEMENT1, mv.getStatement());
+    assertEquals(MVStatus.NOT_APPLIED, mv.getStatus());
+    assertEquals(MVStatusReason.WAITING_APPROVAL, mv.getStatusReason());
+    assertEquals("1974197773", mv.getStatementHashCode());
+    assertEquals(TABLE1 + "_achilio_mv_" + 1974197773, mv.getMvName());
+    assertEquals(String.join("-", PROJECT1, DATASET1, TABLE1, "1974197773"), mv.getMvUniqueName());
   }
 
   @Test
