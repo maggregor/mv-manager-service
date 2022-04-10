@@ -44,7 +44,7 @@ import org.springframework.test.context.junit4.SpringRunner;
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest
-public class RepositoriesIntegrationTest {
+public class IntegrationRepositoriesTest {
 
   private final String TEST_PROJECT_ID1 = "myProjectId";
   private final String TEST_PROJECT_ID2 = "myOtherProjectId";

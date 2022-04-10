@@ -8,6 +8,7 @@ import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -30,7 +31,9 @@ public class MaterializedView {
   @Column(name = "id", nullable = false)
   private Long id;
 
-  @ManyToOne private FindMVJob initialJob;
+  @ManyToOne
+  @JoinColumn(updatable = false)
+  private FindMVJob initialJob;
 
   @ManyToOne private FindMVJob lastJob;
 
@@ -46,7 +49,13 @@ public class MaterializedView {
   @Column(name = "statement", nullable = false, columnDefinition = "text")
   private String statement;
 
-  @Column(name = "mv_name", nullable = false, unique = true)
+  @Column(nullable = false)
+  private String statementHashCode;
+
+  @Column(nullable = false, unique = true)
+  private String mvUniqueName;
+
+  @Column(name = "mv_name", nullable = false)
   private String mvName;
 
   @Enumerated(EnumType.STRING)
@@ -54,7 +63,7 @@ public class MaterializedView {
   private MVStatus status;
 
   @Enumerated(EnumType.STRING)
-  @Column(name = "status", nullable = false)
+  @Column(name = "statusReason", nullable = false)
   private MVStatusReason statusReason;
 
   @Column(name = "hits", nullable = false, columnDefinition = "integer default 0")
@@ -75,7 +84,10 @@ public class MaterializedView {
     this.status = MVStatus.NOT_APPLIED;
     this.statusReason = MVStatusReason.WAITING_APPROVAL;
     this.statement = statement;
-    this.mvName = this.tableName + "_" + MV_NAME_PREFIX + Math.abs(statement.hashCode());
+    this.statementHashCode = String.valueOf(Math.abs(statement.hashCode()));
+    this.mvUniqueName =
+        String.join("-", this.projectId, this.datasetName, this.tableName, this.statementHashCode);
+    this.mvName = this.tableName + "_" + MV_NAME_PREFIX + this.statementHashCode;
     this.hits = hits;
   }
 
