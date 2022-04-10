@@ -6,6 +6,7 @@ import static org.mockito.Mockito.when;
 import com.achilio.mvm.service.entities.AColumn;
 import com.achilio.mvm.service.entities.ADataset;
 import com.achilio.mvm.service.entities.ATable;
+import com.achilio.mvm.service.entities.MaterializedView;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.entities.Query;
 import com.achilio.mvm.service.models.UserProfile;
@@ -57,6 +58,24 @@ public class MockHelper {
     when(mockedQuery.getProjectId()).thenReturn(projectId);
     when(mockedQuery.getQuery()).thenReturn(statement);
     return mockedQuery;
+  }
+
+  public static MaterializedView mvMock(
+      Long id, String projectId, String datasetName, String tableName, String statement) {
+    String hashedStatement = String.valueOf(Math.abs(statement.hashCode()));
+    MaterializedView mockedMV = mock(MaterializedView.class);
+    when(mockedMV.getId()).thenReturn(id);
+    when(mockedMV.getProjectId()).thenReturn(projectId);
+    when(mockedMV.getDatasetName()).thenReturn(datasetName);
+    when(mockedMV.getTableName()).thenReturn(tableName);
+    when(mockedMV.getStatement()).thenReturn(statement);
+    when(mockedMV.getStatementHashCode()).thenReturn(hashedStatement);
+    when(mockedMV.getMvName())
+        .thenReturn(String.join("_", tableName, "achilio_mv_", hashedStatement));
+    when(mockedMV.getMvUniqueName())
+        .thenReturn(String.join("-", projectId, datasetName, tableName, hashedStatement));
+
+    return mockedMV;
   }
 
   public static void setupMockedAuthenticationContext() {
