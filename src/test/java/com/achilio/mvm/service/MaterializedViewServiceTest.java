@@ -65,6 +65,7 @@ public class MaterializedViewServiceTest {
     when(mockedRepository.findById(3L)).thenReturn(Optional.ofNullable(mv3));
     when(mockedRepository.findById(4L)).thenReturn(Optional.ofNullable(mv4));
     when(mockedRepository.findById(99L)).thenReturn(Optional.empty());
+    when(mockedRepository.save(any())).then(returnsFirstArg());
   }
 
   @Test
@@ -106,7 +107,6 @@ public class MaterializedViewServiceTest {
 
   @Test
   public void addMaterializedView() {
-    when(mockedRepository.save(any())).then(returnsFirstArg());
     MaterializedView mv = service.addMaterializedView(PROJECT1, DATASET1, TABLE1, STATEMENT1);
     assertEquals(PROJECT1, mv.getProjectId());
     assertEquals(DATASET1, mv.getDatasetName());
