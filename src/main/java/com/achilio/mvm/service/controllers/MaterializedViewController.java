@@ -2,18 +2,22 @@ package com.achilio.mvm.service.controllers;
 
 import static com.achilio.mvm.service.UserContextHelper.getContextTeamName;
 
+import com.achilio.mvm.service.controllers.requests.MaterializedViewActionRequest;
+import com.achilio.mvm.service.controllers.requests.MaterializedViewActionRequest.Action;
 import com.achilio.mvm.service.entities.MaterializedView;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.services.MaterializedViewService;
 import com.achilio.mvm.service.services.ProjectService;
 import io.swagger.annotations.ApiOperation;
 import java.util.List;
+import javax.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -54,22 +58,29 @@ public class MaterializedViewController {
 
   @PatchMapping(path = "/mv/{id}")
   @ApiOperation(
-      "Use this route to apply a Materialized View. This will create it in the BigQuery of the project this view belongs to")
+      "Use this route to apply or unapply a Materialized View. \n"
+          + "If action in the payload is APPLY, this will create it in the BigQuery of"
+          + " the project this view belongs to.\n"
+          + "If action is UNAPPLY, delete the MV from BigQuery and set the status to NOT_APPLIED."
+          + "Does not delete from Achilio DB.\n"
+          + "If the MV Id does not exist, returns a 404 NOT FOUND.")
   @ResponseStatus(code = HttpStatus.OK)
-  public MaterializedView applyMaterializedView(
-      @PathVariable Long id, @RequestParam String projectId) {
-    Project project = projectService.getProject(projectId, getContextTeamName());
-    return service.applyMaterializedView(id, project.getConnection());
+  public MaterializedView actionOnMaterializedView(
+      @PathVariable Long id, @Valid @RequestBody MaterializedViewActionRequest payload) {
+    Project project = projectService.getProject(payload.getProjectId(), getContextTeamName());
+    if (payload.getAction().equals(Action.APPLY)) {
+      return service.applyMaterializedView(id, project.getConnection());
+    }
+    return service.unapplyMaterializedView(id, project.getConnection());
   }
 
   @DeleteMapping(path = "/mv/{id}")
   @ApiOperation(
       "Delete a MV from BigQuery and set the status to NOT_APPLIED. Does not delete from Achilio DB\n"
           + "If the MV Id does not exist, returns a 404 NOT FOUND.")
-  @ResponseStatus(code = HttpStatus.OK)
-  public MaterializedView deleteMaterializedView(
-      @PathVariable Long id, @RequestParam String projectId) {
-    Project project = projectService.getProject(projectId, getContextTeamName());
-    return service.unapplyMaterializedView(id, project.getConnection());
+  @ResponseStatus(code = HttpStatus.NO_CONTENT)
+  public void deleteMaterializedView(@PathVariable Long id, @RequestParam String projectId) {
+    projectService.getProject(projectId, getContextTeamName());
+    service.removeMaterializedView(id);
   }
 }

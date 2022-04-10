@@ -15,6 +15,7 @@ import com.achilio.mvm.service.entities.FindMVJob;
 import com.achilio.mvm.service.entities.MaterializedView;
 import com.achilio.mvm.service.entities.MaterializedView.MVStatus;
 import com.achilio.mvm.service.entities.MaterializedView.MVStatusReason;
+import com.achilio.mvm.service.exceptions.MaterializedViewAppliedException;
 import com.achilio.mvm.service.exceptions.MaterializedViewNotFoundException;
 import com.achilio.mvm.service.repositories.MaterializedViewRepository;
 import com.achilio.mvm.service.services.FetcherService;
@@ -29,6 +30,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -135,5 +137,23 @@ public class MaterializedViewServiceTest {
     MaterializedView deletedMv1 = service.unapplyMaterializedView(1L, connection);
     assertEquals(MVStatus.UNKNOWN, deletedMv1.getStatus());
     assertEquals(MVStatusReason.ERROR_DURING_DELETION, deletedMv1.getStatusReason());
+  }
+
+  @Test
+  public void removeMaterializedView() {
+    service.removeMaterializedView(1L);
+    Mockito.verify(mockedRepository, Mockito.timeout(1000).times(1)).delete(any());
+  }
+
+  @Test
+  public void removeMaterializedView__whenNotExists_doNothing() {
+    service.removeMaterializedView(99L);
+    Mockito.verify(mockedRepository, Mockito.timeout(1000).times(0)).delete(any());
+  }
+
+  @Test
+  public void removeMaterializedView__whenMVApplied_throwException() {
+    when(mv2.getStatus()).thenReturn(MVStatus.APPLIED);
+    assertThrows(MaterializedViewAppliedException.class, () -> service.removeMaterializedView(2L));
   }
 }

@@ -9,6 +9,7 @@ import com.achilio.mvm.service.entities.ATable;
 import com.achilio.mvm.service.entities.Connection;
 import com.achilio.mvm.service.entities.FindMVJob;
 import com.achilio.mvm.service.entities.MaterializedView;
+import com.achilio.mvm.service.entities.MaterializedView.MVStatus;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.entities.Query;
 import com.achilio.mvm.service.models.UserProfile;
@@ -84,6 +85,7 @@ public class MockHelper {
     when(mockedMV.getProjectId()).thenReturn(projectId);
     when(mockedMV.getDatasetName()).thenReturn(datasetName);
     when(mockedMV.getTableName()).thenReturn(tableName);
+    when(mockedMV.getStatus()).thenReturn(MVStatus.NOT_APPLIED);
     when(mockedMV.getStatement()).thenReturn(statement);
     when(mockedMV.getStatementHashCode()).thenReturn(hashedStatement);
     when(mockedMV.getMvName())

@@ -34,6 +34,6 @@ public class MaterializedViewTest {
     assertEquals(MVStatusReason.WAITING_APPROVAL, mv.getStatusReason());
     assertEquals(STATEMENT, mv.getStatement());
     assertEquals("tableName_achilio_mv_" + HASH_CODE, mv.getMvName());
-    assertEquals(0, mv.getHits());
+    assertEquals(Integer.valueOf(0), mv.getHits());
   }
 }

@@ -5,6 +5,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -31,11 +32,12 @@ public class MaterializedView {
   @Column(name = "id", nullable = false)
   private Long id;
 
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(updatable = false)
   private FindMVJob initialJob;
 
-  @ManyToOne private FindMVJob lastJob;
+  @ManyToOne(fetch = FetchType.LAZY)
+  private FindMVJob lastJob;
 
   @Column(name = "project_id", nullable = false)
   private String projectId;
@@ -63,11 +65,11 @@ public class MaterializedView {
   private MVStatus status;
 
   @Enumerated(EnumType.STRING)
-  @Column(name = "statusReason", nullable = false)
+  @Column(name = "statusReason")
   private MVStatusReason statusReason;
 
-  @Column(name = "hits", nullable = false, columnDefinition = "integer default 0")
-  private int hits;
+  @Column(name = "hits")
+  private Integer hits;
 
   public MaterializedView(
       final FindMVJob job, final ATableId referenceTable, final String statement) {
@@ -75,7 +77,10 @@ public class MaterializedView {
   }
 
   public MaterializedView(
-      final FindMVJob job, final ATableId referenceTable, final String statement, final int hits) {
+      final FindMVJob job,
+      final ATableId referenceTable,
+      final String statement,
+      final Integer hits) {
     this.initialJob = job;
     this.lastJob = job;
     this.projectId = referenceTable.getProject();

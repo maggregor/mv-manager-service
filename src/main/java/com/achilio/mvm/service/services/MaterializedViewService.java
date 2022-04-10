@@ -4,6 +4,7 @@ import com.achilio.mvm.service.entities.Connection;
 import com.achilio.mvm.service.entities.MaterializedView;
 import com.achilio.mvm.service.entities.MaterializedView.MVStatus;
 import com.achilio.mvm.service.entities.MaterializedView.MVStatusReason;
+import com.achilio.mvm.service.exceptions.MaterializedViewAppliedException;
 import com.achilio.mvm.service.exceptions.MaterializedViewNotFoundException;
 import com.achilio.mvm.service.repositories.MaterializedViewRepository;
 import java.util.List;
@@ -76,5 +77,16 @@ public class MaterializedViewService {
 
   private void createMaterializedView(MaterializedView mv, Connection connection) {
     fetcherService.createMaterializedView(mv, connection);
+  }
+
+  public void removeMaterializedView(Long id) {
+    Optional<MaterializedView> optionalMv = findMaterializedView(id);
+    if (optionalMv.isPresent()) {
+      MaterializedView mv = optionalMv.get();
+      if (!mv.getStatus().equals(MVStatus.NOT_APPLIED)) {
+        throw new MaterializedViewAppliedException(mv.getId());
+      }
+      repository.delete(mv);
+    }
   }
 }
