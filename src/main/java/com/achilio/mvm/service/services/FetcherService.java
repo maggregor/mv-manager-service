@@ -9,6 +9,7 @@ import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.entities.Connection;
 import com.achilio.mvm.service.entities.Connection.ConnectionType;
+import com.achilio.mvm.service.entities.MaterializedView;
 import com.achilio.mvm.service.entities.ServiceAccountConnection;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import java.util.List;
@@ -67,6 +68,16 @@ public class FetcherService {
     Set<FetchedTable> fetchedTableSet = fetcher.fetchAllTables();
     fetcher.close();
     return fetchedTableSet;
+  }
+
+  public void createMaterializedView(MaterializedView mv, Connection connection) {
+    DatabaseFetcher fetcher = fetcher(mv.getProjectId(), connection);
+    fetcher.createMaterializedView(mv);
+  }
+
+  public void deleteMaterializedView(MaterializedView mv, Connection connection) {
+    DatabaseFetcher fetcher = fetcher(mv.getProjectId(), connection);
+    fetcher.deleteMaterializedView(mv);
   }
 
   private DatabaseFetcher fetcher(String projectId, Connection connection)

@@ -6,6 +6,10 @@ import static org.mockito.Mockito.when;
 import com.achilio.mvm.service.entities.AColumn;
 import com.achilio.mvm.service.entities.ADataset;
 import com.achilio.mvm.service.entities.ATable;
+import com.achilio.mvm.service.entities.Connection;
+import com.achilio.mvm.service.entities.FindMVJob;
+import com.achilio.mvm.service.entities.MaterializedView;
+import com.achilio.mvm.service.entities.MaterializedView.MVStatus;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.entities.Query;
 import com.achilio.mvm.service.models.UserProfile;
@@ -19,6 +23,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 public class MockHelper {
 
   private static final String DEFAULT_PROJECT_ID = "myproject";
+
+  public static Project projectMock(String projectId, Connection connection) {
+    Project mock = mock(Project.class);
+    //    when(mock.getProjectId()).thenReturn(projectId);
+    when(mock.getConnection()).thenReturn(connection);
+    return mock;
+  }
 
   public static ADataset datasetMock(Project project, String datasetName) {
     ADataset mock = mock(ADataset.class);
@@ -59,6 +70,32 @@ public class MockHelper {
     return mockedQuery;
   }
 
+  public static FindMVJob findMVJobMock() {
+    FindMVJob job = mock(FindMVJob.class);
+    //    when(job.getProjectId()).thenReturn("project1");
+    //    when(job.getId()).thenReturn(1L);
+    return job;
+  }
+
+  public static MaterializedView mvMock(
+      Long id, String projectId, String datasetName, String tableName, String statement) {
+    String hashedStatement = String.valueOf(Math.abs(statement.hashCode()));
+    MaterializedView mockedMV = mock(MaterializedView.class);
+    when(mockedMV.getId()).thenReturn(id);
+    when(mockedMV.getProjectId()).thenReturn(projectId);
+    when(mockedMV.getDatasetName()).thenReturn(datasetName);
+    when(mockedMV.getTableName()).thenReturn(tableName);
+    when(mockedMV.getStatus()).thenReturn(MVStatus.NOT_APPLIED);
+    when(mockedMV.getStatement()).thenReturn(statement);
+    when(mockedMV.getStatementHashCode()).thenReturn(hashedStatement);
+    when(mockedMV.getMvName())
+        .thenReturn(String.join("_", tableName, "achilio_mv_", hashedStatement));
+    when(mockedMV.getMvUniqueName())
+        .thenReturn(String.join("-", projectId, datasetName, tableName, hashedStatement));
+
+    return mockedMV;
+  }
+
   public static void setupMockedAuthenticationContext() {
     setupMockedAuthenticationContext("myDefaultTeam");
   }
@@ -71,5 +108,13 @@ public class MockHelper {
     when(mockedAuth.getDetails()).thenReturn(mockedUserProfile);
     when(mockedSecurityContext.getAuthentication()).thenReturn(mockedAuth);
     SecurityContextHolder.setContext(mockedSecurityContext);
+  }
+
+  public static Connection connectionMock() {
+    Connection connection = mock(Connection.class);
+    //    when(connection.getContent()).thenReturn("serviceAccountJson");
+    //    when(connection.getId()).thenReturn(1L);
+    //    when(connection.getTeamName()).thenReturn("achilio.com");
+    return connection;
   }
 }
