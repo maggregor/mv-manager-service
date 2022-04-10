@@ -63,7 +63,7 @@ public class MaterializedView {
   private MVStatus status;
 
   @Enumerated(EnumType.STRING)
-  @Column(name = "statusReason")
+  @Column(name = "status_reason")
   private MVStatusReason statusReason;
 
   @Column(name = "hits")

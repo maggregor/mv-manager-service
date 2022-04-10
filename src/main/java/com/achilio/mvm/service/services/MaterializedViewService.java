@@ -55,7 +55,7 @@ public class MaterializedViewService {
       mv.setStatusReason(MVStatusReason.ERROR_DURING_CREATION);
       // TODO: Delete the view from BigQuery for coherence (even if not present)
     }
-    return mv;
+    return repository.save(mv);
   }
 
   public MaterializedView unapplyMaterializedView(Long id, Connection connection) {
@@ -69,7 +69,7 @@ public class MaterializedViewService {
       mv.setStatus(MVStatus.UNKNOWN);
       mv.setStatusReason(MVStatusReason.ERROR_DURING_DELETION);
     }
-    return mv;
+    return repository.save(mv);
   }
 
   private void deleteMaterializedView(MaterializedView mv, Connection connection) {

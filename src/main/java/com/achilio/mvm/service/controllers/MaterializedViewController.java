@@ -60,7 +60,7 @@ public class MaterializedViewController {
 
   @PostMapping(path = "/mv")
   @ApiOperation("Add a custom Materialized View proposal")
-  public MaterializedView addMaterializedView(@RequestBody MaterializedViewRequest payload) {
+  public MaterializedView addMaterializedView(@Valid @RequestBody MaterializedViewRequest payload) {
     projectService.getProject(payload.getProjectId(), getContextTeamName());
     return service.addMaterializedView(
         payload.getProjectId(),
