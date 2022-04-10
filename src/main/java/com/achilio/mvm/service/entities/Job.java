@@ -10,18 +10,22 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
+@Setter
+@Getter
 @Entity
-@Table(name = "fetcher_jobs")
+@Table(name = "jobs")
 @EnableJpaAuditing
 @EntityListeners(AuditingEntityListener.class)
-public class FetcherJob {
-  private static Logger LOGGER = LoggerFactory.getLogger(FetcherJob.class);
+public class Job {
+  private static final Logger LOGGER = LoggerFactory.getLogger(Job.class);
 
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
@@ -37,41 +41,21 @@ public class FetcherJob {
 
   @Column(name = "status")
   @Enumerated(EnumType.STRING)
-  private FetcherJobStatus status;
+  private JobStatus status;
 
-  protected FetcherJob() {}
+  protected Job() {}
 
-  public FetcherJob(String projectId) {
+  public Job(String projectId) {
     this.projectId = projectId;
-    this.status = FetcherJobStatus.PENDING;
+    this.status = JobStatus.PENDING;
   }
 
-  public Long getId() {
-    return id;
-  }
-
-  public void setId(Long id) {
-    this.id = id;
-  }
-
-  public Date getCreatedAt() {
-    return createdAt;
-  }
-
-  public String getProjectId() {
-    return projectId;
-  }
-
-  public FetcherJobStatus getStatus() {
-    return status;
-  }
-
-  public void setStatus(FetcherJobStatus status) {
-    LOGGER.info("FetcherJob {} set to {}", this.getId(), status);
+  public void setStatus(JobStatus status) {
+    LOGGER.info("Job {} set to {}", this.getId(), status);
     this.status = status;
   }
 
-  public enum FetcherJobStatus {
+  public enum JobStatus {
     PENDING,
     WORKING,
     FINISHED,

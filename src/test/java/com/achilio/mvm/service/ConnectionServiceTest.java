@@ -112,7 +112,7 @@ public class ConnectionServiceTest {
   public void updateServiceAccountConnection() {
     ServiceAccountConnectionRequest updateRequest =
         new ServiceAccountConnectionRequest(CONNECTION_NAME1, SOURCE_BIGQUERY, "another");
-    Connection connection = SA_CONNECTION;
+    Connection connection;
     connection = service.updateConnection(456L, TEAM_NAME, updateRequest);
     assertExpectedServiceAccount(updateRequest, connection);
     Exception e =

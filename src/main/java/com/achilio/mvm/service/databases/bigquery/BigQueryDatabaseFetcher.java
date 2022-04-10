@@ -9,6 +9,7 @@ import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedQueryFactory;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
+import com.achilio.mvm.service.entities.MaterializedView;
 import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import com.achilio.mvm.service.visitors.ATableId;
@@ -149,6 +150,16 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
         .filter(this::isValidTable)
         .map(this::toFetchedTable)
         .collect(Collectors.toSet());
+  }
+
+  @Override
+  public void createMaterializedView(MaterializedView mv) {
+    // TODO: Implementation
+  }
+
+  @Override
+  public void deleteMaterializedView(MaterializedView mv) {
+    // TODO: Implementation
   }
 
   public void close() {}

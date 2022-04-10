@@ -2,9 +2,9 @@ package com.achilio.mvm.service;
 
 import static org.junit.Assert.assertEquals;
 
-import com.achilio.mvm.service.entities.FetcherJob;
 import com.achilio.mvm.service.entities.FetcherQueryJob;
 import com.achilio.mvm.service.entities.FetcherStructJob;
+import com.achilio.mvm.service.entities.Job;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -24,7 +24,7 @@ public class FetcherJobTest {
 
   @Test
   public void simpleValidationStruct() {
-    FetcherJob fetcherJob = new FetcherStructJob(TEST_PROJECT_ID);
-    assertEquals(TEST_PROJECT_ID, fetcherJob.getProjectId());
+    Job job = new FetcherStructJob(TEST_PROJECT_ID);
+    assertEquals(TEST_PROJECT_ID, job.getProjectId());
   }
 }

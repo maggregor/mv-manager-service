@@ -1,7 +1,7 @@
 package com.achilio.mvm.service;
 
-import static com.achilio.mvm.service.entities.FetcherJob.FetcherJobStatus.FINISHED;
-import static com.achilio.mvm.service.entities.FetcherJob.FetcherJobStatus.PENDING;
+import static com.achilio.mvm.service.entities.Job.JobStatus.FINISHED;
+import static com.achilio.mvm.service.entities.Job.JobStatus.PENDING;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
@@ -9,9 +9,9 @@ import static org.mockito.Mockito.when;
 
 import com.achilio.mvm.service.controllers.FetcherJobController;
 import com.achilio.mvm.service.controllers.requests.FetcherQueryJobRequest;
-import com.achilio.mvm.service.entities.FetcherJob;
-import com.achilio.mvm.service.entities.FetcherJob.FetcherJobStatus;
 import com.achilio.mvm.service.entities.FetcherQueryJob;
+import com.achilio.mvm.service.entities.Job;
+import com.achilio.mvm.service.entities.Job.JobStatus;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.exceptions.FetcherJobNotFoundException;
 import com.achilio.mvm.service.services.FetcherJobService;
@@ -60,7 +60,7 @@ public class FetcherJobControllerTest {
   @Before
   public void setup() {
     MockHelper.setupMockedAuthenticationContext();
-    realFetcherJob3.setStatus(FetcherJobStatus.FINISHED);
+    realFetcherJob3.setStatus(JobStatus.FINISHED);
     doNothing().when(mockedFetcherJobService).fetchAllQueriesJob(any(), any());
     when(mockedFetcherJobService.getAllQueryJobs(TEST_PROJECT_ID, null))
         .thenReturn(Arrays.asList(realFetcherJob1, realFetcherJob2, realFetcherJob3));
@@ -109,7 +109,7 @@ public class FetcherJobControllerTest {
     // Job3
     Assert.assertEquals(TEST_PROJECT_ID, map.get(2).get("projectId").asText());
     Assert.assertEquals(TIMEFRAME2, map.get(2).get("timeframe").asLong());
-    Assert.assertEquals(FetcherJobStatus.FINISHED.toString(), map.get(2).get("status").asText());
+    Assert.assertEquals(JobStatus.FINISHED.toString(), map.get(2).get("status").asText());
     Assert.assertTrue(map.get(2).get("id") instanceof NullNode);
     Assert.assertTrue(map.get(2).get("createdAt") instanceof NullNode);
   }
@@ -125,7 +125,7 @@ public class FetcherJobControllerTest {
     Assert.assertEquals(1, map.size());
     Assert.assertEquals(TEST_PROJECT_ID, map.get(0).get("projectId").asText());
     Assert.assertEquals(TIMEFRAME2, map.get(0).get("timeframe").asLong());
-    Assert.assertEquals(FetcherJobStatus.FINISHED.toString(), map.get(0).get("status").asText());
+    Assert.assertEquals(JobStatus.FINISHED.toString(), map.get(0).get("status").asText());
     Assert.assertTrue(map.get(0).get("id") instanceof NullNode);
     Assert.assertTrue(map.get(0).get("createdAt") instanceof NullNode);
   }
@@ -179,7 +179,7 @@ public class FetcherJobControllerTest {
   @Test
   public void getFetcherQueryJobByProjectIdAndJobId() throws JsonProcessingException {
     ObjectMapper mapper = new ObjectMapper();
-    FetcherJob jobResponseEntity = controller.getFetcherQueryJob(TEST_PROJECT_ID, 1L);
+    Job jobResponseEntity = controller.getFetcherQueryJob(TEST_PROJECT_ID, 1L);
     String jsonResponse = objectMapper.writeValueAsString(jobResponseEntity);
     JsonNode map = mapper.readTree(jsonResponse);
     Assert.assertTrue(map instanceof ObjectNode);
@@ -210,7 +210,7 @@ public class FetcherJobControllerTest {
     ObjectMapper mapper = new ObjectMapper();
 
     // Request 1
-    FetcherJob jobResponseEntity = controller.createNewFetcherQueryJob(request1);
+    Job jobResponseEntity = controller.createNewFetcherQueryJob(request1);
     Mockito.verify(mockedFetcherJobService, Mockito.timeout(1000).times(1))
         .fetchAllQueriesJob(ArgumentMatchers.any(FetcherQueryJob.class), any());
     String jsonResponse = objectMapper.writeValueAsString(jobResponseEntity);
@@ -227,7 +227,7 @@ public class FetcherJobControllerTest {
     ObjectMapper mapper = new ObjectMapper();
 
     // Request 2
-    FetcherJob jobResponseEntity = controller.createNewFetcherQueryJob(request2);
+    Job jobResponseEntity = controller.createNewFetcherQueryJob(request2);
     Mockito.verify(mockedFetcherJobService, Mockito.timeout(1000).times(1))
         .fetchAllQueriesJob(ArgumentMatchers.any(FetcherQueryJob.class), any());
     String jsonResponse = objectMapper.writeValueAsString(jobResponseEntity);

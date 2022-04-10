@@ -29,7 +29,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 /** This is an integration tests for the GoogleCloudStorage classe */
 @RunWith(SpringRunner.class)
 @SpringBootTest
-public class GCSIntegrationTest {
+public class IntegrationGCSTest {
 
   private static final String PROJECT_ID = "achilio-dev";
   private static final String OBJECT_PREFIX = "connections/";

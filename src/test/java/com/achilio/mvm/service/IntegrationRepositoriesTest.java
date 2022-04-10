@@ -8,10 +8,10 @@ import com.achilio.mvm.service.entities.AColumn;
 import com.achilio.mvm.service.entities.ADataset;
 import com.achilio.mvm.service.entities.ATable;
 import com.achilio.mvm.service.entities.Connection;
-import com.achilio.mvm.service.entities.FetcherJob;
-import com.achilio.mvm.service.entities.FetcherJob.FetcherJobStatus;
 import com.achilio.mvm.service.entities.FetcherQueryJob;
 import com.achilio.mvm.service.entities.FetcherStructJob;
+import com.achilio.mvm.service.entities.Job;
+import com.achilio.mvm.service.entities.Job.JobStatus;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.entities.Query;
 import com.achilio.mvm.service.entities.ServiceAccountConnection;
@@ -44,7 +44,7 @@ import org.springframework.test.context.junit4.SpringRunner;
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest
-public class RepositoriesIntegrationTest {
+public class IntegrationRepositoriesTest {
 
   private final String TEST_PROJECT_ID1 = "myProjectId";
   private final String TEST_PROJECT_ID2 = "myOtherProjectId";
@@ -126,7 +126,7 @@ public class RepositoriesIntegrationTest {
 
   @Before
   public void setup() {
-    job3.setStatus(FetcherJobStatus.FINISHED);
+    job3.setStatus(JobStatus.FINISHED);
     fetcherJobRepository.save(job1);
     fetcherJobRepository.save(job2);
     fetcherJobRepository.save(job3);
@@ -176,7 +176,7 @@ public class RepositoriesIntegrationTest {
     List<FetcherQueryJob> queryJobs =
         fetcherJobRepository.findFetcherQueryJobsByProjectId(TEST_PROJECT_ID1);
     Assert.assertEquals(3, queryJobs.size());
-    FetcherJob job = queryJobs.get(0);
+    Job job = queryJobs.get(0);
     Assert.assertEquals(TEST_PROJECT_ID1, job.getProjectId());
     Assert.assertNotNull(job.getCreatedAt());
     Assert.assertEquals("PENDING", job.getStatus().toString());
@@ -185,7 +185,7 @@ public class RepositoriesIntegrationTest {
         fetcherJobRepository.findFetcherStructJobsByProjectId(TEST_PROJECT_ID1);
     Assert.assertEquals(1, structJobs.size());
 
-    List<FetcherJob> allJobs = fetcherJobRepository.findFetcherJobsByProjectId(TEST_PROJECT_ID1);
+    List<Job> allJobs = fetcherJobRepository.findFetcherJobsByProjectId(TEST_PROJECT_ID1);
     Assert.assertEquals(4, allJobs.size());
   }
 
@@ -213,17 +213,17 @@ public class RepositoriesIntegrationTest {
   public void fetcherJob_findFetcherQueryJobsByProjectIdAndStatus() {
     List<FetcherQueryJob> queryJobs =
         fetcherJobRepository.findFetcherQueryJobsByProjectIdAndStatus(
-            TEST_PROJECT_ID1, FetcherJobStatus.PENDING);
+            TEST_PROJECT_ID1, JobStatus.PENDING);
     Assert.assertEquals(2, queryJobs.size());
 
     List<FetcherStructJob> structJobs =
         fetcherJobRepository.findFetcherStructJobsByProjectIdAndStatus(
-            TEST_PROJECT_ID1, FetcherJobStatus.PENDING);
+            TEST_PROJECT_ID1, JobStatus.PENDING);
     Assert.assertEquals(1, structJobs.size());
 
-    List<FetcherJob> allJobs =
+    List<Job> allJobs =
         fetcherJobRepository.findFetcherJobsByProjectIdAndStatus(
-            TEST_PROJECT_ID1, FetcherJobStatus.PENDING);
+            TEST_PROJECT_ID1, JobStatus.PENDING);
     Assert.assertEquals(3, allJobs.size());
   }
 
@@ -231,12 +231,12 @@ public class RepositoriesIntegrationTest {
   public void fetcherJob_findTopFetchedQueryJobByProjectIdAndStatusOrderByCreatedAtDesc() {
     Optional<FetcherQueryJob> optionalFetcherJob =
         fetcherJobRepository.findTopFetcherQueryJobByProjectIdAndStatusOrderByCreatedAtDesc(
-            TEST_PROJECT_ID1, FetcherJobStatus.PENDING);
+            TEST_PROJECT_ID1, JobStatus.PENDING);
     Assert.assertTrue(optionalFetcherJob.isPresent());
 
     optionalFetcherJob =
         fetcherJobRepository.findTopFetcherQueryJobByProjectIdAndStatusOrderByCreatedAtDesc(
-            TEST_PROJECT_ID1, FetcherJobStatus.WORKING);
+            TEST_PROJECT_ID1, JobStatus.WORKING);
     Assert.assertFalse(optionalFetcherJob.isPresent());
   }
 
