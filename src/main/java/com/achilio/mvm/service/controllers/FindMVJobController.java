@@ -42,17 +42,19 @@ public class FindMVJobController {
     return mvJobService.getAllMVJobs(projectId, status);
   }
 
-  @GetMapping(path = "/mv/{mvId}", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(path = "/mv/{jobId}", produces = MediaType.APPLICATION_JSON_VALUE)
   @ApiOperation(
       "Get a single find mv job for a given projectId.\n"
           + "If mvId is equals to last, returns the last job based on creation date")
   public FindMVJob getFindMVJob(
-      @PathVariable String mvId, @RequestParam String projectId, @RequestParam JobStatus status) {
+      @PathVariable String jobId,
+      @RequestParam String projectId,
+      @RequestParam(required = false) JobStatus status) {
     projectService.getProject(projectId, getContextTeamName());
-    if (mvId.toLowerCase(Locale.ROOT).equals("last")) {
+    if (jobId.toLowerCase(Locale.ROOT).equals("last")) {
       return mvJobService.getLastMVJobByStatus(projectId, status);
     }
-    Long id = Long.valueOf(mvId);
+    Long id = Long.valueOf(jobId);
     return mvJobService.getMVJob(id, projectId);
   }
 

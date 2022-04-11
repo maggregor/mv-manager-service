@@ -1,6 +1,10 @@
 package com.achilio.mvm.service.entities;
 
 import com.achilio.mvm.service.visitors.ATableId;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIdentityReference;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import java.util.Date;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -34,9 +38,15 @@ public class MaterializedView {
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(updatable = false)
+  @JsonIdentityReference(alwaysAsId = true)
+  @JsonProperty("initialJobId")
+  @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
   private FindMVJob initialJob;
 
   @ManyToOne(fetch = FetchType.LAZY)
+  @JsonIdentityReference(alwaysAsId = true)
+  @JsonProperty("lastJobId")
+  @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
   private FindMVJob lastJob;
 
   @Column(name = "created_at", updatable = false)
