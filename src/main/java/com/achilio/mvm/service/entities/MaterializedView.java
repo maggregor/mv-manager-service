@@ -74,6 +74,9 @@ public class MaterializedView {
   @Column(name = "mv_name", nullable = false)
   private String mvName;
 
+  @Column(name = "mv_display_name")
+  private String mvDisplayName;
+
   @Enumerated(EnumType.STRING)
   @Column(name = "status", nullable = false)
   private MVStatus status;
@@ -111,6 +114,7 @@ public class MaterializedView {
     this.mvUniqueName =
         String.join("-", this.projectId, this.datasetName, this.tableName, this.statementHashCode);
     this.mvName = this.tableName + "_" + MV_NAME_PREFIX + this.statementHashCode;
+    this.mvDisplayName = MV_NAME_PREFIX + this.statementHashCode;
     this.hits = hits;
   }
 
