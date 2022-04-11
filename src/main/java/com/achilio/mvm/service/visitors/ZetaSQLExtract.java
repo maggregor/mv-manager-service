@@ -8,6 +8,7 @@ import com.google.zetasql.AnalyzerOptions;
 import com.google.zetasql.LanguageOptions;
 import com.google.zetasql.ParseResumeLocation;
 import com.google.zetasql.SimpleCatalog;
+import com.google.zetasql.SqlException;
 import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedStatement;
 import com.google.zetasql.resolvedast.ResolvedNodes.Visitor;
 import java.util.List;
@@ -59,6 +60,11 @@ public class ZetaSQLExtract extends ZetaSQLModelBuilder implements FieldSetExtra
         ResolvedStatement resolved = Analyzer.analyzeNextStatement(location, options, catalog);
         resolved.accept(visitor);
       }
+    } catch (SqlException e) {
+      LOGGER.info(
+          "Statement analyze has failed because of an SQL error: {} - {}",
+          e.getMessage(),
+          statement.trim().replaceAll("[\r\n]+", ""));
     } catch (Exception e) {
       LOGGER.error(
           "Statement analyze has failed: {} - {}",

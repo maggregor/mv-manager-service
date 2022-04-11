@@ -68,7 +68,7 @@ public class OptimizationEvent {
     // Merging field sets statistics
     MERGING_FIELD_SETS,
     // Optimizing
-    OPTIMIZING_FIELD_SETS,
+    GENERATING_MVs,
     // Materialized view statements building
     BUILD_MATERIALIZED_VIEWS_STATEMENT,
     // Publishing on pub/sub system
@@ -77,6 +77,5 @@ public class OptimizationEvent {
     PUBLISHED,
     // Not published
     NOT_PUBLISHED,
-    ;
   }
 }

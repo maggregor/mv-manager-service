@@ -1,6 +1,7 @@
 package com.achilio.mvm.service.entities;
 
 import com.achilio.mvm.service.visitors.ATableId;
+import java.util.Date;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -15,6 +16,7 @@ import javax.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
 
 @Entity
 @Getter
@@ -36,6 +38,10 @@ public class MaterializedView {
 
   @ManyToOne(fetch = FetchType.LAZY)
   private FindMVJob lastJob;
+
+  @Column(name = "created_at", updatable = false)
+  @CreationTimestamp
+  private Date createdAt;
 
   @Column(name = "project_id", nullable = false)
   private String projectId;
@@ -98,9 +104,44 @@ public class MaterializedView {
     this.hits = hits;
   }
 
+  public boolean isApplied() {
+    return this.status.equals(MVStatus.APPLIED) || this.status.equals(MVStatus.OUTDATED);
+  }
+
+  public boolean isNotApplied() {
+    return this.status.equals(MVStatus.NOT_APPLIED);
+  }
+
+  public void setStatus(MVStatus status) {
+    if (status.equals(MVStatus.APPLIED) || status.equals(MVStatus.OUTDATED)) {
+      setStatusReason(null);
+    }
+    this.status = status;
+  }
+
+  @Override
+  public int hashCode() {
+    return mvUniqueName.hashCode();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    MaterializedView that = (MaterializedView) o;
+
+    return mvUniqueName.equals(that.mvUniqueName);
+  }
+
   public enum MVStatus {
     APPLIED,
     NOT_APPLIED,
+    OUTDATED,
     UNKNOWN,
   }
 

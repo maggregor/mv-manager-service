@@ -1,6 +1,6 @@
 package com.achilio.mvm.service.services;
 
-import com.achilio.mvm.service.OptimizerApplication;
+import com.achilio.mvm.service.MVGeneratorApplication;
 import com.achilio.mvm.service.entities.Connection;
 import com.achilio.mvm.service.entities.Optimization;
 import com.achilio.mvm.service.entities.OptimizationResult;
@@ -37,7 +37,7 @@ public class GooglePublisherService {
   private static final String CMD_TYPE_APPLY = "apply";
   private static final String CMD_TYPE_DESTROY = "destroy";
   private static final String CMD_TYPE_WORKSPACE = "workspace";
-  private static final Logger LOGGER = LoggerFactory.getLogger(OptimizerApplication.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MVGeneratorApplication.class);
   private boolean PUBLISHER_ENABLED;
   private TopicName EXECUTOR_TOPIC_NAME;
   private TopicName SCHEDULER_TOPIC_NAME;

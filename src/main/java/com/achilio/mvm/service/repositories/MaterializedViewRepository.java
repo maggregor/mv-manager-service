@@ -2,6 +2,7 @@ package com.achilio.mvm.service.repositories;
 
 import com.achilio.mvm.service.entities.MaterializedView;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,4 +17,6 @@ public interface MaterializedViewRepository extends JpaRepository<MaterializedVi
       @Param("datasetName") String datasetName,
       @Param("tableName") String tableName,
       @Param("lastJobId") Long lastJobId);
+
+  Optional<MaterializedView> findByMvUniqueName(String mvUniqueName);
 }

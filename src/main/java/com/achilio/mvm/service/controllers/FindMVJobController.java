@@ -62,6 +62,8 @@ public class FindMVJobController {
           + "with the status PENDING.")
   public FindMVJob startFindMVJob(@Valid @RequestBody FindMVJobRequest payload) {
     projectService.getProject(payload.getProjectId(), getContextTeamName());
-    return mvJobService.createMVJob(payload.getProjectId(), payload.getTimeframe());
+    FindMVJob job = mvJobService.createMVJob(payload.getProjectId(), payload.getTimeframe());
+    mvJobService.startFindMVJob(job);
+    return job;
   }
 }

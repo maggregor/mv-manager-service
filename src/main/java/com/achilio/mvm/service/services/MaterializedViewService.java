@@ -10,6 +10,7 @@ import com.achilio.mvm.service.repositories.MaterializedViewRepository;
 import com.achilio.mvm.service.visitors.ATableId;
 import java.util.List;
 import java.util.Optional;
+import javax.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -32,6 +33,10 @@ public class MaterializedViewService {
     return repository.findById(id);
   }
 
+  public Optional<MaterializedView> findMaterializedViewByUniqueName(String mvUniqueName) {
+    return repository.findByMvUniqueName(mvUniqueName);
+  }
+
   public List<MaterializedView> getAllMaterializedViews(
       String projectId, String datasetName, String tableName, Long jobId) {
     return repository.findAllByProjectIdAndDatasetNameAndTableNameAndLastJob_Id(
@@ -48,12 +53,12 @@ public class MaterializedViewService {
       // TODO: Create the view on BigQuery
       createMaterializedView(mv, connection);
       mv.setStatus(MVStatus.APPLIED);
-      mv.setStatusReason(null);
     } catch (Exception e) {
       LOGGER.error("Error during creation of MV {}", mv.getId(), e);
       mv.setStatus(MVStatus.NOT_APPLIED);
       mv.setStatusReason(MVStatusReason.ERROR_DURING_CREATION);
       // TODO: Delete the view from BigQuery for coherence (even if not present)
+      deleteMaterializedView(mv, connection);
     }
     return repository.save(mv);
   }
@@ -69,7 +74,7 @@ public class MaterializedViewService {
       mv.setStatus(MVStatus.UNKNOWN);
       mv.setStatusReason(MVStatusReason.ERROR_DURING_DELETION);
     }
-    return repository.save(mv);
+    return saveMaterializedView(mv);
   }
 
   private void deleteMaterializedView(MaterializedView mv, Connection connection) {
@@ -80,6 +85,7 @@ public class MaterializedViewService {
     fetcherService.createMaterializedView(mv, connection);
   }
 
+  @Transactional
   public void removeMaterializedView(Long id) {
     Optional<MaterializedView> optionalMv = findMaterializedView(id);
     if (optionalMv.isPresent()) {
@@ -87,14 +93,48 @@ public class MaterializedViewService {
       if (!mv.getStatus().equals(MVStatus.NOT_APPLIED)) {
         throw new MaterializedViewAppliedException(mv.getId());
       }
-      repository.delete(mv);
+      deleteMaterializedViewFromDb(mv);
     }
+  }
+
+  @Transactional
+  public MaterializedView saveMaterializedView(MaterializedView mv) {
+    return repository.save(mv);
+  }
+
+  @Transactional
+  public void deleteMaterializedViewFromDb(MaterializedView mv) {
+    repository.delete(mv);
   }
 
   public MaterializedView addMaterializedView(
       String projectId, String datasetName, String tableName, String statement) {
     ATableId referenceTable = ATableId.of(projectId, datasetName, tableName);
     MaterializedView mv = new MaterializedView(referenceTable, statement);
-    return repository.save(mv);
+    return saveMaterializedView(mv);
+  }
+
+  public boolean mvExists(MaterializedView m) {
+    return findMaterializedViewByUniqueName(m.getMvUniqueName()).isPresent();
+  }
+
+  public void saveAllMaterializedViews(List<MaterializedView> toCreateMaterializedViews) {
+    repository.saveAll(toCreateMaterializedViews);
+  }
+
+  public void flagOutdated(List<MaterializedView> oldMaterializedViews) {
+    oldMaterializedViews.stream()
+        .filter(MaterializedView::isApplied)
+        .forEach(
+            m -> {
+              m.setStatus(MVStatus.OUTDATED);
+              saveMaterializedView(m);
+            });
+  }
+
+  public void deleteOld(List<MaterializedView> oldMaterializedViews) {
+    oldMaterializedViews.stream()
+        .filter(MaterializedView::isNotApplied)
+        .forEach(this::deleteMaterializedViewFromDb);
   }
 }
