@@ -83,7 +83,8 @@ public class MaterializedViewService {
     fetcherService.deleteMaterializedView(mv, connection);
   }
 
-  private void createMaterializedView(MaterializedView mv, Connection connection) {
+  private void createMaterializedView(MaterializedView mv, Connection connection)
+      throws InterruptedException {
     fetcherService.createMaterializedView(mv, connection);
   }
 
