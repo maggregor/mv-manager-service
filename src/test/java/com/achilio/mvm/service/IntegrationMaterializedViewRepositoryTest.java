@@ -162,6 +162,8 @@ public class IntegrationMaterializedViewRepositoryTest {
     assertFalse(findMv2.isPresent());
     Optional<MaterializedView> findMv3 = repository.findByIdAndProjectId(-1L, PROJECT_ID2);
     assertFalse(findMv3.isPresent());
+    Optional<MaterializedView> findMv4 = repository.findByIdAndProjectId(mv1.getId(), PROJECT_ID2);
+    assertFalse(findMv4.isPresent());
   }
 
   @Test
