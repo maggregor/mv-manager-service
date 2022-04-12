@@ -55,7 +55,7 @@ public class MaterializedViewController {
   public MaterializedView getMaterializedView(
       @PathVariable Long id, @RequestParam String projectId) {
     projectService.getProject(projectId, getContextTeamName());
-    return service.getMaterializedView(id);
+    return service.getMaterializedView(id, projectId);
   }
 
   @PostMapping(path = "/mv")
@@ -82,9 +82,9 @@ public class MaterializedViewController {
       @PathVariable Long id, @Valid @RequestBody MaterializedViewActionRequest payload) {
     Project project = projectService.getProject(payload.getProjectId(), getContextTeamName());
     if (payload.getAction().equals(Action.APPLY)) {
-      return service.applyMaterializedView(id, project.getConnection());
+      return service.applyMaterializedView(id, payload.getProjectId(), project.getConnection());
     }
-    return service.unapplyMaterializedView(id, project.getConnection());
+    return service.unapplyMaterializedView(id, payload.getProjectId(), project.getConnection());
   }
 
   @DeleteMapping(path = "/mv/{id}")
@@ -94,6 +94,6 @@ public class MaterializedViewController {
   @ResponseStatus(code = HttpStatus.NO_CONTENT)
   public void deleteMaterializedView(@PathVariable Long id, @RequestParam String projectId) {
     projectService.getProject(projectId, getContextTeamName());
-    service.removeMaterializedView(id);
+    service.removeMaterializedView(id, projectId);
   }
 }

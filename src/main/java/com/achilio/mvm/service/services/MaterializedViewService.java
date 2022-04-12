@@ -29,12 +29,12 @@ public class MaterializedViewService {
     this.fetcherService = fetcherService;
   }
 
-  public Optional<MaterializedView> findMaterializedView(Long id) {
-    return repository.findById(id);
-  }
-
   public Optional<MaterializedView> findMaterializedViewByUniqueName(String mvUniqueName) {
     return repository.findByMvUniqueName(mvUniqueName);
+  }
+
+  public Optional<MaterializedView> findMaterializedView(Long id, String projectId) {
+    return repository.findByIdAndProjectId(id, projectId);
   }
 
   public List<MaterializedView> getAllMaterializedViews(
@@ -43,12 +43,13 @@ public class MaterializedViewService {
         projectId, datasetName, tableName, jobId);
   }
 
-  public MaterializedView getMaterializedView(Long id) {
-    return findMaterializedView(id).orElseThrow(() -> new MaterializedViewNotFoundException(id));
+  public MaterializedView getMaterializedView(Long id, String projectId) {
+    return findMaterializedView(id, projectId)
+        .orElseThrow(() -> new MaterializedViewNotFoundException(id));
   }
 
-  public MaterializedView applyMaterializedView(Long id, Connection connection) {
-    MaterializedView mv = getMaterializedView(id);
+  public MaterializedView applyMaterializedView(Long id, String projectId, Connection connection) {
+    MaterializedView mv = getMaterializedView(id, projectId);
     try {
       // TODO: Create the view on BigQuery
       createMaterializedView(mv, connection);
@@ -63,8 +64,9 @@ public class MaterializedViewService {
     return repository.save(mv);
   }
 
-  public MaterializedView unapplyMaterializedView(Long id, Connection connection) {
-    MaterializedView mv = getMaterializedView(id);
+  public MaterializedView unapplyMaterializedView(
+      Long id, String projectId, Connection connection) {
+    MaterializedView mv = getMaterializedView(id, projectId);
     try {
       deleteMaterializedView(mv, connection);
       mv.setStatus(MVStatus.NOT_APPLIED);
@@ -86,8 +88,8 @@ public class MaterializedViewService {
   }
 
   @Transactional
-  public void removeMaterializedView(Long id) {
-    Optional<MaterializedView> optionalMv = findMaterializedView(id);
+  public void removeMaterializedView(Long id, String projectId) {
+    Optional<MaterializedView> optionalMv = findMaterializedView(id, projectId);
     if (optionalMv.isPresent()) {
       MaterializedView mv = optionalMv.get();
       if (!mv.getStatus().equals(MVStatus.NOT_APPLIED)) {

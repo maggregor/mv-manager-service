@@ -176,13 +176,6 @@ public class FindMVJobService {
   }
 
   @Transactional
-  void filterAndSaveAllMaterializedViews(List<MaterializedView> allMVs) {
-    allMVs.stream()
-        .filter(mv -> !materializedViewService.mvExists(mv))
-        .forEach(materializedViewService::saveMaterializedView);
-  }
-
-  @Transactional
   FindMVJob saveFindMVJob(FindMVJob job) {
     return repository.save(job);
   }

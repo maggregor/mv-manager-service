@@ -1,6 +1,8 @@
 package com.achilio.mvm.service;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import com.achilio.mvm.service.entities.FindMVJob;
 import com.achilio.mvm.service.entities.MaterializedView;
@@ -36,5 +38,11 @@ public class MaterializedViewTest {
     assertEquals("tableName_achilio_mv_" + HASH_CODE, mv.getMvName());
     assertEquals("achilio_mv_" + HASH_CODE, mv.getMvDisplayName());
     assertEquals(Integer.valueOf(0), mv.getHits());
+    assertTrue(mv.isNotApplied());
+    assertFalse(mv.isApplied());
+    mv.setStatus(MVStatus.APPLIED);
+    assertTrue(mv.isApplied());
+    mv.setStatus(MVStatus.OUTDATED);
+    assertTrue(mv.isApplied());
   }
 }

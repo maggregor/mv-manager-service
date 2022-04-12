@@ -119,11 +119,11 @@ public class MaterializedView {
   }
 
   public boolean isApplied() {
-    return this.status.equals(MVStatus.APPLIED) || this.status.equals(MVStatus.OUTDATED);
+    return this.getStatus().equals(MVStatus.APPLIED) || this.getStatus().equals(MVStatus.OUTDATED);
   }
 
   public boolean isNotApplied() {
-    return this.status.equals(MVStatus.NOT_APPLIED);
+    return this.getStatus().equals(MVStatus.NOT_APPLIED);
   }
 
   public void setStatus(MVStatus status) {

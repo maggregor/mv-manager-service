@@ -78,21 +78,28 @@ public class MockHelper {
   }
 
   public static MaterializedView mvMock(
-      Long id, String projectId, String datasetName, String tableName, String statement) {
+      Long id,
+      String projectId,
+      String datasetName,
+      String tableName,
+      String statement,
+      MVStatus status) {
     String hashedStatement = String.valueOf(Math.abs(statement.hashCode()));
     MaterializedView mockedMV = mock(MaterializedView.class);
     when(mockedMV.getId()).thenReturn(id);
     when(mockedMV.getProjectId()).thenReturn(projectId);
     when(mockedMV.getDatasetName()).thenReturn(datasetName);
     when(mockedMV.getTableName()).thenReturn(tableName);
-    when(mockedMV.getStatus()).thenReturn(MVStatus.NOT_APPLIED);
+    when(mockedMV.getStatus()).thenReturn(status);
     when(mockedMV.getStatement()).thenReturn(statement);
     when(mockedMV.getStatementHashCode()).thenReturn(hashedStatement);
     when(mockedMV.getMvName())
         .thenReturn(String.join("_", tableName, "achilio_mv_", hashedStatement));
     when(mockedMV.getMvUniqueName())
         .thenReturn(String.join("-", projectId, datasetName, tableName, hashedStatement));
-
+    when(mockedMV.isApplied())
+        .thenReturn(status.equals(MVStatus.APPLIED) || status.equals(MVStatus.OUTDATED));
+    when(mockedMV.isNotApplied()).thenReturn(status.equals(MVStatus.NOT_APPLIED));
     return mockedMV;
   }
 

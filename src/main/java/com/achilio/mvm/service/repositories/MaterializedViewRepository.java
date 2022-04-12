@@ -19,4 +19,6 @@ public interface MaterializedViewRepository extends JpaRepository<MaterializedVi
       @Param("lastJobId") Long lastJobId);
 
   Optional<MaterializedView> findByMvUniqueName(String mvUniqueName);
+
+  Optional<MaterializedView> findByIdAndProjectId(Long id, String projectId);
 }
