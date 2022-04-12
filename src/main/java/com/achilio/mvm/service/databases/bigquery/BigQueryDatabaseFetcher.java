@@ -186,7 +186,11 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
           QueryJobConfiguration.newBuilder(query).setDryRun(true).setUseQueryCache(false).build();
       bigquery.create(JobInfo.of(queryConfig));
     } catch (BigQueryException e) {
-      LOGGER.warn("Query {} failed", query);
+      LOGGER.warn(
+          "Query failed: {}: {}: {}",
+          e.getReason(),
+          e.getMessage(),
+          query.trim().replaceAll("[\r\n]+", ""));
       throw e;
     }
   }

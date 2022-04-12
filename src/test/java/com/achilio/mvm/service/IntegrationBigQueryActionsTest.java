@@ -67,4 +67,14 @@ public class IntegrationBigQueryActionsTest {
   public void createMaterializedView__whenStatementInvalid_throwException() {
     assertThrows(BigQueryException.class, () -> fetcher.createMaterializedView(mv2));
   }
+
+  @Test
+  public void dryRun() {
+    fetcher.dryRunQuery(STATEMENT1);
+  }
+
+  @Test
+  public void dryRun__whenInvalidStatement_throwException() {
+    assertThrows(BigQueryException.class, () -> fetcher.dryRunQuery(STATEMENT2));
+  }
 }
