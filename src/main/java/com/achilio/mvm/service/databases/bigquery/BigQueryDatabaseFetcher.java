@@ -18,13 +18,16 @@ import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.bigquery.BigQuery;
 import com.google.cloud.bigquery.BigQuery.TableField;
 import com.google.cloud.bigquery.BigQuery.TableOption;
+import com.google.cloud.bigquery.BigQueryException;
 import com.google.cloud.bigquery.BigQueryOptions;
 import com.google.cloud.bigquery.Dataset;
 import com.google.cloud.bigquery.DatasetId;
 import com.google.cloud.bigquery.Field;
 import com.google.cloud.bigquery.Job;
+import com.google.cloud.bigquery.JobInfo;
 import com.google.cloud.bigquery.JobStatistics;
 import com.google.cloud.bigquery.LegacySQLTypeName;
+import com.google.cloud.bigquery.MaterializedViewDefinition;
 import com.google.cloud.bigquery.QueryJobConfiguration;
 import com.google.cloud.bigquery.QueryStage;
 import com.google.cloud.bigquery.QueryStage.QueryStep;
@@ -32,6 +35,8 @@ import com.google.cloud.bigquery.Schema;
 import com.google.cloud.bigquery.StandardTableDefinition;
 import com.google.cloud.bigquery.Table;
 import com.google.cloud.bigquery.TableDefinition;
+import com.google.cloud.bigquery.TableId;
+import com.google.cloud.bigquery.TableInfo;
 import com.google.cloud.resourcemanager.Project;
 import com.google.cloud.resourcemanager.ResourceManager;
 import com.google.cloud.resourcemanager.ResourceManagerOptions;
@@ -154,12 +159,36 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
 
   @Override
   public void createMaterializedView(MaterializedView mv) {
-    // TODO: Implementation
+    TableId tableId = TableId.of(mv.getDatasetName(), mv.getMvName());
+    MaterializedViewDefinition materializedViewDefinition =
+        MaterializedViewDefinition.newBuilder(mv.getStatement()).build();
+    TableInfo tableInfo = TableInfo.newBuilder(tableId, materializedViewDefinition).build();
+    try {
+      bigquery.create(tableInfo);
+    } catch (BigQueryException e) {
+      if (!e.getError().getReason().equals("duplicate")) {
+        throw e;
+      } else {
+        LOGGER.info("Materialized View {} already exists. Nothing to do", mv.getMvUniqueName());
+      }
+    }
   }
 
   @Override
   public void deleteMaterializedView(MaterializedView mv) {
-    // TODO: Implementation
+    TableId tableId = TableId.of(mv.getDatasetName(), mv.getMvName());
+    bigquery.delete(tableId);
+  }
+
+  public void dryRunQuery(String query) {
+    try {
+      QueryJobConfiguration queryConfig =
+          QueryJobConfiguration.newBuilder(query).setDryRun(true).setUseQueryCache(false).build();
+      bigquery.create(JobInfo.of(queryConfig));
+    } catch (BigQueryException e) {
+      LOGGER.warn("Query {} failed", query);
+      throw e;
+    }
   }
 
   public void close() {}

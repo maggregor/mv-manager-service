@@ -94,7 +94,7 @@ public class MockHelper {
     when(mockedMV.getStatement()).thenReturn(statement);
     when(mockedMV.getStatementHashCode()).thenReturn(hashedStatement);
     when(mockedMV.getMvName())
-        .thenReturn(String.join("_", tableName, "achilio_mv_", hashedStatement));
+        .thenReturn(String.join("_", tableName, "achilio_mv", hashedStatement));
     when(mockedMV.getMvUniqueName())
         .thenReturn(String.join("-", projectId, datasetName, tableName, hashedStatement));
     when(mockedMV.isApplied())
