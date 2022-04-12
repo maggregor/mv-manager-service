@@ -1,6 +1,11 @@
 package com.achilio.mvm.service.entities;
 
 import com.achilio.mvm.service.visitors.ATableId;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIdentityReference;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import java.util.Date;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -15,6 +20,8 @@ import javax.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
 @Getter
@@ -32,10 +39,24 @@ public class MaterializedView {
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(updatable = false)
+  @JsonIdentityReference(alwaysAsId = true)
+  @JsonProperty("initialJobId")
+  @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
   private FindMVJob initialJob;
 
   @ManyToOne(fetch = FetchType.LAZY)
+  @JsonIdentityReference(alwaysAsId = true)
+  @JsonProperty("lastJobId")
+  @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
   private FindMVJob lastJob;
+
+  @Column(name = "created_at", updatable = false)
+  @CreationTimestamp
+  private Date createdAt;
+
+  @Column(name = "last_updated_at")
+  @UpdateTimestamp
+  private Date lastUpdatedAt;
 
   @Column(name = "project_id", nullable = false)
   private String projectId;
@@ -57,6 +78,9 @@ public class MaterializedView {
 
   @Column(name = "mv_name", nullable = false)
   private String mvName;
+
+  @Column(name = "mv_display_name")
+  private String mvDisplayName;
 
   @Enumerated(EnumType.STRING)
   @Column(name = "status", nullable = false)
@@ -95,12 +119,48 @@ public class MaterializedView {
     this.mvUniqueName =
         String.join("-", this.projectId, this.datasetName, this.tableName, this.statementHashCode);
     this.mvName = this.tableName + "_" + MV_NAME_PREFIX + this.statementHashCode;
+    this.mvDisplayName = MV_NAME_PREFIX + this.statementHashCode;
     this.hits = hits;
+  }
+
+  public boolean isApplied() {
+    return this.getStatus().equals(MVStatus.APPLIED) || this.getStatus().equals(MVStatus.OUTDATED);
+  }
+
+  public boolean isNotApplied() {
+    return this.getStatus().equals(MVStatus.NOT_APPLIED);
+  }
+
+  public void setStatus(MVStatus status) {
+    if (status.equals(MVStatus.APPLIED) || status.equals(MVStatus.OUTDATED)) {
+      setStatusReason(null);
+    }
+    this.status = status;
+  }
+
+  @Override
+  public int hashCode() {
+    return mvUniqueName.hashCode();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    MaterializedView that = (MaterializedView) o;
+
+    return mvUniqueName.equals(that.mvUniqueName);
   }
 
   public enum MVStatus {
     APPLIED,
     NOT_APPLIED,
+    OUTDATED,
     UNKNOWN,
   }
 

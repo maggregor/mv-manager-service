@@ -42,7 +42,7 @@ public class ADataset {
   private String datasetName;
 
   @Column(name = "activated", nullable = false)
-  private Boolean activated = false;
+  private Boolean activated = true;
 
   public ADataset() {}
 

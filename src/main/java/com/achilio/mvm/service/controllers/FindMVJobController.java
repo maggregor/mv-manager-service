@@ -35,33 +35,37 @@ public class FindMVJobController {
   }
 
   @GetMapping(path = "/mv", produces = MediaType.APPLICATION_JSON_VALUE)
-  @ApiOperation("List all find mv job for a given projectId. Can filter by status")
+  @ApiOperation("List all FindMV job for a given projectId. Can filter by status")
   public List<FindMVJob> getAllFindMVJobs(
       @RequestParam String projectId, @RequestParam(required = false) JobStatus status) {
     projectService.getProject(projectId, getContextTeamName());
     return mvJobService.getAllMVJobs(projectId, status);
   }
 
-  @GetMapping(path = "/mv/{mvId}", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(path = "/mv/{jobId}", produces = MediaType.APPLICATION_JSON_VALUE)
   @ApiOperation(
-      "Get a single find mv job for a given projectId.\n"
-          + "If mvId is equals to last, returns the last job based on creation date")
+      "Get a single FindMV job for a given projectId.\n"
+          + "If jobId is equals to last, returns the last job based on creation date")
   public FindMVJob getFindMVJob(
-      @PathVariable String mvId, @RequestParam String projectId, @RequestParam JobStatus status) {
+      @PathVariable String jobId,
+      @RequestParam String projectId,
+      @RequestParam(required = false) JobStatus status) {
     projectService.getProject(projectId, getContextTeamName());
-    if (mvId.toLowerCase(Locale.ROOT).equals("last")) {
+    if (jobId.toLowerCase(Locale.ROOT).equals("last")) {
       return mvJobService.getLastMVJobByStatus(projectId, status);
     }
-    Long id = Long.valueOf(mvId);
+    Long id = Long.valueOf(jobId);
     return mvJobService.getMVJob(id, projectId);
   }
 
   @PostMapping(path = "/mv", produces = MediaType.APPLICATION_JSON_VALUE)
   @ApiOperation(
-      "Launch a findMVJob. The job is async but the controller returns the object"
+      "Launch a FindMV job. The job is async but the controller returns the object"
           + "with the status PENDING.")
   public FindMVJob startFindMVJob(@Valid @RequestBody FindMVJobRequest payload) {
     projectService.getProject(payload.getProjectId(), getContextTeamName());
-    return mvJobService.createMVJob(payload.getProjectId(), payload.getTimeframe());
+    FindMVJob job = mvJobService.createMVJob(payload.getProjectId(), payload.getTimeframe());
+    mvJobService.startFindMVJob(job);
+    return job;
   }
 }

@@ -1,6 +1,8 @@
 package com.achilio.mvm.service;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import com.achilio.mvm.service.entities.FindMVJob;
 import com.achilio.mvm.service.entities.MaterializedView;
@@ -8,6 +10,7 @@ import com.achilio.mvm.service.repositories.FindMVJobRepository;
 import com.achilio.mvm.service.repositories.MaterializedViewRepository;
 import com.achilio.mvm.service.visitors.ATableId;
 import java.util.List;
+import java.util.Optional;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -149,5 +152,27 @@ public class IntegrationMaterializedViewRepositoryTest {
             null, null, null, null);
     // projectId is required
     assertEquals(0, mvList5.size());
+  }
+
+  @Test
+  public void findByIdAndProjectId() {
+    Optional<MaterializedView> findMv1 = repository.findByIdAndProjectId(mv1.getId(), PROJECT_ID1);
+    assertTrue(findMv1.isPresent());
+    Optional<MaterializedView> findMv2 = repository.findByIdAndProjectId(mv2.getId(), PROJECT_ID2);
+    assertFalse(findMv2.isPresent());
+    Optional<MaterializedView> findMv3 = repository.findByIdAndProjectId(-1L, PROJECT_ID2);
+    assertFalse(findMv3.isPresent());
+    Optional<MaterializedView> findMv4 = repository.findByIdAndProjectId(mv1.getId(), PROJECT_ID2);
+    assertFalse(findMv4.isPresent());
+  }
+
+  @Test
+  public void findByMvUniqueName() {
+    Optional<MaterializedView> findMv1 = repository.findByMvUniqueName(mv1.getMvUniqueName());
+    assertTrue(findMv1.isPresent());
+    Optional<MaterializedView> findMv2 = repository.findByMvUniqueName(mv2.getMvUniqueName());
+    assertTrue(findMv2.isPresent());
+    Optional<MaterializedView> findMv3 = repository.findByMvUniqueName("thisNameDoesNotExists");
+    assertFalse(findMv3.isPresent());
   }
 }

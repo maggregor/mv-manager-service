@@ -10,6 +10,7 @@ import com.achilio.mvm.service.repositories.MaterializedViewRepository;
 import com.achilio.mvm.service.visitors.ATableId;
 import java.util.List;
 import java.util.Optional;
+import javax.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -28,8 +29,12 @@ public class MaterializedViewService {
     this.fetcherService = fetcherService;
   }
 
-  public Optional<MaterializedView> findMaterializedView(Long id) {
-    return repository.findById(id);
+  public Optional<MaterializedView> findMaterializedViewByUniqueName(String mvUniqueName) {
+    return repository.findByMvUniqueName(mvUniqueName);
+  }
+
+  public Optional<MaterializedView> findMaterializedView(Long id, String projectId) {
+    return repository.findByIdAndProjectId(id, projectId);
   }
 
   public List<MaterializedView> getAllMaterializedViews(
@@ -38,28 +43,30 @@ public class MaterializedViewService {
         projectId, datasetName, tableName, jobId);
   }
 
-  public MaterializedView getMaterializedView(Long id) {
-    return findMaterializedView(id).orElseThrow(() -> new MaterializedViewNotFoundException(id));
+  public MaterializedView getMaterializedView(Long id, String projectId) {
+    return findMaterializedView(id, projectId)
+        .orElseThrow(() -> new MaterializedViewNotFoundException(id));
   }
 
-  public MaterializedView applyMaterializedView(Long id, Connection connection) {
-    MaterializedView mv = getMaterializedView(id);
+  public MaterializedView applyMaterializedView(Long id, String projectId, Connection connection) {
+    MaterializedView mv = getMaterializedView(id, projectId);
     try {
       // TODO: Create the view on BigQuery
       createMaterializedView(mv, connection);
       mv.setStatus(MVStatus.APPLIED);
-      mv.setStatusReason(null);
     } catch (Exception e) {
       LOGGER.error("Error during creation of MV {}", mv.getId(), e);
       mv.setStatus(MVStatus.NOT_APPLIED);
       mv.setStatusReason(MVStatusReason.ERROR_DURING_CREATION);
       // TODO: Delete the view from BigQuery for coherence (even if not present)
+      deleteMaterializedView(mv, connection);
     }
     return repository.save(mv);
   }
 
-  public MaterializedView unapplyMaterializedView(Long id, Connection connection) {
-    MaterializedView mv = getMaterializedView(id);
+  public MaterializedView unapplyMaterializedView(
+      Long id, String projectId, Connection connection) {
+    MaterializedView mv = getMaterializedView(id, projectId);
     try {
       deleteMaterializedView(mv, connection);
       mv.setStatus(MVStatus.NOT_APPLIED);
@@ -69,7 +76,7 @@ public class MaterializedViewService {
       mv.setStatus(MVStatus.UNKNOWN);
       mv.setStatusReason(MVStatusReason.ERROR_DURING_DELETION);
     }
-    return repository.save(mv);
+    return saveMaterializedView(mv);
   }
 
   private void deleteMaterializedView(MaterializedView mv, Connection connection) {
@@ -80,21 +87,56 @@ public class MaterializedViewService {
     fetcherService.createMaterializedView(mv, connection);
   }
 
-  public void removeMaterializedView(Long id) {
-    Optional<MaterializedView> optionalMv = findMaterializedView(id);
+  @Transactional
+  public void removeMaterializedView(Long id, String projectId) {
+    Optional<MaterializedView> optionalMv = findMaterializedView(id, projectId);
     if (optionalMv.isPresent()) {
       MaterializedView mv = optionalMv.get();
       if (!mv.getStatus().equals(MVStatus.NOT_APPLIED)) {
         throw new MaterializedViewAppliedException(mv.getId());
       }
-      repository.delete(mv);
+      deleteMaterializedViewFromDb(mv);
     }
+  }
+
+  @Transactional
+  public MaterializedView saveMaterializedView(MaterializedView mv) {
+    return repository.save(mv);
+  }
+
+  @Transactional
+  public void deleteMaterializedViewFromDb(MaterializedView mv) {
+    repository.delete(mv);
   }
 
   public MaterializedView addMaterializedView(
       String projectId, String datasetName, String tableName, String statement) {
     ATableId referenceTable = ATableId.of(projectId, datasetName, tableName);
     MaterializedView mv = new MaterializedView(referenceTable, statement);
-    return repository.save(mv);
+    return saveMaterializedView(mv);
+  }
+
+  public boolean mvExists(MaterializedView m) {
+    return findMaterializedViewByUniqueName(m.getMvUniqueName()).isPresent();
+  }
+
+  public void saveAllMaterializedViews(List<MaterializedView> toCreateMaterializedViews) {
+    repository.saveAll(toCreateMaterializedViews);
+  }
+
+  public void flagOutdated(List<MaterializedView> oldMaterializedViews) {
+    oldMaterializedViews.stream()
+        .filter(MaterializedView::isApplied)
+        .forEach(
+            m -> {
+              m.setStatus(MVStatus.OUTDATED);
+              saveMaterializedView(m);
+            });
+  }
+
+  public void deleteOld(List<MaterializedView> oldMaterializedViews) {
+    oldMaterializedViews.stream()
+        .filter(MaterializedView::isNotApplied)
+        .forEach(this::deleteMaterializedViewFromDb);
   }
 }

@@ -2,6 +2,8 @@ package com.achilio.mvm.service;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
 import com.achilio.mvm.service.controllers.FindMVJobController;
@@ -110,6 +112,7 @@ public class FindMVJobControllerTest {
   public void startFindMVJob() {
     FindMVJobRequest payload1 = new FindMVJobRequest(PROJECT_ID, 7);
     FindMVJobRequest payload2 = new FindMVJobRequest(PROJECT_ID, 14);
+    doNothing().when(mockedMVJobService).startFindMVJob(any());
     when(mockedMVJobService.createMVJob(payload1.getProjectId(), payload1.getTimeframe()))
         .thenReturn(mvJob1);
     when(mockedMVJobService.createMVJob(payload2.getProjectId(), payload2.getTimeframe()))

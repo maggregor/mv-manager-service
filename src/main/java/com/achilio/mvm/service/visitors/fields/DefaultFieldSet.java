@@ -1,6 +1,6 @@
 package com.achilio.mvm.service.visitors.fields;
 
-import com.achilio.mvm.service.OptimizerApplication;
+import com.achilio.mvm.service.MVGeneratorApplication;
 import com.achilio.mvm.service.visitors.ATableId;
 import com.achilio.mvm.service.visitors.FieldSetIneligibilityReason;
 import com.achilio.mvm.service.visitors.JoinType;
@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
 
 public class DefaultFieldSet implements FieldSet {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(OptimizerApplication.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MVGeneratorApplication.class);
 
   private final Set<Field> fields = new LinkedHashSet<>();
   private final Map<ATableId, JoinType> joinTables = new HashMap<>();
@@ -29,6 +29,61 @@ public class DefaultFieldSet implements FieldSet {
 
   public DefaultFieldSet(final Set<Field> fields) {
     addAll(fields);
+  }
+
+  private void addAll(Set<Field> fields) {
+    fields.forEach(this::add);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = fields.hashCode();
+    result = 31 * result + joinTables.hashCode();
+    result = 31 * result + ineligibilityReasons.hashCode();
+    result = 31 * result + (referenceTable != null ? referenceTable.hashCode() : 0);
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof DefaultFieldSet)) {
+      return false;
+    }
+
+    DefaultFieldSet fieldSet = (DefaultFieldSet) o;
+
+    if (!Objects.equals(fields, fieldSet.fields)) {
+      return false;
+    }
+    if (!joinTables.equals(fieldSet.joinTables)) {
+      return false;
+    }
+    if (!ineligibilityReasons.equals(fieldSet.ineligibilityReasons)) {
+      return false;
+    }
+    return Objects.equals(referenceTable, fieldSet.referenceTable);
+  }
+
+  @Override
+  public String toString() {
+    return "DefaultFieldSet{"
+        + "fields="
+        + fields
+        + ", joinTables="
+        + joinTables
+        + ", ineligibilityReasons="
+        + ineligibilityReasons
+        + ", referenceTable="
+        + referenceTable
+        + '}';
+  }
+
+  @Override
+  public int getHits() {
+    return this.hits;
   }
 
   @Override
@@ -62,10 +117,6 @@ public class DefaultFieldSet implements FieldSet {
     this.fields.add(field);
   }
 
-  private void addAll(Set<Field> fields) {
-    fields.forEach(this::add);
-  }
-
   @Override
   public void merge(FieldSet fieldSet) {
     addAll(fieldSet.fields());
@@ -79,17 +130,17 @@ public class DefaultFieldSet implements FieldSet {
   }
 
   @Override
-  public Set<Field> functions() {
+  public Set<Field> references() {
     return this.fields.stream()
-        .filter(field -> field instanceof FunctionField)
-        .filter(field -> !aggregates().contains(field))
+        .filter(field -> field instanceof ReferenceField)
         .collect(Collectors.toSet());
   }
 
   @Override
-  public Set<Field> references() {
+  public Set<Field> functions() {
     return this.fields.stream()
-        .filter(field -> field instanceof ReferenceField)
+        .filter(field -> field instanceof FunctionField)
+        .filter(field -> !aggregates().contains(field))
         .collect(Collectors.toSet());
   }
 
@@ -121,56 +172,5 @@ public class DefaultFieldSet implements FieldSet {
   @Override
   public boolean isEligible() {
     return ineligibilityReasons.isEmpty();
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof DefaultFieldSet)) {
-      return false;
-    }
-
-    DefaultFieldSet fieldSet = (DefaultFieldSet) o;
-
-    if (!Objects.equals(fields, fieldSet.fields)) {
-      return false;
-    }
-    if (!joinTables.equals(fieldSet.joinTables)) {
-      return false;
-    }
-    if (!ineligibilityReasons.equals(fieldSet.ineligibilityReasons)) {
-      return false;
-    }
-    return Objects.equals(referenceTable, fieldSet.referenceTable);
-  }
-
-  @Override
-  public int hashCode() {
-    int result = fields.hashCode();
-    result = 31 * result + joinTables.hashCode();
-    result = 31 * result + ineligibilityReasons.hashCode();
-    result = 31 * result + (referenceTable != null ? referenceTable.hashCode() : 0);
-    return result;
-  }
-
-  @Override
-  public String toString() {
-    return "DefaultFieldSet{"
-        + "fields="
-        + fields
-        + ", joinTables="
-        + joinTables
-        + ", ineligibilityReasons="
-        + ineligibilityReasons
-        + ", referenceTable="
-        + referenceTable
-        + '}';
-  }
-
-  @Override
-  public int getHits() {
-    return this.hits;
   }
 }

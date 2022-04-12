@@ -4,13 +4,13 @@ import com.achilio.mvm.service.visitors.fields.FieldSet;
 import java.util.List;
 
 /**
- * Optimizer service
+ * MVGenerator service
  *
  * <p>Able to manipulate field set and returns optimized field set.
  *
  * @see FieldSet
  */
-public interface Optimizer {
+public interface MVGenerator {
 
   /**
    * Transform raw field set to optimized field set.
@@ -18,5 +18,5 @@ public interface Optimizer {
    * @param fieldSet - Row field set
    * @return -
    */
-  List<FieldSet> optimize(List<FieldSet> fieldSet);
+  List<FieldSet> generate(List<FieldSet> fieldSet);
 }
