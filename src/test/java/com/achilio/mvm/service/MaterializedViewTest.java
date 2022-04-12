@@ -40,7 +40,7 @@ public class MaterializedViewTest {
     assertEquals(MVStatus.NOT_APPLIED, mv.getStatus());
     assertEquals(MVStatusReason.WAITING_APPROVAL, mv.getStatusReason());
     assertEquals(STATEMENT1, mv.getStatement());
-    assertEquals("tableName_achilio_mv_" + HASH_CODE, mv.getMvName());
+    assertEquals("tableName1_achilio_mv_" + HASH_CODE, mv.getMvName());
     assertEquals("achilio_mv_" + HASH_CODE, mv.getMvDisplayName());
     assertEquals(Integer.valueOf(0), mv.getHits());
     assertTrue(mv.isNotApplied());

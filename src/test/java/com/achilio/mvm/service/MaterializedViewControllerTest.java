@@ -22,6 +22,7 @@ import com.achilio.mvm.service.entities.MaterializedView;
 import com.achilio.mvm.service.entities.MaterializedView.MVStatus;
 import com.achilio.mvm.service.entities.MaterializedView.MVStatusReason;
 import com.achilio.mvm.service.entities.Project;
+import com.achilio.mvm.service.exceptions.MaterializedViewAppliedException;
 import com.achilio.mvm.service.exceptions.MaterializedViewNotFoundException;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import com.achilio.mvm.service.services.MaterializedViewService;
@@ -52,9 +53,9 @@ public class MaterializedViewControllerTest {
   MaterializedView mv2 =
       MockHelper.mvMock(2L, PROJECT1, DATASET1, TABLE1, STATEMENT2, MVStatus.NOT_APPLIED);
   MaterializedView mv3 =
-      MockHelper.mvMock(3L, PROJECT2, DATASET1, TABLE1, STATEMENT1, MVStatus.NOT_APPLIED);
+      MockHelper.mvMock(3L, PROJECT2, DATASET1, TABLE1, STATEMENT1, MVStatus.APPLIED);
   MaterializedView mv4 =
-      MockHelper.mvMock(4L, PROJECT2, DATASET2, TABLE1, STATEMENT1, MVStatus.NOT_APPLIED);
+      MockHelper.mvMock(4L, PROJECT2, DATASET2, TABLE1, STATEMENT1, MVStatus.OUTDATED);
   Connection connection1 = MockHelper.connectionMock();
   Project project1 = MockHelper.projectMock(PROJECT1, connection1);
   @InjectMocks MaterializedViewController controller;
@@ -206,14 +207,14 @@ public class MaterializedViewControllerTest {
   }
 
   @Test
-  public void deleteMaterializedView__whenMVNotFound_throwException() {
-    doThrow(MaterializedViewNotFoundException.class)
+  public void deleteMaterializedView__whenMVApplied_throwException() {
+    doThrow(MaterializedViewAppliedException.class)
         .when(mockedService)
-        .removeMaterializedView(1L, PROJECT1);
+        .removeMaterializedView(3L, PROJECT1);
     assertThrows(
-        MaterializedViewNotFoundException.class,
-        () -> controller.deleteMaterializedView(1L, PROJECT1));
-    verify(mockedService, timeout(1000).times(1)).removeMaterializedView(1L, PROJECT1);
+        MaterializedViewAppliedException.class,
+        () -> controller.deleteMaterializedView(3L, PROJECT1));
+    verify(mockedService, timeout(1000).times(1)).removeMaterializedView(3L, PROJECT1);
   }
 
   @Test
