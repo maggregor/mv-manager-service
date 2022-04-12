@@ -21,6 +21,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
 @Getter
@@ -52,6 +53,10 @@ public class MaterializedView {
   @Column(name = "created_at", updatable = false)
   @CreationTimestamp
   private Date createdAt;
+
+  @Column(name = "last_updated_at")
+  @UpdateTimestamp
+  private Date lastUpdatedAt;
 
   @Column(name = "project_id", nullable = false)
   private String projectId;
