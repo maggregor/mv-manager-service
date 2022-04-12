@@ -68,7 +68,7 @@ public class MaterializedViewServiceTest {
   @Mock FetcherService mockedFetcherService;
 
   @Before
-  public void setup() throws InterruptedException {
+  public void setup() {
     when(mockedRepository.findByIdAndProjectId(1L, PROJECT1)).thenReturn(Optional.ofNullable(mv1));
     when(mockedRepository.findByIdAndProjectId(2L, PROJECT1)).thenReturn(Optional.ofNullable(mv2));
     when(mockedRepository.findByIdAndProjectId(3L, PROJECT2)).thenReturn(Optional.ofNullable(mv3));
@@ -143,7 +143,7 @@ public class MaterializedViewServiceTest {
   }
 
   @Test
-  public void applyMaterializedView__whenMVNotFound_throwException() throws InterruptedException {
+  public void applyMaterializedView__whenMVNotFound_throwException() {
     when(mockedRepository.findByIdAndProjectId(1L, PROJECT2)).thenReturn(Optional.empty());
     assertThrows(
         MaterializedViewNotFoundException.class,
@@ -152,7 +152,7 @@ public class MaterializedViewServiceTest {
   }
 
   @Test
-  public void applyMaterializedView__whenCreateFails_checkStatuses() throws InterruptedException {
+  public void applyMaterializedView__whenCreateFails_checkStatuses() {
     when(mockedRepository.findByIdAndProjectId(any(), any())).thenReturn(Optional.of(realMv));
     doThrow(new RuntimeException()).when(mockedFetcherService).createMaterializedView(any(), any());
     MaterializedView appliedMv1 = service.applyMaterializedView(1L, PROJECT1, connection);

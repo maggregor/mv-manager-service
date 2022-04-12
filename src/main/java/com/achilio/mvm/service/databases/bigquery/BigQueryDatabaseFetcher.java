@@ -51,7 +51,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.Spliterator;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -63,7 +62,6 @@ import org.slf4j.LoggerFactory;
 public class BigQueryDatabaseFetcher implements DatabaseFetcher {
 
   public static final int LIST_JOB_PAGE_SIZE = 1000;
-  public static final int BIGQUERY_MAX_RETRIES = 5;
   private static final Logger LOGGER = LoggerFactory.getLogger(BigQueryDatabaseFetcher.class);
   private static final String SQL_FROM_WORD = "FROM";
   private final BigQuery bigquery;
@@ -160,24 +158,18 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
   }
 
   @Override
-  public void createMaterializedView(MaterializedView mv) throws InterruptedException {
+  public void createMaterializedView(MaterializedView mv) {
     TableId tableId = TableId.of(mv.getDatasetName(), mv.getMvName());
     MaterializedViewDefinition materializedViewDefinition =
         MaterializedViewDefinition.newBuilder(mv.getStatement()).build();
     TableInfo tableInfo = TableInfo.newBuilder(tableId, materializedViewDefinition).build();
-    int tries = 0;
-    while (tries < BIGQUERY_MAX_RETRIES) {
-      try {
-        bigquery.create(tableInfo);
-        break;
-      } catch (BigQueryException e) {
-        if (e.getError().getReason().equals("duplicate")) {
-          LOGGER.info("Materialized View {} already exists. Nothing to do", mv.getMvUniqueName());
-          break;
-        } else {
-          tries++;
-          TimeUnit.SECONDS.sleep(1);
-        }
+    try {
+      bigquery.create(tableInfo);
+    } catch (BigQueryException e) {
+      if (!e.getError().getReason().equals("duplicate")) {
+        throw e;
+      } else {
+        LOGGER.info("Materialized View {} already exists. Nothing to do", mv.getMvUniqueName());
       }
     }
   }

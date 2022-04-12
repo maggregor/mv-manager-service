@@ -74,8 +74,7 @@ public class FetcherService {
     }
   }
 
-  public void createMaterializedView(MaterializedView mv, Connection connection)
-      throws InterruptedException {
+  public void createMaterializedView(MaterializedView mv, Connection connection) {
     DatabaseFetcher fetcher = fetcher(mv.getProjectId(), connection);
     try {
       fetcher.createMaterializedView(mv);

@@ -40,7 +40,7 @@ public class IntegrationBigQueryActionsTest {
   @Mock private static ResourceManager mockResourceManager;
 
   @BeforeClass
-  public static void setup() throws InterruptedException {
+  public static void setup() {
     BigQueryOptions.Builder bqOptBuilder = BigQueryOptions.newBuilder();
     bqOptBuilder.setProjectId(PROJECT_ID);
     BigQuery bigQueryClient = bqOptBuilder.build().getService();
@@ -55,7 +55,7 @@ public class IntegrationBigQueryActionsTest {
   }
 
   @Test
-  public void basicTests() throws InterruptedException {
+  public void basicTests() {
     fetcher.deleteMaterializedView(mv1);
     fetcher.createMaterializedView(mv1);
     fetcher.createMaterializedView(mv1);
@@ -76,12 +76,5 @@ public class IntegrationBigQueryActionsTest {
   @Test
   public void dryRun__whenInvalidStatement_throwException() {
     assertThrows(BigQueryException.class, () -> fetcher.dryRunQuery(STATEMENT2));
-  }
-
-  @Test
-  public void createMaterializedView__whenRateLimitExceeded_retry() throws InterruptedException {
-    for (int i = 0; i < 10; i++) {
-      fetcher.createMaterializedView(mv1);
-    }
   }
 }

@@ -44,7 +44,7 @@ public interface DatabaseFetcher {
    * Create Materialized view on BigQuery If view with this name already exists in the dataset, do
    * nothing
    */
-  void createMaterializedView(MaterializedView mv) throws InterruptedException;
+  void createMaterializedView(MaterializedView mv);
 
   /**
    * Delete Materialized view on BigQuery If view with this name already does not exist in the
