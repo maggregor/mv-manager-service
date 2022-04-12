@@ -35,7 +35,6 @@ public class IntegrationGCSTest {
   private static final String OBJECT_PREFIX = "connections/";
   private static final String OBJECT_NAME = "achilio.com/1.json";
   private static final String CONNECTION_CONTENT = "{\"service_account\":\"content\"}";
-  private static Storage helperStorageClient;
   private static Storage storageClient;
   private static String BUCKET_NAME;
 
@@ -43,17 +42,15 @@ public class IntegrationGCSTest {
 
   @BeforeClass
   public static void setupBucket() {
-    RemoteStorageHelper helper = RemoteStorageHelper.create();
     BUCKET_NAME = RemoteStorageHelper.generateBucketName();
     googleCloudStorageService = new GoogleCloudStorageService(PROJECT_ID, BUCKET_NAME);
-    helperStorageClient = helper.getOptions().getService();
-    helperStorageClient.create(BucketInfo.of(BUCKET_NAME));
     storageClient = StorageOptions.newBuilder().setProjectId(PROJECT_ID).build().getService();
+    storageClient.create(BucketInfo.of(BUCKET_NAME));
   }
 
   @AfterClass
   public static void cleanupBucket() throws ExecutionException, InterruptedException {
-    RemoteStorageHelper.forceDelete(helperStorageClient, BUCKET_NAME, 5, TimeUnit.SECONDS);
+    RemoteStorageHelper.forceDelete(storageClient, BUCKET_NAME, 5, TimeUnit.SECONDS);
   }
 
   @Before
@@ -61,7 +58,7 @@ public class IntegrationGCSTest {
     BlobId blobId = BlobId.of(BUCKET_NAME, "connections/dummyObject");
     BlobInfo blobInfo = BlobInfo.newBuilder(blobId).build();
     byte[] content = CONNECTION_CONTENT.getBytes(StandardCharsets.UTF_8);
-    helperStorageClient.createFrom(blobInfo, new ByteArrayInputStream(content));
+    storageClient.createFrom(blobInfo, new ByteArrayInputStream(content));
   }
 
   @Test
