@@ -76,6 +76,8 @@ public class MaterializedViewServiceTest {
     when(mockedRepository.findByIdAndProjectId(99L, PROJECT1)).thenReturn(Optional.empty());
     when(mockedRepository.save(any())).then(returnsFirstArg());
     doNothing().when(mockedRepository).delete(any());
+    doNothing().when(mockedFetcherService).createMaterializedView(any(), any());
+    doNothing().when(mockedFetcherService).deleteMaterializedView(any(), any());
   }
 
   @Test
@@ -135,7 +137,6 @@ public class MaterializedViewServiceTest {
   @Test
   public void applyMaterializedView() {
     when(mockedRepository.findByIdAndProjectId(any(), any())).thenReturn(Optional.of(realMv));
-    doNothing().when(mockedFetcherService).createMaterializedView(any(), any());
     MaterializedView appliedMv1 = service.applyMaterializedView(1L, PROJECT1, connection);
     assertEquals(MVStatus.APPLIED, appliedMv1.getStatus());
     assertNull(appliedMv1.getStatusReason());

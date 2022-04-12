@@ -17,7 +17,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 @EntityListeners(AuditingEntityListener.class)
 public class FindMVJob extends Job {
 
-  @Column(name = "timeframe", nullable = false)
+  @Column(name = "timeframe")
   private int timeframe;
 
   @Column(name = "mv_proposal_count")

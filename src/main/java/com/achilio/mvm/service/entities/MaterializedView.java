@@ -30,7 +30,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 @Table(name = "materialized_views")
 public class MaterializedView {
 
-  private static final String MV_NAME_PREFIX = "achilio_mv_";
+  private static final String MV_NAME_PREFIX = "achilio_mv";
 
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
@@ -118,8 +118,8 @@ public class MaterializedView {
     this.statementHashCode = String.valueOf(Math.abs(statement.hashCode()));
     this.mvUniqueName =
         String.join("-", this.projectId, this.datasetName, this.tableName, this.statementHashCode);
-    this.mvName = this.tableName + "_" + MV_NAME_PREFIX + this.statementHashCode;
-    this.mvDisplayName = MV_NAME_PREFIX + this.statementHashCode;
+    this.mvName = String.join("_", this.tableName, MV_NAME_PREFIX, this.statementHashCode);
+    this.mvDisplayName = String.join("_", MV_NAME_PREFIX, this.statementHashCode);
     this.hits = hits;
   }
 

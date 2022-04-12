@@ -52,5 +52,11 @@ public interface DatabaseFetcher {
    */
   void deleteMaterializedView(MaterializedView mv);
 
+  /**
+   * Dry run a query statement. Throws a BigQueryException if any, indicating that the statement
+   * might be invalid
+   */
+  void dryRunQuery(String query);
+
   void close();
 }

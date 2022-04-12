@@ -58,26 +58,47 @@ public class FetcherService {
   public List<FetchedQuery> fetchQueriesSinceTimestamp(
       String projectId, Connection connection, long fromTimestamp) {
     DatabaseFetcher fetcher = fetcher(projectId, connection);
-    List<FetchedQuery> queryList = fetcher.fetchAllQueriesFrom(fromTimestamp);
-    fetcher.close();
-    return queryList;
+    try {
+      return fetcher.fetchAllQueriesFrom(fromTimestamp);
+    } finally {
+      fetcher.close();
+    }
   }
 
   public Set<FetchedTable> fetchAllTables(String projectId, Connection connection) {
     DatabaseFetcher fetcher = fetcher(projectId, connection);
-    Set<FetchedTable> fetchedTableSet = fetcher.fetchAllTables();
-    fetcher.close();
-    return fetchedTableSet;
+    try {
+      return fetcher.fetchAllTables();
+    } finally {
+      fetcher.close();
+    }
   }
 
   public void createMaterializedView(MaterializedView mv, Connection connection) {
     DatabaseFetcher fetcher = fetcher(mv.getProjectId(), connection);
-    fetcher.createMaterializedView(mv);
+    try {
+      fetcher.createMaterializedView(mv);
+    } finally {
+      fetcher.close();
+    }
   }
 
   public void deleteMaterializedView(MaterializedView mv, Connection connection) {
     DatabaseFetcher fetcher = fetcher(mv.getProjectId(), connection);
-    fetcher.deleteMaterializedView(mv);
+    try {
+      fetcher.deleteMaterializedView(mv);
+    } finally {
+      fetcher.close();
+    }
+  }
+
+  public void dryRunQuery(MaterializedView mv, Connection connection) {
+    DatabaseFetcher fetcher = fetcher(mv.getProjectId(), connection);
+    try {
+      fetcher.dryRunQuery(mv.getStatement());
+    } finally {
+      fetcher.close();
+    }
   }
 
   private DatabaseFetcher fetcher(String projectId, Connection connection)
