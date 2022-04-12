@@ -79,7 +79,6 @@ public class FetcherService {
     try {
       fetcher.createMaterializedView(mv);
     } finally {
-
       fetcher.close();
     }
   }
@@ -89,7 +88,6 @@ public class FetcherService {
     try {
       fetcher.deleteMaterializedView(mv);
     } finally {
-
       fetcher.close();
     }
   }

@@ -26,12 +26,12 @@ import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
-/** This is an integration tests for the GoogleCloudStorage classe */
+/** This is an integration tests for the GoogleCloudStorage class */
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class IntegrationGCSTest {
 
-  private static final String PROJECT_ID = "achilio-dev";
+  private static final String PROJECT_ID = "achilio-test";
   private static final String OBJECT_PREFIX = "connections/";
   private static final String OBJECT_NAME = "achilio.com/1.json";
   private static final String CONNECTION_CONTENT = "{\"service_account\":\"content\"}";
