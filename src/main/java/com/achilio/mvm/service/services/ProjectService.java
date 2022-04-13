@@ -2,7 +2,6 @@ package com.achilio.mvm.service.services;
 
 import com.achilio.mvm.service.controllers.requests.ACreateProjectRequest;
 import com.achilio.mvm.service.controllers.requests.UpdateProjectRequest;
-import com.achilio.mvm.service.databases.entities.FetchedDataset;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.entities.AColumn;
 import com.achilio.mvm.service.entities.ADataset;
@@ -119,14 +118,6 @@ public class ProjectService {
     return datasetRepository
         .findByProject_ProjectIdAndDatasetName(projectId, datasetName)
         .orElseThrow(() -> new DatasetNotFoundException(datasetName));
-  }
-
-  public FetchedDataset getFetchedDataset(String projectId, String datasetName) {
-    Project project =
-        projectRepository
-            .findByProjectId(projectId)
-            .orElseThrow(() -> new ProjectNotFoundException(projectId));
-    return fetcherService.fetchDataset(projectId, datasetName, project.getConnection());
   }
 
   @Transactional
