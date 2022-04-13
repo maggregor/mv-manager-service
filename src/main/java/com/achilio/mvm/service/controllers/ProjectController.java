@@ -10,7 +10,6 @@ import com.achilio.mvm.service.controllers.responses.AggregatedStatisticsRespons
 import com.achilio.mvm.service.controllers.responses.DatasetResponse;
 import com.achilio.mvm.service.controllers.responses.ProjectResponse;
 import com.achilio.mvm.service.controllers.responses.UpdateDatasetRequestResponse;
-import com.achilio.mvm.service.databases.entities.FetchedDataset;
 import com.achilio.mvm.service.entities.ADataset;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics;
@@ -117,8 +116,8 @@ public class ProjectController {
   public DatasetResponse getDataset(
       @PathVariable final String projectId, @PathVariable final String datasetName) {
     projectService.getProject(projectId, getContextTeamName());
-    FetchedDataset fetchedDataset = projectService.getFetchedDataset(projectId, datasetName);
-    return toDatasetResponse(fetchedDataset);
+    ADataset dataset = projectService.getDataset(projectId, datasetName);
+    return toDatasetResponse(dataset);
   }
 
   @GetMapping(
@@ -138,26 +137,6 @@ public class ProjectController {
 
   private ProjectResponse toProjectResponse(Project project) {
     return new ProjectResponse(project);
-  }
-
-  private DatasetResponse toDatasetResponse(FetchedDataset dataset) {
-    final String projectId = dataset.getProjectId();
-    final String datasetName = dataset.getDatasetName();
-    final String location = dataset.getLocation();
-    final String friendlyName = dataset.getFriendlyName();
-    final String description = dataset.getDescription();
-    final Long createdAt = dataset.getCreatedAt();
-    final Long lastModified = dataset.getLastModified();
-    final boolean activated = projectService.isDatasetActivated(projectId, datasetName);
-    return new DatasetResponse(
-        projectId,
-        datasetName,
-        location,
-        friendlyName,
-        description,
-        createdAt,
-        lastModified,
-        activated);
   }
 
   private DatasetResponse toDatasetResponse(ADataset dataset) {
