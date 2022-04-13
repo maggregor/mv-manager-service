@@ -9,6 +9,7 @@ import com.google.cloud.bigquery.BigQuery;
 import com.google.cloud.bigquery.BigQueryException;
 import com.google.cloud.bigquery.BigQueryOptions;
 import com.google.cloud.resourcemanager.ResourceManager;
+import java.util.concurrent.TimeUnit;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -55,12 +56,14 @@ public class IntegrationBigQueryActionsTest {
   }
 
   @Test
-  public void basicTests() {
+  public void basicTests() throws InterruptedException {
     fetcher.deleteMaterializedView(mv1);
     fetcher.createMaterializedView(mv1);
     fetcher.createMaterializedView(mv1);
     fetcher.deleteMaterializedView(mv1);
     fetcher.deleteMaterializedView(mv1);
+    // Sleep 1s to avoid reaching rateLimits
+    TimeUnit.SECONDS.sleep(1);
   }
 
   @Test

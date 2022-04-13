@@ -4,12 +4,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.achilio.mvm.service.controllers.FindMVJobController;
 import com.achilio.mvm.service.controllers.requests.FindMVJobRequest;
 import com.achilio.mvm.service.entities.FindMVJob;
 import com.achilio.mvm.service.entities.Job.JobStatus;
+import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.exceptions.FindMVJobNotFoundException;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import com.achilio.mvm.service.services.FindMVJobService;
@@ -34,7 +36,7 @@ public class FindMVJobControllerTest {
   private static final FindMVJob mvJob1 = new FindMVJob(PROJECT_ID, 7);
   private static final FindMVJob mvJob2 = new FindMVJob(PROJECT_ID, 14);
   private static final List<FindMVJob> mvJobList1 = Arrays.asList(mvJob1, mvJob2);
-
+  private static final Project mockProject = mock(Project.class);
   @InjectMocks FindMVJobController controller;
   @Mock private FindMVJobService mockedMVJobService;
   @Mock private ProjectService mockedProjectService;
@@ -110,16 +112,16 @@ public class FindMVJobControllerTest {
 
   @Test
   public void startFindMVJob() {
-    FindMVJobRequest payload1 = new FindMVJobRequest(PROJECT_ID, 7);
-    FindMVJobRequest payload2 = new FindMVJobRequest(PROJECT_ID, 14);
+    FindMVJobRequest payload = new FindMVJobRequest(PROJECT_ID);
+    when(mockedProjectService.getProject(PROJECT_ID, "myDefaultTeam")).thenReturn(mockProject);
+    when(mockProject.getAnalysisTimeframe()).thenReturn(7);
     doNothing().when(mockedMVJobService).startFindMVJob(any());
-    when(mockedMVJobService.createMVJob(payload1.getProjectId(), payload1.getTimeframe()))
-        .thenReturn(mvJob1);
-    when(mockedMVJobService.createMVJob(payload2.getProjectId(), payload2.getTimeframe()))
-        .thenReturn(mvJob2);
+    when(mockedMVJobService.createMVJob(payload.getProjectId(), 7)).thenReturn(mvJob1);
+    when(mockedMVJobService.createMVJob(payload.getProjectId(), 14)).thenReturn(mvJob2);
 
-    FindMVJob createdJob1 = controller.startFindMVJob(payload1);
-    FindMVJob createdJob2 = controller.startFindMVJob(payload2);
+    FindMVJob createdJob1 = controller.startFindMVJob(payload);
+    when(mockProject.getAnalysisTimeframe()).thenReturn(14);
+    FindMVJob createdJob2 = controller.startFindMVJob(payload);
 
     assertMVJobEquals(mvJob1, createdJob1);
     assertMVJobEquals(mvJob2, createdJob2);
@@ -129,7 +131,7 @@ public class FindMVJobControllerTest {
   public void startFindMVJob__whenProjectNotFound_throwException() {
     when(mockedProjectService.getProject("unknownProject", "myDefaultTeam"))
         .thenThrow(ProjectNotFoundException.class);
-    FindMVJobRequest payload = new FindMVJobRequest("unknownProject", 7);
+    FindMVJobRequest payload = new FindMVJobRequest("unknownProject");
     assertThrows(ProjectNotFoundException.class, () -> controller.startFindMVJob(payload));
   }
 
