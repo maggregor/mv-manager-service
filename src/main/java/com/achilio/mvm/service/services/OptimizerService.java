@@ -3,8 +3,8 @@ package com.achilio.mvm.service.services;
 import static com.achilio.mvm.service.UserContextHelper.getContextEmail;
 import static java.util.stream.Collectors.toList;
 
-import com.achilio.mvm.service.Optimizer;
-import com.achilio.mvm.service.OptimizerFactory;
+import com.achilio.mvm.service.MVFactory;
+import com.achilio.mvm.service.MVGenerator;
 import com.achilio.mvm.service.databases.bigquery.BigQueryMaterializedViewStatementBuilder;
 import com.achilio.mvm.service.entities.ADataset;
 import com.achilio.mvm.service.entities.ATable;
@@ -42,6 +42,7 @@ import org.springframework.stereotype.Service;
 @EnableAsync
 @Service
 @Transactional
+@Deprecated
 public class OptimizerService {
 
   private static final int GOOGLE_MAX_MV_PER_TABLE = 20;
@@ -91,7 +92,7 @@ public class OptimizerService {
       addOptimizationEvent(o, StatusType.MERGING_FIELD_SETS);
       List<FieldSet> distinctFieldSets = FieldSetMerger.mergeSame(fieldSets);
       // STEP 7 - Optimize field sets
-      addOptimizationEvent(o, StatusType.OPTIMIZING_FIELD_SETS);
+      addOptimizationEvent(o, StatusType.GENERATING_MVs);
       List<FieldSet> optimized = optimizeFieldSets(distinctFieldSets);
       // STEP 8 - Build materialized views statements
       addOptimizationEvent(o, StatusType.BUILD_MATERIALIZED_VIEWS_STATEMENT);
@@ -161,8 +162,8 @@ public class OptimizerService {
   }
 
   private List<FieldSet> optimizeFieldSets(List<FieldSet> fieldSets) {
-    Optimizer o = OptimizerFactory.createOptimizerWithDefaultStrategy();
-    return o.optimize(fieldSets);
+    MVGenerator o = MVFactory.createMVsWithDefaultStrategy();
+    return o.generate(fieldSets);
   }
 
   private List<FieldSet> extractFields(Set<ATable> tables, List<Query> queries) {

@@ -8,6 +8,7 @@ import com.achilio.mvm.service.exceptions.ConnectionInUseException;
 import com.achilio.mvm.service.exceptions.ConnectionNotFoundException;
 import com.achilio.mvm.service.exceptions.InvalidPayloadException;
 import com.achilio.mvm.service.repositories.ConnectionRepository;
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import javax.transaction.Transactional;
@@ -22,9 +23,12 @@ public class ConnectionService {
   private static final Logger LOGGER = LoggerFactory.getLogger(ConnectionService.class);
 
   private final ConnectionRepository repository;
+  private final GoogleCloudStorageService googleCloudStorageService;
 
-  public ConnectionService(ConnectionRepository repository) {
+  public ConnectionService(
+      ConnectionRepository repository, GoogleCloudStorageService googleCloudStorageService) {
     this.repository = repository;
+    this.googleCloudStorageService = googleCloudStorageService;
   }
 
   public List<Connection> getAllConnections(String teamName) {
@@ -52,14 +56,23 @@ public class ConnectionService {
         LOGGER.warn(errorMessage);
         throw new ConnectionInUseException(errorMessage);
       }
+      deleteObjectFromGCS(connection);
       repository.delete(connection);
     }
+  }
+
+  private void deleteObjectFromGCS(Connection connection) {
+    String objectName = connection.getTeamName() + "/" + connection.getId() + ".json";
+    googleCloudStorageService.deleteObject(objectName);
   }
 
   @Transactional
   public Connection createConnection(
       String teamName, String ownerUsername, ConnectionRequest request) {
     Connection connection;
+    if (request.getSourceType() == null) {
+      throw new InvalidPayloadException();
+    }
     if (request instanceof ServiceAccountConnectionRequest) {
       connection = new ServiceAccountConnection(request.getContent());
     } else {
@@ -69,10 +82,19 @@ public class ConnectionService {
     connection.setTeamName(teamName);
     connection.setOwnerUsername(ownerUsername);
     connection.setSourceType(request.getSourceType());
-    if (request.getSourceType() == null) {
-      throw new InvalidPayloadException();
-    }
     return repository.save(connection);
+  }
+
+  public void uploadConnectionToGCS(Connection connection) {
+    try {
+      String objectName = connection.getTeamName() + "/" + connection.getId() + ".json";
+      connection.setConnectionFileUrl(
+          googleCloudStorageService.uploadObject(objectName, connection.getContent()));
+      repository.save(connection);
+    } catch (IOException e) {
+      deleteConnection(connection.getId(), connection.getTeamName());
+      throw new RuntimeException("Error during connection creation", e);
+    }
   }
 
   public Connection updateConnection(Long id, String teamName, ConnectionRequest request) {
@@ -80,7 +102,9 @@ public class ConnectionService {
       // Update a service account
       Connection connection = getConnection(id, teamName);
       connection.setName(request.getName());
-      connection.setContent(request.getContent());
+      if (request.getContent() != null && !request.getContent().isEmpty()) {
+        connection.setContent(request.getContent());
+      }
       LOGGER.info("Connection {} updated", id);
       return repository.save(connection);
     } else {

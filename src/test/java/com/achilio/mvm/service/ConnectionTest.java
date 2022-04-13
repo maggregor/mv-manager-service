@@ -1,8 +1,10 @@
 package com.achilio.mvm.service;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import com.achilio.mvm.service.entities.Connection;
+import com.achilio.mvm.service.entities.Connection.ConnectionType;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,5 +28,7 @@ public abstract class ConnectionTest {
   public void baseGetters() {
     assertEquals(123L, connection.getId().longValue());
     assertEquals("myTeam", connection.getTeamName());
+    assertEquals(ConnectionType.SERVICE_ACCOUNT, connection.getType());
+    assertNull(connection.getConnectionFileUrl());
   }
 }

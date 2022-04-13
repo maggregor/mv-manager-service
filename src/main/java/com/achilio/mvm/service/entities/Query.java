@@ -38,7 +38,7 @@ public class Query {
   @JoinColumn(updatable = false)
   private FetcherQueryJob initialFetcherQueryJob;
 
-  @Column(name = "query_statement", length = 65535)
+  @Column(name = "query_statement", columnDefinition = "text")
   private String query;
 
   // ID of the query is the same as the Google query job

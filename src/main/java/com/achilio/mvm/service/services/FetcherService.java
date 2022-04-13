@@ -9,6 +9,7 @@ import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.entities.Connection;
 import com.achilio.mvm.service.entities.Connection.ConnectionType;
+import com.achilio.mvm.service.entities.MaterializedView;
 import com.achilio.mvm.service.entities.ServiceAccountConnection;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import java.util.List;
@@ -57,16 +58,47 @@ public class FetcherService {
   public List<FetchedQuery> fetchQueriesSinceTimestamp(
       String projectId, Connection connection, long fromTimestamp) {
     DatabaseFetcher fetcher = fetcher(projectId, connection);
-    List<FetchedQuery> queryList = fetcher.fetchAllQueriesFrom(fromTimestamp);
-    fetcher.close();
-    return queryList;
+    try {
+      return fetcher.fetchAllQueriesFrom(fromTimestamp);
+    } finally {
+      fetcher.close();
+    }
   }
 
   public Set<FetchedTable> fetchAllTables(String projectId, Connection connection) {
     DatabaseFetcher fetcher = fetcher(projectId, connection);
-    Set<FetchedTable> fetchedTableSet = fetcher.fetchAllTables();
-    fetcher.close();
-    return fetchedTableSet;
+    try {
+      return fetcher.fetchAllTables();
+    } finally {
+      fetcher.close();
+    }
+  }
+
+  public void createMaterializedView(MaterializedView mv, Connection connection) {
+    DatabaseFetcher fetcher = fetcher(mv.getProjectId(), connection);
+    try {
+      fetcher.createMaterializedView(mv);
+    } finally {
+      fetcher.close();
+    }
+  }
+
+  public void deleteMaterializedView(MaterializedView mv, Connection connection) {
+    DatabaseFetcher fetcher = fetcher(mv.getProjectId(), connection);
+    try {
+      fetcher.deleteMaterializedView(mv);
+    } finally {
+      fetcher.close();
+    }
+  }
+
+  public void dryRunQuery(MaterializedView mv, Connection connection) {
+    DatabaseFetcher fetcher = fetcher(mv.getProjectId(), connection);
+    try {
+      fetcher.dryRunQuery(mv.getStatement());
+    } finally {
+      fetcher.close();
+    }
   }
 
   private DatabaseFetcher fetcher(String projectId, Connection connection)

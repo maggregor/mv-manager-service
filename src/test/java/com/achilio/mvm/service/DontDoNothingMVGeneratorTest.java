@@ -12,18 +12,18 @@ import org.junit.runner.RunWith;
 import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
-public class DontDoNothingOptimizerTest {
+public class DontDoNothingMVGeneratorTest {
 
   @Test
   public void simple() {
-    Optimizer optimizer;
+    MVGenerator MVGenerator;
     // Initialize field sets
     List<FieldSet> fieldSets = new ArrayList<>();
     fieldSets.add(FieldSetHelper.createFieldSet(new ReferenceField("col1")));
     fieldSets.add(FieldSetHelper.createFieldSet(new FunctionField("col2")));
     // Remove exceeded
-    optimizer = OptimizerFactory.createOptimizer(OptimizerStrategyType.DONT_DO_NOTHING);
-    List<FieldSet> actual = optimizer.optimize(fieldSets);
+    MVGenerator = MVFactory.createOptimizer(MVGeneratorStrategyType.DONT_DO_NOTHING);
+    List<FieldSet> actual = MVGenerator.generate(fieldSets);
     assertEquals(fieldSets.size(), actual.size());
     assertEquals(fieldSets, actual);
   }

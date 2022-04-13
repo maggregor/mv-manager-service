@@ -3,29 +3,28 @@ package com.achilio.mvm.service.entities;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
+@Getter
+@Setter
 @Entity
+@NoArgsConstructor
 @EnableJpaAuditing
 @EntityListeners(AuditingEntityListener.class)
-public class FetcherQueryJob extends Job {
+public class FindMVJob extends Job {
 
-  /** Timeframe is the number of days before today the fetching query job starts from */
-  @Column private int timeframe;
+  @Column(name = "timeframe")
+  private int timeframe;
 
-  public FetcherQueryJob() {}
+  @Column(name = "mv_proposal_count")
+  private Integer mvProposalCount;
 
-  public FetcherQueryJob(String projectId) {
-    this(projectId, 7);
-  }
-
-  public FetcherQueryJob(String projectId, int timeframe) {
+  public FindMVJob(String projectId, int timeframe) {
     super(projectId);
     this.timeframe = timeframe;
-  }
-
-  public int getTimeframe() {
-    return timeframe;
   }
 }

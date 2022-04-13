@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 @Entity
 @EnableJpaAuditing
 @EntityListeners(AuditingEntityListener.class)
-public class FetcherStructJob extends FetcherJob {
+public class FetcherStructJob extends Job {
 
   public FetcherStructJob() {}
 

@@ -17,15 +17,15 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @SpringBootApplication(exclude = {SecurityAutoConfiguration.class})
 @EnableConfigurationProperties
 @EnableSwagger2
-public class OptimizerApplication implements CommandLineRunner {
+public class MVGeneratorApplication implements CommandLineRunner {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(OptimizerApplication.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MVGeneratorApplication.class);
 
   @Value("${server.port}")
   private int serverPort;
 
   public static void main(String[] args) {
-    SpringApplication.run(OptimizerApplication.class, args);
+    SpringApplication.run(MVGeneratorApplication.class, args);
   }
 
   @Override

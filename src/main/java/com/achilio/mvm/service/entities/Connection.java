@@ -53,6 +53,9 @@ public abstract class Connection {
 
   @UpdateTimestamp @Column private Date lastModifiedAt;
 
+  @Column
+  private String connectionFileUrl;
+
   public abstract ConnectionType getType();
 
   public abstract String getContent();
