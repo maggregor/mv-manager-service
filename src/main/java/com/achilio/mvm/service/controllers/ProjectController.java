@@ -18,7 +18,6 @@ import com.achilio.mvm.service.services.StripeService;
 import io.swagger.annotations.ApiOperation;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -37,8 +36,13 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 public class ProjectController {
 
-  @Autowired private ProjectService projectService;
-  @Autowired private StripeService stripeService;
+  private final ProjectService projectService;
+  private final StripeService stripeService;
+
+  public ProjectController(ProjectService projectService, StripeService stripeService) {
+    this.projectService = projectService;
+    this.stripeService = stripeService;
+  }
 
   @GetMapping(path = "/project", produces = APPLICATION_JSON_VALUE)
   @ApiOperation("List all projects")
