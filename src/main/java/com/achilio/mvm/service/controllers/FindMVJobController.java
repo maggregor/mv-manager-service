@@ -5,6 +5,7 @@ import static com.achilio.mvm.service.UserContextHelper.getContextTeamName;
 import com.achilio.mvm.service.controllers.requests.FindMVJobRequest;
 import com.achilio.mvm.service.entities.FindMVJob;
 import com.achilio.mvm.service.entities.Job.JobStatus;
+import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.services.FindMVJobService;
 import com.achilio.mvm.service.services.ProjectService;
 import io.swagger.annotations.ApiOperation;
@@ -63,8 +64,9 @@ public class FindMVJobController {
       "Launch a FindMV job. The job is async but the controller returns the object"
           + "with the status PENDING.")
   public FindMVJob startFindMVJob(@Valid @RequestBody FindMVJobRequest payload) {
-    projectService.getProject(payload.getProjectId(), getContextTeamName());
-    FindMVJob job = mvJobService.createMVJob(payload.getProjectId(), payload.getTimeframe());
+    Project project = projectService.getProject(payload.getProjectId(), getContextTeamName());
+    FindMVJob job =
+        mvJobService.createMVJob(payload.getProjectId(), project.getAnalysisTimeframe());
     mvJobService.startFindMVJob(job);
     return job;
   }
