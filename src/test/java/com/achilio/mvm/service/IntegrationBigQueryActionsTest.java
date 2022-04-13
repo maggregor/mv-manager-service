@@ -57,6 +57,8 @@ public class IntegrationBigQueryActionsTest {
 
   @Test
   public void basicTests() throws InterruptedException {
+    // Sleep 1s to avoid reaching rateLimits
+    TimeUnit.SECONDS.sleep(1);
     fetcher.deleteMaterializedView(mv1);
     fetcher.createMaterializedView(mv1);
     fetcher.createMaterializedView(mv1);

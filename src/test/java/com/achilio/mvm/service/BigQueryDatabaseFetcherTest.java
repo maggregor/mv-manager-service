@@ -187,7 +187,7 @@ public class BigQueryDatabaseFetcherTest {
     assertFalse(fetcher.containsSubStepUsingMVM(step));
     when(step.getSubsteps()).thenReturn(createSubSteps("sub1", "FROM myTable", "sub3"));
     assertFalse(fetcher.containsSubStepUsingMVM(step));
-    when(step.getSubsteps()).thenReturn(createSubSteps("sub1", "FROM achilio_", "sub3"));
+    when(step.getSubsteps()).thenReturn(createSubSteps("sub1", "FROM achilio_mv_", "sub3"));
     assertTrue(fetcher.containsSubStepUsingMVM(step));
   }
 
@@ -201,7 +201,7 @@ public class BigQueryDatabaseFetcherTest {
     when(stage1.getSteps()).thenReturn(Lists.newArrayList(steps1));
     when(stage2.getSteps()).thenReturn(Lists.newArrayList(steps2));
     when(steps1.getSubsteps()).thenReturn(createSubSteps("st1", "st2"));
-    when(steps2.getSubsteps()).thenReturn(createSubSteps("FROM achilio_", "st2"));
+    when(steps2.getSubsteps()).thenReturn(createSubSteps("FROM achilio_mv_", "st2"));
     assertFalse(fetcher.containsManagedMVUsageInQueryStages(Lists.newArrayList(stage1)));
     assertTrue(fetcher.containsManagedMVUsageInQueryStages(Lists.newArrayList(stage2)));
   }
