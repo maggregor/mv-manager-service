@@ -1,7 +1,5 @@
 package com.achilio.mvm.service.services;
 
-import static com.achilio.mvm.service.UserContextHelper.getContextEmail;
-
 import com.achilio.mvm.service.controllers.requests.ACreateProjectRequest;
 import com.achilio.mvm.service.controllers.requests.UpdateProjectRequest;
 import com.achilio.mvm.service.databases.entities.FetchedDataset;
@@ -38,7 +36,6 @@ public class ProjectService {
   @Autowired private ADatasetRepository datasetRepository;
   @Autowired private ATableRepository tableRepository;
   @Autowired private AColumnRepository columnRepository;
-  @Autowired private GooglePublisherService publisherService;
   @Autowired private FetcherService fetcherService;
   @Autowired private ConnectionService connectionService;
   @Autowired private QueryService queryService;
@@ -58,9 +55,7 @@ public class ProjectService {
   public Project createProject(ACreateProjectRequest payload, String teamName) {
     Connection connection = connectionService.getConnection(payload.getConnectionId(), teamName);
     FetchedProject fetchedProject = fetcherService.fetchProject(payload.getProjectId(), connection);
-    Project project = createProjectFromFetchedProject(fetchedProject, teamName, connection);
-    publisherService.publishNewProjectRegistered(project.getProjectId());
-    return project;
+    return createProjectFromFetchedProject(fetchedProject, teamName, connection);
   }
 
   /**
@@ -98,17 +93,10 @@ public class ProjectService {
     Project project = getProject(projectId);
     // If automatic has been sent in the payload (or if the project is being deactivated), we need
     // to publish a potential config change on the schedulers
-    Boolean automaticChanged = project.setAutomatic(payload.isAutomatic());
+    project.setAutomatic(payload.isAutomatic());
     project.setAnalysisTimeframe(payload.getAnalysisTimeframe());
     project.setMvMaxPerTable(payload.getMvMaxPerTable());
     projectRepository.save(project);
-    if (automaticChanged) {
-      publisherService.publishProjectSchedulers(getAllActivatedProjects());
-      if (payload.isAutomatic()) {
-        // Automatic mode has just been activated by this current user
-        project.setUsername(getContextEmail());
-      }
-    }
     return project;
   }
 
@@ -116,10 +104,10 @@ public class ProjectService {
     return datasetRepository.findByProject_ProjectIdAndDatasetName(projectId, datasetName);
   }
 
-  public ADataset getDataset(String datasetId) {
+  public ADataset getDataset(String datasetName) {
     return datasetRepository
-        .findByDatasetId(datasetId)
-        .orElseThrow(() -> new DatasetNotFoundException(datasetId));
+        .findByDatasetId(datasetName)
+        .orElseThrow(() -> new DatasetNotFoundException(datasetName));
   }
 
   public ADataset getDatasetByProjectAndDatasetName(String projectId, String datasetName) {

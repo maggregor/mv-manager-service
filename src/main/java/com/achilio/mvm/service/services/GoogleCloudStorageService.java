@@ -22,7 +22,7 @@ public class GoogleCloudStorageService {
   private final Storage storage;
 
   public GoogleCloudStorageService(
-      @Value("${publisher.google-project-id}") String projectId,
+      @Value("${application.google-project-id}") String projectId,
       @Value("${connection.bucket.name}") String bucketName) {
     this.BUCKET_NAME = bucketName;
     this.storage = StorageOptions.newBuilder().setProjectId(projectId).build().getService();
