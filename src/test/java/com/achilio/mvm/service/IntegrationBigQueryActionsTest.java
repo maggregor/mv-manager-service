@@ -57,6 +57,8 @@ public class IntegrationBigQueryActionsTest {
 
   @Test
   public void basicTests() throws InterruptedException {
+    // Sleep 1s to avoid reaching rateLimits
+    TimeUnit.SECONDS.sleep(1);
     fetcher.deleteMaterializedView(mv1);
     fetcher.createMaterializedView(mv1);
     fetcher.createMaterializedView(mv1);
@@ -77,7 +79,19 @@ public class IntegrationBigQueryActionsTest {
   }
 
   @Test
+  public void dryRunCreate() {
+    String statement = "CREATE MATERIALIZED VIEW nyc_trips.testmv AS " + STATEMENT1;
+    fetcher.dryRunQuery(statement);
+  }
+
+  @Test
   public void dryRun__whenInvalidStatement_throwException() {
     assertThrows(BigQueryException.class, () -> fetcher.dryRunQuery(STATEMENT2));
+  }
+
+  @Test
+  public void dryRunCreate__whenInvalidStatement_throwException() {
+    String statement = "CREATE MATERIALIZED VIEW nyc_trips.testmv AS " + STATEMENT2;
+    assertThrows(BigQueryException.class, () -> fetcher.dryRunQuery(statement));
   }
 }

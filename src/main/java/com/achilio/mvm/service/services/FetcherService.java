@@ -101,6 +101,15 @@ public class FetcherService {
     }
   }
 
+  public void dryRunCreateMV(MaterializedView mv, Connection connection) {
+    DatabaseFetcher fetcher = fetcher(mv.getProjectId(), connection);
+    try {
+      fetcher.dryRunQuery(mv.generateCreateStatement());
+    } finally {
+      fetcher.close();
+    }
+  }
+
   private DatabaseFetcher fetcher(String projectId, Connection connection)
       throws ProjectNotFoundException {
     if (connection.getType() != ConnectionType.SERVICE_ACCOUNT) {

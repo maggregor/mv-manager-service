@@ -14,7 +14,6 @@ import com.achilio.mvm.service.controllers.requests.UpdateProjectRequest;
 import com.achilio.mvm.service.controllers.responses.AggregatedStatisticsResponse;
 import com.achilio.mvm.service.controllers.responses.DatasetResponse;
 import com.achilio.mvm.service.controllers.responses.ProjectResponse;
-import com.achilio.mvm.service.databases.entities.DefaultFetchedDataset;
 import com.achilio.mvm.service.entities.ADataset;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics;
@@ -49,9 +48,7 @@ public class ProjectControllerTest {
   private static final String TEST_DATASET_NAME1 = "myDataset1";
   private static final String TEST_DATASET_NAME2 = "myDataset2";
   private static final String STRIPE_SUBSCRIPTION_ID1 = "stripeSubscription1";
-  private static final String STRIPE_SUBSCRIPTION_ID2 = "stripeSubscription2";
   private static final String TEAM_NAME1 = "myTeam1";
-  private static final String TEAM_ID2 = "myTeam2";
   private static final Long CONNECTION_ID1 = 1L;
   private static final Project project1 = new Project(TEST_PROJECT_ID1);
   private static final ADataset dataset1 = new ADataset(project1, TEST_DATASET_NAME1);
@@ -178,11 +175,8 @@ public class ProjectControllerTest {
 
   @Test
   public void getDataset() throws JsonProcessingException {
-    DefaultFetchedDataset dataset =
-        new DefaultFetchedDataset(
-            TEST_PROJECT_ID1, TEST_DATASET_NAME1, null, null, null, null, null, null);
-    when(mockedProjectService.getFetchedDataset(TEST_PROJECT_ID1, TEST_DATASET_NAME1))
-        .thenReturn(dataset);
+    ADataset dataset = new ADataset(project1, TEST_DATASET_NAME1);
+    when(mockedProjectService.getDataset(TEST_PROJECT_ID1, TEST_DATASET_NAME1)).thenReturn(dataset);
     when(mockedProjectService.isDatasetActivated(TEST_PROJECT_ID1, TEST_DATASET_NAME1))
         .thenReturn(true);
     String expectedResponse =

@@ -56,8 +56,6 @@ public class OptimizerService {
   @Autowired private ProjectService projectService;
   @Autowired private QueryService queryService;
 
-  @Autowired private GooglePublisherService publisherService;
-
   public OptimizerService() {
     this.statementBuilder = new BigQueryMaterializedViewStatementBuilder();
   }
@@ -143,7 +141,7 @@ public class OptimizerService {
 
   private Boolean publish(Optimization o, List<OptimizationResult> results) {
     LOGGER.info("Optimization done with {} results.", results.size());
-    return publisherService.publishOptimization(o, results);
+    return true;
   }
 
   private List<OptimizationResult> buildOptimizationsResults(
@@ -191,7 +189,6 @@ public class OptimizerService {
 
   public void destroyAllMaterializedViewsByProject(final String projectId) {
     LOGGER.info("Ready to destroy");
-    publisherService.deleteAllMaterializedViews(projectId);
   }
 
   public Optimization getOptimization(final String projectId, final Long optimizationId) {
