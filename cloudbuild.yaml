@@ -46,23 +46,25 @@ steps:
         "--memory",
         "8Gi",
         "--allow-unauthenticated",
-        "--min-instances=1",
-        "--max-instances=8",
+        "--min-instances=${_MIN_INSTANCES}",
+        "--max-instances=${_MAX_INSTANCES}",
         "--service-account",
         "service-cloudrun@${PROJECT_ID}.iam.gserviceaccount.com",
       ]
 substitutions:
   _ENV: "dev"
-  _DB_INSTANCE_NAME: ${PROJECT_ID}-db-instance
-  _REGION: europe-west1
+  _DB_INSTANCE_NAME: "${PROJECT_ID}-db-instance"
+  _REGION: "europe-west1"
   _SPRING_CLOUD_GCP_SQL_ENABLED: "true"
   _SPRING_CLOUD_GCP_SQL_DATABASE_NAME: "optimizer_${_ENV}"
   _SPRING_CLOUD_GCP_SQL_INSTANCE_CONNECTION_NAME: "${PROJECT_ID}:${_REGION}:${_DB_INSTANCE_NAME}"
-  _SERVICE_NAME: mvm-service
+  _SERVICE_NAME: "mvm-service"
   _PUBLISHER_ENABLED: "true"
-  _PUBLISHER_GOOGLE_PROJECT_ID: ${PROJECT_ID}
+  _PUBLISHER_GOOGLE_PROJECT_ID: "${PROJECT_ID}"
   _SERVER_WEBAPP_ENDPOINT: "https://dev.app.achilio.com"
   _CONNECTION_BUCKET_NAME: ""
+  _MIN_INSTANCES: "0"
+  _MAX_INSTANCES: "8"
 images: [ "gcr.io/${PROJECT_ID}/${_SERVICE_NAME}" ]
 options:
   machineType: N1_HIGHCPU_8
