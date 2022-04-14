@@ -27,7 +27,7 @@ public class BigQueryMaterializedViewStatementBuilder implements MaterializedVie
     return joiner.toString();
   }
 
-  public String serializeFieldWithAlias(Field field) {
+  private String serializeFieldWithAlias(Field field) {
     StringJoiner aliasJoiner = new StringJoiner(SEP_SQL_VERBS);
     aliasJoiner.add(field.name());
     aliasJoiner.add(SQL_VERB_AS);
@@ -35,11 +35,11 @@ public class BigQueryMaterializedViewStatementBuilder implements MaterializedVie
     return aliasJoiner.toString();
   }
 
-  public String serializeAlias(Field field) {
+  private String serializeAlias(Field field) {
     return field.alias();
   }
 
-  public String buildSelect(FieldSet fieldSet) {
+  private String buildSelect(FieldSet fieldSet) {
     StringBuilder builder = new StringBuilder();
     builder.append(SQL_VERB_SELECT);
     builder.append(SEP_SQL_VERBS);
@@ -54,14 +54,14 @@ public class BigQueryMaterializedViewStatementBuilder implements MaterializedVie
     return builder.toString();
   }
 
-  public String buildFrom(FieldSet fieldSet) {
+  private String buildFrom(FieldSet fieldSet) {
     StringJoiner joiner = new StringJoiner(SEP_SQL_VERBS);
     joiner.add(SQL_VERB_FROM);
     joiner.add(buildTableReference(fieldSet));
     return joiner.toString();
   }
 
-  public String buildGroupBy(FieldSet fieldSet) {
+  private String buildGroupBy(FieldSet fieldSet) {
     StringBuilder builder = new StringBuilder();
     builder.append(SQL_VERB_GROUP_BY);
     builder.append(SEP_SQL_VERBS);
@@ -72,7 +72,7 @@ public class BigQueryMaterializedViewStatementBuilder implements MaterializedVie
     return builder.toString();
   }
 
-  public String buildTableReference(FieldSet fieldSet) {
+  private String buildTableReference(FieldSet fieldSet) {
     final ATableId table = fieldSet.getReferenceTable();
     final String projectId = table.getProjectId();
     final String datasetName = table.getDatasetName();

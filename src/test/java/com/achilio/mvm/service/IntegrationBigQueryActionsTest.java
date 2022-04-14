@@ -79,7 +79,19 @@ public class IntegrationBigQueryActionsTest {
   }
 
   @Test
+  public void dryRunCreate() {
+    String statement = "CREATE MATERIALIZED VIEW nyc_trips.testmv AS " + STATEMENT1;
+    fetcher.dryRunQuery(statement);
+  }
+
+  @Test
   public void dryRun__whenInvalidStatement_throwException() {
     assertThrows(BigQueryException.class, () -> fetcher.dryRunQuery(STATEMENT2));
+  }
+
+  @Test
+  public void dryRunCreate__whenInvalidStatement_throwException() {
+    String statement = "CREATE MATERIALIZED VIEW nyc_trips.testmv AS " + STATEMENT2;
+    assertThrows(BigQueryException.class, () -> fetcher.dryRunQuery(statement));
   }
 }

@@ -20,6 +20,7 @@ import javax.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -31,6 +32,8 @@ import org.hibernate.annotations.UpdateTimestamp;
 public class MaterializedView {
 
   private static final String MV_NAME_PREFIX = "achilio_mv";
+  private static final String CREATE_PREFIX = "CREATE MATERIALIZED VIEW";
+  private static final String SQL_VERB_AS = "AS";
 
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
@@ -136,6 +139,12 @@ public class MaterializedView {
       setStatusReason(null);
     }
     this.status = status;
+  }
+
+  public String generateCreateStatement() {
+    String fullMvName =
+        String.join(".", this.getDatasetName(), RandomStringUtils.randomAlphabetic(8));
+    return String.join(" ", CREATE_PREFIX, fullMvName, SQL_VERB_AS, this.getStatement());
   }
 
   @Override
