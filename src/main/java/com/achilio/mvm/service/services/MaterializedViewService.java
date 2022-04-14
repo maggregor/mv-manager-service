@@ -51,17 +51,17 @@ public class MaterializedViewService {
   public MaterializedView applyMaterializedView(Long id, String projectId, Connection connection) {
     MaterializedView mv = getMaterializedView(id, projectId);
     try {
+      // TODO: Create the view on BigQuery
       createMaterializedView(mv, connection);
       mv.setStatus(MVStatus.APPLIED);
-      return saveMaterializedView(mv);
     } catch (Exception e) {
       LOGGER.error("Error during creation of MV {}", mv.getId(), e);
       mv.setStatus(MVStatus.NOT_APPLIED);
       mv.setStatusReason(MVStatusReason.ERROR_DURING_CREATION);
+      // TODO: Delete the view from BigQuery for coherence (even if not present)
       deleteMaterializedView(mv, connection);
-      saveMaterializedView(mv);
-      throw e;
     }
+    return repository.save(mv);
   }
 
   public MaterializedView unapplyMaterializedView(
@@ -71,14 +71,12 @@ public class MaterializedViewService {
       deleteMaterializedView(mv, connection);
       mv.setStatus(MVStatus.NOT_APPLIED);
       mv.setStatusReason(MVStatusReason.DELETED_BY_USER);
-      return saveMaterializedView(mv);
     } catch (Exception e) {
       LOGGER.error("Error during deletion of MV {}", mv.getId(), e);
       mv.setStatus(MVStatus.UNKNOWN);
       mv.setStatusReason(MVStatusReason.ERROR_DURING_DELETION);
-      saveMaterializedView(mv);
-      throw e;
     }
+    return saveMaterializedView(mv);
   }
 
   private void deleteMaterializedView(MaterializedView mv, Connection connection) {
