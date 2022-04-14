@@ -10,7 +10,6 @@ import com.achilio.mvm.service.controllers.responses.AggregatedStatisticsRespons
 import com.achilio.mvm.service.controllers.responses.DatasetResponse;
 import com.achilio.mvm.service.controllers.responses.ProjectResponse;
 import com.achilio.mvm.service.controllers.responses.UpdateDatasetRequestResponse;
-import com.achilio.mvm.service.databases.entities.FetchedDataset;
 import com.achilio.mvm.service.entities.ADataset;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics;
@@ -19,7 +18,6 @@ import com.achilio.mvm.service.services.StripeService;
 import io.swagger.annotations.ApiOperation;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -38,8 +36,13 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 public class ProjectController {
 
-  @Autowired private ProjectService projectService;
-  @Autowired private StripeService stripeService;
+  private final ProjectService projectService;
+  private final StripeService stripeService;
+
+  public ProjectController(ProjectService projectService, StripeService stripeService) {
+    this.projectService = projectService;
+    this.stripeService = stripeService;
+  }
 
   @GetMapping(path = "/project", produces = APPLICATION_JSON_VALUE)
   @ApiOperation("List all projects")
@@ -117,8 +120,8 @@ public class ProjectController {
   public DatasetResponse getDataset(
       @PathVariable final String projectId, @PathVariable final String datasetName) {
     projectService.getProject(projectId, getContextTeamName());
-    FetchedDataset fetchedDataset = projectService.getFetchedDataset(projectId, datasetName);
-    return toDatasetResponse(fetchedDataset);
+    ADataset dataset = projectService.getDataset(projectId, datasetName);
+    return toDatasetResponse(dataset);
   }
 
   @GetMapping(
@@ -138,26 +141,6 @@ public class ProjectController {
 
   private ProjectResponse toProjectResponse(Project project) {
     return new ProjectResponse(project);
-  }
-
-  private DatasetResponse toDatasetResponse(FetchedDataset dataset) {
-    final String projectId = dataset.getProjectId();
-    final String datasetName = dataset.getDatasetName();
-    final String location = dataset.getLocation();
-    final String friendlyName = dataset.getFriendlyName();
-    final String description = dataset.getDescription();
-    final Long createdAt = dataset.getCreatedAt();
-    final Long lastModified = dataset.getLastModified();
-    final boolean activated = projectService.isDatasetActivated(projectId, datasetName);
-    return new DatasetResponse(
-        projectId,
-        datasetName,
-        location,
-        friendlyName,
-        description,
-        createdAt,
-        lastModified,
-        activated);
   }
 
   private DatasetResponse toDatasetResponse(ADataset dataset) {

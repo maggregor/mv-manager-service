@@ -19,15 +19,11 @@ import com.achilio.mvm.service.repositories.ADatasetRepository;
 import com.achilio.mvm.service.repositories.ProjectRepository;
 import com.achilio.mvm.service.services.ConnectionService;
 import com.achilio.mvm.service.services.FetcherService;
-import com.achilio.mvm.service.services.GooglePublisherService;
 import com.achilio.mvm.service.services.ProjectService;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.stripe.model.Product;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import org.junit.Assert;
 import org.junit.Before;
@@ -74,31 +70,23 @@ public class ProjectServiceTest {
   private static final ADataset mockedDataset1 = mock(ADataset.class);
   private static final ADataset mockedDataset2 = mock(ADataset.class);
   private final ADataset realDataset = new ADataset(project1, TEST_DATASET_NAME3);
-  private final Map<String, String> productMetadata = new HashMap<>();
-  private final Map<String, String> errorProductMetadata = new HashMap<>();
   @InjectMocks private ProjectService service;
   @Mock private ProjectRepository mockedProjectRepository;
   @Mock private ADatasetRepository mockedADatasetRepository;
-  @Mock private Product mockedProduct;
-  @Mock private Product errorMockedProduct;
   @Mock private FetcherService mockedFetcherService;
   @Mock private Authentication mockedJWTAuth;
   @Mock private SecurityContext mockedSecurityContext;
   @Mock private ConnectionService mockedConnectionService;
-  @Mock private GooglePublisherService mockedPublisherService;
 
   @Before
   public void setup() throws JsonProcessingException {
-    when(mockedSecurityContext.getAuthentication()).thenReturn(mockedJWTAuth);
     SecurityContextHolder.setContext(mockedSecurityContext);
-    when(mockedJWTAuth.getDetails()).thenReturn(USER_PROFILE_1);
     when(mockedProjectRepository.save(any())).then(AdditionalAnswers.returnsFirstArg());
     when(mockedProjectRepository.findByProjectId(TEST_PROJECT_ID1))
         .thenReturn(Optional.of(project1));
     when(mockedProjectRepository.findByProjectId(TEST_PROJECT_ID2))
         .thenReturn(Optional.of(project2));
     when(mockedProjectRepository.findByProjectId(TEST_PROJECT_ID3)).thenReturn(Optional.empty());
-    when(mockedProjectRepository.findAllByActivated(true)).thenReturn(activatedProjects);
     when(mockedProjectRepository.findAllByActivatedAndTeamName(true, TEAM_NAME1))
         .thenReturn(activatedProjects);
     when(mockedProjectRepository.findByProjectIdAndTeamName(TEST_PROJECT_ID1, TEAM_NAME1))
@@ -115,8 +103,6 @@ public class ProjectServiceTest {
     when(mockedADatasetRepository.findByProject_ProjectIdAndDatasetName(
             project1.getProjectId(), TEST_DATASET_NAME3))
         .thenReturn(Optional.of(realDataset));
-    productMetadata.put("mv_max", "10");
-    productMetadata.put("automatic_available", "true");
     when(mockedFetchedProject1.getProjectId()).thenReturn(TEST_PROJECT_ID1);
     when(mockedFetchedProject1.getName()).thenReturn(TEST_PROJECT_NAME1);
     when(mockedFetchedProject2.getProjectId()).thenReturn(TEST_PROJECT_ID2);
@@ -197,14 +183,6 @@ public class ProjectServiceTest {
         .save(any(Project.class));
   }
 
-  // Old ProjectServiceTest methods
-
-  //  @Test
-  //  public void createProjectFromFetched() {
-  //    Project project = service.createProject(TEST_PROJECT_ID1);
-  //    assertEquals(project1.getProjectId(), project.getProjectId());
-  //  }
-
   @Test
   public void findProject() {
     when(mockedProjectRepository.findByProjectId(TEST_PROJECT_ID1))
@@ -248,7 +226,6 @@ public class ProjectServiceTest {
         new UpdateProjectRequest(null, true, analysisTimeFrame, mvMaxPerTable);
     project = service.updateProject(TEST_PROJECT_ID2, payload2);
     assertTrue(project.isAutomatic());
-    assertEquals("moi@achilio.com", project.getUsername());
   }
 
   @Test
