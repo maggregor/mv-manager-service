@@ -11,6 +11,7 @@ import com.achilio.mvm.service.entities.FindMVJob;
 import com.achilio.mvm.service.entities.Job.JobStatus;
 import com.achilio.mvm.service.entities.MaterializedView;
 import com.achilio.mvm.service.entities.OptimizationEvent.StatusType;
+import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.entities.Query;
 import com.achilio.mvm.service.exceptions.FindMVJobNotFoundException;
 import com.achilio.mvm.service.repositories.FindMVJobRepository;
@@ -19,6 +20,7 @@ import com.achilio.mvm.service.visitors.FieldSetExtract;
 import com.achilio.mvm.service.visitors.FieldSetExtractFactory;
 import com.achilio.mvm.service.visitors.FieldSetMerger;
 import com.achilio.mvm.service.visitors.fields.FieldSet;
+import com.google.cloud.bigquery.BigQueryException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -41,16 +43,19 @@ public class FindMVJobService {
   private final QueryService queryService;
   private final MaterializedViewService materializedViewService;
   BigQueryMaterializedViewStatementBuilder statementBuilder;
+  private final FetcherService fetcherService;
 
   public FindMVJobService(
       FindMVJobRepository repository,
       ProjectService projectService,
       QueryService queryService,
-      MaterializedViewService materializedViewService) {
+      MaterializedViewService materializedViewService,
+      FetcherService fetcherService) {
     this.repository = repository;
     this.projectService = projectService;
     this.queryService = queryService;
     this.materializedViewService = materializedViewService;
+    this.fetcherService = fetcherService;
     this.statementBuilder = new BigQueryMaterializedViewStatementBuilder();
   }
 
@@ -93,7 +98,7 @@ public class FindMVJobService {
   }
 
   @Async("asyncExecutor")
-  public void startFindMVJob(FindMVJob job) {
+  public void startFindMVJob(FindMVJob job, Project project) {
     try {
       String projectId = job.getProjectId();
       int analysisTimeframe = job.getTimeframe();
@@ -118,21 +123,38 @@ public class FindMVJobService {
       List<FieldSet> distinctFieldSets = FieldSetMerger.mergeSame(fieldSets);
       // STEP 6 - Optimize field sets
       LOGGER.info("Find MV Job {}: {}", job.getId(), StatusType.GENERATING_MVs);
-      List<FieldSet> generateMVs = generateMVs(distinctFieldSets);
+      List<FieldSet> generatedMVs = generateMVs(distinctFieldSets);
       // STEP 7 - Build materialized views statements
       LOGGER.info("Find MV Job {}: {}", job.getId(), StatusType.BUILD_MATERIALIZED_VIEWS_STATEMENT);
-      List<MaterializedView> results = buildAllMaterializedViews(job, generateMVs);
-      // STEP 8 - Publishing optimization
+      List<MaterializedView> results = buildAllMaterializedViews(job, generatedMVs);
+      // STEP 8 - Remove invalid Materialized Views
+      results = removeInvalidMaterializedViews(results, project);
+      // STEP 9 - Publishing optimization
       job.setMvProposalCount(results.size());
-      // STEP 9 - Save all Materialized Views
+      // STEP 10 - Save all Materialized Views
       mergeAndSaveAllMaterializedViews(projectId, results);
-      LOGGER.info("Find MV Job {} finished with {} results", job.getId(), job.getMvProposalCount());
+
       job.setStatus(JobStatus.FINISHED);
+      LOGGER.info("Find MV Job {} finished with {} results", job.getId(), job.getMvProposalCount());
     } catch (Exception e) {
       job.setStatus(JobStatus.ERROR);
       LOGGER.error("FindMV Job {} failed", job.getId(), e);
     }
     saveFindMVJob(job);
+  }
+
+  private List<MaterializedView> removeInvalidMaterializedViews(
+      List<MaterializedView> results, Project project) {
+    return results.stream().filter(mv -> (isValidMaterializedView(mv, project))).collect(toList());
+  }
+
+  private boolean isValidMaterializedView(MaterializedView mv, Project project) {
+    try {
+      fetcherService.dryRunCreateMV(mv, project.getConnection());
+    } catch (BigQueryException e) {
+      return false;
+    }
+    return true;
   }
 
   private void mergeAndSaveAllMaterializedViews(String projectId, List<MaterializedView> results) {

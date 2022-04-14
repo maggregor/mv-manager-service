@@ -67,7 +67,7 @@ public class FindMVJobController {
     Project project = projectService.getProject(payload.getProjectId(), getContextTeamName());
     FindMVJob job =
         mvJobService.createMVJob(payload.getProjectId(), project.getAnalysisTimeframe());
-    mvJobService.startFindMVJob(job);
+    mvJobService.startFindMVJob(job, project);
     return job;
   }
 }
