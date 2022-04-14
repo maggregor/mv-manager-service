@@ -142,7 +142,8 @@ public class MaterializedView {
   }
 
   public String generateCreateStatement() {
-    String fullMvName = String.join(".", this.getDatasetName(), RandomStringUtils.random(8));
+    String fullMvName =
+        String.join(".", this.getDatasetName(), RandomStringUtils.randomAlphabetic(8));
     return String.join(" ", CREATE_PREFIX, fullMvName, SQL_VERB_AS, this.getStatement());
   }
 
