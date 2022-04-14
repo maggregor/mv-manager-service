@@ -13,15 +13,10 @@ public class UpdateProjectRequest {
   @JsonProperty("analysisTimeframe")
   private Integer analysisTimeframe;
 
-  @JsonProperty("mvMaxPerTable")
-  private Integer mvMaxPerTable;
-
-  public UpdateProjectRequest(
-      String projectName, Boolean automatic, Integer analysisTimeframe, Integer mvMaxPerTable) {
+  public UpdateProjectRequest(String projectName, Boolean automatic, Integer analysisTimeframe) {
     this.projectName = projectName;
     this.automatic = automatic;
     this.analysisTimeframe = analysisTimeframe;
-    this.mvMaxPerTable = mvMaxPerTable;
   }
 
   public Boolean isAutomatic() {
@@ -30,10 +25,6 @@ public class UpdateProjectRequest {
 
   public Integer getAnalysisTimeframe() {
     return analysisTimeframe;
-  }
-
-  public Integer getMvMaxPerTable() {
-    return mvMaxPerTable;
   }
 
   public String getProjectName() {

@@ -43,13 +43,6 @@ public class FetcherService {
     return datasetList;
   }
 
-  public FetchedDataset fetchDataset(String projectId, String datasetName, Connection connection) {
-    DatabaseFetcher fetcher = fetcher(projectId, connection);
-    FetchedDataset fetchedDataset = fetcher.fetchDataset(datasetName);
-    fetcher.close();
-    return fetchedDataset;
-  }
-
   public List<FetchedQuery> fetchQueriesSinceLastDays(
       String projectId, Connection connection, int lastDays) {
     return fetchQueriesSinceTimestamp(projectId, connection, daysToMillis(lastDays));

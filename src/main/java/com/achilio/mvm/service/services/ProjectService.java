@@ -94,7 +94,6 @@ public class ProjectService {
     // to publish a potential config change on the schedulers
     project.setAutomatic(payload.isAutomatic());
     project.setAnalysisTimeframe(payload.getAnalysisTimeframe());
-    project.setMvMaxPerTable(payload.getMvMaxPerTable());
     projectRepository.save(project);
     return project;
   }

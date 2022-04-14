@@ -212,18 +212,14 @@ public class ProjectServiceTest {
   @Test
   public void updateProject() {
     Integer analysisTimeFrame = 14;
-    Integer mvMaxPerTable = 12;
     UpdateProjectRequest payload1 =
-        new UpdateProjectRequest(TEST_PROJECT_NAME1, false, analysisTimeFrame, mvMaxPerTable);
+        new UpdateProjectRequest(TEST_PROJECT_NAME1, false, analysisTimeFrame);
     Project project = service.updateProject(TEST_PROJECT_ID2, payload1);
     assertEquals(TEST_PROJECT_ID2, project.getProjectId());
     assertFalse(project.isAutomatic());
     assertEquals(14, project.getAnalysisTimeframe());
-    assertEquals(12, project.getMvMaxPerTable());
     analysisTimeFrame = null;
-    mvMaxPerTable = null;
-    UpdateProjectRequest payload2 =
-        new UpdateProjectRequest(null, true, analysisTimeFrame, mvMaxPerTable);
+    UpdateProjectRequest payload2 = new UpdateProjectRequest(null, true, analysisTimeFrame);
     project = service.updateProject(TEST_PROJECT_ID2, payload2);
     assertTrue(project.isAutomatic());
   }

@@ -14,9 +14,6 @@ public class ProjectResponse {
   @JsonProperty("username")
   private String username;
 
-  @JsonProperty("mvMaxPerTable")
-  private Integer mvMaxPerTable;
-
   @JsonProperty("analysisTimeframe")
   private Integer analysisTimeframe;
 
@@ -32,7 +29,6 @@ public class ProjectResponse {
     this.activated = project.isActivated();
     this.automatic = project.isAutomatic();
     this.username = project.getUsername();
-    this.mvMaxPerTable = project.getMvMaxPerTable();
     this.analysisTimeframe = project.getAnalysisTimeframe();
   }
 }
