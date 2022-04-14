@@ -2,15 +2,19 @@ package com.achilio.mvm.service.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.annotations.VisibleForTesting;
+import java.util.Collection;
 import java.util.Objects;
-import lombok.AllArgsConstructor;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 @Getter
 @NoArgsConstructor
-@AllArgsConstructor
-public class UserProfile {
+public class UserProfile implements UserDetails {
 
   private String username;
   private String email;
@@ -29,6 +33,9 @@ public class UserProfile {
   @JsonProperty("hd")
   private String teamName;
 
+  @JsonProperty("roles")
+  private Set<ERole> roles;
+
   @VisibleForTesting
   public UserProfile(
       String username,
@@ -36,13 +43,17 @@ public class UserProfile {
       String firstName,
       String lastName,
       String name,
-      String teamName) {
+      String teamName,
+      String customerId,
+      Set<ERole> roles) {
     this.username = username;
     this.email = email;
     this.firstName = firstName;
     this.lastName = lastName;
     this.name = name;
     this.teamName = teamName;
+    this.customerId = customerId;
+    this.roles = roles;
   }
 
   @Override
@@ -76,5 +87,40 @@ public class UserProfile {
 
   public String getCustomerId() {
     return this.customerId;
+  }
+
+  @Override
+  public Collection<? extends GrantedAuthority> getAuthorities() {
+    if (this.roles == null) {
+      return null;
+    }
+    return this.roles.stream()
+        .map(role -> new SimpleGrantedAuthority(role.name()))
+        .collect(Collectors.toList());
+  }
+
+  @Override
+  public String getPassword() {
+    return null;
+  }
+
+  @Override
+  public boolean isAccountNonExpired() {
+    return false;
+  }
+
+  @Override
+  public boolean isAccountNonLocked() {
+    return false;
+  }
+
+  @Override
+  public boolean isCredentialsNonExpired() {
+    return false;
+  }
+
+  @Override
+  public boolean isEnabled() {
+    return false;
   }
 }

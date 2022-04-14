@@ -112,7 +112,7 @@ public class MockHelper {
     SecurityContext mockedSecurityContext = mock(SecurityContext.class);
     UserProfile mockedUserProfile = mock(UserProfile.class);
     when(mockedUserProfile.getTeamName()).thenReturn(teamName);
-    when(mockedAuth.getDetails()).thenReturn(mockedUserProfile);
+    when(mockedAuth.getPrincipal()).thenReturn(mockedUserProfile);
     when(mockedSecurityContext.getAuthentication()).thenReturn(mockedAuth);
     SecurityContextHolder.setContext(mockedSecurityContext);
   }

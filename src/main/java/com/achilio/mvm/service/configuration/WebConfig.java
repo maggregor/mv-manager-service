@@ -2,7 +2,6 @@ package com.achilio.mvm.service.configuration;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,7 +9,6 @@ import org.springframework.hateoas.client.LinkDiscoverer;
 import org.springframework.hateoas.client.LinkDiscoverers;
 import org.springframework.hateoas.mediatype.collectionjson.CollectionJsonLinkDiscoverer;
 import org.springframework.plugin.core.SimplePluginRegistry;
-import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.util.UrlPathHelper;
@@ -22,16 +20,6 @@ import org.springframework.web.util.UrlPathHelper;
 @Configuration
 @EnableAutoConfiguration
 public class WebConfig implements WebMvcConfigurer {
-
-  @Autowired JWTInterceptor jwtInterceptor;
-
-  @Override
-  public void addInterceptors(InterceptorRegistry registry) {
-    registry
-        .addInterceptor(jwtInterceptor)
-        .addPathPatterns("/**")
-        .excludePathPatterns("/api/v1/webhook/**");
-  }
 
   @Override
   public void configurePathMatch(PathMatchConfigurer configurer) {

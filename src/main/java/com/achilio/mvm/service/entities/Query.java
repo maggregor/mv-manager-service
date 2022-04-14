@@ -50,10 +50,10 @@ public class Query {
   private String projectId;
 
   @Column(name = "use_materialized_view")
-  private boolean useMaterializedView;
+  private boolean useMaterializedView = false;
 
   @Column(name = "use_cache")
-  private boolean useCache;
+  private boolean useCache = false;
 
   @Column(name = "start_time")
   private LocalDate startTime;
@@ -66,6 +66,14 @@ public class Query {
 
   @Column(name = "default_dataset")
   private String defaultDataset = null;
+
+  public Query(
+      String query,
+      String projectId
+  ) {
+    this.query = query;
+    this.projectId = projectId;
+  }
 
   public Query(
       FetcherQueryJob lastFetcherQueryJob,

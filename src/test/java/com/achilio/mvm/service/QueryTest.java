@@ -2,6 +2,7 @@ package com.achilio.mvm.service;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 
 import com.achilio.mvm.service.entities.FetcherQueryJob;
 import com.achilio.mvm.service.entities.Query;
@@ -46,5 +47,18 @@ public class QueryTest {
     assertEquals(startTime, query.getStartTime());
     assertEquals(10L, query.getBilledBytes());
     assertEquals(100L, query.getProcessedBytes());
+  }
+
+  @Test
+  public void secondConstructorValidation() {
+    Query query = new Query(queryStatement, projectId);
+    assertEquals(queryStatement, query.getQuery());
+    assertEquals(projectId, query.getProjectId());
+    assertNull(query.getLastFetcherQueryJob());
+    assertNull(query.getInitialFetcherQueryJob());
+    assertFalse(query.isUseCache());
+    assertFalse(query.isUseMaterializedView());
+    assertNull(query.getDefaultDataset());
+    assertNull(query.getStartTime());
   }
 }
