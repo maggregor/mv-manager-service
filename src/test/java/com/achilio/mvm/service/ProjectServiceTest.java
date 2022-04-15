@@ -45,7 +45,8 @@ public class ProjectServiceTest {
   private static final Long CONNECTION_ID = 1L;
   private static final String CONNECTION_CONTENT = "serviceAccountContent";
   private static final UserProfile USER_PROFILE_1 =
-      new UserProfile("moi", "moi@achilio.com", "foo", "bar", "myName", TEAM_NAME1);
+      new UserProfile(
+          "moi", "moi@achilio.com", "foo", "bar", "myName", TEAM_NAME1, "customer-id", null);
   private static final String TEST_PROJECT_ID1 = "achilio-dev";
   private static final String TEST_PROJECT_ID2 = "other-project";
   private static final String TEST_PROJECT_ID3 = "new-project";

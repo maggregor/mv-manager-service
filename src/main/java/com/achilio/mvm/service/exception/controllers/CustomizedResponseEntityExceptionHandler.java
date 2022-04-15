@@ -15,6 +15,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.NonNull;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -28,14 +30,6 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 public class CustomizedResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {
 
   private static final Logger LOGGER = LoggerFactory.getLogger("ExceptionHandler");
-
-  @ExceptionHandler(Exception.class)
-  public final ResponseEntity<Object> handleAllExceptions(Exception ex, WebRequest request) {
-    ExceptionResponse exResponse =
-        new ExceptionResponse(new Date(), ex.getMessage(), request.getDescription(false));
-    LOGGER.error(ex.getMessage(), ex);
-    return new ResponseEntity<>(exResponse, HttpStatus.INTERNAL_SERVER_ERROR);
-  }
 
   @ExceptionHandler(ClientAbortException.class)
   public final void handleClientAbortException(Exception ex) {
@@ -80,6 +74,18 @@ public class CustomizedResponseEntityExceptionHandler extends ResponseEntityExce
     return new ResponseEntity<>(exResponse, HttpStatus.UNAUTHORIZED);
   }
 
+  @ExceptionHandler(AccessDeniedException.class)
+  public final ResponseEntity<Object> handleAccessDeniedException(
+      Exception ex, WebRequest request) {
+    if (ex.getMessage().toLowerCase().contains("access is denied")) {
+      LOGGER.warn(ex.getMessage());
+      return new ResponseEntity<>("Unauthorized Access", new HttpHeaders(), HttpStatus.FORBIDDEN);
+    }
+    LOGGER.error(ex.getMessage(), ex);
+    return new ResponseEntity<>(
+        ex.getMessage(), new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR);
+  }
+
   @ExceptionHandler(InvalidSettingsException.class)
   public final ResponseEntity<Object> settingsInvalidException(Exception ex, WebRequest request) {
     ExceptionResponse exResponse =
@@ -93,10 +99,11 @@ public class CustomizedResponseEntityExceptionHandler extends ResponseEntityExce
       ResourceManagerException ex, WebRequest request) {
     ExceptionResponse exResponse =
         new ExceptionResponse(new Date(), ex.getMessage(), request.getDescription(false));
-    LOGGER.warn(ex.getMessage());
     if ("insufficientPermissions".equals(ex.getReason())) {
-      return new ResponseEntity<>(exResponse, HttpStatus.FORBIDDEN);
+      LOGGER.warn(ex.getMessage());
+      return new ResponseEntity<>(exResponse, HttpStatus.UNAUTHORIZED);
     }
+    LOGGER.error(ex.getMessage(), ex);
     return new ResponseEntity<>(exResponse, HttpStatus.INTERNAL_SERVER_ERROR);
   }
 
@@ -109,12 +116,20 @@ public class CustomizedResponseEntityExceptionHandler extends ResponseEntityExce
     return new ResponseEntity<>(exResponse, HttpStatus.FORBIDDEN);
   }
 
+  @ExceptionHandler(Exception.class)
+  public final ResponseEntity<Object> handleAllExceptions(Exception ex, WebRequest request) {
+    ExceptionResponse exResponse =
+        new ExceptionResponse(new Date(), ex.getMessage(), request.getDescription(false));
+    LOGGER.error(ex.getMessage(), ex);
+    return new ResponseEntity<>(exResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+  }
+
   /** Handling invalid User Fields send in the request. */
-  protected ResponseEntity<Object> handleMethodArgumentNotValid(
+  protected @NonNull ResponseEntity<Object> handleMethodArgumentNotValid(
       MethodArgumentNotValidException ex,
-      HttpHeaders headers,
-      HttpStatus status,
-      WebRequest request) {
+      @NonNull HttpHeaders headers,
+      @NonNull HttpStatus status,
+      @NonNull WebRequest request) {
     ExceptionResponse exResponse =
         new ExceptionResponse(new Date(), ex.getBindingResult().toString(), "Invalid User Fields");
     return new ResponseEntity<>(exResponse, HttpStatus.BAD_REQUEST);

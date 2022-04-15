@@ -1,10 +1,15 @@
 package com.achilio.mvm.service;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+
+import com.achilio.mvm.service.models.RoleName;
 import com.achilio.mvm.service.models.UserProfile;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Assert;
+import java.util.HashSet;
+import java.util.Set;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -12,7 +17,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class UserProfileTest {
 
-  private String payload =
+  private final String payload =
       "{"
           + "\"username\":\"nicolas.guelfi@achilio.com\","
           + "\"email\":\"nicolas.guelfi@achilio.com\","
@@ -36,11 +41,25 @@ public class UserProfileTest {
         mapper
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
             .readValue(payload, UserProfile.class);
-    Assert.assertEquals("nicolas.guelfi@achilio.com", user.getUsername());
-    Assert.assertEquals("nicolas.guelfi@achilio.com", user.getEmail());
-    Assert.assertEquals("Nicolas", user.getFirstName());
-    Assert.assertEquals("Guelfi", user.getLastName());
-    Assert.assertEquals("Nicolas Guelfi", user.getName());
-    Assert.assertEquals("achilio.com", user.getTeamName());
+    assertEquals("nicolas.guelfi@achilio.com", user.getUsername());
+    assertEquals("nicolas.guelfi@achilio.com", user.getEmail());
+    assertEquals("Nicolas", user.getFirstName());
+    assertEquals("Guelfi", user.getLastName());
+    assertEquals("Nicolas Guelfi", user.getName());
+    assertEquals("achilio.com", user.getTeamName());
+    assertNull(user.getAuthorities());
+  }
+
+  @Test
+  public void getAuthorities() {
+    Set<RoleName> set1 = new HashSet<>();
+    set1.add(RoleName.ROLE_ADMIN);
+    UserProfile user = new UserProfile(null, null, null, null, null, null, null, set1);
+    assertEquals(1, user.getAuthorities().size());
+    set1.add(RoleName.ROLE_USER);
+    user = new UserProfile(null, null, null, null, null, null, null, set1);
+    assertEquals(2, user.getAuthorities().size());
+    set1.add(RoleName.ROLE_USER);
+    assertEquals(2, user.getAuthorities().size());
   }
 }

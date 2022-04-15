@@ -1,8 +1,10 @@
 package com.achilio.mvm.service;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
 import com.achilio.mvm.service.controllers.QueryController;
+import com.achilio.mvm.service.controllers.requests.QueryRequest;
 import com.achilio.mvm.service.entities.FetcherQueryJob;
 import com.achilio.mvm.service.entities.Query;
 import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
@@ -87,15 +89,15 @@ public class QueryControllerTest {
     String jsonResponse = objectMapper.writeValueAsString(jobResponseEntity);
     JsonNode map = mapper.readTree(jsonResponse);
     Assert.assertTrue(map instanceof ArrayNode);
-    Assert.assertEquals(2, map.size());
-    Assert.assertEquals(queryStatement1, map.get(0).get("query").asText());
+    assertEquals(2, map.size());
+    assertEquals(queryStatement1, map.get(0).get("query").asText());
   }
 
   @Test
   public void getAllQueriesByProjectId() {
     List<Query> jobResponseEntity = controller.getAllQueriesByProjectId(TEST_PROJECT_ID);
-    Assert.assertEquals(2, jobResponseEntity.size());
-    Assert.assertEquals(queryStatement1, jobResponseEntity.get(0).getQuery());
+    assertEquals(2, jobResponseEntity.size());
+    assertEquals(queryStatement1, jobResponseEntity.get(0).getQuery());
   }
 
   @Test
@@ -105,12 +107,18 @@ public class QueryControllerTest {
     String jsonResponse = objectMapper.writeValueAsString(jobResponseEntity);
     JsonNode map = mapper.readTree(jsonResponse);
     Assert.assertTrue(map instanceof ObjectNode);
-    Assert.assertEquals(queryStatement1, map.get("query").asText());
+    assertEquals(queryStatement1, map.get("query").asText());
 
     Assert.assertThrows(
         QueryNotFoundException.class,
-        () -> {
-          controller.getSingleQuery(TEST_PROJECT_ID, "unknownQueryId");
-        });
+        () -> controller.getSingleQuery(TEST_PROJECT_ID, "unknownQueryId"));
+  }
+
+  @Test
+  public void createQuery() {
+    QueryRequest request = new QueryRequest(TEST_PROJECT_ID, "SELECT 1");
+    Query query = controller.createQuery(request);
+    assertEquals(TEST_PROJECT_ID, query.getProjectId());
+    assertEquals("SELECT 1", query.getQuery());
   }
 }

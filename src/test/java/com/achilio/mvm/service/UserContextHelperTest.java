@@ -19,25 +19,24 @@ public class UserContextHelperTest {
 
   private static final UserProfile USER_PROFILE_1 =
       new UserProfile(
-          "moi", "moi@achilio.com", "foo", "bar", "myName", "myTeamName", "my-customer-1");
+          "moi", "moi@achilio.com", "foo", "bar", "myName", "myTeamName", "customer-id", null);
   @Mock private Authentication mockedJWTAuth;
   @Mock private SecurityContext securityContext;
 
   @Before
   public void setup() {
     when(securityContext.getAuthentication()).thenReturn(mockedJWTAuth);
+    when(mockedJWTAuth.getPrincipal()).thenReturn(USER_PROFILE_1);
     SecurityContextHolder.setContext(securityContext);
   }
 
   @Test
   public void getUserProfile() {
-    when(mockedJWTAuth.getDetails()).thenReturn(USER_PROFILE_1);
     assertEquals(USER_PROFILE_1, UserContextHelper.getUserProfile());
   }
 
   @Test
   public void getContextStaticMethods() {
-    when(mockedJWTAuth.getDetails()).thenReturn(USER_PROFILE_1);
     assertEquals(USER_PROFILE_1.getTeamName(), UserContextHelper.getContextTeamName());
     assertEquals(USER_PROFILE_1.getEmail(), UserContextHelper.getContextEmail());
     assertEquals(USER_PROFILE_1.getCustomerId(), UserContextHelper.getContextStripeCustomerId());
@@ -53,14 +52,14 @@ public class UserContextHelperTest {
 
   @Test
   public void when_detailsIsNotInstanceOfUserProfile_throwException() {
-    when(mockedJWTAuth.getDetails()).thenReturn(new Object()); // Can be another details object
+    when(mockedJWTAuth.getPrincipal()).thenReturn(new Object()); // Can be another details object
     Exception e = assertThrows(IllegalArgumentException.class, UserContextHelper::getUserProfile);
     assertEquals(e.getMessage(), "Can't retrieve user profile");
   }
 
   @Test
   public void when_detailsIsNull_throwException() {
-    when(mockedJWTAuth.getDetails()).thenReturn(null);
+    when(mockedJWTAuth.getPrincipal()).thenReturn(null);
     Exception e = assertThrows(IllegalArgumentException.class, UserContextHelper::getUserProfile);
     assertEquals(e.getMessage(), "Can't retrieve user profile");
   }

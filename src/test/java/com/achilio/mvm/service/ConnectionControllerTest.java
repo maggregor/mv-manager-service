@@ -1,5 +1,6 @@
 package com.achilio.mvm.service;
 
+import static com.achilio.mvm.service.MockHelper.setupMockedAuthenticationContext;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -32,9 +33,6 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 @ExtendWith(MockitoExtension.class)
 @RunWith(MockitoJUnitRunner.class)
@@ -49,13 +47,7 @@ public class ConnectionControllerTest {
 
   @Before
   public void setup() throws IOException {
-    // Mock security context for the getContextTeamName() method in Controller
-    Authentication mockedAuth = mock(Authentication.class);
-    SecurityContext mockedSecurityContext = mock(SecurityContext.class);
-    when(mockedUserProfile.getTeamName()).thenReturn("myTeam");
-    when(mockedAuth.getDetails()).thenReturn(mockedUserProfile);
-    when(mockedSecurityContext.getAuthentication()).thenReturn(mockedAuth);
-    SecurityContextHolder.setContext(mockedSecurityContext);
+    setupMockedAuthenticationContext("myTeam");
     //
     ServiceAccountConnection mockedConnection1 = mock(ServiceAccountConnection.class);
     ServiceAccountConnection mockedConnection2 = mock(ServiceAccountConnection.class);
@@ -65,7 +57,7 @@ public class ConnectionControllerTest {
     when(mockedConnection2.getName()).thenReturn("My Connection 2");
     when(mockedService.getConnection(1L, "myTeam")).thenReturn(mockedConnection1);
     when(mockedService.getConnection(2L, "myTeam")).thenReturn(mockedConnection2);
-    when(mockedService.getAllConnections(mockedUserProfile.getTeamName()))
+    when(mockedService.getAllConnections("myTeam"))
         .thenReturn(Arrays.asList(mockedConnection1, mockedConnection2));
     when(mockedService.createConnection(any(), any(), any())).thenReturn(mockedConnection1);
     when(mockedService.updateConnection(eq(1L), anyString(), eq(REQUEST1)))
@@ -82,7 +74,7 @@ public class ConnectionControllerTest {
     assertConnectionResponse(2L, "My Connection 2", responses.get(1));
     // Team without connections
     when(mockedService.getAllConnections("team2")).thenReturn(Collections.emptyList());
-    when(mockedUserProfile.getTeamName()).thenReturn("team2");
+    setupMockedAuthenticationContext("team2");
     assertTrue(controller.getAllConnections().isEmpty());
   }
 
