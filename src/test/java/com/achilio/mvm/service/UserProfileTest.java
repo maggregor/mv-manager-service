@@ -3,7 +3,7 @@ package com.achilio.mvm.service;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
-import com.achilio.mvm.service.models.ERole;
+import com.achilio.mvm.service.models.RoleName;
 import com.achilio.mvm.service.models.UserProfile;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -52,14 +52,14 @@ public class UserProfileTest {
 
   @Test
   public void getAuthorities() {
-    Set<ERole> set1 = new HashSet<>();
-    set1.add(ERole.ROLE_ADMIN);
+    Set<RoleName> set1 = new HashSet<>();
+    set1.add(RoleName.ROLE_ADMIN);
     UserProfile user = new UserProfile(null, null, null, null, null, null, null, set1);
     assertEquals(1, user.getAuthorities().size());
-    set1.add(ERole.ROLE_USER);
+    set1.add(RoleName.ROLE_USER);
     user = new UserProfile(null, null, null, null, null, null, null, set1);
     assertEquals(2, user.getAuthorities().size());
-    set1.add(ERole.ROLE_USER);
+    set1.add(RoleName.ROLE_USER);
     assertEquals(2, user.getAuthorities().size());
   }
 }

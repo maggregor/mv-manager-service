@@ -34,7 +34,7 @@ public class UserProfile implements UserDetails {
   private String teamName;
 
   @JsonProperty("roles")
-  private Set<ERole> roles;
+  private Set<RoleName> roles;
 
   @VisibleForTesting
   public UserProfile(
@@ -45,7 +45,7 @@ public class UserProfile implements UserDetails {
       String name,
       String teamName,
       String customerId,
-      Set<ERole> roles) {
+      Set<RoleName> roles) {
     this.username = username;
     this.email = email;
     this.firstName = firstName;
