@@ -44,9 +44,6 @@ public class Project {
   @Column(name = "username", nullable = false, columnDefinition = "varchar(255) default ''")
   private String username = Strings.EMPTY;
 
-  @Column(name = "mv_max_per_table", nullable = false, columnDefinition = "numeric default 5")
-  private Integer mvMaxPerTable = 5;
-
   @Column(name = "analysis_timeframe", nullable = false, columnDefinition = "numeric default 30")
   private Integer analysisTimeframe = 30;
 
@@ -100,13 +97,11 @@ public class Project {
     return automatic;
   }
 
-  public Boolean setAutomatic(Boolean automatic) {
+  public void setAutomatic(Boolean automatic) {
     if (automatic != null) {
       this.automatic = automatic;
       LOGGER.info("ProjectId {}: Set automatic mode to {}", projectId, automatic);
-      return true;
     }
-    return false;
   }
 
   public void setActivated(Boolean activated) {
@@ -122,17 +117,6 @@ public class Project {
   public void setUsername(String username) {
     if (username != null) {
       this.username = username;
-    }
-  }
-
-  public Integer getMvMaxPerTable() {
-    return this.mvMaxPerTable;
-  }
-
-  public void setMvMaxPerTable(Integer mvMaxPerTable) {
-    if (mvMaxPerTable != null) {
-      this.mvMaxPerTable = mvMaxPerTable;
-      LOGGER.info("ProjectId {}: Set mvMaxPerTable to {}", projectId, mvMaxPerTable);
     }
   }
 

@@ -174,7 +174,6 @@ public class OptimizerService {
     Project project = projectService.getProject(projectId);
     Optimization optimization = new Optimization(project);
     optimization.setAnalysisTimeframe(project.getAnalysisTimeframe());
-    optimization.setMvMaxPerTable(project.getMvMaxPerTable());
     optimization.setUsername(getContextEmail());
     optimization.setStatus(Optimization.Status.PENDING);
     optimizerRepository.save(optimization);

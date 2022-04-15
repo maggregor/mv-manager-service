@@ -77,7 +77,6 @@ public class ProjectControllerTest {
     project1.setTeamName(TEAM_NAME1);
     project2.setActivated(true);
     project2.setAutomatic(true);
-    project2.setMvMaxPerTable(10);
     project2.setAnalysisTimeframe(14);
     when(mockedProjectService.getAllActivatedProjects(TEAM_NAME1))
         .thenReturn(Arrays.asList(project1, project2));
@@ -107,7 +106,6 @@ public class ProjectControllerTest {
     // Project 3
     project.setActivated(true);
     project.setAutomatic(true);
-    project.setMvMaxPerTable(10);
     project.setAnalysisTimeframe(14);
     responseEntity = controller.getProject(TEST_PROJECT_ID1);
     assertProjectResponseEquals(project, responseEntity);
@@ -150,9 +148,8 @@ public class ProjectControllerTest {
   public void updateProject() throws JsonProcessingException {
     Project project = new Project(TEST_PROJECT_ID1);
     project.setAnalysisTimeframe(20);
-    project.setMvMaxPerTable(10);
     project.setAutomatic(true);
-    UpdateProjectRequest payload = new UpdateProjectRequest(TEST_PROJECT_NAME1, true, 20, 10);
+    UpdateProjectRequest payload = new UpdateProjectRequest(TEST_PROJECT_NAME1, true, 20);
     when(mockedProjectService.updateProject(any(), any())).thenReturn(project);
     ProjectResponse responseEntity = controller.updateProject(TEST_PROJECT_ID1, payload);
     assertProjectResponseEquals(project, responseEntity);
@@ -203,8 +200,6 @@ public class ProjectControllerTest {
     JsonNode jsonNode = objectMapper.readTree(actualJson);
     assertEquals(expected.getProjectId(), jsonNode.get("projectId").asText());
     assertEquals(expected.getUsername(), jsonNode.get("username").asText());
-    assertEquals(
-        expected.getMvMaxPerTable(), Integer.valueOf(jsonNode.get("mvMaxPerTable").asInt()));
     assertEquals(
         expected.getAnalysisTimeframe(),
         Integer.valueOf(jsonNode.get("analysisTimeframe").asInt()));
