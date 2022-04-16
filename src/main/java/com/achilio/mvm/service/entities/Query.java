@@ -67,10 +67,7 @@ public class Query {
   @Column(name = "default_dataset")
   private String defaultDataset = null;
 
-  public Query(
-      String query,
-      String projectId
-  ) {
+  public Query(String query, String projectId) {
     this.query = query;
     this.projectId = projectId;
   }

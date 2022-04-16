@@ -6,6 +6,7 @@ import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.entities.MaterializedView;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
+import com.google.cloud.bigquery.Job;
 import java.util.List;
 import java.util.Set;
 
@@ -59,4 +60,6 @@ public interface DatabaseFetcher {
   void dryRunQuery(String query);
 
   void close();
+
+  Iterable<Job> fetchJobIterable(long fromTimestamp);
 }

@@ -2,7 +2,6 @@ package com.achilio.mvm.service.configuration;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.hateoas.client.LinkDiscoverer;
@@ -18,7 +17,6 @@ import org.springframework.web.util.UrlPathHelper;
  * manually enable them by implementing below class.
  */
 @Configuration
-@EnableAutoConfiguration
 public class WebConfig implements WebMvcConfigurer {
 
   @Override

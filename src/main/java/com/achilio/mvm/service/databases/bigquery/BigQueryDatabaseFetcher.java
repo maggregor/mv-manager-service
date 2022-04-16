@@ -197,6 +197,11 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
 
   public void close() {}
 
+  public Iterable<Job> fetchJobIterable(long fromTimestamp) {
+    List<BigQuery.JobListOption> options = getJobListOptions(fromTimestamp);
+    return bigquery.listJobs(options.toArray(new BigQuery.JobListOption[0])).iterateAll();
+  }
+
   private Stream<Job> fetchJobs(long fromCreationTime) {
     List<BigQuery.JobListOption> options = getJobListOptions(fromCreationTime);
     final Page<Job> jobPages = bigquery.listJobs(options.toArray(new BigQuery.JobListOption[0]));

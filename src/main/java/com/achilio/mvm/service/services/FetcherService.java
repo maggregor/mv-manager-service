@@ -12,6 +12,7 @@ import com.achilio.mvm.service.entities.Connection.ConnectionType;
 import com.achilio.mvm.service.entities.MaterializedView;
 import com.achilio.mvm.service.entities.ServiceAccountConnection;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
+import com.google.cloud.bigquery.Job;
 import java.util.List;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +23,7 @@ import org.springframework.stereotype.Service;
 public class FetcherService {
 
   BigQueryMaterializedViewStatementBuilder statementBuilder;
-  @Autowired ConnectionService connectionService;
+  @Autowired ProjectService projectService;
 
   public FetcherService() {
     this.statementBuilder = new BigQueryMaterializedViewStatementBuilder();
@@ -53,6 +54,17 @@ public class FetcherService {
     DatabaseFetcher fetcher = fetcher(projectId, connection);
     try {
       return fetcher.fetchAllQueriesFrom(fromTimestamp);
+    } finally {
+      fetcher.close();
+    }
+  }
+
+  public Iterable<Job> fetchJobIterable(String projectId) {
+    long fromTimestamp = daysToMillis(30);
+    Connection connection = projectService.getProject(projectId).getConnection();
+    DatabaseFetcher fetcher = fetcher(projectId, connection);
+    try {
+      return fetcher.fetchJobIterable(fromTimestamp);
     } finally {
       fetcher.close();
     }
