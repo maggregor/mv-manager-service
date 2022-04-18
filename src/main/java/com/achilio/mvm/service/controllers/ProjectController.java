@@ -13,7 +13,6 @@ import com.achilio.mvm.service.entities.ADataset;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.services.ProjectService;
 import com.achilio.mvm.service.services.StripeService;
-import com.achilio.mvm.service.visitors.ATableId;
 import io.swagger.annotations.ApiOperation;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -121,20 +120,6 @@ public class ProjectController {
     projectService.getProject(projectId, getContextTeamName());
     ADataset dataset = projectService.getDataset(projectId, datasetName);
     return toDatasetResponse(dataset);
-  }
-
-  @GetMapping(
-      path = "/project/{projectId}/dataset/{datasetName}/table/{tableName}",
-      produces = APPLICATION_JSON_VALUE)
-  @ApiOperation("Get a single dataset for a given projectId")
-  public int getTable(
-      @PathVariable final String projectId,
-      @PathVariable final String datasetName,
-      @PathVariable final String tableName) {
-    projectService.getProject(projectId, getContextTeamName());
-    return projectService
-        .getTable(ATableId.of(projectId, datasetName, tableName).getTableId())
-        .getQueryCount();
   }
 
   private ProjectResponse toProjectResponse(Project project) {

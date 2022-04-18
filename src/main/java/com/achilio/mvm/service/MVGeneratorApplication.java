@@ -2,7 +2,6 @@ package com.achilio.mvm.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -18,7 +17,6 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @SpringBootApplication(exclude = {SecurityAutoConfiguration.class})
 @EnableConfigurationProperties
 @EnableSwagger2
-@EnableBatchProcessing
 public class MVGeneratorApplication implements CommandLineRunner {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MVGeneratorApplication.class);

@@ -31,72 +31,44 @@ public class FetcherService {
   public FetchedProject fetchProject(String projectId, Connection connection)
       throws ProjectNotFoundException {
     DatabaseFetcher fetcher = fetcher(projectId, connection);
-    FetchedProject fetchedProject = fetcher.fetchProject(projectId);
-    fetcher.close();
-    return fetchedProject;
+    return fetcher.fetchProject(projectId);
   }
 
   public List<FetchedDataset> fetchAllDatasets(String projectId, Connection connection) {
     DatabaseFetcher fetcher = fetcher(projectId, connection);
-    List<FetchedDataset> datasetList = fetcher.fetchAllDatasets(projectId);
-    fetcher.close();
-    return datasetList;
+    return fetcher.fetchAllDatasets(projectId);
   }
 
-  public Iterable<Job> fetchJobIterable(String projectId) {
-    long fromTimestamp = daysToMillis(30);
+  public Iterable<Job> fetchJobIterable(String projectId, int days) {
+    long fromTimestamp = daysToMillis(days);
     Connection connection = projectService.getProject(projectId).getConnection();
     DatabaseFetcher fetcher = fetcher(projectId, connection);
-    try {
-      return fetcher.fetchJobIterable(fromTimestamp);
-    } finally {
-      fetcher.close();
-    }
+    return fetcher.fetchJobIterable(fromTimestamp);
   }
 
   public Set<FetchedTable> fetchAllTables(String projectId, Connection connection) {
     DatabaseFetcher fetcher = fetcher(projectId, connection);
-    try {
-      return fetcher.fetchAllTables();
-    } finally {
-      fetcher.close();
-    }
+    return fetcher.fetchAllTables();
   }
 
   public void createMaterializedView(MaterializedView mv, Connection connection) {
     DatabaseFetcher fetcher = fetcher(mv.getProjectId(), connection);
-    try {
-      fetcher.createMaterializedView(mv);
-    } finally {
-      fetcher.close();
-    }
+    fetcher.createMaterializedView(mv);
   }
 
   public void deleteMaterializedView(MaterializedView mv, Connection connection) {
     DatabaseFetcher fetcher = fetcher(mv.getProjectId(), connection);
-    try {
-      fetcher.deleteMaterializedView(mv);
-    } finally {
-      fetcher.close();
-    }
+    fetcher.deleteMaterializedView(mv);
   }
 
   public void dryRunQuery(MaterializedView mv, Connection connection) {
     DatabaseFetcher fetcher = fetcher(mv.getProjectId(), connection);
-    try {
-      fetcher.dryRunQuery(mv.getStatement());
-    } finally {
-      fetcher.close();
-    }
+    fetcher.dryRunQuery(mv.getStatement());
   }
 
   public void dryRunCreateMV(MaterializedView mv, Connection connection) {
     DatabaseFetcher fetcher = fetcher(mv.getProjectId(), connection);
-    try {
-      fetcher.dryRunQuery(mv.generateCreateStatement());
-    } finally {
-      fetcher.close();
-    }
+    fetcher.dryRunQuery(mv.generateCreateStatement());
   }
 
   private DatabaseFetcher fetcher(String projectId, Connection connection)

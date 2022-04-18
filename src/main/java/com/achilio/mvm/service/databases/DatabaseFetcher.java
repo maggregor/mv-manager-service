@@ -43,7 +43,5 @@ public interface DatabaseFetcher {
    */
   void dryRunQuery(String query);
 
-  void close();
-
   Iterable<Job> fetchJobIterable(long fromTimestamp);
 }

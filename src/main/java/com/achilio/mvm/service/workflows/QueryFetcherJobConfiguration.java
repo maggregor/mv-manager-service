@@ -61,10 +61,11 @@ public class QueryFetcherJobConfiguration extends DefaultBatchConfigurer {
   @Bean
   @StepScope
   public IteratorItemReader<com.google.cloud.bigquery.Job> reader(
-      @Value("#{jobParameters['projectId']}") String projectId) {
+      @Value("#{jobParameters['projectId']}") String projectId,
+      @Value("#{jobParameters['timeframe']}") int timeframe) {
     LOGGER.info(projectId);
     if (projectId != null) {
-      return new QueryFetcherReader(fetcherService.fetchJobIterable(projectId));
+      return new QueryFetcherJobReader(fetcherService.fetchJobIterable(projectId, timeframe));
     }
     return new IteratorItemReader<>(Collections.singletonList(null));
   }
@@ -88,7 +89,7 @@ public class QueryFetcherJobConfiguration extends DefaultBatchConfigurer {
         .get("retrieveQueries")
         .transactionManager(jpaTransactionManager())
         .<com.google.cloud.bigquery.Job, Query>chunk(1000)
-        .reader(reader(null))
+        .reader(reader(null, 0))
         .processor(new BigQueryJobProcessor())
         .writer(writer)
         .build();
