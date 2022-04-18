@@ -5,8 +5,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 
 import com.achilio.mvm.service.entities.Query;
-import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
-import java.time.LocalDate;
 import java.util.Date;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -20,8 +18,6 @@ public class QueryTest {
   private final boolean useMaterializedView = false;
   private final boolean useCache = false;
   private final String googleJobId = "google-id";
-  private final LocalDate startTime = LocalDate.of(2020, 1, 8);
-  private final QueryUsageStatistics stats = new QueryUsageStatistics(1, 10L, 100L);
   private final String defaultDataset = "myDefaultDataset";
 
   @Test
@@ -35,6 +31,8 @@ public class QueryTest {
             useMaterializedView,
             useCache,
             new Date());
+    query.setBilledBytes(10L);
+    query.setProcessedBytes(100L);
     assertEquals(queryStatement, query.getQuery());
     assertEquals(googleJobId, query.getId());
     assertEquals(projectId, query.getProjectId());

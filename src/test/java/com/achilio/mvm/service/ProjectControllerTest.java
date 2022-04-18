@@ -11,12 +11,10 @@ import static org.mockito.Mockito.when;
 import com.achilio.mvm.service.controllers.ProjectController;
 import com.achilio.mvm.service.controllers.requests.ACreateProjectRequest;
 import com.achilio.mvm.service.controllers.requests.UpdateProjectRequest;
-import com.achilio.mvm.service.controllers.responses.AggregatedStatisticsResponse;
 import com.achilio.mvm.service.controllers.responses.DatasetResponse;
 import com.achilio.mvm.service.controllers.responses.ProjectResponse;
 import com.achilio.mvm.service.entities.ADataset;
 import com.achilio.mvm.service.entities.Project;
-import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import com.achilio.mvm.service.services.ProjectService;
 import com.achilio.mvm.service.services.StripeService;
@@ -181,17 +179,6 @@ public class ProjectControllerTest {
     DatasetResponse responseEntity = controller.getDataset(TEST_PROJECT_ID1, TEST_DATASET_NAME1);
     String jsonResponse = objectMapper.writeValueAsString(responseEntity);
     assertEquals(expectedResponse, jsonResponse);
-  }
-
-  @Test
-  public void getKPIStatistics() throws Exception {
-    GlobalQueryStatistics statistics = new GlobalQueryStatistics();
-    when(mockedProjectService.getStatistics(TEST_PROJECT_ID1, 30)).thenReturn(statistics);
-    String expectedString =
-        "{\"totalQueries\":0,\"percentQueriesIn\":0.0,\"averageScannedBytes\":0}";
-    AggregatedStatisticsResponse responseEntity = controller.getKPIStatistics(TEST_PROJECT_ID1, 30);
-    String jsonResponse = objectMapper.writeValueAsString(responseEntity);
-    assertEquals(expectedString, jsonResponse);
   }
 
   private void assertProjectResponseEquals(Project expected, ProjectResponse actualProjectResponse)

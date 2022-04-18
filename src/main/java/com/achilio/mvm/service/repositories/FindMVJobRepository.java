@@ -5,7 +5,9 @@ import com.achilio.mvm.service.entities.Job.JobStatus;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public interface FindMVJobRepository extends JpaRepository<FindMVJob, Long> {
 
   Optional<FindMVJob> findTopByProjectIdAndStatusOrderByCreatedAtDesc(

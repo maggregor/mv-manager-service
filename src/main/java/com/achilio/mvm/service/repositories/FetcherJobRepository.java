@@ -6,7 +6,9 @@ import com.achilio.mvm.service.entities.Job.JobStatus;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public interface FetcherJobRepository extends JpaRepository<Job, Long> {
 
   List<FetcherStructJob> findFetcherStructJobsByProjectId(String projectId);

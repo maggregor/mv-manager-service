@@ -8,7 +8,6 @@ import com.achilio.mvm.service.databases.entities.FetchedDataset;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.entities.MaterializedView;
-import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import com.achilio.mvm.service.visitors.ATableId;
 import com.google.api.gax.paging.Page;
@@ -23,7 +22,6 @@ import com.google.cloud.bigquery.DatasetId;
 import com.google.cloud.bigquery.Field;
 import com.google.cloud.bigquery.Job;
 import com.google.cloud.bigquery.JobInfo;
-import com.google.cloud.bigquery.JobStatistics;
 import com.google.cloud.bigquery.LegacySQLTypeName;
 import com.google.cloud.bigquery.MaterializedViewDefinition;
 import com.google.cloud.bigquery.QueryJobConfiguration;
@@ -203,18 +201,6 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
 
   public boolean isQueryJob(Job job) {
     return job.getConfiguration() instanceof QueryJobConfiguration;
-  }
-
-  public QueryUsageStatistics toQueryUsageStatistics(
-      JobStatistics.QueryStatistics queryStatistics) {
-    QueryUsageStatistics statistics = new QueryUsageStatistics();
-    if (queryStatistics.getTotalBytesProcessed() != null) {
-      statistics.setProcessedBytes(queryStatistics.getTotalBytesProcessed());
-    }
-    if (queryStatistics.getTotalBytesBilled() != null) {
-      statistics.setBilledBytes(queryStatistics.getTotalBytesBilled());
-    }
-    return statistics;
   }
 
   public boolean containsManagedMVUsageInQueryStages(List<QueryStage> stages) {

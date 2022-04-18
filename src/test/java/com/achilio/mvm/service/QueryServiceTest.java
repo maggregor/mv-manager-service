@@ -4,14 +4,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import com.achilio.mvm.service.entities.Query;
-import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics;
 import com.achilio.mvm.service.exceptions.QueryNotFoundException;
 import com.achilio.mvm.service.repositories.FetcherJobRepository;
 import com.achilio.mvm.service.repositories.QueryRepository;
 import com.achilio.mvm.service.services.QueryService;
-import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import org.junit.Assert;
 import org.junit.Before;
@@ -55,24 +51,5 @@ public class QueryServiceTest {
 
     Assert.assertThrows(
         QueryNotFoundException.class, () -> service.getQuery("unknownQueryId", PROJECT_ID1));
-  }
-
-  @Test
-  public void getStatistics() {
-    GlobalQueryStatistics global = service.getStatistics(Arrays.asList(QUERY1, QUERY2));
-    Assert.assertEquals(2, global.getTotalStatistics().getTotalQueries());
-    Assert.assertEquals(20L, global.getTotalStatistics().getTotalProcessedBytes());
-    Assert.assertEquals(200L, global.getTotalStatistics().getTotalBilledBytes());
-  }
-
-  @Test
-  public void getStatisticsByProject() {
-    LocalDate from = LocalDate.now().minusDays(10);
-    when(mockQueryRepository.findAllByProjectIdAndStartTimeGreaterThanEqual(PROJECT_ID1, from))
-        .thenReturn(Collections.singletonList(QUERY1));
-    GlobalQueryStatistics global = service.getStatistics(PROJECT_ID1, from);
-    Assert.assertEquals(1, global.getTotalStatistics().getTotalQueries());
-    Assert.assertEquals(10L, global.getTotalStatistics().getTotalProcessedBytes());
-    Assert.assertEquals(100L, global.getTotalStatistics().getTotalBilledBytes());
   }
 }

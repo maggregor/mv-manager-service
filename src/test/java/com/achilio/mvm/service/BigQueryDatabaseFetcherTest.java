@@ -2,7 +2,6 @@ package com.achilio.mvm.service;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -12,8 +11,6 @@ import com.achilio.mvm.service.databases.bigquery.BigQueryDatabaseFetcher;
 import com.achilio.mvm.service.databases.entities.FetchedDataset;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
-import com.achilio.mvm.service.entities.statistics.QueryStatistics;
-import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
 import com.google.api.gax.paging.Page;
 import com.google.cloud.bigquery.BigQuery;
 import com.google.cloud.bigquery.BigQuery.TableField;
@@ -152,20 +149,6 @@ public class BigQueryDatabaseFetcherTest {
     assertFalse(fetcher.notInError(mockJob));
     when(mockJob.getStatus().getError()).thenReturn(null);
     assertTrue(fetcher.notInError(mockJob));
-  }
-
-  @Test
-  public void jobStatisticsToQueryStatistics() {
-    final QueryStatistics expected = new QueryStatistics();
-    expected.addBilledBytes(100L);
-    expected.addProcessedBytes(10L);
-    JobStatistics.QueryStatistics mockJobStats = mock(JobStatistics.QueryStatistics.class);
-    when(mockJobStats.getTotalBytesBilled()).thenReturn(100L);
-    when(mockJobStats.getTotalBytesProcessed()).thenReturn(10L);
-    QueryUsageStatistics actual = fetcher.toQueryUsageStatistics(mockJobStats);
-    assertNotNull(actual);
-    assertEquals(expected.getTotalBilledBytes(), actual.getBilledBytes());
-    assertEquals(expected.getTotalProcessedBytes(), actual.getProcessedBytes());
   }
 
   @Test
