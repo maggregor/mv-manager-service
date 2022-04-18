@@ -109,7 +109,7 @@ public class ProjectService {
     return datasetRepository.findByProject_ProjectIdAndDatasetName(projectId, datasetName);
   }
 
-  public ADataset getDataset(ahString datasetName) {
+  public ADataset getDataset(String projectId, String datasetName) {
     return findDataset(projectId, datasetName)
         .orElseThrow(() -> new DatasetNotFoundException(datasetName));
   }

@@ -117,7 +117,7 @@ public class ProjectController {
   @ApiOperation("Get a single dataset for a given projectId")
   public DatasetResponse getDataset(
       @PathVariable final String projectId, @PathVariable final String datasetName) {
-    projectService.getProject(projectId, getContextTeamName())
+    projectService.getProject(projectId, getContextTeamName());
     ADataset dataset = projectService.getDataset(projectId, datasetName);
     return toDatasetResponse(dataset);
   }
