@@ -23,20 +23,29 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-/** Services to manage project and dataset resources. */
+/**
+ * Services to manage project and dataset resources.
+ */
 @Service
 public class ProjectService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ProjectService.class);
 
-  @Autowired private ProjectRepository projectRepository;
-  @Autowired private ADatasetRepository datasetRepository;
-  @Autowired private ATableRepository tableRepository;
-  @Autowired private AColumnRepository columnRepository;
-  @Autowired private FetcherService fetcherService;
-  @Autowired private ConnectionService connectionService;
+  @Autowired
+  private ProjectRepository projectRepository;
+  @Autowired
+  private ADatasetRepository datasetRepository;
+  @Autowired
+  private ATableRepository tableRepository;
+  @Autowired
+  private AColumnRepository columnRepository;
+  @Autowired
+  private FetcherService fetcherService;
+  @Autowired
+  private ConnectionService connectionService;
 
-  public ProjectService() {}
+  public ProjectService() {
+  }
 
   public List<Project> getAllActivatedProjects(String teamName) {
     return projectRepository.findAllByActivatedAndTeamName(true, teamName);
@@ -55,7 +64,8 @@ public class ProjectService {
   }
 
   /**
-   * deleteProject does not actually delete the object in DB but set the project to activated: false
+   * deleteProject does not actually delete the object in DB but set the project to activated:
+   * false
    */
   @Transactional
   public void deleteProject(String projectId) {
@@ -99,7 +109,7 @@ public class ProjectService {
     return datasetRepository.findByProject_ProjectIdAndDatasetName(projectId, datasetName);
   }
 
-  public ADataset getDataset(String projectId, String datasetName) {
+  public ADataset getDataset(ahString datasetName) {
     return findDataset(projectId, datasetName)
         .orElseThrow(() -> new DatasetNotFoundException(datasetName));
   }

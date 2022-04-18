@@ -38,8 +38,10 @@ public class QueryControllerTest {
   private final String googleJobId = "google-id";
   private Query query1;
   private Query query2;
-  @InjectMocks private QueryController controller;
-  @Mock private QueryService mockQueryService;
+  @InjectMocks
+  private QueryController controller;
+  @Mock
+  private QueryService mockQueryService;
 
   @Before
   public void setup() {
@@ -62,8 +64,8 @@ public class QueryControllerTest {
             useCache,
             new Date());
     when(mockQueryService.getAllQueries(TEST_PROJECT_ID)).thenReturn(Arrays.asList(query1, query2));
-    when(mockQueryService.getQuery(googleJobId, TEST_PROJECT_ID)).thenReturn(query1);
-    when(mockQueryService.getQuery("unknownQueryId", TEST_PROJECT_ID))
+    when(mockQueryService.getQuery(TEST_PROJECT_ID, googleJobId)).thenReturn(query1);
+    when(mockQueryService.getQuery(TEST_PROJECT_ID, "unknownQueryId"))
         .thenThrow(new QueryNotFoundException("unknownQueryId"));
   }
 
