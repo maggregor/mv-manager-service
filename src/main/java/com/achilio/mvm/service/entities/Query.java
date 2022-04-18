@@ -4,11 +4,15 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import javax.persistence.Column;
+import javax.persistence.DiscriminatorColumn;
+import javax.persistence.DiscriminatorType;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
 import javax.persistence.Id;
 import javax.persistence.Index;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
 import javax.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -27,6 +31,11 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 @EnableJpaAuditing
 @NoArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(
+    name = "type",
+    discriminatorType = DiscriminatorType.STRING,
+    columnDefinition = "varchar(31) default 'bigquery_job'")
 public class Query {
 
   @Column(name = "query_statement", columnDefinition = "text")
@@ -58,11 +67,12 @@ public class Query {
   @Column(name = "default_dataset")
   private String defaultDataset = null;
 
-  @Column(name = "error")
+  @Column(name = "error", columnDefinition = "text")
   private String error = null;
 
   @Column(name = "tables")
   @ElementCollection
+  // TODO an index ? -> Maybe: @CollectionTable(indexes = {@Index(columnList = "tables")})
   private List<String> tableId = new ArrayList<>();
 
   public Query(String query, String projectId) {

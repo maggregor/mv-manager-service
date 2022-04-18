@@ -10,6 +10,7 @@ import com.google.cloud.bigquery.QueryStage;
 import com.google.cloud.bigquery.QueryStage.QueryStep;
 import java.util.Date;
 import java.util.List;
+import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,6 +25,7 @@ import org.apache.logging.log4j.util.Strings;
 @Getter
 @Setter
 @NoArgsConstructor
+@DiscriminatorValue("bigquery_job")
 public class BigQueryJob extends Query {
 
   public BigQueryJob(Job job) {
@@ -45,9 +47,10 @@ public class BigQueryJob extends Query {
     QueryStatistics stats = job.getStatistics();
     if (stats != null) {
       setStartTime(new Date(stats.getStartTime()));
-      setProcessedBytes(stats.getTotalBytesProcessed());
-      setBilledBytes(stats.getTotalBytesBilled());
-      setUseCache(stats.getCacheHit());
+      setProcessedBytes(
+          stats.getTotalBytesProcessed() == null ? 0L : stats.getTotalBytesProcessed());
+      setBilledBytes(stats.getTotalBytesBilled() == null ? 0L : stats.getTotalBytesBilled());
+      setUseCache(stats.getCacheHit() != null && stats.getCacheHit());
       setUseMaterializedView(containsManagedMVUsageInQueryStages(stats.getQueryPlan()));
     }
   }

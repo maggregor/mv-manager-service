@@ -13,6 +13,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -41,6 +42,9 @@ public class ATable {
 
   @Column(unique = true)
   private String tableId;
+
+  @Formula("(SELECT COUNT(*) FROM query_table_id q WHERE q.tables = table_id)")
+  private int queryCount;
 
   public ATable() {}
 

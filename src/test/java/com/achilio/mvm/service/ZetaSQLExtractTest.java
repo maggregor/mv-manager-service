@@ -24,6 +24,12 @@ public class ZetaSQLExtractTest {
   }
 
   @Test
+  public void whenStatementHaveBackTicks__thenReturnsFullTableId() {
+    Query query = new Query("SELECT * FROM `myProject.d.t`", "myProject");
+    assertExtractTableId(query, ATableId.of("myProject", "d", "t"));
+  }
+
+  @Test
   public void whenStatementOnlyHaveDatasetAndTable__thenReturnsFullTableId() {
     Query query = new Query("SELECT * FROM d.t", "myProject");
     assertExtractTableId(query, ATableId.of("myProject", "d", "t"));

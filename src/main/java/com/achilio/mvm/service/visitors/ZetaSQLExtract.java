@@ -44,7 +44,8 @@ public class ZetaSQLExtract extends ZetaSQLModelBuilder implements FieldSetExtra
 
   @Override
   public List<ATableId> extractATableIds(Query query) {
-    return extractTableNames(query.getQuery()).stream()
+    String statement = removeTableNamesBackticks(query.getQuery());
+    return extractTableNames(statement).stream()
         .map(
             path -> {
               if (path.isEmpty() || path.size() > 3) {
