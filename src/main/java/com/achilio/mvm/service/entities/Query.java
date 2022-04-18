@@ -1,14 +1,18 @@
 package com.achilio.mvm.service.entities;
 
-import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
-import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import javax.persistence.Column;
+import javax.persistence.DiscriminatorColumn;
+import javax.persistence.DiscriminatorType;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
 import javax.persistence.Id;
 import javax.persistence.Index;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
 import javax.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,20 +27,15 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 @Setter
 @Table(
     name = "queries",
-    indexes = {
-      @Index(name = "job_and_project", columnList = "last_fetcher_query_job_id,project_id"),
-      @Index(name = "project", columnList = "project_id")
-    })
+    indexes = {@Index(name = "project", columnList = "project_id")})
 @EnableJpaAuditing
 @NoArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(
+    discriminatorType = DiscriminatorType.STRING,
+    columnDefinition = "varchar(31) default 'BigQueryJob'")
 public class Query {
-
-  @ManyToOne private FetcherQueryJob lastFetcherQueryJob;
-
-  @ManyToOne
-  @JoinColumn(updatable = false)
-  private FetcherQueryJob initialFetcherQueryJob;
 
   @Column(name = "query_statement", columnDefinition = "text")
   private String query;
@@ -56,7 +55,7 @@ public class Query {
   private boolean useCache = false;
 
   @Column(name = "start_time")
-  private LocalDate startTime;
+  private Date startTime;
 
   @Column(name = "billed_bytes")
   private long billedBytes = 0;
@@ -67,26 +66,27 @@ public class Query {
   @Column(name = "default_dataset")
   private String defaultDataset = null;
 
-  public Query(
-      String query,
-      String projectId
-  ) {
+  @Column(name = "error", columnDefinition = "text")
+  private String error = null;
+
+  @Column(name = "tables")
+  @ElementCollection
+  // TODO an index ? -> Maybe: @CollectionTable(indexes = {@Index(columnList = "tables")})
+  private List<String> tableId = new ArrayList<>();
+
+  public Query(String query, String projectId) {
     this.query = query;
     this.projectId = projectId;
   }
 
   public Query(
-      FetcherQueryJob lastFetcherQueryJob,
       String query,
       String id,
       String projectId,
       String defaultDataset,
       boolean useMaterializedView,
       boolean useCache,
-      LocalDate startTime,
-      QueryUsageStatistics statistics) {
-    this.lastFetcherQueryJob = lastFetcherQueryJob;
-    this.initialFetcherQueryJob = lastFetcherQueryJob;
+      Date startTime) {
     this.query = query;
     this.id = id;
     this.projectId = projectId;
@@ -94,8 +94,6 @@ public class Query {
     this.useMaterializedView = useMaterializedView;
     this.useCache = useCache;
     this.startTime = startTime;
-    this.billedBytes = statistics.getBilledBytes();
-    this.processedBytes = statistics.getProcessedBytes();
   }
 
   public boolean hasDefaultDataset() {

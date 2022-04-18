@@ -6,9 +6,9 @@ import java.util.Map;
 
 public class DefaultFetchedTable implements FetchedTable {
 
-  private ATableId tableId;
+  private final ATableId tableId;
 
-  private Map<String, String> columns;
+  private final Map<String, String> columns;
 
   @Deprecated
   public DefaultFetchedTable(final String project, final String dataset, final String table) {

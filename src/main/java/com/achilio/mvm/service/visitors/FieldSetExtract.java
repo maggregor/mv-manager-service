@@ -13,6 +13,8 @@ import java.util.stream.Collectors;
  */
 public interface FieldSetExtract {
 
+  List<ATableId> extractATableIds(Query query);
+
   List<FieldSet> extractAll(Query query);
 
   default List<FieldSet> extractAll(List<Query> queries) {

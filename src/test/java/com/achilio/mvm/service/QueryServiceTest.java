@@ -3,20 +3,12 @@ package com.achilio.mvm.service;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-import com.achilio.mvm.service.entities.FetcherQueryJob;
 import com.achilio.mvm.service.entities.Query;
-import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics;
-import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
-import com.achilio.mvm.service.exceptions.FetcherJobNotFoundException;
-import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import com.achilio.mvm.service.exceptions.QueryNotFoundException;
 import com.achilio.mvm.service.repositories.FetcherJobRepository;
 import com.achilio.mvm.service.repositories.QueryRepository;
 import com.achilio.mvm.service.services.QueryService;
-import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.Date;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -32,75 +24,22 @@ public class QueryServiceTest {
   private final String PROJECT_ID1 = "myProjectId";
   private final String QUERY_ID1 = "queryId1";
   private final String QUERY_ID2 = "queryId2";
-  private final LocalDate startTime = LocalDate.of(2020, 1, 8);
-  private final QueryUsageStatistics stats = new QueryUsageStatistics(1, 100L, 10L);
-  private final FetcherQueryJob JOB1 = new FetcherQueryJob(PROJECT_ID1);
+  private final Date startTime = new Date();
   private final Query QUERY1 =
-      new Query(JOB1, "SELECT 1", QUERY_ID1, PROJECT_ID1, "", false, false, startTime, stats);
+      new Query("SELECT 1", QUERY_ID1, PROJECT_ID1, "", false, false, startTime);
   private final Query QUERY2 =
-      new Query(JOB1, "SELECT 2", QUERY_ID2, PROJECT_ID1, "", false, false, startTime, stats);
-  private final FetcherQueryJob JOB2 = new FetcherQueryJob(PROJECT_ID1);
+      new Query("SELECT 2", QUERY_ID2, PROJECT_ID1, "", false, false, startTime);
   @InjectMocks private QueryService service;
   @Mock private QueryRepository mockQueryRepository;
   @Mock private FetcherJobRepository mockFetcherJobRepository;
 
   @Before
   public void setup() {
-    JOB1.setId(1L);
-    JOB2.setId(2L);
-    when(mockFetcherJobRepository.findFetcherQueryJobByIdAndProjectId(
-            ArgumentMatchers.eq(1L), any()))
-        .thenReturn(java.util.Optional.of(JOB1));
-    when(mockFetcherJobRepository.findFetcherQueryJobByIdAndProjectId(
-            ArgumentMatchers.eq(2L), any()))
-        .thenReturn(java.util.Optional.of(JOB2));
-    when(mockFetcherJobRepository.findFetcherQueryJobByIdAndProjectId(
-            ArgumentMatchers.eq(-1L), any()))
-        .thenReturn(java.util.Optional.empty());
-    when(mockFetcherJobRepository.findTopFetcherQueryJobByProjectIdOrderByCreatedAtDesc(any()))
-        .thenReturn(java.util.Optional.of(JOB1));
-    when(mockQueryRepository.findAllByInitialFetcherQueryJobAndProjectId(
-            ArgumentMatchers.eq(JOB1), any()))
-        .thenReturn(Arrays.asList(QUERY1, QUERY2));
-    when(mockQueryRepository.findAllByInitialFetcherQueryJobAndProjectId(
-            ArgumentMatchers.eq(JOB2), any()))
-        .thenReturn(Collections.emptyList());
     when(mockQueryRepository.findQueryByIdAndProjectId(any(), any()))
         .thenReturn(java.util.Optional.of(QUERY1));
     when(mockQueryRepository.findQueryByIdAndProjectId(
             ArgumentMatchers.eq("unknownQueryId"), any()))
         .thenReturn(java.util.Optional.empty());
-  }
-
-  @Test
-  public void getAllQueriesByJobIdAndProjectId() {
-    List<Query> queries = service.getAllQueriesByJobIdAndProjectId(JOB1.getId(), PROJECT_ID1);
-    Assert.assertEquals(2, queries.size());
-    Assert.assertEquals("SELECT 1", queries.get(0).getQuery());
-    Assert.assertEquals("SELECT 2", queries.get(1).getQuery());
-
-    queries = service.getAllQueriesByJobIdAndProjectId(JOB2.getId(), PROJECT_ID1);
-    Assert.assertEquals(0, queries.size());
-
-    Assert.assertThrows(
-        FetcherJobNotFoundException.class,
-        () -> service.getAllQueriesByJobIdAndProjectId(-1L, PROJECT_ID1));
-  }
-
-  @Test
-  public void getAllQueriesByProjectIdLastJob() {
-    when(mockFetcherJobRepository.findTopFetcherQueryJobByProjectIdOrderByCreatedAtDesc(
-            "unknownProjectId"))
-        .thenReturn(java.util.Optional.empty());
-
-    List<Query> queries = service.getAllQueriesByProjectIdLastJob(PROJECT_ID1);
-    Assert.assertEquals(2, queries.size());
-    Assert.assertEquals("SELECT 1", queries.get(0).getQuery());
-    Assert.assertEquals("SELECT 2", queries.get(1).getQuery());
-
-    Assert.assertThrows(
-        ProjectNotFoundException.class,
-        () -> service.getAllQueriesByProjectIdLastJob("unknownProjectId"));
   }
 
   @Test
@@ -112,24 +51,5 @@ public class QueryServiceTest {
 
     Assert.assertThrows(
         QueryNotFoundException.class, () -> service.getQuery("unknownQueryId", PROJECT_ID1));
-  }
-
-  @Test
-  public void getStatistics() {
-    GlobalQueryStatistics global = service.getStatistics(Arrays.asList(QUERY1, QUERY2));
-    Assert.assertEquals(2, global.getTotalStatistics().getTotalQueries());
-    Assert.assertEquals(20L, global.getTotalStatistics().getTotalProcessedBytes());
-    Assert.assertEquals(200L, global.getTotalStatistics().getTotalBilledBytes());
-  }
-
-  @Test
-  public void getStatisticsByProject() {
-    LocalDate from = LocalDate.now().minusDays(10);
-    when(mockQueryRepository.findAllByProjectIdAndStartTimeGreaterThanEqual(PROJECT_ID1, from))
-        .thenReturn(Collections.singletonList(QUERY1));
-    GlobalQueryStatistics global = service.getStatistics(PROJECT_ID1, from);
-    Assert.assertEquals(1, global.getTotalStatistics().getTotalQueries());
-    Assert.assertEquals(10L, global.getTotalStatistics().getTotalProcessedBytes());
-    Assert.assertEquals(100L, global.getTotalStatistics().getTotalBilledBytes());
   }
 }

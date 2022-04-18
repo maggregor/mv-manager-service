@@ -6,14 +6,10 @@ import com.achilio.mvm.service.databases.entities.DefaultFetchedProject;
 import com.achilio.mvm.service.databases.entities.DefaultFetchedTable;
 import com.achilio.mvm.service.databases.entities.FetchedDataset;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
-import com.achilio.mvm.service.databases.entities.FetchedQuery;
-import com.achilio.mvm.service.databases.entities.FetchedQueryFactory;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.entities.MaterializedView;
-import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import com.achilio.mvm.service.visitors.ATableId;
-import com.google.api.gax.paging.Page;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.bigquery.BigQuery;
 import com.google.cloud.bigquery.BigQuery.TableField;
@@ -25,12 +21,9 @@ import com.google.cloud.bigquery.DatasetId;
 import com.google.cloud.bigquery.Field;
 import com.google.cloud.bigquery.Job;
 import com.google.cloud.bigquery.JobInfo;
-import com.google.cloud.bigquery.JobStatistics;
 import com.google.cloud.bigquery.LegacySQLTypeName;
 import com.google.cloud.bigquery.MaterializedViewDefinition;
 import com.google.cloud.bigquery.QueryJobConfiguration;
-import com.google.cloud.bigquery.QueryStage;
-import com.google.cloud.bigquery.QueryStage.QueryStep;
 import com.google.cloud.bigquery.Schema;
 import com.google.cloud.bigquery.StandardTableDefinition;
 import com.google.cloud.bigquery.Table;
@@ -48,13 +41,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.Spliterator;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,7 +53,6 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
 
   public static final int LIST_JOB_PAGE_SIZE = 1000;
   private static final Logger LOGGER = LoggerFactory.getLogger(BigQueryDatabaseFetcher.class);
-  private static final String SQL_FROM_WORD = "FROM";
   private final BigQuery bigquery;
   private final ResourceManager resourceManager;
 
@@ -97,19 +86,6 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     if (StringUtils.isNotEmpty(projectId)) {
       fetchProject(projectId);
     }
-  }
-
-  @Override
-  public List<FetchedQuery> fetchAllQueries() {
-    return fetchAllQueriesFrom(0);
-  }
-
-  @Override
-  public List<FetchedQuery> fetchAllQueriesFrom(long fromCreationTime) {
-    return fetchJobs(fromCreationTime)
-        .filter(this::isValidQueryJob)
-        .map(this::toFetchedQuery)
-        .collect(Collectors.toList());
   }
 
   @Override
@@ -195,88 +171,9 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     }
   }
 
-  public void close() {}
-
-  private Stream<Job> fetchJobs(long fromCreationTime) {
-    List<BigQuery.JobListOption> options = getJobListOptions(fromCreationTime);
-    final Page<Job> jobPages = bigquery.listJobs(options.toArray(new BigQuery.JobListOption[0]));
-    return StreamSupport.stream(jobPages.iterateAll().spliterator(), true);
-  }
-
-  /** Returns true if a job is a query job */
-  public boolean isValidQueryJob(Job job) {
-    return Objects.nonNull(job) && isQueryJob(job) && notInError(job);
-  }
-
-  public boolean notInError(Job job) {
-    return job.getStatus().getError() == null;
-  }
-
-  public boolean isQueryJob(Job job) {
-    return job.getConfiguration() instanceof QueryJobConfiguration;
-  }
-
-  /**
-   * Convert a QueryJob (Google) to a FetchedQuery. Retrieve some metrics google side (processed
-   * bytes, cache using...)
-   */
-  private FetchedQuery toFetchedQuery(Job job) {
-    String query;
-    final QueryJobConfiguration configuration = job.getConfiguration();
-    query = StringUtils.trim(configuration.getQuery());
-    DatasetId dataset = configuration.getDefaultDataset();
-    final JobStatistics.QueryStatistics stats = job.getStatistics();
-    Long startTime = stats.getStartTime();
-    final boolean useCache = BooleanUtils.isTrue(stats.getCacheHit());
-    final boolean usingManagedMV = containsManagedMVUsageInQueryStages(stats.getQueryPlan());
-    FetchedQuery fetchedQuery =
-        FetchedQueryFactory.createFetchedQuery(
-            job.getJobId().getProject(), StringUtils.trim(query));
-    fetchedQuery.setStartTime(startTime);
-    fetchedQuery.setStatistics(toQueryUsageStatistics(stats));
-    fetchedQuery.setUseMaterializedView(usingManagedMV);
-    fetchedQuery.setUseCache(useCache);
-    fetchedQuery.setGoogleJobId(job.getJobId().getJob());
-    fetchedQuery.setDefaultDataset(dataset == null ? null : dataset.getDataset());
-    return fetchedQuery;
-  }
-
-  public QueryUsageStatistics toQueryUsageStatistics(
-      JobStatistics.QueryStatistics queryStatistics) {
-    QueryUsageStatistics statistics = new QueryUsageStatistics();
-    if (queryStatistics.getTotalBytesProcessed() != null) {
-      statistics.setProcessedBytes(queryStatistics.getTotalBytesProcessed());
-    }
-    if (queryStatistics.getTotalBytesBilled() != null) {
-      statistics.setBilledBytes(queryStatistics.getTotalBytesBilled());
-    }
-    return statistics;
-  }
-
-  public boolean containsManagedMVUsageInQueryStages(List<QueryStage> stages) {
-    if (stages == null) {
-      LOGGER.debug("Skipped plan analysis: the stage is null");
-      return false;
-    }
-    for (QueryStage queryStage : stages) {
-      for (QueryStage.QueryStep queryStep : queryStage.getSteps()) {
-        if (containsSubStepUsingMVM(queryStep)) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  /**
-   * In the query substeps, filter only the steps that hit a managed materialized view (mmv)
-   *
-   * @param step - QueryStage#QueryStep from fetched BigQuery history which contains subSteps.
-   * @return boolean - True if the query plan used a MVM.
-   */
-  public boolean containsSubStepUsingMVM(QueryStep step) {
-    return step.getSubsteps().stream()
-        .anyMatch(subStep -> subStep.contains(SQL_FROM_WORD) && (subStep.contains("achilio_mv_")));
+  public Iterable<Job> fetchJobIterable(long fromTimestamp) {
+    List<BigQuery.JobListOption> options = getJobListOptions(fromTimestamp);
+    return bigquery.listJobs(options.toArray(new BigQuery.JobListOption[0])).iterateAll();
   }
 
   private List<BigQuery.JobListOption> getJobListOptions(long fromCreationTime) {

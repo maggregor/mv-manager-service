@@ -2,9 +2,7 @@ package com.achilio.mvm.service.controllers;
 
 import static com.achilio.mvm.service.UserContextHelper.getContextTeamName;
 
-import com.achilio.mvm.service.controllers.requests.FetcherQueryJobRequest;
 import com.achilio.mvm.service.controllers.requests.FetcherStructJobRequest;
-import com.achilio.mvm.service.entities.FetcherQueryJob;
 import com.achilio.mvm.service.entities.FetcherStructJob;
 import com.achilio.mvm.service.entities.Job.JobStatus;
 import com.achilio.mvm.service.exceptions.FetcherJobNotFoundException;
@@ -39,49 +37,6 @@ public class FetcherJobController {
   public FetcherJobController(FetcherJobService fetcherJobService, ProjectService projectService) {
     this.fetcherJobService = fetcherJobService;
     this.projectService = projectService;
-  }
-
-  // Fetcher for Queries
-
-  @GetMapping(path = "/query", produces = MediaType.APPLICATION_JSON_VALUE)
-  @ApiOperation(
-      "List all fetcher query job for a given projectId.\n"
-          + "If last URL Param is passed and set to true, returns a singleton with the latest fetcher query job")
-  public List<FetcherQueryJob> getAllFetcherQueryJobsByProjectId(
-      @RequestParam String projectId,
-      @RequestParam(required = false) Boolean last,
-      @RequestParam(required = false) JobStatus status) {
-    projectService.getProject(projectId, getContextTeamName());
-    if (Boolean.TRUE == last) {
-      Optional<FetcherQueryJob> optionalFetcherJob;
-      optionalFetcherJob = fetcherJobService.getLastFetcherQueryJob(projectId, status);
-      return optionalFetcherJob.map(Collections::singletonList).orElse(Collections.emptyList());
-    }
-    return fetcherJobService.getAllQueryJobs(projectId, status);
-  }
-
-  @GetMapping(path = "/query/{fetcherQueryJobId}", produces = MediaType.APPLICATION_JSON_VALUE)
-  @ApiOperation("Get a fetcher query job for a the given fetcherQueryJobId.")
-  public FetcherQueryJob getFetcherQueryJob(
-      @RequestParam String projectId, @PathVariable Long fetcherQueryJobId) {
-    projectService.getProject(projectId, getContextTeamName());
-    Optional<FetcherQueryJob> optionalFetcherJob =
-        fetcherJobService.getFetcherQueryJob(fetcherQueryJobId, projectId);
-    if (!optionalFetcherJob.isPresent()) {
-      throw new FetcherJobNotFoundException(fetcherQueryJobId.toString());
-    }
-    return optionalFetcherJob.get();
-  }
-
-  @PostMapping(path = "/query", produces = MediaType.APPLICATION_JSON_VALUE)
-  @ApiOperation("Create and start a new query fetching job")
-  public FetcherQueryJob createNewFetcherQueryJob(@RequestBody FetcherQueryJobRequest payload) {
-    String projectId = payload.getProjectId();
-    projectService.getProject(projectId, getContextTeamName());
-    FetcherQueryJob currentJob = fetcherJobService.createNewFetcherQueryJob(projectId, payload);
-    LOGGER.info("Starting FetcherQueryJob {}", currentJob.getId());
-    fetcherJobService.fetchAllQueriesJob(currentJob, getContextTeamName());
-    return currentJob;
   }
 
   // Fetcher for Structs

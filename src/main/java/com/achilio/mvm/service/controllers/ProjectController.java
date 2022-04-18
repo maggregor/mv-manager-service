@@ -6,13 +6,11 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.achilio.mvm.service.controllers.requests.ACreateProjectRequest;
 import com.achilio.mvm.service.controllers.requests.UpdateProjectRequest;
-import com.achilio.mvm.service.controllers.responses.AggregatedStatisticsResponse;
 import com.achilio.mvm.service.controllers.responses.DatasetResponse;
 import com.achilio.mvm.service.controllers.responses.ProjectResponse;
 import com.achilio.mvm.service.controllers.responses.UpdateDatasetRequestResponse;
 import com.achilio.mvm.service.entities.ADataset;
 import com.achilio.mvm.service.entities.Project;
-import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics;
 import com.achilio.mvm.service.services.ProjectService;
 import com.achilio.mvm.service.services.StripeService;
 import io.swagger.annotations.ApiOperation;
@@ -122,21 +120,6 @@ public class ProjectController {
     projectService.getProject(projectId, getContextTeamName());
     ADataset dataset = projectService.getDataset(projectId, datasetName);
     return toDatasetResponse(dataset);
-  }
-
-  @GetMapping(
-      path = "/project/{projectId}/queries/{days}/statistics/kpi",
-      produces = APPLICATION_JSON_VALUE)
-  @ApiOperation("Get statistics of queries grouped per days for charts")
-  public AggregatedStatisticsResponse getKPIStatistics(
-      @PathVariable final String projectId, @PathVariable final int days) throws Exception {
-    projectService.getProject(projectId, getContextTeamName());
-    GlobalQueryStatistics statistics = projectService.getStatistics(projectId, days);
-    return toAggregatedStatistics(statistics);
-  }
-
-  public AggregatedStatisticsResponse toAggregatedStatistics(GlobalQueryStatistics statistics) {
-    return new AggregatedStatisticsResponse(statistics);
   }
 
   private ProjectResponse toProjectResponse(Project project) {

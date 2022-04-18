@@ -24,15 +24,6 @@ public class QueryController {
 
   @Autowired private QueryService queryService;
 
-  @GetMapping(
-      path = "/query/{projectId}/{fetcherQueryJobId}",
-      produces = MediaType.APPLICATION_JSON_VALUE)
-  @ApiOperation("List all queries for a given projectId and fetcherQueryJobId.\n")
-  public List<Query> getAllQueriesByProjectIdAndFetcherQueryJobId(
-      @PathVariable String projectId, @PathVariable Long fetcherQueryJobId) {
-    return queryService.getAllQueriesByJobIdAndProjectId(fetcherQueryJobId, projectId);
-  }
-
   @GetMapping(path = "/query/{projectId}", produces = MediaType.APPLICATION_JSON_VALUE)
   @ApiOperation("List all queries for a given projectId.\n")
   public List<Query> getAllQueriesByProjectId(@PathVariable String projectId) {

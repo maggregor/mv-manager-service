@@ -11,7 +11,7 @@ import com.achilio.mvm.service.repositories.MaterializedViewRepository;
 import com.achilio.mvm.service.visitors.ATableId;
 import java.util.List;
 import java.util.Optional;
-import org.junit.After;
+import javax.transaction.Transactional;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,6 +21,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
+@Transactional
 public class IntegrationMaterializedViewRepositoryTest {
 
   private static final String STATEMENT1 = "SELECT 1";
@@ -52,12 +53,8 @@ public class IntegrationMaterializedViewRepositoryTest {
   private static MaterializedView mv2;
   private static MaterializedView mv3;
   private static MaterializedView mv4;
-  private static MaterializedView mv5;
-  private static MaterializedView mv6;
   private static MaterializedView mv7;
-  private static MaterializedView mv8;
   private static MaterializedView mv9;
-  private static MaterializedView mv10;
   private static MaterializedView mv11;
   private static MaterializedView mv12;
   private static FindMVJob job1;
@@ -89,19 +86,10 @@ public class IntegrationMaterializedViewRepositoryTest {
     mv2 = repository.save(newMv2);
     mv3 = repository.save(newMv3);
     mv4 = repository.save(newMv4);
-    mv5 = repository.save(newMv5);
-    mv6 = repository.save(newMv6);
     mv7 = repository.save(newMv7);
-    mv8 = repository.save(newMv8);
     mv9 = repository.save(newMv9);
-    mv10 = repository.save(newMv10);
     mv11 = repository.save(newMv11);
     mv12 = repository.save(newMv12);
-  }
-
-  @After
-  public void clean() {
-    repository.deleteAll();
   }
 
   @Test

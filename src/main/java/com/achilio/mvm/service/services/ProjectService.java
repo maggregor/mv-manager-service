@@ -8,7 +8,6 @@ import com.achilio.mvm.service.entities.ADataset;
 import com.achilio.mvm.service.entities.ATable;
 import com.achilio.mvm.service.entities.Connection;
 import com.achilio.mvm.service.entities.Project;
-import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics;
 import com.achilio.mvm.service.exceptions.DatasetNotFoundException;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import com.achilio.mvm.service.exceptions.TableNotFoundException;
@@ -16,7 +15,6 @@ import com.achilio.mvm.service.repositories.AColumnRepository;
 import com.achilio.mvm.service.repositories.ADatasetRepository;
 import com.achilio.mvm.service.repositories.ATableRepository;
 import com.achilio.mvm.service.repositories.ProjectRepository;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import javax.transaction.Transactional;
@@ -37,7 +35,6 @@ public class ProjectService {
   @Autowired private AColumnRepository columnRepository;
   @Autowired private FetcherService fetcherService;
   @Autowired private ConnectionService connectionService;
-  @Autowired private QueryService queryService;
 
   public ProjectService() {}
 
@@ -172,11 +169,6 @@ public class ProjectService {
   @Transactional
   public void deleteDataset(ADataset d) {
     datasetRepository.deleteByDatasetId(d.getDatasetId());
-  }
-
-  public GlobalQueryStatistics getStatistics(String projectId, int days) throws Exception {
-    LocalDate from = LocalDate.now().minusDays(days);
-    return queryService.getStatistics(projectId, from);
   }
 
   @Transactional

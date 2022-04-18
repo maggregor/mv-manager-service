@@ -1,22 +1,17 @@
 package com.achilio.mvm.service.services;
 
-import com.achilio.mvm.service.controllers.requests.FetcherQueryJobRequest;
 import com.achilio.mvm.service.databases.entities.FetchedDataset;
-import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.entities.AColumn;
 import com.achilio.mvm.service.entities.ADataset;
 import com.achilio.mvm.service.entities.ATable;
-import com.achilio.mvm.service.entities.FetcherQueryJob;
 import com.achilio.mvm.service.entities.FetcherStructJob;
 import com.achilio.mvm.service.entities.Job;
 import com.achilio.mvm.service.entities.Job.JobStatus;
 import com.achilio.mvm.service.entities.Project;
-import com.achilio.mvm.service.entities.Query;
 import com.achilio.mvm.service.repositories.ADatasetRepository;
 import com.achilio.mvm.service.repositories.ATableRepository;
 import com.achilio.mvm.service.repositories.FetcherJobRepository;
-import com.achilio.mvm.service.repositories.QueryRepository;
 import com.achilio.mvm.service.visitors.ATableId;
 import com.google.common.annotations.VisibleForTesting;
 import java.util.ArrayList;
@@ -28,8 +23,6 @@ import java.util.stream.Collectors;
 import javax.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 
@@ -39,90 +32,23 @@ public class FetcherJobService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(FetcherJobService.class);
 
-  @Autowired private FetcherService fetcherService;
-  @Autowired private ProjectService projectService;
-  @Autowired private FetcherJobRepository fetcherJobRepository;
-  @Autowired private QueryRepository queryRepository;
-  @Autowired private ADatasetRepository datasetRepository;
-  @Autowired private ATableRepository tableRepository;
+  private final FetcherService fetcherService;
+  private final ProjectService projectService;
+  private final FetcherJobRepository fetcherJobRepository;
+  private final ADatasetRepository datasetRepository;
+  private final ATableRepository tableRepository;
 
-  public FetcherJobService() {}
-
-  public Optional<FetcherQueryJob> getLastFetcherQueryJob(String projectId) {
-    return getLastFetcherQueryJob(projectId, null);
-  }
-
-  public Optional<FetcherQueryJob> getLastFetcherQueryJob(String projectId, JobStatus status) {
-    if (status == null) {
-      return fetcherJobRepository.findTopFetcherQueryJobByProjectIdOrderByCreatedAtDesc(projectId);
-    }
-    return fetcherJobRepository.findTopFetcherQueryJobByProjectIdAndStatusOrderByCreatedAtDesc(
-        projectId, status);
-  }
-
-  public List<FetcherQueryJob> getAllQueryJobs(String projectId, JobStatus status) {
-    if (status == null) {
-      return fetcherJobRepository.findFetcherQueryJobsByProjectId(projectId);
-    }
-    return fetcherJobRepository.findFetcherQueryJobsByProjectIdAndStatus(projectId, status);
-  }
-
-  public Optional<FetcherQueryJob> getFetcherQueryJob(Long fetcherQueryJobId, String projectId) {
-    return fetcherJobRepository.findFetcherQueryJobByIdAndProjectId(fetcherQueryJobId, projectId);
-  }
-
-  public FetcherQueryJob createNewFetcherQueryJob(
-      String projectId, FetcherQueryJobRequest payload) {
-    FetcherQueryJob job;
-    if (payload.getTimeframe() != null) {
-      job = new FetcherQueryJob(projectId, payload.getTimeframe());
-    } else {
-      job = new FetcherQueryJob(projectId);
-    }
-    return fetcherJobRepository.save(job);
-  }
-
-  @Async("asyncExecutor")
-  public void fetchAllQueriesJob(FetcherQueryJob fetcherQueryJob, String teamName) {
-    updateJobStatus(fetcherQueryJob, JobStatus.WORKING);
-    try {
-      List<Query> queries = fetchQueries(fetcherQueryJob, teamName);
-      saveAllQueries(queries);
-    } catch (Exception e) {
-      updateJobStatus(fetcherQueryJob, JobStatus.ERROR);
-      throw e;
-    }
-    updateJobStatus(fetcherQueryJob, JobStatus.FINISHED);
-  }
-
-  @Transactional
-  void saveAllQueries(List<Query> queries) {
-    queryRepository.saveAll(queries);
-  }
-
-  private List<Query> fetchQueries(FetcherQueryJob fetcherQueryJob, String teamName) {
-    Project project = projectService.getProject(fetcherQueryJob.getProjectId(), teamName);
-    List<FetchedQuery> allQueries =
-        fetcherService.fetchQueriesSinceLastDays(
-            fetcherQueryJob.getProjectId(),
-            project.getConnection(),
-            fetcherQueryJob.getTimeframe());
-    return allQueries.stream()
-        .map(q -> toAchilioQuery(q, fetcherQueryJob))
-        .collect(Collectors.toList());
-  }
-
-  private Query toAchilioQuery(FetchedQuery fetchedQuery, FetcherQueryJob job) {
-    return new Query(
-        job,
-        fetchedQuery.getQuery(),
-        fetchedQuery.getGoogleJobId(),
-        fetchedQuery.getProjectId(),
-        fetchedQuery.getDefaultDataset(),
-        fetchedQuery.isUsingMaterializedView(),
-        fetchedQuery.isUsingCache(),
-        fetchedQuery.getDate(),
-        fetchedQuery.getStatistics());
+  public FetcherJobService(
+      FetcherService fetcherService,
+      ProjectService projectService,
+      FetcherJobRepository fetcherJobRepository,
+      ADatasetRepository datasetRepository,
+      ATableRepository tableRepository) {
+    this.fetcherService = fetcherService;
+    this.projectService = projectService;
+    this.fetcherJobRepository = fetcherJobRepository;
+    this.datasetRepository = datasetRepository;
+    this.tableRepository = tableRepository;
   }
 
   @Transactional
