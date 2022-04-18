@@ -89,16 +89,16 @@ public class IntegrationQueryRepositoryTest {
     repository.save(simpleQuery(projectId, "id-2"));
     repository.save(simpleQuery(projectId, "id-3"));
     Optional<Query> query;
-    query = repository.findQueryByIdAndProjectId(projectId, "id-1");
+    query = repository.findQueryByIdAndProjectId("id-1", projectId);
     assertTrue(query.isPresent());
     assertEquals("id-1", query.get().getId());
-    query = repository.findQueryByIdAndProjectId(projectId, "id-2");
+    query = repository.findQueryByIdAndProjectId("id-2", projectId);
     assertTrue(query.isPresent());
     assertEquals("id-2", query.get().getId());
-    query = repository.findQueryByIdAndProjectId(projectId, "id-3");
+    query = repository.findQueryByIdAndProjectId("id-3", projectId);
     assertTrue(query.isPresent());
     assertEquals("id-3", query.get().getId());
-    query = repository.findQueryByIdAndProjectId(projectId, "id-99999");
+    query = repository.findQueryByIdAndProjectId("id-99999", projectId);
     assertFalse(query.isPresent());
   }
 

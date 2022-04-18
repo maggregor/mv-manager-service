@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface QueryRepository extends JpaRepository<Query, String> {
 
-  Optional<Query> findQueryByIdAndProjectId(String projectId, String queryId);
+  Optional<Query> findQueryByIdAndProjectId(String queryId, String projectId);
 
   List<Query> findAllByProjectId(String projectId);
 
