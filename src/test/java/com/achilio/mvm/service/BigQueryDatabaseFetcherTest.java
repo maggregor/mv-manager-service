@@ -154,9 +154,6 @@ public class BigQueryDatabaseFetcherTest {
   private void initializeJobMockDefault() {
     status = mock(JobStatus.class);
     mockJob = mock(Job.class);
-    when(mockJob.getConfiguration()).thenReturn(DEFAULT_QUERY_JOB_CONFIGURATION);
-    when(mockJob.getStatus()).thenReturn(status);
-    when(mockJob.getStatus().getError()).thenReturn(null);
   }
 
   private Dataset mockedDataset(
