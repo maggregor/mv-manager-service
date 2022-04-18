@@ -34,8 +34,8 @@ public class QueryService {
     return queryRepository.findAllByProjectIdAndStartTimeGreaterThanEqual(projectId, date);
   }
 
-  public Query getQuery(String queryId, String projectId) {
-    Optional<Query> query = queryRepository.findQueryByIdAndProjectId(queryId, projectId);
+  public Query getQuery(String projectId, String queryId) {
+    Optional<Query> query = queryRepository.findQueryByIdAndProjectId(projectId, queryId);
     if (!query.isPresent()) {
       throw new QueryNotFoundException(queryId);
     }
