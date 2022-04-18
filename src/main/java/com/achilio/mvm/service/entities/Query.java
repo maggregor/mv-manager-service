@@ -33,9 +33,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 @EntityListeners(AuditingEntityListener.class)
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(
-    name = "type",
     discriminatorType = DiscriminatorType.STRING,
-    columnDefinition = "varchar(31) default 'bigquery_job'")
+    columnDefinition = "varchar(31) default 'BigQueryJob'")
 public class Query {
 
   @Column(name = "query_statement", columnDefinition = "text")

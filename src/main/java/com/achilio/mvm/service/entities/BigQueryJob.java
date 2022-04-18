@@ -10,7 +10,6 @@ import com.google.cloud.bigquery.QueryStage;
 import com.google.cloud.bigquery.QueryStage.QueryStep;
 import java.util.Date;
 import java.util.List;
-import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -25,7 +24,6 @@ import org.apache.logging.log4j.util.Strings;
 @Getter
 @Setter
 @NoArgsConstructor
-@DiscriminatorValue("bigquery_job")
 public class BigQueryJob extends Query {
 
   public BigQueryJob(Job job) {
