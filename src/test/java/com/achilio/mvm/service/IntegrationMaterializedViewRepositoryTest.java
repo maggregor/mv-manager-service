@@ -52,12 +52,8 @@ public class IntegrationMaterializedViewRepositoryTest {
   private static MaterializedView mv2;
   private static MaterializedView mv3;
   private static MaterializedView mv4;
-  private static MaterializedView mv5;
-  private static MaterializedView mv6;
   private static MaterializedView mv7;
-  private static MaterializedView mv8;
   private static MaterializedView mv9;
-  private static MaterializedView mv10;
   private static MaterializedView mv11;
   private static MaterializedView mv12;
   private static FindMVJob job1;
@@ -89,12 +85,8 @@ public class IntegrationMaterializedViewRepositoryTest {
     mv2 = repository.save(newMv2);
     mv3 = repository.save(newMv3);
     mv4 = repository.save(newMv4);
-    mv5 = repository.save(newMv5);
-    mv6 = repository.save(newMv6);
     mv7 = repository.save(newMv7);
-    mv8 = repository.save(newMv8);
     mv9 = repository.save(newMv9);
-    mv10 = repository.save(newMv10);
     mv11 = repository.save(newMv11);
     mv12 = repository.save(newMv12);
   }

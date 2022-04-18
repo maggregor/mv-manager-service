@@ -1,7 +1,6 @@
 package com.achilio.mvm.service.workflows;
 
 import com.achilio.mvm.service.entities.Query;
-import com.achilio.mvm.service.repositories.QueryRepository;
 import com.achilio.mvm.service.services.FetcherService;
 import java.util.Collections;
 import java.util.logging.Logger;
@@ -19,7 +18,6 @@ import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.item.database.JpaItemWriter;
 import org.springframework.batch.item.support.IteratorItemReader;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,17 +26,29 @@ import org.springframework.orm.jpa.JpaTransactionManager;
 
 @Configuration
 @EnableBatchProcessing
-public class BatchJobConfiguration extends DefaultBatchConfigurer {
-  private static final Logger LOGGER = Logger.getLogger(BatchJobConfiguration.class.getName());
+public class QueryFetcherJobConfiguration extends DefaultBatchConfigurer {
+  private static final Logger LOGGER =
+      Logger.getLogger(QueryFetcherJobConfiguration.class.getName());
 
-  @Autowired private JobBuilderFactory jobBuilderFactory;
-  @Autowired private StepBuilderFactory stepBuilderFactory;
+  private final JobBuilderFactory jobBuilderFactory;
+  private final StepBuilderFactory stepBuilderFactory;
 
-  @Autowired private EntityManagerFactory emf;
-  @Autowired private FetcherService fetcherService;
-  @Autowired private JobParameters jobParameters;
-  @Autowired private QueryRepository queryRepository;
-  @Autowired private DataSource dataSource;
+  private final EntityManagerFactory emf;
+  private final FetcherService fetcherService;
+  private final DataSource dataSource;
+
+  public QueryFetcherJobConfiguration(
+      JobBuilderFactory jobBuilderFactory,
+      StepBuilderFactory stepBuilderFactory,
+      EntityManagerFactory emf,
+      FetcherService fetcherService,
+      DataSource dataSource) {
+    this.jobBuilderFactory = jobBuilderFactory;
+    this.stepBuilderFactory = stepBuilderFactory;
+    this.emf = emf;
+    this.fetcherService = fetcherService;
+    this.dataSource = dataSource;
+  }
 
   @Bean
   @Primary
@@ -54,7 +64,7 @@ public class BatchJobConfiguration extends DefaultBatchConfigurer {
       @Value("#{jobParameters['projectId']}") String projectId) {
     LOGGER.info(projectId);
     if (projectId != null) {
-      return new FetcherQueryReader(fetcherService.fetchJobIterable(projectId));
+      return new QueryFetcherReader(fetcherService.fetchJobIterable(projectId));
     }
     return new IteratorItemReader<>(Collections.singletonList(null));
   }
@@ -73,9 +83,9 @@ public class BatchJobConfiguration extends DefaultBatchConfigurer {
   }
 
   @Bean
-  public Step step1(JpaItemWriter<Query> writer) {
+  public Step retrieveAndQueries(JpaItemWriter<Query> writer) {
     return stepBuilderFactory
-        .get("fetchQueries")
+        .get("retrieveQueries")
         .transactionManager(jpaTransactionManager())
         .<com.google.cloud.bigquery.Job, Query>chunk(1000)
         .reader(reader(null))
@@ -85,11 +95,11 @@ public class BatchJobConfiguration extends DefaultBatchConfigurer {
   }
 
   @Bean
-  public Job fetchQueryJob(Step step1) {
+  public Job fetchQueryJob(Step retrieveQueries) {
     return this.jobBuilderFactory
         .get("fetchQueryJob1")
         .incrementer(new RunIdIncrementer())
-        .start(step1)
+        .start(retrieveQueries)
         .build();
   }
 }

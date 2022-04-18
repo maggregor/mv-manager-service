@@ -2,7 +2,6 @@ package com.achilio.mvm.service.databases;
 
 import com.achilio.mvm.service.databases.entities.FetchedDataset;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
-import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.entities.MaterializedView;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
@@ -12,21 +11,6 @@ import java.util.Set;
 
 /** Database fetcher interface */
 public interface DatabaseFetcher {
-
-  /**
-   * Returns history queries for a given table.
-   *
-   * @return - a list of queries as string
-   */
-  List<FetchedQuery> fetchAllQueries();
-
-  /**
-   * Returns history queries for a given table and date range.
-   *
-   * @param fromTimestamp - timestamp start
-   * @return - a list of queries as string
-   */
-  List<FetchedQuery> fetchAllQueriesFrom(long fromTimestamp);
 
   /** Returns all the information for a given project. */
   FetchedProject fetchProject(String projectId) throws ProjectNotFoundException;

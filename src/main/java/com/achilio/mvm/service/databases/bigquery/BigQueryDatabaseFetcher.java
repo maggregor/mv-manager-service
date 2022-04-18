@@ -6,8 +6,6 @@ import com.achilio.mvm.service.databases.entities.DefaultFetchedProject;
 import com.achilio.mvm.service.databases.entities.DefaultFetchedTable;
 import com.achilio.mvm.service.databases.entities.FetchedDataset;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
-import com.achilio.mvm.service.databases.entities.FetchedQuery;
-import com.achilio.mvm.service.databases.entities.FetchedQueryFactory;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.entities.MaterializedView;
 import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
@@ -54,7 +52,6 @@ import java.util.Spliterator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -97,19 +94,6 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     if (StringUtils.isNotEmpty(projectId)) {
       fetchProject(projectId);
     }
-  }
-
-  @Override
-  public List<FetchedQuery> fetchAllQueries() {
-    return fetchAllQueriesFrom(0);
-  }
-
-  @Override
-  public List<FetchedQuery> fetchAllQueriesFrom(long fromCreationTime) {
-    return fetchJobs(fromCreationTime)
-        .filter(this::isValidQueryJob)
-        .map(this::toFetchedQuery)
-        .collect(Collectors.toList());
   }
 
   @Override
@@ -219,31 +203,6 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
 
   public boolean isQueryJob(Job job) {
     return job.getConfiguration() instanceof QueryJobConfiguration;
-  }
-
-  /**
-   * Convert a QueryJob (Google) to a FetchedQuery. Retrieve some metrics google side (processed
-   * bytes, cache using...)
-   */
-  private FetchedQuery toFetchedQuery(Job job) {
-    String query;
-    final QueryJobConfiguration configuration = job.getConfiguration();
-    query = StringUtils.trim(configuration.getQuery());
-    DatasetId dataset = configuration.getDefaultDataset();
-    final JobStatistics.QueryStatistics stats = job.getStatistics();
-    Long startTime = stats.getStartTime();
-    final boolean useCache = BooleanUtils.isTrue(stats.getCacheHit());
-    final boolean usingManagedMV = containsManagedMVUsageInQueryStages(stats.getQueryPlan());
-    FetchedQuery fetchedQuery =
-        FetchedQueryFactory.createFetchedQuery(
-            job.getJobId().getProject(), StringUtils.trim(query));
-    fetchedQuery.setStartTime(startTime);
-    fetchedQuery.setStatistics(toQueryUsageStatistics(stats));
-    fetchedQuery.setUseMaterializedView(usingManagedMV);
-    fetchedQuery.setUseCache(useCache);
-    fetchedQuery.setGoogleJobId(job.getJobId().getJob());
-    fetchedQuery.setDefaultDataset(dataset == null ? null : dataset.getDataset());
-    return fetchedQuery;
   }
 
   public QueryUsageStatistics toQueryUsageStatistics(

@@ -4,10 +4,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 
-import com.achilio.mvm.service.entities.FetcherQueryJob;
 import com.achilio.mvm.service.entities.Query;
 import com.achilio.mvm.service.entities.statistics.QueryUsageStatistics;
 import java.time.LocalDate;
+import java.util.Date;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -16,7 +16,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 public class QueryTest {
 
   private final String projectId = "myProjectId";
-  private final FetcherQueryJob fetcherQueryJob = new FetcherQueryJob(projectId);
   private final String queryStatement = "SELECT 1";
   private final boolean useMaterializedView = false;
   private final boolean useCache = false;
@@ -29,22 +28,19 @@ public class QueryTest {
   public void simpleValidation() {
     Query query =
         new Query(
-            fetcherQueryJob,
             queryStatement,
             googleJobId,
             projectId,
             defaultDataset,
             useMaterializedView,
             useCache,
-            startTime,
-            stats);
+            new Date());
     assertEquals(queryStatement, query.getQuery());
     assertEquals(googleJobId, query.getId());
     assertEquals(projectId, query.getProjectId());
     assertEquals(defaultDataset, query.getDefaultDataset());
     assertFalse(useMaterializedView);
     assertFalse(useCache);
-    assertEquals(startTime, query.getStartTime());
     assertEquals(10L, query.getBilledBytes());
     assertEquals(100L, query.getProcessedBytes());
   }
@@ -54,8 +50,6 @@ public class QueryTest {
     Query query = new Query(queryStatement, projectId);
     assertEquals(queryStatement, query.getQuery());
     assertEquals(projectId, query.getProjectId());
-    assertNull(query.getLastFetcherQueryJob());
-    assertNull(query.getInitialFetcherQueryJob());
     assertFalse(query.isUseCache());
     assertFalse(query.isUseMaterializedView());
     assertNull(query.getDefaultDataset());

@@ -5,7 +5,6 @@ import com.achilio.mvm.service.databases.bigquery.BigQueryDatabaseFetcher;
 import com.achilio.mvm.service.databases.bigquery.BigQueryMaterializedViewStatementBuilder;
 import com.achilio.mvm.service.databases.entities.FetchedDataset;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
-import com.achilio.mvm.service.databases.entities.FetchedQuery;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.entities.Connection;
 import com.achilio.mvm.service.entities.Connection.ConnectionType;
@@ -42,21 +41,6 @@ public class FetcherService {
     List<FetchedDataset> datasetList = fetcher.fetchAllDatasets(projectId);
     fetcher.close();
     return datasetList;
-  }
-
-  public List<FetchedQuery> fetchQueriesSinceLastDays(
-      String projectId, Connection connection, int lastDays) {
-    return fetchQueriesSinceTimestamp(projectId, connection, daysToMillis(lastDays));
-  }
-
-  public List<FetchedQuery> fetchQueriesSinceTimestamp(
-      String projectId, Connection connection, long fromTimestamp) {
-    DatabaseFetcher fetcher = fetcher(projectId, connection);
-    try {
-      return fetcher.fetchAllQueriesFrom(fromTimestamp);
-    } finally {
-      fetcher.close();
-    }
   }
 
   public Iterable<Job> fetchJobIterable(String projectId) {

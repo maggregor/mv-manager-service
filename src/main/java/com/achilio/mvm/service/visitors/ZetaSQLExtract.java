@@ -12,7 +12,9 @@ import com.google.zetasql.SqlException;
 import com.google.zetasql.resolvedast.ResolvedNodes.ResolvedStatement;
 import com.google.zetasql.resolvedast.ResolvedNodes.Visitor;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +23,7 @@ public class ZetaSQLExtract extends ZetaSQLModelBuilder implements FieldSetExtra
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ZetaSQLExtract.class);
   private static final String BACKTICK = "`";
-  private final AnalyzerOptions options = defaultAnalyzerOptions();
+  private static final AnalyzerOptions options = defaultAnalyzerOptions();
 
   public ZetaSQLExtract() {
     super();
@@ -31,13 +33,38 @@ public class ZetaSQLExtract extends ZetaSQLModelBuilder implements FieldSetExtra
     super(tables);
   }
 
-  private AnalyzerOptions defaultAnalyzerOptions() {
+  private static AnalyzerOptions defaultAnalyzerOptions() {
     AnalyzerOptions options = new AnalyzerOptions();
     LanguageOptions languageOptions = options.getLanguageOptions();
     languageOptions.enableMaximumLanguageFeatures();
     languageOptions.setSupportsAllStatementKinds();
     options.setLanguageOptions(languageOptions);
     return options;
+  }
+
+  @Override
+  public List<ATableId> extractATableIds(Query query) {
+    return extractTableNames(query.getQuery()).stream()
+        .map(
+            path -> {
+              if (path.isEmpty() || path.size() > 3) {
+                return null;
+              }
+              if (path.size() == 1 && query.hasDefaultDataset()) {
+                return ATableId.of(query.getProjectId(), query.getDefaultDataset(), path.get(0));
+              } else if (path.size() == 2) {
+                return ATableId.of(query.getProjectId(), path.get(0), path.get(1));
+              } else if (path.size() == 3) {
+                return ATableId.of(path.get(0), path.get(1), path.get(2));
+              }
+              return null;
+            })
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
+  }
+
+  private List<List<String>> extractTableNames(String statement) {
+    return Analyzer.extractTableNamesFromScript(statement, options);
   }
 
   @Override
@@ -77,7 +104,7 @@ public class ZetaSQLExtract extends ZetaSQLModelBuilder implements FieldSetExtra
     if (!StringUtils.containsAny(statement, BACKTICK)) {
       return statement;
     }
-    List<List<String>> paths = Analyzer.extractTableNamesFromScript(statement, options);
+    List<List<String>> paths = extractTableNames(statement);
     for (List<String> path : paths) {
       if (path.size() != 1) {
         // Not a full BackTicked path

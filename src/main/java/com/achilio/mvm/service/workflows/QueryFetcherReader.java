@@ -3,9 +3,9 @@ package com.achilio.mvm.service.workflows;
 import com.google.cloud.bigquery.Job;
 import org.springframework.batch.item.support.IteratorItemReader;
 
-public class FetcherQueryReader extends IteratorItemReader<Job> {
+public class QueryFetcherReader extends IteratorItemReader<Job> {
 
-  public FetcherQueryReader(Iterable<Job> iterable) {
+  public QueryFetcherReader(Iterable<Job> iterable) {
     super(iterable);
   }
 
