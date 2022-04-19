@@ -3,7 +3,7 @@ package com.achilio.mvm.service.services;
 import com.achilio.mvm.service.entities.Query;
 import com.achilio.mvm.service.exceptions.QueryNotFoundException;
 import com.achilio.mvm.service.repositories.QueryRepository;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
@@ -13,32 +13,52 @@ import org.springframework.stereotype.Service;
 @Service
 public class QueryService {
 
-  private final QueryRepository queryRepository;
+  private final QueryRepository repository;
 
   public QueryService(QueryRepository queryRepository) {
-    this.queryRepository = queryRepository;
+    this.repository = queryRepository;
   }
 
   public List<Query> getAllQueries(String projectId) {
-    return queryRepository.findAllByProjectId(projectId);
+    return repository.findAllByProjectId(projectId);
   }
 
   public List<Query> getAllQueriesSince(String projectId, int timeframe) {
-    Date in = new Date();
-    LocalDateTime ldt = LocalDateTime.ofInstant(in.toInstant(), ZoneId.systemDefault());
-    Date out = Date.from(ldt.atZone(ZoneId.systemDefault()).toInstant());
-    return getAllQueriesSince(projectId, out);
+    return getAllQueriesSince(projectId, todayMinusDays(timeframe));
   }
 
   public List<Query> getAllQueriesSince(String projectId, Date date) {
-    return queryRepository.findAllByProjectIdAndStartTimeGreaterThanEqual(projectId, date);
+    return repository.findAllByProjectIdAndStartTimeGreaterThanEqual(projectId, date);
+  }
+
+  public Long getAverageProcessedBytesSince(String projectId, int minusDays) {
+    Date from = todayMinusDays(minusDays);
+    return repository.averageProcessedBytesByProjectAndStartTimeGreaterThanEqual(projectId,
+        from);
+  }
+
+  public Long getTotalQuerySince(String projectId, int minusDays) {
+    Date from = todayMinusDays(minusDays);
+    return repository.countQueryByProjectAndStartTimeGreaterThanEqual(projectId, from);
+  }
+
+  public Long getPercentQueryInMVSince(String projectId, int minusDays) {
+    Date from = todayMinusDays(minusDays);
+    Long total = repository.countQueryByProjectAndStartTimeGreaterThanEqual(projectId, from);
+    Long inMV = repository.countQueryInMVByProjectAndStartTimeGreaterThanEqual(projectId, from);
+    return (long) (inMV * 100.0 / total + 0.5);
   }
 
   public Query getQuery(String projectId, String queryId) {
-    Optional<Query> query = queryRepository.findQueryByProjectIdAndId(projectId, queryId);
+    Optional<Query> query = repository.findQueryByProjectIdAndId(projectId, queryId);
     if (!query.isPresent()) {
       throw new QueryNotFoundException(queryId);
     }
     return query.get();
+  }
+
+  private Date todayMinusDays(int minusDays) {
+    LocalDate localDate = LocalDate.now().minusDays(minusDays);
+    return Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
   }
 }

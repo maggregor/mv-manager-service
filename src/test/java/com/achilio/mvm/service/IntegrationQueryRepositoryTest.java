@@ -2,6 +2,7 @@ package com.achilio.mvm.service;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import com.achilio.mvm.service.entities.Query;
@@ -121,6 +122,85 @@ public class IntegrationQueryRepositoryTest {
     assertEquals("SELECT NEW QUERY", queries.get(0).getQuery());
   }
 
+  @Test
+  public void countQuery() {
+    final String projectId = "myProject";
+    Query query1 = simpleQuery(projectId, "id-1");
+    Query query2 = simpleQuery(projectId, "id-2");
+    query1.setStartTime(todayMinusDays(2));
+    query2.setStartTime(todayMinusDays(5));
+    repository.save(query1);
+    repository.save(query2);
+    Long c;
+    c = repository.countQueryByProjectAndStartTimeGreaterThanEqual(projectId,
+        todayMinusDays(10));
+    assertEquals(2L, c.longValue());
+    //
+    c = repository.countQueryByProjectAndStartTimeGreaterThanEqual(projectId,
+        todayMinusDays(3));
+    assertEquals(1L, c.longValue());
+    //
+    c = repository.countQueryByProjectAndStartTimeGreaterThanEqual(projectId,
+        todayMinusDays(0));
+    assertNull(c);
+  }
+
+  @Test
+  public void countQueryInMV() {
+    final String projectId = "myProject";
+    Query query1 = simpleQuery(projectId, "id-1");
+    Query query2 = simpleQuery(projectId, "id-2");
+    Query query3 = simpleQuery(projectId, "id-3");
+    query1.setStartTime(todayMinusDays(2));
+    query2.setStartTime(todayMinusDays(8));
+    query3.setStartTime(todayMinusDays(5));
+    query1.setUseMaterializedView(true);
+    query2.setUseMaterializedView(true);
+    query3.setUseMaterializedView(false);
+    repository.save(query1);
+    repository.save(query2);
+    repository.save(query3);
+    Long c;
+    c = repository.countQueryInMVByProjectAndStartTimeGreaterThanEqual(projectId,
+        todayMinusDays(10));
+    assertEquals(2L, c.longValue());
+    //
+    c = repository.countQueryInMVByProjectAndStartTimeGreaterThanEqual(projectId,
+        todayMinusDays(6));
+    assertEquals(1L, c.longValue());
+    //
+    c = repository.countQueryInMVByProjectAndStartTimeGreaterThanEqual(projectId,
+        todayMinusDays(3));
+    assertEquals(1L, c.longValue());
+    c = repository.countQueryInMVByProjectAndStartTimeGreaterThanEqual(projectId,
+        todayMinusDays(0));
+    assertNull(c);
+  }
+
+  @Test
+  public void averageProcessedBytes() {
+    final String projectId = "myProject";
+    Query query1 = simpleQuery(projectId, "id-1");
+    Query query2 = simpleQuery(projectId, "id-2");
+    query1.setProcessedBytes(10L);
+    query2.setProcessedBytes(100L);
+    query1.setStartTime(todayMinusDays(2));
+    query2.setStartTime(todayMinusDays(5));
+    repository.save(query1);
+    repository.save(query2);
+    Long average;
+    average = repository.averageProcessedBytesByProjectAndStartTimeGreaterThanEqual(projectId,
+        todayMinusDays(10));
+    assertEquals(55L, average.longValue());
+    //
+    average = repository.averageProcessedBytesByProjectAndStartTimeGreaterThanEqual(projectId,
+        todayMinusDays(3));
+    assertEquals(10L, average.longValue());
+    //
+    average = repository.averageProcessedBytesByProjectAndStartTimeGreaterThanEqual(projectId,
+        todayMinusDays(0));
+    assertNull(average);
+  }
 
   private Query simpleQuery(String projectId, String id) {
     return simpleQuery(projectId, id, null);
