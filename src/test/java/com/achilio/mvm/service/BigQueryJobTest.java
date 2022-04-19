@@ -1,5 +1,6 @@
 package com.achilio.mvm.service;
 
+import static com.achilio.mvm.service.entities.MaterializedView.MV_NAME_PREFIX;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -19,6 +20,11 @@ import com.google.cloud.bigquery.JobStatistics.QueryStatistics;
 import com.google.cloud.bigquery.JobStatus;
 import com.google.cloud.bigquery.LoadJobConfiguration;
 import com.google.cloud.bigquery.QueryJobConfiguration;
+import com.google.cloud.bigquery.QueryStage;
+import com.google.cloud.bigquery.QueryStage.QueryStep;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import org.codehaus.plexus.util.StringUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -71,6 +77,36 @@ public class BigQueryJobTest {
   }
 
   @Test
+  public void when_bigQueryJobHaveASubStepInMV__setUseMaterializedViewAsTrue() {
+    Job job = simpleJobMock();
+    // Build a queryPlan with MV
+    List<QueryStage> queryPlan = new ArrayList<>();
+    QueryStage stage_1 = mock(QueryStage.class);
+    QueryStep step_1_1 = mock(QueryStep.class);
+    QueryStep step_1_2 = mock(QueryStep.class);
+    when(stage_1.getSteps()).thenReturn(Arrays.asList(step_1_1, step_1_2));
+    queryPlan.add(stage_1);
+    setQueryStatisticsWithQueryPlanOnlyMock(job, queryPlan);
+    // No sub step contain the achilio_mv token
+    when(step_1_1.getSubsteps()).thenReturn(Arrays.asList("st_1", "st_2"));
+    when(step_1_2.getSubsteps()).thenReturn(Arrays.asList("st_1", "st_2 "));
+    assertFalse(new BigQueryJob(job).isUseMaterializedView());
+    // A sub step contain the achilio_mv token
+    when(step_1_1.getSubsteps()).thenReturn(Arrays.asList("st_1", "st_2"));
+    when(step_1_2.getSubsteps()).thenReturn(Arrays.asList("st_1", "FROM " + MV_NAME_PREFIX));
+    assertTrue(new BigQueryJob(job).isUseMaterializedView());
+
+  }
+
+  @Test
+  public void bigQueryJobToQueryUsingCache() {
+    Job job = simpleJobMock();
+    setQueryStatisticsMock(job, null, null, true, null);
+    Query query = new BigQueryJob(job);
+    assertTrue(query.isUseCache());
+  }
+
+  @Test
   public void bigQueryJobToQueryInError() {
     Job job = simpleJobMock();
     BigQueryError error = mock(BigQueryError.class);
@@ -87,11 +123,21 @@ public class BigQueryJobTest {
 
   private void setQueryStatisticsMock(Job job, Long totalBytesBilled, Long totalBytesProcessed,
       Boolean cacheHit, Long startTime) {
+    setQueryStatisticsMock(job, totalBytesBilled, totalBytesProcessed, cacheHit, startTime, null);
+  }
+
+  private void setQueryStatisticsWithQueryPlanOnlyMock(Job job, List<QueryStage> queryPlan) {
+    setQueryStatisticsMock(job, null, null, null, null, queryPlan);
+  }
+
+  private void setQueryStatisticsMock(Job job, Long totalBytesBilled, Long totalBytesProcessed,
+      Boolean cacheHit, Long startTime, List<QueryStage> queryPlan) {
     QueryStatistics queryStatistics = mock(QueryStatistics.class);
     when(queryStatistics.getCacheHit()).thenReturn(cacheHit);
     when(queryStatistics.getTotalBytesBilled()).thenReturn(totalBytesBilled);
     when(queryStatistics.getTotalBytesProcessed()).thenReturn(totalBytesProcessed);
     when(queryStatistics.getStartTime()).thenReturn(startTime);
+    when(queryStatistics.getQueryPlan()).thenReturn(queryPlan);
     when(job.getStatistics()).thenReturn(queryStatistics);
   }
 

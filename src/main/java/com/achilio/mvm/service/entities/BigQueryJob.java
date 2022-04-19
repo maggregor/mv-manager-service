@@ -62,7 +62,8 @@ public class BigQueryJob extends Query {
 
   public boolean containsSubStepUsingMVM(QueryStep step) {
     return step.getSubsteps().stream()
-        .anyMatch(subStep -> subStep.contains("SELECT") && (subStep.contains("achilio_mv_")));
+        .anyMatch(subStep -> subStep.contains("FROM") && (subStep.contains(
+            MaterializedView.MV_NAME_PREFIX)));
   }
 
   private void throwExceptionIfNotQueryJob(Job job) {

@@ -31,7 +31,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 @Table(name = "materialized_views")
 public class MaterializedView {
 
-  private static final String MV_NAME_PREFIX = "achilio_mv";
+  public static final String MV_NAME_PREFIX = "achilio_mv";
   private static final String CREATE_PREFIX = "CREATE MATERIALIZED VIEW";
   private static final String SQL_VERB_AS = "AS";
 
