@@ -18,10 +18,12 @@ public class QueryService {
     this.repository = queryRepository;
   }
 
+  @Deprecated
   public List<Query> getAllQueries(String projectId) {
     return repository.findAllByProjectId(projectId);
   }
 
+  @Deprecated
   public List<Query> getAllQueriesSince(String projectId, int timeframe) {
     return getAllQueriesSince(projectId, todayMinusDays(timeframe));
   }
