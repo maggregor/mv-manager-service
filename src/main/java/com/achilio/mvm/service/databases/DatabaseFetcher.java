@@ -5,8 +5,8 @@ import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.entities.MaterializedView;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
+import com.google.cloud.bigquery.Dataset;
 import com.google.cloud.bigquery.Job;
-import java.util.List;
 import java.util.Set;
 
 /** Database fetcher interface */
@@ -16,7 +16,7 @@ public interface DatabaseFetcher {
   FetchedProject fetchProject(String projectId) throws ProjectNotFoundException;
 
   /** Returns all dataset id in a given projectId. */
-  List<FetchedDataset> fetchAllDatasets(String projectId);
+  Iterable<Dataset> fetchAllDatasets(String projectId);
 
   /** Returns the dataset metadata in a given projectId. */
   FetchedDataset fetchDataset(String datasetName);

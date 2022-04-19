@@ -96,7 +96,7 @@ public class ProjectService {
   }
 
   public Optional<ADataset> findDataset(String projectId, String datasetName) {
-    return datasetRepository.findByProject_ProjectIdAndDatasetName(projectId, datasetName);
+    return datasetRepository.findByProjectIdAndDatasetName(projectId, datasetName);
   }
 
   public ADataset getDataset(String projectId, String datasetName) {
@@ -112,7 +112,7 @@ public class ProjectService {
 
   public ADataset getDatasetByProjectAndDatasetName(String projectId, String datasetName) {
     return datasetRepository
-        .findByProject_ProjectIdAndDatasetName(projectId, datasetName)
+        .findByProjectIdAndDatasetName(projectId, datasetName)
         .orElseThrow(() -> new DatasetNotFoundException(datasetName));
   }
 
@@ -159,11 +159,11 @@ public class ProjectService {
   }
 
   public List<ADataset> getAllActivatedDatasets(String projectId) {
-    return datasetRepository.findAllByProject_ProjectIdAndActivated(projectId, true);
+    return datasetRepository.findAllByProjectIdAndActivated(projectId, true);
   }
 
   public List<ADataset> getAllDatasets(String projectId) {
-    return datasetRepository.findAllByProject_ProjectId(projectId);
+    return datasetRepository.findAllByProjectId(projectId);
   }
 
   @Transactional
@@ -182,7 +182,7 @@ public class ProjectService {
 
   public Optional<ATable> findTable(ADataset dataset, String tableName) {
     return tableRepository.findByProject_ProjectIdAndDataset_DatasetNameAndTableName(
-        dataset.getProject().getProjectId(), dataset.getDatasetName(), tableName);
+        dataset.getProjectId(), dataset.getDatasetName(), tableName);
   }
 
   public ATable getTable(ATable table) {

@@ -3,7 +3,6 @@ package com.achilio.mvm.service.services;
 import com.achilio.mvm.service.databases.DatabaseFetcher;
 import com.achilio.mvm.service.databases.bigquery.BigQueryDatabaseFetcher;
 import com.achilio.mvm.service.databases.bigquery.BigQueryMaterializedViewStatementBuilder;
-import com.achilio.mvm.service.databases.entities.FetchedDataset;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.entities.Connection;
@@ -11,8 +10,8 @@ import com.achilio.mvm.service.entities.Connection.ConnectionType;
 import com.achilio.mvm.service.entities.MaterializedView;
 import com.achilio.mvm.service.entities.ServiceAccountConnection;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
+import com.google.cloud.bigquery.Dataset;
 import com.google.cloud.bigquery.Job;
-import java.util.List;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -34,9 +33,16 @@ public class FetcherService {
     return fetcher.fetchProject(projectId);
   }
 
-  public List<FetchedDataset> fetchAllDatasets(String projectId, Connection connection) {
+  public Iterable<Dataset> fetchAllDatasets(String projectId) {
+    Connection connection = projectService.getProject(projectId).getConnection();
     DatabaseFetcher fetcher = fetcher(projectId, connection);
     return fetcher.fetchAllDatasets(projectId);
+  }
+
+  public Set<FetchedTable> fetchAllTables(String projectId) {
+    Connection connection = projectService.getProject(projectId).getConnection();
+    DatabaseFetcher fetcher = fetcher(projectId, connection);
+    return fetcher.fetchAllTables();
   }
 
   public Iterable<Job> fetchJobIterable(String projectId, int days) {
@@ -44,11 +50,6 @@ public class FetcherService {
     Connection connection = projectService.getProject(projectId).getConnection();
     DatabaseFetcher fetcher = fetcher(projectId, connection);
     return fetcher.fetchJobIterable(fromTimestamp);
-  }
-
-  public Set<FetchedTable> fetchAllTables(String projectId, Connection connection) {
-    DatabaseFetcher fetcher = fetcher(projectId, connection);
-    return fetcher.fetchAllTables();
   }
 
   public void createMaterializedView(MaterializedView mv, Connection connection) {

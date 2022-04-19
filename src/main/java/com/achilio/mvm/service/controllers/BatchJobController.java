@@ -10,6 +10,8 @@ import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.launch.JobLauncher;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,18 +26,24 @@ public class BatchJobController {
 
   private final JobLauncher jobLauncher;
   private final ProjectService projectService;
-  private final Job job;
 
-  public BatchJobController(JobLauncher jobLauncher, ProjectService projectService, Job job) {
+  @Autowired
+  @Qualifier("fetchQueryJob")
+  private Job fetcherQueryJob;
+
+  @Autowired
+  @Qualifier("fetchStructJob")
+  private Job fetcherStructJob;
+
+  public BatchJobController(JobLauncher jobLauncher, ProjectService projectService) {
     this.jobLauncher = jobLauncher;
     this.projectService = projectService;
-    this.job = job;
   }
 
   @SneakyThrows
   @PostMapping(path = "/query", produces = MediaType.APPLICATION_JSON_VALUE)
   @ApiOperation("Create and start a new query fetching job")
-  public String createNewFetcherQueryJob2(@RequestBody FetcherQueryJobRequest payload) {
+  public String createNewFetcherQueryJob(@RequestBody FetcherQueryJobRequest payload) {
     String projectId = payload.getProjectId();
     projectService.getProject(projectId, getContextTeamName());
     JobParameters jobParameters =
@@ -43,7 +51,7 @@ public class BatchJobController {
             .addLong("time", System.currentTimeMillis())
             .addString("projectId", projectId)
             .toJobParameters();
-    jobLauncher.run(job, jobParameters);
+    jobLauncher.run(fetcherQueryJob, jobParameters);
     return "Oui oui c'est bon";
   }
 }

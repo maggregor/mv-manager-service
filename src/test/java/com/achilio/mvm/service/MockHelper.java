@@ -33,7 +33,7 @@ public class MockHelper {
 
   public static ADataset datasetMock(Project project, String datasetName) {
     ADataset mock = mock(ADataset.class);
-    when(mock.getProject()).thenReturn(project);
+    //    when(mock.getProject()).thenReturn(project);
     when(mock.getDatasetName()).thenReturn(datasetName).thenReturn(datasetName);
     when(mock.getDatasetId()).thenReturn(project.getProjectId() + "." + datasetName);
     return mock;

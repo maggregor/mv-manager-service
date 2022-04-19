@@ -130,8 +130,7 @@ public class FetcherJobService {
   public Set<FetchedTable> syncTables(FetcherStructJob fetcherStructJob) {
     Project project = projectService.getProject(fetcherStructJob.getProjectId());
     List<ATable> allATables = projectService.getAllTables(project.getProjectId());
-    Set<FetchedTable> allFetchedTables =
-        fetcherService.fetchAllTables(project.getProjectId(), project.getConnection());
+    Set<FetchedTable> allFetchedTables = fetcherService.fetchAllTables(project.getProjectId());
     List<ATable> allCurrentTables =
         allFetchedTables.stream()
             .map(t -> toATable(project, t, fetcherStructJob))
@@ -153,37 +152,32 @@ public class FetcherJobService {
 
   @VisibleForTesting
   public void syncDatasets(FetcherStructJob fetcherStructJob, String teamName) {
-    Project project = projectService.getProject(fetcherStructJob.getProjectId(), teamName);
-    List<ADataset> allADatasets = projectService.getAllDatasets(project.getProjectId());
-    List<ADataset> allFetchedDatasets =
-        fetcherService
-            .fetchAllDatasets(fetcherStructJob.getProjectId(), project.getConnection())
-            .stream()
-            .map(d -> toADataset(project, d, fetcherStructJob))
-            .collect(Collectors.toList());
-
-    // All fetched datasets that already exists are updated with most recent values
-    allFetchedDatasets.stream().filter(this::datasetExists).forEach(this::updateDataset);
-
-    // All fetched datasets that don't already exist are created
-    List<ADataset> toCreateDatasets =
-        allFetchedDatasets.stream().filter(d -> !datasetExists(d)).collect(Collectors.toList());
-    saveAllDatasets(toCreateDatasets);
-
-    // allADatasets becomes toDeleteDatasets after next operation
-    allADatasets.removeAll(allFetchedDatasets);
-    allADatasets.forEach(this::deleteDataset);
+    //    Project project = projectService.getProject(fetcherStructJob.getProjectId(), teamName);
+    //    List<ADataset> allADatasets = projectService.getAllDatasets(project.getProjectId());
+    //    List<ADataset> allFetchedDatasets =
+    //        fetcherService.fetchAllDatasets(fetcherStructJob.getProjectId()).stream()
+    //            .map(d -> toADataset(project, d, fetcherStructJob))
+    //            .collect(Collectors.toList());
+    //
+    //    // All fetched datasets that already exists are updated with most recent values
+    //    allFetchedDatasets.stream().filter(this::datasetExists).forEach(this::updateDataset);
+    //
+    //    // All fetched datasets that don't already exist are created
+    //    List<ADataset> toCreateDatasets =
+    //        allFetchedDatasets.stream().filter(d ->
+    // !datasetExists(d)).collect(Collectors.toList());
+    //    saveAllDatasets(toCreateDatasets);
+    //
+    //    // allADatasets becomes toDeleteDatasets after next operation
+    //    allADatasets.removeAll(allFetchedDatasets);
+    //    allADatasets.forEach(this::deleteDataset);
   }
 
   @Transactional
   void updateDataset(ADataset dataset) {
     ADataset existingDataset = projectService.getDataset(dataset.getDatasetId());
-    if (existingDataset.getInitialFetcherStructJob() == null) {
-      existingDataset.setInitialFetcherStructJob(dataset.getLastFetcherStructJob());
-    }
     existingDataset.setDatasetId(dataset.getDatasetId());
     existingDataset.setDatasetName(dataset.getDatasetName());
-    existingDataset.setLastFetcherStructJob(dataset.getLastFetcherStructJob());
     datasetRepository.save(existingDataset);
   }
 
@@ -198,14 +192,14 @@ public class FetcherJobService {
   }
 
   private boolean datasetExists(ADataset d) {
-    Optional<ADataset> dataset =
-        datasetRepository.findByProjectAndDatasetName(d.getProject(), d.getDatasetName());
-    return dataset.isPresent();
+    //    Optional<ADataset> dataset =
+    //        datasetRepository.findByProjectAndDatasetName(null, d.getDatasetName());
+    //    return dataset.isPresent();
+    return true;
   }
 
-  private ADataset toADataset(
-      Project project, FetchedDataset fetchedDataset, FetcherStructJob fetcherStructJob) {
-    return new ADataset(fetcherStructJob, project, fetchedDataset.getDatasetName());
+  private ADataset toADataset(Project project, FetchedDataset fetchedDataset) {
+    return new ADataset(project, fetchedDataset.getDatasetName());
   }
 
   private ATable toATable(

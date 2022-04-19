@@ -127,7 +127,7 @@ public class ProjectController {
   }
 
   private DatasetResponse toDatasetResponse(ADataset dataset) {
-    final String projectId = dataset.getProject().getProjectId();
+    final String projectId = dataset.getProjectId();
     final String datasetName = dataset.getDatasetName();
     final boolean activated = projectService.isDatasetActivated(projectId, datasetName);
     return new DatasetResponse(projectId, datasetName, null, null, null, null, null, activated);

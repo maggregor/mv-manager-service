@@ -99,12 +99,8 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
   }
 
   @Override
-  public List<FetchedDataset> fetchAllDatasets(String projectId) {
-    List<FetchedDataset> datasets = new ArrayList<>();
-    for (Dataset dataset : bigquery.listDatasets(projectId).iterateAll()) {
-      datasets.add(toFetchedDataset(dataset));
-    }
-    return datasets;
+  public Iterable<Dataset> fetchAllDatasets(String projectId) {
+    return bigquery.listDatasets(projectId).iterateAll();
   }
 
   @Override
