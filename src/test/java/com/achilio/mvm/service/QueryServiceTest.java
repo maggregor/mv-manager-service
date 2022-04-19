@@ -105,8 +105,13 @@ public class QueryServiceTest {
     when(mockRepository.countQueryInMVByProjectAndStartTimeGreaterThanEqual(any(),
         any())).thenReturn(1000L);
     assertEquals(100L, service.getPercentQueryInMVSince("", 0).longValue());
+    when(mockRepository.countQueryByProjectAndStartTimeGreaterThanEqual(any(),
+        any())).thenReturn(1000L);
+    when(mockRepository.countQueryInMVByProjectAndStartTimeGreaterThanEqual(any(),
+        any())).thenReturn(0L);
+    assertEquals(0L, service.getPercentQueryInMVSince("", 0).longValue());
   }
-  
+
   @Test
   public void getPercentQuerySinceWithNull() {
     when(mockRepository.countQueryByProjectAndStartTimeGreaterThanEqual(any(),

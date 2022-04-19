@@ -49,10 +49,9 @@ public class QueryService {
     Date from = todayMinusDays(minusDays);
     Long total = repository.countQueryByProjectAndStartTimeGreaterThanEqual(projectId, from);
     Long inMV = repository.countQueryInMVByProjectAndStartTimeGreaterThanEqual(projectId, from);
-    if (total == null || total == 0L) {
+    if (total == null || total == 0L || inMV == null || inMV == 0L) {
       return 0L;
     }
-    inMV = inMV == null ? 0L : inMV;
     return (long) (inMV * 100.0 / total + 0.5);
   }
 
