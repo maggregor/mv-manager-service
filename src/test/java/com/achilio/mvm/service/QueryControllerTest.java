@@ -1,6 +1,7 @@
 package com.achilio.mvm.service;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.Mockito.when;
 
 import com.achilio.mvm.service.controllers.QueryController;
@@ -41,7 +42,7 @@ public class QueryControllerTest {
   @InjectMocks
   private QueryController controller;
   @Mock
-  private QueryService mockQueryService;
+  private QueryService mockService;
 
   @Before
   public void setup() {
@@ -63,9 +64,9 @@ public class QueryControllerTest {
             useMaterializedView,
             useCache,
             new Date());
-    when(mockQueryService.getAllQueries(TEST_PROJECT_ID)).thenReturn(Arrays.asList(query1, query2));
-    when(mockQueryService.getQuery(TEST_PROJECT_ID, googleJobId)).thenReturn(query1);
-    when(mockQueryService.getQuery(TEST_PROJECT_ID, "unknownQueryId"))
+    when(mockService.getAllQueries(TEST_PROJECT_ID)).thenReturn(Arrays.asList(query1, query2));
+    when(mockService.getQuery(TEST_PROJECT_ID, googleJobId)).thenReturn(query1);
+    when(mockService.getQuery(TEST_PROJECT_ID, "unknownQueryId"))
         .thenThrow(new QueryNotFoundException("unknownQueryId"));
   }
 
@@ -96,5 +97,27 @@ public class QueryControllerTest {
     Query query = controller.createQuery(request);
     assertEquals(TEST_PROJECT_ID, query.getProjectId());
     assertEquals("SELECT 1", query.getQuery());
+  }
+
+  @Test
+  public void getStatistics() {
+    when(mockService.getTotalQuerySince("project", 0)).thenReturn(100L);
+    when(mockService.getAverageProcessedBytesSince("project", 0)).thenReturn(40L);
+    when(mockService.getPercentQueryInMVSince("project", 0)).thenReturn(80L);
+    Long total = controller.getStatistics("project", 0, "total_queries");
+    Long avg = controller.getStatistics("project", 0, "average_processed_bytes");
+    Long percent = controller.getStatistics("project", 0, "percent_query_in_mv");
+    assertEquals(100L, total.longValue());
+    assertEquals(40L, avg.longValue());
+    assertEquals(80L, percent.longValue());
+  }
+
+  @Test
+  public void when_getUnknownTypeStatistics_thenReturnException() {
+    Exception e = assertThrows(IllegalArgumentException.class, () ->
+        controller.getStatistics("", 0, "unknown_type")
+    );
+    assertEquals(IllegalArgumentException.class, e.getClass());
+    assertEquals("Unknown statistics type", e.getMessage());
   }
 }
