@@ -35,7 +35,7 @@ public class QueryService {
   }
 
   public Query getQuery(String projectId, String queryId) {
-    Optional<Query> query = queryRepository.findQueryByIdAndProjectId(queryId, projectId);
+    Optional<Query> query = queryRepository.findQueryByProjectIdAndId(projectId, queryId);
     if (!query.isPresent()) {
       throw new QueryNotFoundException(queryId);
     }

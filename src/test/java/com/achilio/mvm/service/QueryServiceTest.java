@@ -32,10 +32,10 @@ public class QueryServiceTest {
 
   @Before
   public void setup() {
-    when(mockQueryRepository.findQueryByIdAndProjectId(any(), any()))
+    when(mockQueryRepository.findQueryByProjectIdAndId(any(), any()))
         .thenReturn(java.util.Optional.of(QUERY1));
-    when(mockQueryRepository.findQueryByIdAndProjectId(
-        ArgumentMatchers.eq("unknownQueryId"), any()))
+    when(mockQueryRepository.findQueryByProjectIdAndId(any(),
+        ArgumentMatchers.eq("unknownQueryId")))
         .thenReturn(java.util.Optional.empty());
   }
 
