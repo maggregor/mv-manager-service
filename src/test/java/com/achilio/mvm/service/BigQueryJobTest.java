@@ -12,6 +12,7 @@ import static org.mockito.Mockito.when;
 import com.achilio.mvm.service.entities.BigQueryJob;
 import com.achilio.mvm.service.entities.Query;
 import com.google.cloud.bigquery.BigQueryError;
+import com.google.cloud.bigquery.DatasetId;
 import com.google.cloud.bigquery.Job;
 import com.google.cloud.bigquery.JobId;
 import com.google.cloud.bigquery.JobStatistics.QueryStatistics;
@@ -50,11 +51,23 @@ public class BigQueryJobTest {
     Job job = simpleJobMock();
     Query query = new BigQueryJob(job);
     assertEquals("SELECT 1", query.getQuery());
+    assertNull(query.getDefaultDataset());
+    assertFalse(query.hasDefaultDataset());
     assertTrue(StringUtils.isEmpty(query.getError()));
     assertEquals("job-id", query.getId());
     assertEquals(1650394735L, query.getStartTime().toInstant().toEpochMilli());
     assertEquals(10000L, query.getProcessedBytes());
     assertEquals(50000L, query.getBilledBytes());
+  }
+
+  @Test
+  public void bigQueryJobToQueryWithDefaultDataset() {
+    Job job = simpleJobMock();
+    QueryJobConfiguration configuration = mock(QueryJobConfiguration.class);
+    when(configuration.getDefaultDataset()).thenReturn(DatasetId.of("myDefaultDataset"));
+    when(job.getConfiguration()).thenReturn(configuration);
+    Query query = new BigQueryJob(job);
+    assertEquals("myDefaultDataset", query.getDefaultDataset());
   }
 
   @Test
