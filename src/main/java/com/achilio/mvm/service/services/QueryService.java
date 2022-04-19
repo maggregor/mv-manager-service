@@ -7,7 +7,6 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -56,11 +55,8 @@ public class QueryService {
   }
 
   public Query getQuery(String projectId, String queryId) {
-    Optional<Query> query = repository.findQueryByProjectIdAndId(projectId, queryId);
-    if (!query.isPresent()) {
-      throw new QueryNotFoundException(queryId);
-    }
-    return query.get();
+    return repository.findQueryByProjectIdAndId(projectId, queryId)
+        .orElseThrow(() -> new QueryNotFoundException(queryId));
   }
 
   private Date todayMinusDays(int minusDays) {
