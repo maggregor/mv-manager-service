@@ -88,7 +88,7 @@ public class BigQueryJobTest {
     queryPlan.add(stage_1);
     setQueryStatisticsWithQueryPlanOnlyMock(job, queryPlan);
     // No sub step contain the achilio_mv token
-    when(step_1_1.getSubsteps()).thenReturn(Arrays.asList("st_1", "st_2"));
+    when(step_1_1.getSubsteps()).thenReturn(Arrays.asList("st_1", "FROM"));
     when(step_1_2.getSubsteps()).thenReturn(Arrays.asList("st_1", "st_2 "));
     assertFalse(new BigQueryJob(job).isUseMaterializedView());
     // A sub step contain the achilio_mv token
