@@ -117,6 +117,18 @@ public class BigQueryJobTest {
     assertEquals("Really important error message example", query.getError());
   }
 
+  @Test
+  public void when_bigQueryJobStatisticsNull__thenSetStatisticsToZero() {
+    Job job = simpleJobMock();
+    when(job.getStatistics()).thenReturn(null);
+    Query query = new BigQueryJob(job);
+    assertNull(query.getStartTime());
+    assertFalse(query.isUseCache());
+    assertFalse(query.isUseMaterializedView());
+    assertEquals(0L, query.getProcessedBytes());
+    assertEquals(0L, query.getBilledBytes());
+  }
+
   private void setStatisticsWithNullFields(Job job) {
     setQueryStatisticsMock(job, null, null, null, null);
   }
