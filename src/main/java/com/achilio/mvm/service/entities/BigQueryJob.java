@@ -44,7 +44,7 @@ public class BigQueryJob extends Query {
   private void setStatistics(Job job) {
     QueryStatistics stats = job.getStatistics();
     if (stats != null) {
-      setStartTime(new Date(stats.getStartTime()));
+      setStartTime(stats.getStartTime() == null ? null : new Date(stats.getStartTime()));
       setProcessedBytes(
           stats.getTotalBytesProcessed() == null ? 0L : stats.getTotalBytesProcessed());
       setBilledBytes(stats.getTotalBytesBilled() == null ? 0L : stats.getTotalBytesBilled());
@@ -56,8 +56,8 @@ public class BigQueryJob extends Query {
   public boolean containsManagedMVUsageInQueryStages(List<QueryStage> stages) {
     return stages != null
         && stages.stream()
-            .flatMap(s -> s.getSteps().stream())
-            .anyMatch(this::containsSubStepUsingMVM);
+        .flatMap(s -> s.getSteps().stream())
+        .anyMatch(this::containsSubStepUsingMVM);
   }
 
   public boolean containsSubStepUsingMVM(QueryStep step) {
