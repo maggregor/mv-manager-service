@@ -10,8 +10,8 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.achilio.mvm.service.entities.AQuery;
 import com.achilio.mvm.service.entities.BigQueryJob;
-import com.achilio.mvm.service.entities.Query;
 import com.google.cloud.bigquery.BigQueryError;
 import com.google.cloud.bigquery.DatasetId;
 import com.google.cloud.bigquery.Job;
@@ -45,7 +45,7 @@ public class BigQueryJobTest {
   public void when_SomeStatisticsAreNull__thenSetStatisticsToZeroOrNull() {
     Job job = simpleJobMock();
     setStatisticsWithNullFields(job);
-    Query query = new BigQueryJob(job);
+    AQuery query = new BigQueryJob(job);
     assertFalse(query.isUseCache());
     assertEquals(0L, query.getBilledBytes());
     assertEquals(0L, query.getProcessedBytes());
@@ -55,7 +55,7 @@ public class BigQueryJobTest {
   @Test
   public void bigQueryJobToQuery() {
     Job job = simpleJobMock();
-    Query query = new BigQueryJob(job);
+    AQuery query = new BigQueryJob(job);
     assertEquals("SELECT 1", query.getQuery());
     assertNull(query.getDefaultDataset());
     assertFalse(query.hasDefaultDataset());
@@ -72,7 +72,7 @@ public class BigQueryJobTest {
     QueryJobConfiguration configuration = mock(QueryJobConfiguration.class);
     when(configuration.getDefaultDataset()).thenReturn(DatasetId.of("myDefaultDataset"));
     when(job.getConfiguration()).thenReturn(configuration);
-    Query query = new BigQueryJob(job);
+    AQuery query = new BigQueryJob(job);
     assertEquals("myDefaultDataset", query.getDefaultDataset());
   }
 
@@ -102,7 +102,7 @@ public class BigQueryJobTest {
   public void bigQueryJobToQueryUsingCache() {
     Job job = simpleJobMock();
     setQueryStatisticsMock(job, null, null, true, null);
-    Query query = new BigQueryJob(job);
+    AQuery query = new BigQueryJob(job);
     assertTrue(query.isUseCache());
   }
 
@@ -112,7 +112,7 @@ public class BigQueryJobTest {
     BigQueryError error = mock(BigQueryError.class);
     when(error.getMessage()).thenReturn("Really important error message example");
     when(job.getStatus().getError()).thenReturn(error);
-    Query query = new BigQueryJob(job);
+    AQuery query = new BigQueryJob(job);
     assertNotNull(query.getError());
     assertEquals("Really important error message example", query.getError());
   }
@@ -121,7 +121,7 @@ public class BigQueryJobTest {
   public void when_bigQueryJobStatisticsNull__thenSetStatisticsToZero() {
     Job job = simpleJobMock();
     when(job.getStatistics()).thenReturn(null);
-    Query query = new BigQueryJob(job);
+    AQuery query = new BigQueryJob(job);
     assertNull(query.getStartTime());
     assertFalse(query.isUseCache());
     assertFalse(query.isUseMaterializedView());
