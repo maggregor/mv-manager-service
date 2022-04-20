@@ -5,7 +5,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import com.achilio.mvm.service.entities.Query;
+import com.achilio.mvm.service.entities.AQuery;
 import com.achilio.mvm.service.repositories.QueryRepository;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -23,7 +23,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @Transactional
-public class IntegrationQueryRepositoryTest {
+public class IntegrationAQueryRepositoryTest {
 
   @Autowired
   private QueryRepository repository;
@@ -36,12 +36,12 @@ public class IntegrationQueryRepositoryTest {
   @Test
   public void findAllByProjectIdAndStartTimeGreaterThanEqual() {
     final String projectId = "theProjectId";
-    Query query = new Query();
+    AQuery query = new AQuery();
     query.setId("myId");
     query.setProjectId(projectId);
     query.setStartTime(todayMinusDays(1));
     repository.save(query);
-    List<Query> q;
+    List<AQuery> q;
     q = repository.findAllByProjectIdAndStartTimeGreaterThanEqual(projectId, todayMinusDays(1));
     assertEquals(1, q.size());
     assertEquals("myId", q.get(0).getId());
@@ -75,7 +75,7 @@ public class IntegrationQueryRepositoryTest {
     repository.save(simpleQuery(projectId, "id-1"));
     repository.save(simpleQuery(projectId, "id-2"));
     repository.save(simpleQuery(projectId, "id-3"));
-    List<Query> queries = repository.findAllByProjectId(projectId);
+    List<AQuery> queries = repository.findAllByProjectId(projectId);
     assertEquals(3, queries.size());
     assertEquals("id-1", queries.get(0).getId());
     assertEquals("id-2", queries.get(1).getId());
@@ -89,7 +89,7 @@ public class IntegrationQueryRepositoryTest {
     repository.save(simpleQuery(projectId, "id-1"));
     repository.save(simpleQuery(projectId, "id-2"));
     repository.save(simpleQuery(projectId, "id-3"));
-    Optional<Query> query;
+    Optional<AQuery> query;
     query = repository.findQueryByProjectIdAndId(projectId, "id-1");
     assertTrue(query.isPresent());
     assertEquals("id-1", query.get().getId());
@@ -106,10 +106,10 @@ public class IntegrationQueryRepositoryTest {
   @Test
   public void whenSaveTheSameQueryId__thenUpdateQuery() {
     final String projectId = "myProject";
-    Query query = simpleQuery(projectId, "id-1");
+    AQuery query = simpleQuery(projectId, "id-1");
     query.setQuery("SELECT 1");
     repository.save(query);
-    List<Query> queries;
+    List<AQuery> queries;
     queries = repository.findAllByProjectId(projectId);
     assertEquals(1, queries.size());
     assertEquals("id-1", queries.get(0).getId());
@@ -125,8 +125,8 @@ public class IntegrationQueryRepositoryTest {
   @Test
   public void countQuery() {
     final String projectId = "myProject";
-    Query query1 = simpleQuery(projectId, "id-1");
-    Query query2 = simpleQuery(projectId, "id-2");
+    AQuery query1 = simpleQuery(projectId, "id-1");
+    AQuery query2 = simpleQuery(projectId, "id-2");
     query1.setStartTime(todayMinusDays(2));
     query2.setStartTime(todayMinusDays(5));
     repository.save(query1);
@@ -148,9 +148,9 @@ public class IntegrationQueryRepositoryTest {
   @Test
   public void countQueryInMV() {
     final String projectId = "myProject";
-    Query query1 = simpleQuery(projectId, "id-1");
-    Query query2 = simpleQuery(projectId, "id-2");
-    Query query3 = simpleQuery(projectId, "id-3");
+    AQuery query1 = simpleQuery(projectId, "id-1");
+    AQuery query2 = simpleQuery(projectId, "id-2");
+    AQuery query3 = simpleQuery(projectId, "id-3");
     query1.setStartTime(todayMinusDays(2));
     query2.setStartTime(todayMinusDays(8));
     query3.setStartTime(todayMinusDays(5));
@@ -180,8 +180,8 @@ public class IntegrationQueryRepositoryTest {
   @Test
   public void averageProcessedBytes() {
     final String projectId = "myProject";
-    Query query1 = simpleQuery(projectId, "id-1");
-    Query query2 = simpleQuery(projectId, "id-2");
+    AQuery query1 = simpleQuery(projectId, "id-1");
+    AQuery query2 = simpleQuery(projectId, "id-2");
     query1.setProcessedBytes(10L);
     query2.setProcessedBytes(100L);
     query1.setStartTime(todayMinusDays(2));
@@ -202,12 +202,12 @@ public class IntegrationQueryRepositoryTest {
     assertNull(average);
   }
 
-  private Query simpleQuery(String projectId, String id) {
+  private AQuery simpleQuery(String projectId, String id) {
     return simpleQuery(projectId, id, null);
   }
 
-  private Query simpleQuery(String projectId, String id, Date startTime) {
-    Query q = new Query();
+  private AQuery simpleQuery(String projectId, String id, Date startTime) {
+    AQuery q = new AQuery();
     q.setProjectId(projectId);
     q.setId(id);
     q.setStartTime(startTime);

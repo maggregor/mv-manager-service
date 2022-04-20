@@ -3,6 +3,7 @@ package com.achilio.mvm.service.entities;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import javax.persistence.CollectionTable;
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorColumn;
 import javax.persistence.DiscriminatorType;
@@ -21,7 +22,9 @@ import org.codehaus.plexus.util.StringUtils;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
-/** Query is finalized fetched query, ready to be used by the Extractor */
+/**
+ * Query is finalized fetched query, ready to be used by the Extractor
+ */
 @Entity
 @Getter
 @Setter
@@ -35,7 +38,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 @DiscriminatorColumn(
     discriminatorType = DiscriminatorType.STRING,
     columnDefinition = "varchar(31) default 'BigQueryJob'")
-public class Query {
+public class AQuery {
 
   @Column(name = "query_statement", columnDefinition = "text")
   private String query;
@@ -71,15 +74,16 @@ public class Query {
 
   @Column(name = "tables")
   @ElementCollection
+  @CollectionTable(name = "query_table_id")
   // TODO an index ? -> Maybe: @CollectionTable(indexes = {@Index(columnList = "tables")})
   private List<String> tableId = new ArrayList<>();
 
-  public Query(String query, String projectId) {
+  public AQuery(String query, String projectId) {
     this.query = query;
     this.projectId = projectId;
   }
 
-  public Query(
+  public AQuery(
       String query,
       String id,
       String projectId,

@@ -1,6 +1,6 @@
 package com.achilio.mvm.service;
 
-import com.achilio.mvm.service.entities.Query;
+import com.achilio.mvm.service.entities.AQuery;
 import com.achilio.mvm.service.visitors.ATableId;
 import com.achilio.mvm.service.visitors.FieldSetExtract;
 import com.achilio.mvm.service.visitors.fields.DefaultFieldSet;
@@ -16,7 +16,7 @@ public enum FieldSetHelper {
 
   static List<FieldSet> statementToFieldSet(
       String projectId, String statement, FieldSetExtract extractor) {
-    Query query = new Query();
+    AQuery query = new AQuery();
     query.setProjectId(projectId);
     query.setQuery(statement);
     return extractor.extractAll(query);
