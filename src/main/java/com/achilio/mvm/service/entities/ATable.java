@@ -22,13 +22,13 @@ import org.hibernate.annotations.OnDeleteAction;
 @Table(name = "tables")
 public class ATable {
 
-  @ManyToOne
-  @OnDelete(action = OnDeleteAction.CASCADE)
-  ADataset dataset;
-
   @OneToMany(mappedBy = "table", fetch = FetchType.EAGER)
   List<AColumn> columns;
-
+  @ManyToOne
+  @OnDelete(action = OnDeleteAction.CASCADE)
+  private ADataset dataset;
+  @Column
+  private String projectId;
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Long id;
@@ -46,6 +46,7 @@ public class ATable {
   }
 
   public ATable(ADataset dataset, String tableName) {
+    this.projectId = dataset.getProjectId();
     this.dataset = dataset;
     this.tableName = tableName;
     setTableId();

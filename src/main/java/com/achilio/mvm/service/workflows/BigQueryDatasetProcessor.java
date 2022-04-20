@@ -14,7 +14,6 @@ import com.google.cloud.bigquery.TableDefinition;
 import com.google.zetasql.ZetaSQLType;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +29,6 @@ public class BigQueryDatasetProcessor implements ItemProcessor<Dataset, ADataset
   @Autowired
   private FetcherService fetcherService;
 
-  @Override
   public ADatasetEntitiesHolder process(@NonNull Dataset dataset) {
     ADataset aDataset = new ADataset(dataset);
     ADatasetEntitiesHolder holder = new ADatasetEntitiesHolder(aDataset);
@@ -52,10 +50,9 @@ public class BigQueryDatasetProcessor implements ItemProcessor<Dataset, ADataset
       LOGGER.warn("Can't retrieve columns: schema is null");
       return new ArrayList<>();
     }
-    Map<String, String> columnMapping = mapColumnsOrEmptyIfSchemaIsNull(table.getDefinition());
-    List<Field> fields = schema.getFields();
-    return fields.stream().collect(Collectors.toMap(Field::getName, this::toZetaSQLStringType));
-    AColumn aColumn = new AColumn(aTable);
+    return schema.getFields().stream()
+        .map(f -> new AColumn(aTable, f.getName(), toZetaSQLStringType(f)))
+        .collect(Collectors.toList());
   }
 
   /*

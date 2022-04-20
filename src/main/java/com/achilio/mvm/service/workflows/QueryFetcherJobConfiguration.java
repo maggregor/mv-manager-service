@@ -1,6 +1,5 @@
 package com.achilio.mvm.service.workflows;
 
-import com.achilio.mvm.service.entities.ADataset;
 import com.achilio.mvm.service.entities.Query;
 import com.achilio.mvm.service.services.FetcherService;
 import com.google.cloud.bigquery.Dataset;
@@ -114,21 +113,21 @@ public class QueryFetcherJobConfiguration extends DefaultBatchConfigurer {
 
   @Bean
   @StepScope
-  public JpaItemWriter<ADataset> datasetWriter() {
-    JpaItemWriter<ADataset> writer = new JpaItemWriter<>();
+  public JpaItemWriter<ADatasetEntitiesHolder> datasetWriter() {
+    JpaItemWriter<ADatasetEntitiesHolder> writer = new JpaItemWriter<>();
     writer.setEntityManagerFactory(emf);
     return writer;
   }
 
   @Bean
-  public Step fetchDatasets(JpaItemWriter<ADataset> writer) {
+  public Step fetchDatasets() {
     return stepBuilderFactory
         .get("retrieveQueries")
         .transactionManager(jpaTransactionManager.jpaTransactionManager())
-        .<Dataset, ADataset>chunk(1000)
+        .<Dataset, ADatasetEntitiesHolder>chunk(10)
         .reader(datasetReader(null))
         .processor(new BigQueryDatasetProcessor())
-        .writer(writer)
+        .writer(new ADatasetEntitiesHolderItemWriter())
         .build();
   }
 

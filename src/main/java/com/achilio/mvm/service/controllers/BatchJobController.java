@@ -3,6 +3,7 @@ package com.achilio.mvm.service.controllers;
 import static com.achilio.mvm.service.UserContextHelper.getContextTeamName;
 
 import com.achilio.mvm.service.controllers.requests.FetcherQueryJobRequest;
+import com.achilio.mvm.service.controllers.requests.FetcherStructJobRequest;
 import com.achilio.mvm.service.services.ProjectService;
 import io.swagger.annotations.ApiOperation;
 import lombok.SneakyThrows;
@@ -53,5 +54,20 @@ public class BatchJobController {
             .toJobParameters();
     jobLauncher.run(fetcherQueryJob, jobParameters);
     return "Oui oui c'est bon";
+  }
+
+  @SneakyThrows
+  @PostMapping(path = "/struct", produces = MediaType.APPLICATION_JSON_VALUE)
+  @ApiOperation("Create and start a new query fetching job")
+  public String fetchStruct(@RequestBody FetcherStructJobRequest payload) {
+    String projectId = payload.getProjectId();
+    projectService.getProject(projectId, getContextTeamName());
+    JobParameters jobParameters =
+        new JobParametersBuilder()
+            .addLong("time", System.currentTimeMillis())
+            .addString("projectId", projectId)
+            .toJobParameters();
+    jobLauncher.run(fetcherStructJob, jobParameters);
+    return "Ah bah là... c'est bon, je te jure !";
   }
 }

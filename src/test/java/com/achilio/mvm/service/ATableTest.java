@@ -21,9 +21,9 @@ public class ATableTest {
 
   @Test
   public void simpleValidationConstructor() {
-    ATable table = new ATable(project, dataset, tableName);
+    ATable table = new ATable(dataset, tableName);
     assertEquals(tableId, table.getTableId());
-    assertEquals(project.getProjectId(), table.getProject().getProjectId());
+    assertEquals(project.getProjectId(), table.getProjectId());
     assertEquals(dataset.getDatasetName(), table.getDataset().getDatasetName());
     assertEquals(tableName, table.getTableName());
     assertEquals(projectId, table.getProjectId());

@@ -61,13 +61,20 @@ public class IntegrationRepositoriesTest {
   private final FetcherStructJob job5 = new FetcherStructJob(TEST_PROJECT_ID1);
   private final Connection connection1 = new ServiceAccountConnection("SA_JSON_CONTENT");
   private final Connection connection2 = new ServiceAccountConnection("SA_JSON_CONTENT");
-  @Autowired private FetcherJobRepository fetcherJobRepository;
-  @Autowired private QueryRepository queryRepository;
-  @Autowired private ProjectRepository projectRepository;
-  @Autowired private ADatasetRepository datasetRepository;
-  @Autowired private ATableRepository tableRepository;
-  @Autowired private AColumnRepository columnRepository;
-  @Autowired private ConnectionRepository connectionRepository;
+  @Autowired
+  private FetcherJobRepository fetcherJobRepository;
+  @Autowired
+  private QueryRepository queryRepository;
+  @Autowired
+  private ProjectRepository projectRepository;
+  @Autowired
+  private ADatasetRepository datasetRepository;
+  @Autowired
+  private ATableRepository tableRepository;
+  @Autowired
+  private AColumnRepository columnRepository;
+  @Autowired
+  private ConnectionRepository connectionRepository;
 
   @Before
   public void setup() {
@@ -138,10 +145,10 @@ public class IntegrationRepositoriesTest {
     Project project2 = new Project(PROJECT_ID2, PROJECT_NAME2);
     ADataset dataset1 = new ADataset(project1, DATASET_NAME1);
     ADataset dataset2 = new ADataset(project2, DATASET_NAME2);
-    ATable table1 = new ATable(project1, dataset1, TABLE_NAME1);
-    ATable table2 = new ATable(project2, dataset1, TABLE_NAME1);
-    AColumn column1 = new AColumn(job5, table1, COLUMN_NAME1, COLUMN_TYPE1);
-    AColumn column2 = new AColumn(job5, table2, COLUMN_NAME1, COLUMN_TYPE1);
+    ATable table1 = new ATable(dataset1, TABLE_NAME1);
+    ATable table2 = new ATable(dataset1, TABLE_NAME1);
+    AColumn column1 = new AColumn(table1, COLUMN_NAME1, COLUMN_TYPE1);
+    AColumn column2 = new AColumn(table2, COLUMN_NAME1, COLUMN_TYPE1);
     projectRepository.save(project1);
     projectRepository.save(project2);
     datasetRepository.save(dataset1);
@@ -151,7 +158,7 @@ public class IntegrationRepositoriesTest {
     columnRepository.save(column1);
     columnRepository.save(column2);
 
-    List<AColumn> columns = columnRepository.findAllByTable_Project_ProjectId(PROJECT_ID1);
+    List<AColumn> columns = columnRepository.findAllByTable_ProjectId(PROJECT_ID1);
     assertEquals(1, columns.size());
     assertEquals(
         String.format("%s.%s.%s#%s", PROJECT_ID1, DATASET_NAME1, TABLE_NAME1, COLUMN_NAME1),

@@ -5,7 +5,6 @@ import static org.junit.Assert.assertEquals;
 import com.achilio.mvm.service.entities.AColumn;
 import com.achilio.mvm.service.entities.ADataset;
 import com.achilio.mvm.service.entities.ATable;
-import com.achilio.mvm.service.entities.FetcherStructJob;
 import com.achilio.mvm.service.entities.Project;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,16 +20,15 @@ public class AColumnTest {
   private final String datasetName = "myDataset";
   private final Project project = new Project(projectId);
   private final ADataset dataset = new ADataset(project, datasetName);
-  private final ATable table = new ATable(project, dataset, tableName);
-  private final FetcherStructJob job = new FetcherStructJob(projectId);
+  private final ATable table = new ATable(dataset, tableName);
 
   @Test
   public void simpleValidationConstructor1() {
-    AColumn column = new AColumn(job, table, columnName, columnType);
+    AColumn column = new AColumn(table, columnName, columnType);
     assertEquals("myProjectId.myDataset.myTable#myCol", column.getColumnId());
     assertEquals(columnName, column.getName());
     assertEquals(columnType, column.getType());
-    assertEquals(project.getProjectId(), column.getTable().getProject().getProjectId());
+    assertEquals(project.getProjectId(), column.getTable().getProjectId());
     assertEquals(dataset.getDatasetName(), column.getTable().getDataset().getDatasetName());
     assertEquals(tableName, column.getTable().getTableName());
     assertEquals(dataset.isActivated(), column.isDatasetActivated());
