@@ -6,7 +6,7 @@ import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.achilio.mvm.service.entities.Query;
+import com.achilio.mvm.service.entities.AQuery;
 import com.achilio.mvm.service.exceptions.QueryNotFoundException;
 import com.achilio.mvm.service.repositories.QueryRepository;
 import com.achilio.mvm.service.services.QueryService;
@@ -21,13 +21,13 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
-public class QueryServiceTest {
+public class AQueryServiceTest {
 
   private final String PROJECT_ID1 = "myProjectId";
   private final String QUERY_ID1 = "queryId1";
   private final Date startTime = new Date();
-  private final Query QUERY1 =
-      new Query("SELECT 1", QUERY_ID1, PROJECT_ID1, "", false, false, startTime);
+  private final AQuery AQUERY1 =
+      new AQuery("SELECT 1", QUERY_ID1, PROJECT_ID1, "", false, false, startTime);
   @InjectMocks
   private QueryService service;
   @Mock
@@ -36,7 +36,7 @@ public class QueryServiceTest {
   @Before
   public void setup() {
     when(mockRepository.findQueryByProjectIdAndId(any(), any()))
-        .thenReturn(java.util.Optional.of(QUERY1));
+        .thenReturn(java.util.Optional.of(AQUERY1));
     when(mockRepository.findQueryByProjectIdAndId(any(),
         ArgumentMatchers.eq("unknownQueryId")))
         .thenReturn(java.util.Optional.empty());
@@ -44,7 +44,7 @@ public class QueryServiceTest {
 
   @Test
   public void getQuery() {
-    Query query = service.getQuery(QUERY_ID1, PROJECT_ID1);
+    AQuery query = service.getQuery(QUERY_ID1, PROJECT_ID1);
     assertEquals(QUERY_ID1, query.getId());
     assertEquals(PROJECT_ID1, query.getProjectId());
     assertEquals("SELECT 1", query.getQuery());

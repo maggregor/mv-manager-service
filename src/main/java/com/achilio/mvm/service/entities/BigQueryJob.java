@@ -24,7 +24,7 @@ import org.apache.logging.log4j.util.Strings;
 @Getter
 @Setter
 @NoArgsConstructor
-public class BigQueryJob extends Query {
+public class BigQueryJob extends AQuery {
 
   public BigQueryJob(Job job) {
     this();
@@ -56,8 +56,8 @@ public class BigQueryJob extends Query {
   public boolean containsManagedMVUsageInQueryStages(List<QueryStage> stages) {
     return stages != null
         && stages.stream()
-            .flatMap(s -> s.getSteps().stream())
-            .anyMatch(this::containsSubStepUsingMVM);
+        .flatMap(s -> s.getSteps().stream())
+        .anyMatch(this::containsSubStepUsingMVM);
   }
 
   public boolean containsSubStepUsingMVM(QueryStep step) {

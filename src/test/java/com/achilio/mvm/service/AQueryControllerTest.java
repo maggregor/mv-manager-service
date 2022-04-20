@@ -6,7 +6,7 @@ import static org.mockito.Mockito.when;
 
 import com.achilio.mvm.service.controllers.QueryController;
 import com.achilio.mvm.service.controllers.requests.QueryRequest;
-import com.achilio.mvm.service.entities.Query;
+import com.achilio.mvm.service.entities.AQuery;
 import com.achilio.mvm.service.exceptions.QueryNotFoundException;
 import com.achilio.mvm.service.services.QueryService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -28,7 +28,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 @RunWith(MockitoJUnitRunner.class)
-public class QueryControllerTest {
+public class AQueryControllerTest {
 
   private final String TEST_PROJECT_ID = "myProjectId";
   private final ObjectMapper objectMapper = new ObjectMapper();
@@ -37,8 +37,8 @@ public class QueryControllerTest {
   private final boolean useMaterializedView = false;
   private final boolean useCache = false;
   private final String googleJobId = "google-id";
-  private Query query1;
-  private Query query2;
+  private AQuery query1;
+  private AQuery query2;
   @InjectMocks
   private QueryController controller;
   @Mock
@@ -47,7 +47,7 @@ public class QueryControllerTest {
   @Before
   public void setup() {
     query1 =
-        new Query(
+        new AQuery(
             queryStatement1,
             googleJobId,
             TEST_PROJECT_ID,
@@ -56,7 +56,7 @@ public class QueryControllerTest {
             useCache,
             new Date());
     query2 =
-        new Query(
+        new AQuery(
             queryStatement2,
             googleJobId,
             TEST_PROJECT_ID,
@@ -72,7 +72,7 @@ public class QueryControllerTest {
 
   @Test
   public void getAllQueriesByProjectId() {
-    List<Query> jobResponseEntity = controller.getAllQueriesByProjectId(TEST_PROJECT_ID);
+    List<AQuery> jobResponseEntity = controller.getAllQueriesByProjectId(TEST_PROJECT_ID);
     assertEquals(2, jobResponseEntity.size());
     assertEquals(queryStatement1, jobResponseEntity.get(0).getQuery());
   }
@@ -80,7 +80,7 @@ public class QueryControllerTest {
   @Test
   public void getQuery() throws JsonProcessingException {
     ObjectMapper mapper = new ObjectMapper();
-    Query jobResponseEntity = controller.getSingleQuery(TEST_PROJECT_ID, googleJobId);
+    AQuery jobResponseEntity = controller.getSingleQuery(TEST_PROJECT_ID, googleJobId);
     String jsonResponse = objectMapper.writeValueAsString(jobResponseEntity);
     JsonNode map = mapper.readTree(jsonResponse);
     Assert.assertTrue(map instanceof ObjectNode);
@@ -94,7 +94,7 @@ public class QueryControllerTest {
   @Test
   public void createQuery() {
     QueryRequest request = new QueryRequest(TEST_PROJECT_ID, "SELECT 1");
-    Query query = controller.createQuery(request);
+    AQuery query = controller.createQuery(request);
     assertEquals(TEST_PROJECT_ID, query.getProjectId());
     assertEquals("SELECT 1", query.getQuery());
   }

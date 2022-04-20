@@ -1,6 +1,6 @@
 package com.achilio.mvm.service.services;
 
-import com.achilio.mvm.service.entities.Query;
+import com.achilio.mvm.service.entities.AQuery;
 import com.achilio.mvm.service.exceptions.QueryNotFoundException;
 import com.achilio.mvm.service.repositories.QueryRepository;
 import java.time.LocalDate;
@@ -18,15 +18,15 @@ public class QueryService {
     this.repository = queryRepository;
   }
 
-  public List<Query> getAllQueries(String projectId) {
+  public List<AQuery> getAllQueries(String projectId) {
     return repository.findAllByProjectId(projectId);
   }
 
-  public List<Query> getAllQueriesSince(String projectId, int timeframe) {
+  public List<AQuery> getAllQueriesSince(String projectId, int timeframe) {
     return getAllQueriesSince(projectId, todayMinusDays(timeframe));
   }
 
-  public List<Query> getAllQueriesSince(String projectId, Date date) {
+  public List<AQuery> getAllQueriesSince(String projectId, Date date) {
     return repository.findAllByProjectIdAndStartTimeGreaterThanEqual(projectId, date);
   }
 
@@ -48,7 +48,7 @@ public class QueryService {
     return (long) (inMV * 100.0 / total + 0.5);
   }
 
-  public Query getQuery(String projectId, String queryId) {
+  public AQuery getQuery(String projectId, String queryId) {
     return repository.findQueryByProjectIdAndId(projectId, queryId)
         .orElseThrow(() -> new QueryNotFoundException(queryId));
   }

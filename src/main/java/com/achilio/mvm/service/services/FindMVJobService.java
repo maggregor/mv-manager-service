@@ -6,13 +6,13 @@ import com.achilio.mvm.service.MVFactory;
 import com.achilio.mvm.service.MVGenerator;
 import com.achilio.mvm.service.databases.bigquery.BigQueryMaterializedViewStatementBuilder;
 import com.achilio.mvm.service.entities.ADataset;
+import com.achilio.mvm.service.entities.AQuery;
 import com.achilio.mvm.service.entities.ATable;
 import com.achilio.mvm.service.entities.FindMVJob;
 import com.achilio.mvm.service.entities.Job.JobStatus;
 import com.achilio.mvm.service.entities.MaterializedView;
 import com.achilio.mvm.service.entities.OptimizationEvent.StatusType;
 import com.achilio.mvm.service.entities.Project;
-import com.achilio.mvm.service.entities.Query;
 import com.achilio.mvm.service.exceptions.FindMVJobNotFoundException;
 import com.achilio.mvm.service.repositories.FindMVJobRepository;
 import com.achilio.mvm.service.visitors.ATableId;
@@ -105,7 +105,7 @@ public class FindMVJobService {
       LOGGER.info("FindMV Job {} on last {} days", job.getId(), job.getTimeframe());
       // STEP 1 - Fetch all queries of targeted fetchedProject
       LOGGER.info("Find MV Job {}: {}", job.getId(), StatusType.FETCHING_QUERIES);
-      List<Query> allQueries = queryService.getAllQueriesSince(projectId, job.getTimeframe());
+      List<AQuery> allQueries = queryService.getAllQueriesSince(projectId, job.getTimeframe());
       // STEP 2 - Fetch all tables
       LOGGER.info("Find MV Job {}: {}", job.getId(), StatusType.FETCHING_TABLES);
       Set<ATable> tables = new HashSet<>(projectService.getAllTables(projectId));
@@ -215,7 +215,7 @@ public class FindMVJobService {
     return generator.generate(fieldSets);
   }
 
-  private List<FieldSet> extractFields(Set<ATable> tables, List<Query> queries) {
+  private List<FieldSet> extractFields(Set<ATable> tables, List<AQuery> queries) {
     FieldSetExtract extractor = FieldSetExtractFactory.createFieldSetExtract(tables);
     return extractor.extractAll(queries);
   }
