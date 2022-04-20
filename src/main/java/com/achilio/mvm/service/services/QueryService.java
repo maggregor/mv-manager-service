@@ -32,19 +32,24 @@ public class QueryService {
 
   public Long getAverageProcessedBytesSince(String projectId, int minusDays) {
     Date from = todayMinusDays(minusDays);
-    return repository.averageProcessedBytesByProjectAndStartTimeGreaterThanEqual(projectId,
+    Long average = repository.averageProcessedBytesByProjectAndStartTimeGreaterThanEqual(projectId,
         from);
+    return average == null ? 0L : average;
   }
 
   public Long getTotalQuerySince(String projectId, int minusDays) {
     Date from = todayMinusDays(minusDays);
-    return repository.countQueryByProjectAndStartTimeGreaterThanEqual(projectId, from);
+    Long count = repository.countQueryByProjectAndStartTimeGreaterThanEqual(projectId, from);
+    return count == null ? 0L : count;
   }
 
   public Long getPercentQueryInMVSince(String projectId, int minusDays) {
     Date from = todayMinusDays(minusDays);
     Long total = repository.countQueryByProjectAndStartTimeGreaterThanEqual(projectId, from);
     Long inMV = repository.countQueryInMVByProjectAndStartTimeGreaterThanEqual(projectId, from);
+    if (total == null || total == 0L || inMV == null || inMV == 0L) {
+      return 0L;
+    }
     return (long) (inMV * 100.0 / total + 0.5);
   }
 
