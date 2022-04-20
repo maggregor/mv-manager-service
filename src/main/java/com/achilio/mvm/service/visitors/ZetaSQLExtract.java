@@ -1,7 +1,7 @@
 package com.achilio.mvm.service.visitors;
 
+import com.achilio.mvm.service.entities.AQuery;
 import com.achilio.mvm.service.entities.ATable;
-import com.achilio.mvm.service.entities.Query;
 import com.achilio.mvm.service.visitors.fields.FieldSet;
 import com.google.zetasql.Analyzer;
 import com.google.zetasql.AnalyzerOptions;
@@ -43,7 +43,7 @@ public class ZetaSQLExtract extends ZetaSQLModelBuilder implements FieldSetExtra
   }
 
   @Override
-  public List<ATableId> extractATableIds(Query query) {
+  public List<ATableId> extractATableIds(AQuery query) {
     String statement = removeTableNamesBackticks(query.getQuery());
     return extractTableNames(statement).stream()
         .map(
@@ -69,7 +69,7 @@ public class ZetaSQLExtract extends ZetaSQLModelBuilder implements FieldSetExtra
   }
 
   @Override
-  public List<FieldSet> extractAll(Query query) {
+  public List<FieldSet> extractAll(AQuery query) {
     if (query.hasDefaultDataset()) {
       setDefaultDataset(query.getDefaultDataset());
     }

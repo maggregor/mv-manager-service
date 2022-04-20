@@ -24,7 +24,7 @@ import org.apache.logging.log4j.util.Strings;
 @Getter
 @Setter
 @NoArgsConstructor
-public class BigQueryJob extends Query {
+public class BigQueryJob extends AQuery {
 
   public BigQueryJob(Job job) {
     this();

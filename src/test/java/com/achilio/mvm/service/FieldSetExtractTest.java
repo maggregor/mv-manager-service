@@ -11,8 +11,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
 import com.achilio.mvm.service.entities.AColumn;
+import com.achilio.mvm.service.entities.AQuery;
 import com.achilio.mvm.service.entities.ATable;
-import com.achilio.mvm.service.entities.Query;
 import com.achilio.mvm.service.visitors.ATableId;
 import com.achilio.mvm.service.visitors.FieldSetExtract;
 import com.achilio.mvm.service.visitors.JoinType;
@@ -358,7 +358,9 @@ public abstract class FieldSetExtractTest {
     assertExpectedFieldSet(s, EXPECTED);
   }
 
-  /** UNKNOWN REASON: ZetaSQL returns INNER join type on a CROSS JOIN clause */
+  /**
+   * UNKNOWN REASON: ZetaSQL returns INNER join type on a CROSS JOIN clause
+   */
   @Test
   @Ignore
   public void crossJoin() {
@@ -438,8 +440,8 @@ public abstract class FieldSetExtractTest {
   public void multipleExtracts() {
     final FieldSet EXPECTED_1 = fieldSetBuilder(MAIN_TABLE_ID).addRef("col1").build();
     final FieldSet EXPECTED_2 = fieldSetBuilder(SECONDARY_TABLE_ID).addRef("col2").build();
-    Query q1 = queryMock("SELECT col1 FROM myproject.mydataset.mytable GROUP BY 1");
-    Query q2 = queryMock("SELECT col2 FROM mydataset.myothertable GROUP BY 1");
+    AQuery q1 = queryMock("SELECT col1 FROM myproject.mydataset.mytable GROUP BY 1");
+    AQuery q2 = queryMock("SELECT col2 FROM mydataset.myothertable GROUP BY 1");
     assertExpectedFieldSet(extractor.extractAll(Arrays.asList(q1, q2)), EXPECTED_1, EXPECTED_2);
   }
 
@@ -515,13 +517,13 @@ public abstract class FieldSetExtractTest {
 
   private void assertExpectedFieldSet(
       String statement, String defaultDataset, FieldSet... expectedFieldSets) {
-    Query query = queryMock(statement);
+    AQuery query = queryMock(statement);
     when(query.hasDefaultDataset()).thenReturn(true);
     when(query.getDefaultDataset()).thenReturn(defaultDataset);
     assertExpectedFieldSet(query, expectedFieldSets);
   }
 
-  private void assertExpectedFieldSet(Query query, FieldSet... expectedFieldSets) {
+  private void assertExpectedFieldSet(AQuery query, FieldSet... expectedFieldSets) {
     assertExpectedFieldSet(extractor.extractAll(query), expectedFieldSets);
   }
 

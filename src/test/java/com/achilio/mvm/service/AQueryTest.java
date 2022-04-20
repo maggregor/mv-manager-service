@@ -4,14 +4,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 
-import com.achilio.mvm.service.entities.Query;
+import com.achilio.mvm.service.entities.AQuery;
 import java.util.Date;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
-public class QueryTest {
+public class AQueryTest {
 
   private final String projectId = "myProjectId";
   private final String queryStatement = "SELECT 1";
@@ -22,8 +22,8 @@ public class QueryTest {
 
   @Test
   public void simpleValidation() {
-    Query query =
-        new Query(
+    AQuery query =
+        new AQuery(
             queryStatement,
             googleJobId,
             projectId,
@@ -45,7 +45,7 @@ public class QueryTest {
 
   @Test
   public void secondConstructorValidation() {
-    Query query = new Query(queryStatement, projectId);
+    AQuery query = new AQuery(queryStatement, projectId);
     assertEquals(queryStatement, query.getQuery());
     assertEquals(projectId, query.getProjectId());
     assertFalse(query.isUseCache());

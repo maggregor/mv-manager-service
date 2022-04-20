@@ -1,7 +1,7 @@
 package com.achilio.mvm.service.controllers;
 
 import com.achilio.mvm.service.controllers.requests.QueryRequest;
-import com.achilio.mvm.service.entities.Query;
+import com.achilio.mvm.service.entities.AQuery;
 import com.achilio.mvm.service.services.QueryService;
 import io.swagger.annotations.ApiOperation;
 import java.util.List;
@@ -30,13 +30,13 @@ public class QueryController {
 
   @GetMapping(path = "/query", produces = MediaType.APPLICATION_JSON_VALUE)
   @ApiOperation("List all queries for a given projectId.\n")
-  public List<Query> getAllQueriesByProjectId(@RequestParam String projectId) {
+  public List<AQuery> getAllQueriesByProjectId(@RequestParam String projectId) {
     return service.getAllQueries(projectId);
   }
 
   @GetMapping(path = "/query/{queryId}", produces = MediaType.APPLICATION_JSON_VALUE)
   @ApiOperation("Retrieve a single query by projectId and queryId")
-  public Query getSingleQuery(@RequestParam String projectId, @PathVariable String queryId) {
+  public AQuery getSingleQuery(@RequestParam String projectId, @PathVariable String queryId) {
     return service.getQuery(projectId, queryId);
   }
 
@@ -60,7 +60,7 @@ public class QueryController {
   @PostMapping(path = "/query", produces = MediaType.APPLICATION_JSON_VALUE)
   @ApiOperation("Register a new query")
   @PreAuthorize("hasRole('ADMIN')")
-  public Query createQuery(@Valid @RequestBody QueryRequest payload) {
-    return new Query(payload.getQuery(), payload.getProjectId());
+  public AQuery createQuery(@Valid @RequestBody QueryRequest payload) {
+    return new AQuery(payload.getQuery(), payload.getProjectId());
   }
 }

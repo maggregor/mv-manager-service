@@ -1,6 +1,6 @@
 package com.achilio.mvm.service.workflows;
 
-import com.achilio.mvm.service.entities.Query;
+import com.achilio.mvm.service.entities.AQuery;
 import com.achilio.mvm.service.services.FetcherService;
 import java.util.Collections;
 import java.util.logging.Logger;
@@ -27,6 +27,7 @@ import org.springframework.orm.jpa.JpaTransactionManager;
 @Configuration
 @EnableBatchProcessing
 public class QueryFetcherJobConfiguration extends DefaultBatchConfigurer {
+
   private static final Logger LOGGER =
       Logger.getLogger(QueryFetcherJobConfiguration.class.getName());
 
@@ -72,8 +73,8 @@ public class QueryFetcherJobConfiguration extends DefaultBatchConfigurer {
 
   @Bean
   @StepScope
-  public JpaItemWriter<Query> writer() {
-    JpaItemWriter<Query> writer = new JpaItemWriter<>();
+  public JpaItemWriter<AQuery> writer() {
+    JpaItemWriter<AQuery> writer = new JpaItemWriter<>();
     writer.setEntityManagerFactory(emf);
     return writer;
   }
@@ -84,11 +85,11 @@ public class QueryFetcherJobConfiguration extends DefaultBatchConfigurer {
   }
 
   @Bean
-  public Step retrieveAndQueries(JpaItemWriter<Query> writer) {
+  public Step retrieveAndQueries(JpaItemWriter<AQuery> writer) {
     return stepBuilderFactory
         .get("retrieveQueries")
         .transactionManager(jpaTransactionManager())
-        .<com.google.cloud.bigquery.Job, Query>chunk(1000)
+        .<com.google.cloud.bigquery.Job, AQuery>chunk(1000)
         .reader(reader(null, 0))
         .processor(new BigQueryJobProcessor())
         .writer(writer)

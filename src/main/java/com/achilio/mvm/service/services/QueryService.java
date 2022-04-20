@@ -1,6 +1,6 @@
 package com.achilio.mvm.service.services;
 
-import com.achilio.mvm.service.entities.Query;
+import com.achilio.mvm.service.entities.AQuery;
 import com.achilio.mvm.service.exceptions.QueryNotFoundException;
 import com.achilio.mvm.service.repositories.QueryRepository;
 import java.time.LocalDate;
@@ -18,44 +18,37 @@ public class QueryService {
     this.repository = queryRepository;
   }
 
-  @Deprecated
-  public List<Query> getAllQueries(String projectId) {
+  public List<AQuery> getAllQueries(String projectId) {
     return repository.findAllByProjectId(projectId);
   }
 
-  @Deprecated
-  public List<Query> getAllQueriesSince(String projectId, int timeframe) {
+  public List<AQuery> getAllQueriesSince(String projectId, int timeframe) {
     return getAllQueriesSince(projectId, todayMinusDays(timeframe));
   }
 
-  public List<Query> getAllQueriesSince(String projectId, Date date) {
+  public List<AQuery> getAllQueriesSince(String projectId, Date date) {
     return repository.findAllByProjectIdAndStartTimeGreaterThanEqual(projectId, date);
   }
 
   public Long getAverageProcessedBytesSince(String projectId, int minusDays) {
     Date from = todayMinusDays(minusDays);
-    Long average = repository.averageProcessedBytesByProjectAndStartTimeGreaterThanEqual(projectId,
+    return repository.averageProcessedBytesByProjectAndStartTimeGreaterThanEqual(projectId,
         from);
-    return average == null ? 0L : average;
   }
 
   public Long getTotalQuerySince(String projectId, int minusDays) {
     Date from = todayMinusDays(minusDays);
-    Long total = repository.countQueryByProjectAndStartTimeGreaterThanEqual(projectId, from);
-    return total == null ? 0L : total;
+    return repository.countQueryByProjectAndStartTimeGreaterThanEqual(projectId, from);
   }
 
   public Long getPercentQueryInMVSince(String projectId, int minusDays) {
     Date from = todayMinusDays(minusDays);
     Long total = repository.countQueryByProjectAndStartTimeGreaterThanEqual(projectId, from);
     Long inMV = repository.countQueryInMVByProjectAndStartTimeGreaterThanEqual(projectId, from);
-    if (total == null || total == 0L || inMV == null || inMV == 0L) {
-      return 0L;
-    }
     return (long) (inMV * 100.0 / total + 0.5);
   }
 
-  public Query getQuery(String projectId, String queryId) {
+  public AQuery getQuery(String projectId, String queryId) {
     return repository.findQueryByProjectIdAndId(projectId, queryId)
         .orElseThrow(() -> new QueryNotFoundException(queryId));
   }
