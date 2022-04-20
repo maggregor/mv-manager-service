@@ -44,7 +44,7 @@ public class BigQueryJob extends AQuery {
   private void setStatistics(Job job) {
     QueryStatistics stats = job.getStatistics();
     if (stats != null) {
-      setStartTime(new Date(stats.getStartTime()));
+      setStartTime(stats.getStartTime() == null ? null : new Date(stats.getStartTime()));
       setProcessedBytes(
           stats.getTotalBytesProcessed() == null ? 0L : stats.getTotalBytesProcessed());
       setBilledBytes(stats.getTotalBytesBilled() == null ? 0L : stats.getTotalBytesBilled());
@@ -62,7 +62,8 @@ public class BigQueryJob extends AQuery {
 
   public boolean containsSubStepUsingMVM(QueryStep step) {
     return step.getSubsteps().stream()
-        .anyMatch(subStep -> subStep.contains("SELECT") && (subStep.contains("achilio_mv_")));
+        .anyMatch(subStep -> subStep.contains("FROM") && (subStep.contains(
+            MaterializedView.MV_NAME_PREFIX)));
   }
 
   private void throwExceptionIfNotQueryJob(Job job) {

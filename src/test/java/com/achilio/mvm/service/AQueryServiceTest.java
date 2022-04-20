@@ -62,6 +62,9 @@ public class AQueryServiceTest {
         timeout(1000).times(1)).averageProcessedBytesByProjectAndStartTimeGreaterThanEqual(
         any(),
         any(Date.class));
+    when(mockRepository.averageProcessedBytesByProjectAndStartTimeGreaterThanEqual(any(),
+        any(Date.class))).thenReturn(null);
+    assertEquals(0L, service.getAverageProcessedBytesSince("", 0).longValue());
   }
 
 
@@ -74,6 +77,9 @@ public class AQueryServiceTest {
         timeout(1000).times(1)).countQueryByProjectAndStartTimeGreaterThanEqual(
         any(),
         any(Date.class));
+    when(mockRepository.countQueryByProjectAndStartTimeGreaterThanEqual(any(),
+        any(Date.class))).thenReturn(null);
+    assertEquals(0L, service.getTotalQuerySince("", 0).longValue());
   }
 
   @Test
@@ -100,10 +106,43 @@ public class AQueryServiceTest {
     when(mockRepository.countQueryInMVByProjectAndStartTimeGreaterThanEqual(any(),
         any())).thenReturn(0L);
     assertEquals(0L, service.getPercentQueryInMVSince("", 0).longValue());
+    //
     when(mockRepository.countQueryByProjectAndStartTimeGreaterThanEqual(any(),
         any())).thenReturn(1000L);
     when(mockRepository.countQueryInMVByProjectAndStartTimeGreaterThanEqual(any(),
         any())).thenReturn(1000L);
     assertEquals(100L, service.getPercentQueryInMVSince("", 0).longValue());
+    //
+    when(mockRepository.countQueryByProjectAndStartTimeGreaterThanEqual(any(),
+        any())).thenReturn(0L);
+    when(mockRepository.countQueryInMVByProjectAndStartTimeGreaterThanEqual(any(),
+        any())).thenReturn(1000L);
+    assertEquals(0L, service.getPercentQueryInMVSince("", 0).longValue());
+  }
+
+  @Test
+  public void getPercentQuerySinceWithCountQueryNullOrZero() {
+    when(mockRepository.countQueryInMVByProjectAndStartTimeGreaterThanEqual(any(),
+        any())).thenReturn(1000L);
+    //
+    when(mockRepository.countQueryByProjectAndStartTimeGreaterThanEqual(any(),
+        any())).thenReturn(null);
+    assertEquals(0L, service.getPercentQueryInMVSince("", 0).longValue());
+    when(mockRepository.countQueryByProjectAndStartTimeGreaterThanEqual(any(),
+        any())).thenReturn(0L);
+    assertEquals(0L, service.getPercentQueryInMVSince("", 0).longValue());
+  }
+
+  @Test
+  public void getPercentQuerySinceWithCountQueryINMVNullOrZero() {
+    when(mockRepository.countQueryByProjectAndStartTimeGreaterThanEqual(any(),
+        any())).thenReturn(1000L);
+    //
+    when(mockRepository.countQueryInMVByProjectAndStartTimeGreaterThanEqual(any(),
+        any())).thenReturn(null);
+    assertEquals(0L, service.getPercentQueryInMVSince("", 0).longValue());
+    when(mockRepository.countQueryInMVByProjectAndStartTimeGreaterThanEqual(any(),
+        any())).thenReturn(0L);
+    assertEquals(0L, service.getPercentQueryInMVSince("", 0).longValue());
   }
 }
