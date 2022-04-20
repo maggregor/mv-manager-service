@@ -7,7 +7,6 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
@@ -27,8 +26,6 @@ public class ATable {
   @OnDelete(action = OnDeleteAction.CASCADE)
   ADataset dataset;
 
-  @ManyToOne Project project;
-
   @OneToMany(mappedBy = "table", fetch = FetchType.EAGER)
   List<AColumn> columns;
 
@@ -36,9 +33,8 @@ public class ATable {
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Long id;
 
-  @Column private String tableName;
-  @ManyToOne private FetcherStructJob lastFetcherStructJob;
-  @ManyToOne @JoinColumn private FetcherStructJob initialFetcherStructJob;
+  @Column
+  private String tableName;
 
   @Column(unique = true)
   private String tableId;
@@ -46,19 +42,10 @@ public class ATable {
   @Formula("(SELECT COUNT(*) FROM query_table_id q WHERE q.tables = table_id)")
   private int queryCount;
 
-  public ATable() {}
-
-  public ATable(Project project, ADataset dataset, String tableName, FetcherStructJob job) {
-    this.lastFetcherStructJob = job;
-    this.initialFetcherStructJob = job;
-    this.project = project;
-    this.dataset = dataset;
-    this.tableName = tableName;
-    setTableId();
+  public ATable() {
   }
 
-  public ATable(Project project, ADataset dataset, String tableName) {
-    this.project = project;
+  public ATable(ADataset dataset, String tableName) {
     this.dataset = dataset;
     this.tableName = tableName;
     setTableId();
@@ -67,7 +54,7 @@ public class ATable {
   private void setTableId() {
     this.tableId =
         String.format(
-            "%s.%s.%s", this.project.getProjectId(), this.dataset.getDatasetName(), this.tableName);
+            "%s.%s.%s", this.dataset.getProjectId(), this.dataset.getDatasetName(), this.tableName);
   }
 
   @Override
@@ -94,6 +81,6 @@ public class ATable {
   }
 
   public String getProjectId() {
-    return this.project.getProjectId();
+    return this.dataset.getProjectId();
   }
 }

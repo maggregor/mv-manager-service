@@ -4,7 +4,6 @@ import com.achilio.mvm.service.databases.DatabaseFetcher;
 import com.achilio.mvm.service.databases.bigquery.BigQueryDatabaseFetcher;
 import com.achilio.mvm.service.databases.bigquery.BigQueryMaterializedViewStatementBuilder;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
-import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.entities.Connection;
 import com.achilio.mvm.service.entities.Connection.ConnectionType;
 import com.achilio.mvm.service.entities.MaterializedView;
@@ -12,16 +11,20 @@ import com.achilio.mvm.service.entities.ServiceAccountConnection;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import com.google.cloud.bigquery.Dataset;
 import com.google.cloud.bigquery.Job;
-import java.util.Set;
+import com.google.cloud.bigquery.Table;
+import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-/** All the useful services to generate relevant Materialized Views. */
+/**
+ * All the useful services to generate relevant Materialized Views.
+ */
 @Service
 public class FetcherService {
 
   BigQueryMaterializedViewStatementBuilder statementBuilder;
-  @Autowired ProjectService projectService;
+  @Autowired
+  ProjectService projectService;
 
   public FetcherService() {
     this.statementBuilder = new BigQueryMaterializedViewStatementBuilder();
@@ -39,10 +42,10 @@ public class FetcherService {
     return fetcher.fetchAllDatasets(projectId);
   }
 
-  public Set<FetchedTable> fetchAllTables(String projectId) {
+  public Stream<Table> fetchAllTables(String projectId, String datasetName) {
     Connection connection = projectService.getProject(projectId).getConnection();
     DatabaseFetcher fetcher = fetcher(projectId, connection);
-    return fetcher.fetchAllTables();
+    return fetcher.fetchTablesInDataset(datasetName);
   }
 
   public Iterable<Job> fetchJobIterable(String projectId, int days) {

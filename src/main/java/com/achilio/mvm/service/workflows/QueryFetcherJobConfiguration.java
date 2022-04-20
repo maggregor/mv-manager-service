@@ -27,6 +27,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @EnableBatchProcessing
 public class QueryFetcherJobConfiguration extends DefaultBatchConfigurer {
+
   private static final Logger LOGGER =
       Logger.getLogger(QueryFetcherJobConfiguration.class.getName());
 
@@ -97,14 +98,16 @@ public class QueryFetcherJobConfiguration extends DefaultBatchConfigurer {
         .build();
   }
 
-  /** This section is dedicated to Struct fetching */
+  /**
+   * This section is dedicated to Struct fetching
+   */
   @Bean
   @StepScope
   public IteratorItemReader<Dataset> datasetReader(
       @Value("#{jobParameters['projectId']}") String projectId) {
     LOGGER.info(projectId);
     if (projectId != null) {
-      return new DatasetFetcherJobReader(fetcherService.fetchAllDatasets(projectId));
+      return new IteratorItemReader<>(fetcherService.fetchAllDatasets(projectId));
     }
     return new IteratorItemReader<>(Collections.singletonList(null));
   }
