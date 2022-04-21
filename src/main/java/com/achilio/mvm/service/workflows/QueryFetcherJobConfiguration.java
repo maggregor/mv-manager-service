@@ -1,11 +1,14 @@
 package com.achilio.mvm.service.workflows;
 
-import com.achilio.mvm.service.entities.Query;
+import com.achilio.mvm.service.entities.ADataset;
+import com.achilio.mvm.service.entities.AQuery;
+import com.achilio.mvm.service.repositories.ADatasetRepository;
 import com.achilio.mvm.service.services.FetcherService;
 import com.google.cloud.bigquery.Dataset;
 import java.util.Collections;
 import java.util.logging.Logger;
 import javax.persistence.EntityManagerFactory;
+import javax.sql.DataSource;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
@@ -18,10 +21,11 @@ import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.item.database.JpaItemWriter;
 import org.springframework.batch.item.support.IteratorItemReader;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import org.springframework.orm.jpa.JpaTransactionManager;
 
 @Configuration
 @EnableBatchProcessing
@@ -35,20 +39,27 @@ public class QueryFetcherJobConfiguration extends DefaultBatchConfigurer {
 
   private final EntityManagerFactory emf;
   private final FetcherService fetcherService;
-
-  private final DefaultJpaTransactionManager jpaTransactionManager;
+  private final DataSource dataSource;
 
   public QueryFetcherJobConfiguration(
       JobBuilderFactory jobBuilderFactory,
       StepBuilderFactory stepBuilderFactory,
       EntityManagerFactory emf,
       FetcherService fetcherService,
-      DefaultJpaTransactionManager jpaTransactionManager) {
+      DataSource dataSource) {
     this.jobBuilderFactory = jobBuilderFactory;
     this.stepBuilderFactory = stepBuilderFactory;
     this.emf = emf;
     this.fetcherService = fetcherService;
-    this.jpaTransactionManager = jpaTransactionManager;
+    this.dataSource = dataSource;
+  }
+
+  @Bean
+  @Primary
+  public JpaTransactionManager jpaTransactionManager() {
+    final JpaTransactionManager tm = new JpaTransactionManager();
+    tm.setDataSource(dataSource);
+    return tm;
   }
 
   @Bean
@@ -65,41 +76,12 @@ public class QueryFetcherJobConfiguration extends DefaultBatchConfigurer {
 
   @Bean
   @StepScope
-  public JpaItemWriter<Query> writer() {
-    JpaItemWriter<Query> writer = new JpaItemWriter<>();
+  public JpaItemWriter<AQuery> writer() {
+    JpaItemWriter<AQuery> writer = new JpaItemWriter<>();
     writer.setEntityManagerFactory(emf);
     return writer;
   }
 
-  @Bean
-  public JobParameters defaultJobParameters() {
-    return new JobParametersBuilder().toJobParameters();
-  }
-
-  @Bean
-  public Step fetchQueries(JpaItemWriter<Query> writer) {
-    return stepBuilderFactory
-        .get("retrieveQueries")
-        .transactionManager(jpaTransactionManager.jpaTransactionManager())
-        .<com.google.cloud.bigquery.Job, Query>chunk(1000)
-        .reader(reader(null, 0))
-        .processor(new BigQueryJobProcessor())
-        .writer(writer)
-        .build();
-  }
-
-  @Bean("fetchQueryJob")
-  public Job fetchQueryJob(@Qualifier("fetchQueries") Step fetchQueries) {
-    return this.jobBuilderFactory
-        .get("fetchQueryJob1")
-        .incrementer(new RunIdIncrementer())
-        .start(fetchQueries)
-        .build();
-  }
-
-  /**
-   * This section is dedicated to Struct fetching
-   */
   @Bean
   @StepScope
   public IteratorItemReader<Dataset> datasetReader(
@@ -112,31 +94,51 @@ public class QueryFetcherJobConfiguration extends DefaultBatchConfigurer {
   }
 
   @Bean
-  @StepScope
-  public JpaItemWriter<ADatasetEntitiesHolder> datasetWriter() {
-    JpaItemWriter<ADatasetEntitiesHolder> writer = new JpaItemWriter<>();
-    writer.setEntityManagerFactory(emf);
-    return writer;
+  public JobParameters defaultJobParameters() {
+    return new JobParametersBuilder().toJobParameters();
   }
 
   @Bean
-  public Step fetchDatasets() {
+  public Step retrieveQueries(JpaItemWriter<AQuery> writer) {
     return stepBuilderFactory
         .get("retrieveQueries")
-        .transactionManager(jpaTransactionManager.jpaTransactionManager())
-        .<Dataset, ADatasetEntitiesHolder>chunk(10)
-        .reader(datasetReader(null))
-        .processor(new BigQueryDatasetProcessor())
-        .writer(new ADatasetEntitiesHolderItemWriter())
+        .transactionManager(jpaTransactionManager())
+        .<com.google.cloud.bigquery.Job, AQuery>chunk(1000)
+        .reader(reader(null, 0))
+        .processor(new BigQueryJobProcessor())
+        .writer(writer)
         .build();
   }
 
-  @Bean("fetchStructJob")
-  public Job fetchStructJob(Step fetchDatasets) {
+  @Bean
+  public Step retrieveDatasets(FetcherService fetcherService,
+      ADatasetRepository datasetRepository) {
+    return stepBuilderFactory
+        .get("retrieveDatasets")
+        .transactionManager(jpaTransactionManager())
+        .<Dataset, ADataset>chunk(10)
+        .reader(datasetReader(null))
+        .processor(new BigQueryDatasetProcessor(fetcherService))
+        .writer(new ADatasetItemWriter(datasetRepository))
+        .build();
+  }
+
+
+  @Bean("fetchQueryJob")
+  public Job fetchQueryJob(Step retrieveQueries) {
     return this.jobBuilderFactory
-        .get("fetchStructJob1")
+        .get("fetchQueryJob")
         .incrementer(new RunIdIncrementer())
-        .start(fetchDatasets)
+        .start(retrieveQueries)
+        .build();
+  }
+
+  @Bean("fetchDatasetsJob")
+  public Job fetchStruct(Step retrieveDatasets) {
+    return this.jobBuilderFactory
+        .get("fetchDatasetsJob")
+        .incrementer(new RunIdIncrementer())
+        .start(retrieveDatasets)
         .build();
   }
 }

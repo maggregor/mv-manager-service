@@ -6,13 +6,13 @@ import com.achilio.mvm.service.MVFactory;
 import com.achilio.mvm.service.MVGenerator;
 import com.achilio.mvm.service.databases.bigquery.BigQueryMaterializedViewStatementBuilder;
 import com.achilio.mvm.service.entities.ADataset;
+import com.achilio.mvm.service.entities.AQuery;
 import com.achilio.mvm.service.entities.ATable;
 import com.achilio.mvm.service.entities.FindMVJob;
 import com.achilio.mvm.service.entities.Job.JobStatus;
 import com.achilio.mvm.service.entities.MaterializedView;
 import com.achilio.mvm.service.entities.OptimizationEvent.StatusType;
 import com.achilio.mvm.service.entities.Project;
-import com.achilio.mvm.service.entities.Query;
 import com.achilio.mvm.service.exceptions.FindMVJobNotFoundException;
 import com.achilio.mvm.service.repositories.FindMVJobRepository;
 import com.achilio.mvm.service.visitors.ATableId;
@@ -21,7 +21,6 @@ import com.achilio.mvm.service.visitors.FieldSetExtractFactory;
 import com.achilio.mvm.service.visitors.FieldSetMerger;
 import com.achilio.mvm.service.visitors.fields.FieldSet;
 import com.google.cloud.bigquery.BigQueryException;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -42,8 +41,8 @@ public class FindMVJobService {
   private final ProjectService projectService;
   private final QueryService queryService;
   private final MaterializedViewService materializedViewService;
-  BigQueryMaterializedViewStatementBuilder statementBuilder;
   private final FetcherService fetcherService;
+  BigQueryMaterializedViewStatementBuilder statementBuilder;
 
   public FindMVJobService(
       FindMVJobRepository repository,
@@ -101,14 +100,12 @@ public class FindMVJobService {
   public void startFindMVJob(FindMVJob job, Project project) {
     try {
       String projectId = job.getProjectId();
-      int analysisTimeframe = job.getTimeframe();
       List<ADataset> datasets = projectService.getAllActivatedDatasets(projectId);
       LOGGER.info("Start FindMV Job on project {} with activated datasets {}", projectId, datasets);
       LOGGER.info("FindMV Job {} on last {} days", job.getId(), job.getTimeframe());
       // STEP 1 - Fetch all queries of targeted fetchedProject
       LOGGER.info("Find MV Job {}: {}", job.getId(), StatusType.FETCHING_QUERIES);
-      LocalDate date = LocalDate.now().minusDays(analysisTimeframe);
-      List<Query> allQueries = queryService.getAllQueriesSince(projectId, date);
+      List<AQuery> allQueries = queryService.getAllQueriesSince(projectId, job.getTimeframe());
       // STEP 2 - Fetch all tables
       LOGGER.info("Find MV Job {}: {}", job.getId(), StatusType.FETCHING_TABLES);
       Set<ATable> tables = new HashSet<>(projectService.getAllTables(projectId));
@@ -218,7 +215,7 @@ public class FindMVJobService {
     return generator.generate(fieldSets);
   }
 
-  private List<FieldSet> extractFields(Set<ATable> tables, List<Query> queries) {
+  private List<FieldSet> extractFields(Set<ATable> tables, List<AQuery> queries) {
     FieldSetExtract extractor = FieldSetExtractFactory.createFieldSetExtract(tables);
     return extractor.extractAll(queries);
   }

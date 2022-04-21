@@ -1,6 +1,9 @@
 package com.achilio.mvm.service.entities;
 
 import com.google.cloud.bigquery.Dataset;
+import java.util.ArrayList;
+import java.util.List;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
@@ -8,6 +11,7 @@ import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -28,10 +32,6 @@ public class ADataset {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ADataset.class);
 
-  //  @Id
-  //  @GeneratedValue(strategy = GenerationType.AUTO)
-  //  private Long id;
-
   @Id
   @Column(unique = true)
   private String datasetId;
@@ -49,6 +49,9 @@ public class ADataset {
 
   @Column(name = "dataset_name", nullable = false)
   private String datasetName;
+
+  @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+  private List<ATable> aTables = new ArrayList<>();
 
   @Column(name = "activated", nullable = false)
   private boolean activated = true;
@@ -76,11 +79,8 @@ public class ADataset {
     this.datasetId = String.format("%s:%s", projectId, datasetName);
   }
 
-  public void setActivated(Boolean activated) {
-    if (activated != null) {
-      this.activated = activated;
-      LOGGER.info("Update dataset {} activated={}", datasetId, activated);
-    }
+  public void addATable(ATable table) {
+    this.aTables.add(table);
   }
 
   @Override

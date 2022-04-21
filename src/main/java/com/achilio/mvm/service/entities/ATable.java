@@ -1,20 +1,18 @@
 package com.achilio.mvm.service.entities;
 
 import java.util.List;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.Formula;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
 @Getter
@@ -22,16 +20,17 @@ import org.hibernate.annotations.OnDeleteAction;
 @Table(name = "tables")
 public class ATable {
 
-  @OneToMany(mappedBy = "table", fetch = FetchType.EAGER)
-  List<AColumn> columns;
-  @ManyToOne
-  @OnDelete(action = OnDeleteAction.CASCADE)
-  private ADataset dataset;
-  @Column
-  private String projectId;
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Long id;
+
+  @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+  private List<AColumn> columns;
+
+  @Column
+  private String projectId;
+  @Column
+  private String datasetName;
 
   @Column
   private String tableName;
@@ -45,9 +44,9 @@ public class ATable {
   public ATable() {
   }
 
-  public ATable(ADataset dataset, String tableName) {
-    this.projectId = dataset.getProjectId();
-    this.dataset = dataset;
+  public ATable(String projectId, String datasetName, String tableName) {
+    this.projectId = projectId;
+    this.datasetName = datasetName;
     this.tableName = tableName;
     setTableId();
   }
@@ -55,7 +54,7 @@ public class ATable {
   private void setTableId() {
     this.tableId =
         String.format(
-            "%s.%s.%s", this.dataset.getProjectId(), this.dataset.getDatasetName(), this.tableName);
+            "%s.%s.%s", this.getProjectId(), this.getDatasetName(), this.tableName);
   }
 
   @Override
@@ -78,10 +77,10 @@ public class ATable {
   }
 
   public String getDatasetName() {
-    return this.dataset.getDatasetName();
+    return this.datasetName;
   }
 
   public String getProjectId() {
-    return this.dataset.getProjectId();
+    return this.projectId;
   }
 }

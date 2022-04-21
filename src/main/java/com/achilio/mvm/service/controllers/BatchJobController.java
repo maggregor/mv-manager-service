@@ -33,8 +33,8 @@ public class BatchJobController {
   private Job fetcherQueryJob;
 
   @Autowired
-  @Qualifier("fetchStructJob")
-  private Job fetcherStructJob;
+  @Qualifier("fetchDatasetsJob")
+  private Job fetchDatasetsJob;
 
   public BatchJobController(JobLauncher jobLauncher, ProjectService projectService) {
     this.jobLauncher = jobLauncher;
@@ -51,6 +51,7 @@ public class BatchJobController {
         new JobParametersBuilder()
             .addLong("time", System.currentTimeMillis())
             .addString("projectId", projectId)
+            .addLong("timeframe", payload.getTimeframe().longValue())
             .toJobParameters();
     jobLauncher.run(fetcherQueryJob, jobParameters);
     return "Oui oui c'est bon";
@@ -67,7 +68,7 @@ public class BatchJobController {
             .addLong("time", System.currentTimeMillis())
             .addString("projectId", projectId)
             .toJobParameters();
-    jobLauncher.run(fetcherStructJob, jobParameters);
+    jobLauncher.run(fetchDatasetsJob, jobParameters);
     return "Ah bah là... c'est bon, je te jure !";
   }
 }

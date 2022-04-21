@@ -5,13 +5,13 @@ import static org.mockito.Mockito.when;
 
 import com.achilio.mvm.service.entities.AColumn;
 import com.achilio.mvm.service.entities.ADataset;
+import com.achilio.mvm.service.entities.AQuery;
 import com.achilio.mvm.service.entities.ATable;
 import com.achilio.mvm.service.entities.Connection;
 import com.achilio.mvm.service.entities.FindMVJob;
 import com.achilio.mvm.service.entities.MaterializedView;
 import com.achilio.mvm.service.entities.MaterializedView.MVStatus;
 import com.achilio.mvm.service.entities.Project;
-import com.achilio.mvm.service.entities.Query;
 import com.achilio.mvm.service.models.UserProfile;
 import com.achilio.mvm.service.visitors.ATableId;
 import java.util.Collections;
@@ -59,15 +59,15 @@ public class MockHelper {
     return column;
   }
 
-  public static Query queryMock(String statement) {
+  public static AQuery queryMock(String statement) {
     return queryMock(DEFAULT_PROJECT_ID, statement);
   }
 
-  public static Query queryMock(String projectId, String statement) {
-    Query mockedQuery = mock(Query.class);
-    when(mockedQuery.getProjectId()).thenReturn(projectId);
-    when(mockedQuery.getQuery()).thenReturn(statement);
-    return mockedQuery;
+  public static AQuery queryMock(String projectId, String statement) {
+    AQuery mockedAQuery = mock(AQuery.class);
+    when(mockedAQuery.getProjectId()).thenReturn(projectId);
+    when(mockedAQuery.getQuery()).thenReturn(statement);
+    return mockedAQuery;
   }
 
   public static FindMVJob findMVJobMock() {

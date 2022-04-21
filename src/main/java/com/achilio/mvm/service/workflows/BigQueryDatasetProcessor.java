@@ -18,29 +18,32 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.ItemProcessor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 @Component
-public class BigQueryDatasetProcessor implements ItemProcessor<Dataset, ADatasetEntitiesHolder> {
+public class BigQueryDatasetProcessor implements ItemProcessor<Dataset, ADataset> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(BigQueryJobProcessor.class);
-  @Autowired
-  private FetcherService fetcherService;
 
-  public ADatasetEntitiesHolder process(@NonNull Dataset dataset) {
+  private final FetcherService fetcherService;
+
+  public BigQueryDatasetProcessor(FetcherService fetcherService) {
+    this.fetcherService = fetcherService;
+  }
+
+  public ADataset process(@NonNull Dataset dataset) {
     ADataset aDataset = new ADataset(dataset);
-    ADatasetEntitiesHolder holder = new ADatasetEntitiesHolder(aDataset);
-    fetcherService.fetchAllTables(aDataset.getDatasetId(), aDataset.getDatasetName())
+    fetcherService.fetchAllTables(aDataset.getProjectId(), aDataset.getDatasetName())
         .filter(this::isValidTable)
         .forEach(table -> {
-          ATable aTable = new ATable(aDataset, table.getTableId().getTable());
+          String tableName = table.getTableId().getTable();
+          ATable aTable = new ATable(aDataset.getProjectId(), aDataset.getDatasetName(), tableName);
           List<AColumn> columns = toAColumns(aTable, table);
-          holder.addTable(aTable);
-          holder.addColumns(columns);
+          aTable.setColumns(columns);
+          aDataset.addATable(aTable);
         });
-    return holder;
+    return aDataset;
   }
 
   private List<AColumn> toAColumns(ATable aTable, Table table) {
@@ -51,7 +54,8 @@ public class BigQueryDatasetProcessor implements ItemProcessor<Dataset, ADataset
       return new ArrayList<>();
     }
     return schema.getFields().stream()
-        .map(f -> new AColumn(aTable, f.getName(), toZetaSQLStringType(f)))
+        .map(f -> new AColumn(aTable.getProjectId(), aTable.getTableId(), f.getName(),
+            toZetaSQLStringType(f)))
         .collect(Collectors.toList());
   }
 

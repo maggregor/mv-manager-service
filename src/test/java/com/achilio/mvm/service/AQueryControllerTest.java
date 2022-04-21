@@ -1,11 +1,12 @@
 package com.achilio.mvm.service;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.Mockito.when;
 
 import com.achilio.mvm.service.controllers.QueryController;
 import com.achilio.mvm.service.controllers.requests.QueryRequest;
-import com.achilio.mvm.service.entities.Query;
+import com.achilio.mvm.service.entities.AQuery;
 import com.achilio.mvm.service.exceptions.QueryNotFoundException;
 import com.achilio.mvm.service.services.QueryService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -27,7 +28,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 @RunWith(MockitoJUnitRunner.class)
-public class QueryControllerTest {
+public class AQueryControllerTest {
 
   private final String TEST_PROJECT_ID = "myProjectId";
   private final ObjectMapper objectMapper = new ObjectMapper();
@@ -36,15 +37,17 @@ public class QueryControllerTest {
   private final boolean useMaterializedView = false;
   private final boolean useCache = false;
   private final String googleJobId = "google-id";
-  private Query query1;
-  private Query query2;
-  @InjectMocks private QueryController controller;
-  @Mock private QueryService mockQueryService;
+  private AQuery query1;
+  private AQuery query2;
+  @InjectMocks
+  private QueryController controller;
+  @Mock
+  private QueryService mockService;
 
   @Before
   public void setup() {
     query1 =
-        new Query(
+        new AQuery(
             queryStatement1,
             googleJobId,
             TEST_PROJECT_ID,
@@ -53,7 +56,7 @@ public class QueryControllerTest {
             useCache,
             new Date());
     query2 =
-        new Query(
+        new AQuery(
             queryStatement2,
             googleJobId,
             TEST_PROJECT_ID,
@@ -61,15 +64,15 @@ public class QueryControllerTest {
             useMaterializedView,
             useCache,
             new Date());
-    when(mockQueryService.getAllQueries(TEST_PROJECT_ID)).thenReturn(Arrays.asList(query1, query2));
-    when(mockQueryService.getQuery(googleJobId, TEST_PROJECT_ID)).thenReturn(query1);
-    when(mockQueryService.getQuery("unknownQueryId", TEST_PROJECT_ID))
+    when(mockService.getAllQueries(TEST_PROJECT_ID)).thenReturn(Arrays.asList(query1, query2));
+    when(mockService.getQuery(TEST_PROJECT_ID, googleJobId)).thenReturn(query1);
+    when(mockService.getQuery(TEST_PROJECT_ID, "unknownQueryId"))
         .thenThrow(new QueryNotFoundException("unknownQueryId"));
   }
 
   @Test
   public void getAllQueriesByProjectId() {
-    List<Query> jobResponseEntity = controller.getAllQueriesByProjectId(TEST_PROJECT_ID);
+    List<AQuery> jobResponseEntity = controller.getAllQueriesByProjectId(TEST_PROJECT_ID);
     assertEquals(2, jobResponseEntity.size());
     assertEquals(queryStatement1, jobResponseEntity.get(0).getQuery());
   }
@@ -77,7 +80,7 @@ public class QueryControllerTest {
   @Test
   public void getQuery() throws JsonProcessingException {
     ObjectMapper mapper = new ObjectMapper();
-    Query jobResponseEntity = controller.getSingleQuery(TEST_PROJECT_ID, googleJobId);
+    AQuery jobResponseEntity = controller.getSingleQuery(TEST_PROJECT_ID, googleJobId);
     String jsonResponse = objectMapper.writeValueAsString(jobResponseEntity);
     JsonNode map = mapper.readTree(jsonResponse);
     Assert.assertTrue(map instanceof ObjectNode);
@@ -91,8 +94,30 @@ public class QueryControllerTest {
   @Test
   public void createQuery() {
     QueryRequest request = new QueryRequest(TEST_PROJECT_ID, "SELECT 1");
-    Query query = controller.createQuery(request);
+    AQuery query = controller.createQuery(request);
     assertEquals(TEST_PROJECT_ID, query.getProjectId());
     assertEquals("SELECT 1", query.getQuery());
+  }
+
+  @Test
+  public void getStatistics() {
+    when(mockService.getTotalQuerySince("project", 0)).thenReturn(100L);
+    when(mockService.getAverageProcessedBytesSince("project", 0)).thenReturn(40L);
+    when(mockService.getPercentQueryInMVSince("project", 0)).thenReturn(80L);
+    Long total = controller.getStatistics("project", 0, "total_queries");
+    Long avg = controller.getStatistics("project", 0, "average_processed_bytes");
+    Long percent = controller.getStatistics("project", 0, "percent_query_in_mv");
+    assertEquals(100L, total.longValue());
+    assertEquals(40L, avg.longValue());
+    assertEquals(80L, percent.longValue());
+  }
+
+  @Test
+  public void when_getUnknownTypeStatistics_thenReturnException() {
+    Exception e = assertThrows(IllegalArgumentException.class, () ->
+        controller.getStatistics("", 0, "unknown_type")
+    );
+    assertEquals(IllegalArgumentException.class, e.getClass());
+    assertEquals("Unknown statistics type", e.getMessage());
   }
 }

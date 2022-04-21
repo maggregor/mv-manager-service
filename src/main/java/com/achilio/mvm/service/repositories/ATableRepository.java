@@ -10,10 +10,7 @@ import org.springframework.stereotype.Repository;
 public interface ATableRepository extends CrudRepository<ATable, String> {
 
   List<ATable> findAllByProjectId(String projectId);
-
-  Optional<ATable> findByProjectIdAndDataset_DatasetNameAndTableName(
-      String projectId, String datasetName, String tableName);
-
+  
   Optional<ATable> findByTableId(String tableId);
 
   void deleteByTableId(String tableId);

@@ -3,15 +3,12 @@ package com.achilio.mvm.service.services;
 import com.achilio.mvm.service.controllers.requests.ACreateProjectRequest;
 import com.achilio.mvm.service.controllers.requests.UpdateProjectRequest;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
-import com.achilio.mvm.service.entities.AColumn;
 import com.achilio.mvm.service.entities.ADataset;
 import com.achilio.mvm.service.entities.ATable;
 import com.achilio.mvm.service.entities.Connection;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.exceptions.DatasetNotFoundException;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
-import com.achilio.mvm.service.exceptions.TableNotFoundException;
-import com.achilio.mvm.service.repositories.AColumnRepository;
 import com.achilio.mvm.service.repositories.ADatasetRepository;
 import com.achilio.mvm.service.repositories.ATableRepository;
 import com.achilio.mvm.service.repositories.ProjectRepository;
@@ -37,8 +34,6 @@ public class ProjectService {
   private ADatasetRepository datasetRepository;
   @Autowired
   private ATableRepository tableRepository;
-  @Autowired
-  private AColumnRepository columnRepository;
   @Autowired
   private FetcherService fetcherService;
   @Autowired
@@ -74,12 +69,6 @@ public class ProjectService {
 
   private Optional<Project> findProjectByTeamId(String projectId, String teamName) {
     return projectRepository.findByProjectIdAndTeamName(projectId, teamName);
-  }
-
-  // Old ProjectService
-
-  public List<Project> getAllActivatedProjects() {
-    return projectRepository.findAllByActivated(true);
   }
 
   public Optional<Project> findProject(String projectId) {
@@ -120,24 +109,6 @@ public class ProjectService {
         .orElseThrow(() -> new DatasetNotFoundException(datasetName));
   }
 
-  public ADataset getDatasetByProjectAndDatasetName(String projectId, String datasetName) {
-    return datasetRepository
-        .findByProjectIdAndDatasetName(projectId, datasetName)
-        .orElseThrow(() -> new DatasetNotFoundException(datasetName));
-  }
-
-  @Transactional
-  public ADataset updateDataset(String projectId, String datasetName, Boolean activated) {
-    ADataset dataset = getDatasetByProjectAndDatasetName(projectId, datasetName);
-    dataset.setActivated(activated);
-    datasetRepository.save(dataset);
-    return dataset;
-  }
-
-  public boolean isDatasetActivated(String projectId, String datasetName) {
-    return getDatasetByProjectAndDatasetName(projectId, datasetName).isActivated();
-  }
-
   @Transactional
   public void activateProject(Project project) {
     LOGGER.info("Project {} is being activated", project.getProjectId());
@@ -172,52 +143,8 @@ public class ProjectService {
     return datasetRepository.findAllByProjectIdAndActivated(projectId, true);
   }
 
-  public List<ADataset> getAllDatasets(String projectId) {
-    return datasetRepository.findAllByProjectId(projectId);
-  }
-
-  @Transactional
-  public void deleteDataset(ADataset d) {
-    datasetRepository.deleteByDatasetId(d.getDatasetId());
-  }
-
-  @Transactional
-  public void deleteTable(ATable toDeleteTable) {
-    tableRepository.deleteByTableId(toDeleteTable.getTableId());
-  }
-
   public List<ATable> getAllTables(String projectId) {
     return tableRepository.findAllByProjectId(projectId);
   }
 
-  public Optional<ATable> findTable(ADataset dataset, String tableName) {
-    return tableRepository.findByProjectIdAndDataset_DatasetNameAndTableName(
-        dataset.getProjectId(), dataset.getDatasetName(), tableName);
-  }
-
-  public ATable getTable(ATable table) {
-    return tableRepository
-        .findByTableId(table.getTableId())
-        .orElseThrow(() -> new TableNotFoundException(table.getTableId()));
-  }
-
-  public ATable getTable(String tableId) {
-    return tableRepository
-        .findByTableId(tableId)
-        .orElseThrow(() -> new TableNotFoundException(tableId));
-  }
-
-  public List<AColumn> getAllColumns(String projectId) {
-    return columnRepository.findAllByTable_ProjectId(projectId);
-  }
-
-  @Transactional
-  public void createColumns(List<AColumn> toCreateColumn) {
-    columnRepository.saveAll(toCreateColumn);
-  }
-
-  @Transactional
-  public void removeColumns(List<AColumn> allAColumns) {
-    columnRepository.deleteAll(allAColumns);
-  }
 }

@@ -1,6 +1,7 @@
 package com.achilio.mvm.service.entities;
 
 import com.achilio.mvm.service.databases.entities.FetchedProject;
+import java.io.Serializable;
 import java.util.List;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
@@ -27,7 +28,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 @Table(name = "projects")
 @EnableJpaAuditing
 @EntityListeners(AuditingEntityListener.class)
-public class Project {
+public class Project implements Serializable {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Project.class);
 
@@ -35,12 +36,14 @@ public class Project {
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Long id;
 
-  @NaturalId private String projectId;
+  @NaturalId
+  private String projectId;
 
   @Column(name = "project_name")
   private String projectName;
 
-  @Column private String teamName;
+  @Column
+  private String teamName;
 
   @Column(name = "activated", nullable = false)
   private Boolean activated = true;
@@ -54,13 +57,15 @@ public class Project {
   @Column(name = "analysis_timeframe", nullable = false, columnDefinition = "numeric default 30")
   private Integer analysisTimeframe = 30;
 
-  @ManyToOne private Connection connection;
+  @ManyToOne
+  private Connection connection;
 
   @Formula("(SELECT * FROM datasets d WHERE d.project_id = project_id)")
   @ElementCollection(targetClass = ADataset.class)
   private List<ADataset> datasets;
 
-  public Project() {}
+  public Project() {
+  }
 
   public Project(String projectId) {
     this(projectId, null, null);
