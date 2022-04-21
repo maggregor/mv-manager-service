@@ -139,8 +139,8 @@ public class ProjectService {
     return projectRepository.save(project);
   }
 
-  public List<ADataset> getAllActivatedDatasets(String projectId) {
-    return datasetRepository.findAllByProjectIdAndActivated(projectId, true);
+  public List<ADataset> getAllDatasets(String projectId) {
+    return datasetRepository.findAllByProjectId(projectId);
   }
 
   public List<ATable> getAllTables(String projectId) {

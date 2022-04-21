@@ -9,15 +9,11 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ADatasetRepository extends CrudRepository<ADataset, Integer> {
 
-  //  Optional<ADataset> findByProjectAndDatasetName(Project project, String datasetName);
-
   Optional<ADataset> findByProjectIdAndDatasetName(String projectId, String datasetName);
 
   Optional<ADataset> findByDatasetId(String datasetId);
 
   List<ADataset> findAllByProjectId(String projectId);
-
-  List<ADataset> findAllByProjectIdAndActivated(String projectId, Boolean activated);
 
   void deleteByDatasetId(String datasetId);
 }

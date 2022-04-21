@@ -53,9 +53,6 @@ public class ADataset {
   @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
   private List<ATable> aTables = new ArrayList<>();
 
-  @Column(name = "activated", nullable = false)
-  private boolean activated = true;
-
   public ADataset(Project project, String datasetName) {
     this.project = project;
     this.projectId = project.getProjectId();
