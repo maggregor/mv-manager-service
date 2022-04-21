@@ -2,15 +2,12 @@ package com.achilio.mvm.service;
 
 import com.achilio.mvm.service.databases.MaterializedViewStatementBuilder;
 import com.achilio.mvm.service.databases.bigquery.BigQueryMaterializedViewStatementBuilder;
-import com.achilio.mvm.service.databases.entities.DefaultFetchedTable;
-import com.achilio.mvm.service.databases.entities.FetchedTable;
+import com.achilio.mvm.service.visitors.ATableId;
 import com.achilio.mvm.service.visitors.fields.AggregateField;
 import com.achilio.mvm.service.visitors.fields.DefaultFieldSet;
 import com.achilio.mvm.service.visitors.fields.FieldSet;
 import com.achilio.mvm.service.visitors.fields.FunctionField;
 import com.achilio.mvm.service.visitors.fields.ReferenceField;
-import java.util.HashSet;
-import java.util.Set;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,9 +22,7 @@ public class BigQueryMaterializedViewStatementBuilderTest {
   @Before
   public void setup() {
     fieldSet = new DefaultFieldSet();
-    Set<FetchedTable> tables = new HashSet<>();
-    tables.add(new DefaultFetchedTable("myproject", "mydataset", "mytable"));
-    fieldSet.setReferenceTable(tables.iterator().next().getTableId());
+    fieldSet.setReferenceTable(ATableId.of("myproject", "mydataset", "mytable"));
   }
 
   @Test

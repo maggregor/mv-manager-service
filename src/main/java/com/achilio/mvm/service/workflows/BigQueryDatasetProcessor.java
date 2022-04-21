@@ -8,10 +8,11 @@ import com.google.cloud.bigquery.Dataset;
 import com.google.cloud.bigquery.Field;
 import com.google.cloud.bigquery.LegacySQLTypeName;
 import com.google.cloud.bigquery.Schema;
+import com.google.cloud.bigquery.StandardSQLTypeName;
 import com.google.cloud.bigquery.StandardTableDefinition;
 import com.google.cloud.bigquery.Table;
 import com.google.cloud.bigquery.TableDefinition;
-import com.google.zetasql.ZetaSQLType;
+import com.google.zetasql.ZetaSQLType.TypeKind;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -60,7 +61,7 @@ public class BigQueryDatasetProcessor implements ItemProcessor<Dataset, ADataset
     }
     return schema.getFields().stream()
         .map(f -> new AColumn(aTable.getProjectId(), aTable.getTableId(), f.getName(),
-            toZetaSQLStringType(f)))
+            toZetaSQLType(f).toString()))
         .collect(Collectors.toList());
   }
 
@@ -87,19 +88,45 @@ public class BigQueryDatasetProcessor implements ItemProcessor<Dataset, ADataset
         .noneMatch(f -> f.getType().equals(LegacySQLTypeName.RECORD));
   }
 
-  private String toZetaSQLStringType(Field field) {
-    final String statusType = field.getType().toString();
+  /**
+   * Columns type mapping. Between BigQuery enum TypeKind and ZetaSQL type.
+   *
+   * @param field
+   * @return
+   */
+  private TypeKind toZetaSQLType(Field field) {
+    final StandardSQLTypeName statusType = field.getType().getStandardType();
     switch (statusType) {
-      case "DOUBLE":
-      case "FLOAT":
-        return ZetaSQLType.TypeKind.TYPE_NUMERIC.name();
-      case "INTEGER":
-        return ZetaSQLType.TypeKind.TYPE_INT64.name();
-      case "BOOLEAN":
-        return ZetaSQLType.TypeKind.TYPE_BOOL.name();
-      default:
-        return "TYPE_" + statusType;
+      case FLOAT64:
+        return TypeKind.TYPE_FLOAT;
+      case NUMERIC:
+        return TypeKind.TYPE_NUMERIC;
+      case BOOL:
+        return TypeKind.TYPE_BOOL;
+      case DATE:
+        return TypeKind.TYPE_DATE;
+      case TIME:
+        return TypeKind.TYPE_TIME;
+      case TIMESTAMP:
+        return TypeKind.TYPE_TIMESTAMP;
+      case BYTES:
+        return TypeKind.TYPE_BYTES;
+      case ARRAY:
+        return TypeKind.TYPE_ARRAY;
+      case INT64:
+        return TypeKind.TYPE_UINT64;
+      case DATETIME:
+        return TypeKind.TYPE_DATETIME;
+      case STRUCT:
+        return TypeKind.TYPE_STRUCT;
+      case GEOGRAPHY:
+        return TypeKind.TYPE_GEOGRAPHY;
+      case BIGNUMERIC:
+        return TypeKind.TYPE_BIGNUMERIC;
+      case STRING:
+        return TypeKind.TYPE_STRING;
     }
+    throw new IllegalArgumentException("Unsupported column type  " + statusType);
   }
 
 }

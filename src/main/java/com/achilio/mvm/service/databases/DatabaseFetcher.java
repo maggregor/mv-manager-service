@@ -1,6 +1,5 @@
 package com.achilio.mvm.service.databases;
 
-import com.achilio.mvm.service.databases.entities.FetchedDataset;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.entities.MaterializedView;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
@@ -23,11 +22,6 @@ public interface DatabaseFetcher {
    * Returns all dataset id in a given projectId.
    */
   Iterable<Dataset> fetchAllDatasets(String projectId);
-
-  /**
-   * Returns the dataset metadata in a given projectId.
-   */
-  FetchedDataset fetchDataset(String datasetName);
 
   Stream<Table> fetchTablesInDataset(String datasetName);
 

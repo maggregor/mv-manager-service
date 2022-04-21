@@ -1,9 +1,7 @@
 package com.achilio.mvm.service.databases.bigquery;
 
 import com.achilio.mvm.service.databases.DatabaseFetcher;
-import com.achilio.mvm.service.databases.entities.DefaultFetchedDataset;
 import com.achilio.mvm.service.databases.entities.DefaultFetchedProject;
-import com.achilio.mvm.service.databases.entities.FetchedDataset;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
 import com.achilio.mvm.service.entities.MaterializedView;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
@@ -14,7 +12,6 @@ import com.google.cloud.bigquery.BigQuery.TableOption;
 import com.google.cloud.bigquery.BigQueryException;
 import com.google.cloud.bigquery.BigQueryOptions;
 import com.google.cloud.bigquery.Dataset;
-import com.google.cloud.bigquery.DatasetId;
 import com.google.cloud.bigquery.Job;
 import com.google.cloud.bigquery.JobInfo;
 import com.google.cloud.bigquery.MaterializedViewDefinition;
@@ -92,12 +89,6 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
   }
 
   @Override
-  public FetchedDataset fetchDataset(String datasetName) {
-    Dataset dataset = bigquery.getDataset(datasetName);
-    return toFetchedDataset(dataset);
-  }
-
-  @Override
   public Stream<Table> fetchTablesInDataset(String datasetName) {
     Spliterator<Table> spliterator = bigquery.listTables(datasetName).getValues().spliterator();
     return StreamSupport.stream(spliterator, true)
@@ -157,23 +148,5 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
 
   public FetchedProject toFetchedProject(Project project) {
     return new DefaultFetchedProject(project.getProjectId(), project.getName());
-  }
-
-  public FetchedDataset toFetchedDataset(Dataset dataset) {
-    DatasetId datasetId = dataset.getDatasetId();
-    final String location = dataset.getLocation();
-    final String friendlyName = dataset.getFriendlyName();
-    final String description = dataset.getDescription();
-    final Long createdAt = dataset.getCreationTime();
-    final Long lastModified = dataset.getLastModified();
-    return new DefaultFetchedDataset(
-        datasetId.getProject(),
-        datasetId.getDataset(),
-        datasetId.toString(),
-        location,
-        friendlyName,
-        description,
-        createdAt,
-        lastModified);
   }
 }
