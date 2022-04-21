@@ -21,9 +21,11 @@ public class IntegrationDatasetRepositoryTest {
 
   private final String PROJECT_ID = "myProjectId";
 
-  @Autowired private ProjectRepository projectRepository;
+  @Autowired
+  private ProjectRepository projectRepository;
 
-  @Autowired private ADatasetRepository datasetRepository;
+  @Autowired
+  private ADatasetRepository datasetRepository;
 
   @Before
   public void setup() {
@@ -38,8 +40,8 @@ public class IntegrationDatasetRepositoryTest {
   @Test
   public void simpleTest() {
     ADataset fetchedDataset1 = datasetRepository.findByDatasetId(PROJECT_ID + ":myDataset1").get();
-    assertEquals("myDataset", fetchedDataset1.getDatasetName());
+    assertEquals("myDataset1", fetchedDataset1.getDatasetName());
     ADataset fetchedDataset2 = datasetRepository.findByDatasetId(PROJECT_ID + ":myDataset2").get();
-    assertEquals("myDataset", fetchedDataset2.getDatasetName());
+    assertEquals("myDataset2", fetchedDataset2.getDatasetName());
   }
 }

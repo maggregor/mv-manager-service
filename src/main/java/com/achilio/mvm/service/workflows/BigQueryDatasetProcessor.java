@@ -34,16 +34,21 @@ public class BigQueryDatasetProcessor implements ItemProcessor<Dataset, ADataset
 
   public ADataset process(@NonNull Dataset dataset) {
     ADataset aDataset = new ADataset(dataset);
+    final String projectId = aDataset.getProjectId();
+    final String datasetName = aDataset.getDatasetName();
     fetcherService.fetchAllTables(aDataset.getProjectId(), aDataset.getDatasetName())
         .filter(this::isValidTable)
-        .forEach(table -> {
-          String tableName = table.getTableId().getTable();
-          ATable aTable = new ATable(aDataset.getProjectId(), aDataset.getDatasetName(), tableName);
-          List<AColumn> columns = toAColumns(aTable, table);
-          aTable.setColumns(columns);
-          aDataset.addATable(aTable);
-        });
+        .map(table -> toATable(projectId, datasetName, table))
+        .forEach(aDataset::addATable);
     return aDataset;
+  }
+
+  private ATable toATable(String projectId, String datasetName, Table table) {
+    String tableName = table.getTableId().getTable();
+    ATable aTable = new ATable(projectId, datasetName, tableName);
+    List<AColumn> columns = toAColumns(aTable, table);
+    aTable.setColumns(columns);
+    return aTable;
   }
 
   private List<AColumn> toAColumns(ATable aTable, Table table) {

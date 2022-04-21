@@ -99,16 +99,6 @@ public class ProjectServiceTest {
         .thenReturn(activatedProjects);
     when(mockedProjectRepository.findByProjectIdAndTeamName(TEST_PROJECT_ID1, TEAM_NAME1))
         .thenReturn(Optional.of(project1));
-    when(mockedADatasetRepository.save(any(ADataset.class))).thenReturn(mockedDataset1);
-    when(mockedADatasetRepository.findByProjectIdAndDatasetName(
-        project1.getProjectId(), TEST_DATASET_NAME1))
-        .thenReturn(Optional.of(mockedDataset1));
-    when(mockedADatasetRepository.findByProjectIdAndDatasetName(
-        project1.getProjectId(), TEST_DATASET_NAME2))
-        .thenReturn(Optional.of(mockedDataset2));
-    when(mockedADatasetRepository.findByProjectIdAndDatasetName(
-        project1.getProjectId(), TEST_DATASET_NAME3))
-        .thenReturn(Optional.of(realDataset));
     when(mockedFetchedProject1.getProjectId()).thenReturn(TEST_PROJECT_ID1);
     when(mockedFetchedProject1.getName()).thenReturn(TEST_PROJECT_NAME1);
     when(mockedFetchedProject2.getProjectId()).thenReturn(TEST_PROJECT_ID2);
