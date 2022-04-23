@@ -4,6 +4,7 @@ import com.achilio.mvm.service.models.UserProfile;
 import com.achilio.mvm.service.services.UserProfileService;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Optional;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
@@ -24,8 +25,10 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class AuthTokenFilter extends OncePerRequestFilter {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(AuthTokenFilter.class);
-  @Autowired private JWTUtils jwtUtils;
-  @Autowired private UserProfileService userProfileService;
+  @Autowired
+  private JWTUtils jwtUtils;
+  @Autowired
+  private UserProfileService userProfileService;
 
   @Override
   protected void doFilterInternal(
@@ -34,7 +37,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
       @NonNull FilterChain filterChain)
       throws ServletException, IOException {
     try {
-      String jwt = parseJwt(request);
+      String jwt = findJWT(request);
       if (jwt != null && jwtUtils.validateJwtToken(jwt)) {
         UserProfile userProfile =
             userProfileService.loadUserByJWTPayload(jwtUtils.decodePayload(jwt));
@@ -53,12 +56,15 @@ public class AuthTokenFilter extends OncePerRequestFilter {
     filterChain.doFilter(request, response);
   }
 
-  private String parseJwt(HttpServletRequest request) {
-    Cookie jwtCookie =
-        Arrays.stream(request.getCookies())
-            .filter(c -> c.getName().equals("jwt_token"))
-            .findFirst()
-            .orElseThrow(IllegalArgumentException::new);
-    return jwtCookie.getValue();
+  private String findJWT(HttpServletRequest request) {
+    Optional<Cookie> jwtCookie = Optional.empty();
+    if (request.getCookies() != null) {
+      jwtCookie = Arrays.stream(request.getCookies())
+          .filter(c -> c.getName().equals("jwt_token"))
+          .findFirst();
+    }
+    return jwtCookie
+        .orElseThrow(() -> new IllegalArgumentException("No JWT found in cookies"))
+        .getValue();
   }
 }
