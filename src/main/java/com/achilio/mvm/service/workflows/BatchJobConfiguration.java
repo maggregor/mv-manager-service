@@ -29,10 +29,10 @@ import org.springframework.orm.jpa.JpaTransactionManager;
 
 @Configuration
 @EnableBatchProcessing
-public class QueryFetcherJobConfiguration extends DefaultBatchConfigurer {
+public class BatchJobConfiguration extends DefaultBatchConfigurer {
 
   private static final Logger LOGGER =
-      Logger.getLogger(QueryFetcherJobConfiguration.class.getName());
+      Logger.getLogger(BatchJobConfiguration.class.getName());
 
   private final JobBuilderFactory jobBuilderFactory;
   private final StepBuilderFactory stepBuilderFactory;
@@ -41,7 +41,7 @@ public class QueryFetcherJobConfiguration extends DefaultBatchConfigurer {
   private final FetcherService fetcherService;
   private final DataSource dataSource;
 
-  public QueryFetcherJobConfiguration(
+  public BatchJobConfiguration(
       JobBuilderFactory jobBuilderFactory,
       StepBuilderFactory stepBuilderFactory,
       EntityManagerFactory emf,
