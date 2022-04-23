@@ -1,21 +1,18 @@
 package com.achilio.mvm.service.entities;
 
 import java.util.List;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.Formula;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
 @Getter
@@ -23,22 +20,20 @@ import org.hibernate.annotations.OnDeleteAction;
 @Table(name = "tables")
 public class ATable {
 
-  @ManyToOne
-  @OnDelete(action = OnDeleteAction.CASCADE)
-  ADataset dataset;
-
-  @ManyToOne Project project;
-
-  @OneToMany(mappedBy = "table", fetch = FetchType.EAGER)
-  List<AColumn> columns;
-
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Long id;
 
-  @Column private String tableName;
-  @ManyToOne private FetcherStructJob lastFetcherStructJob;
-  @ManyToOne @JoinColumn private FetcherStructJob initialFetcherStructJob;
+  @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+  private List<AColumn> columns;
+
+  @Column
+  private String projectId;
+  @Column
+  private String datasetName;
+
+  @Column
+  private String tableName;
 
   @Column(unique = true)
   private String tableId;
@@ -46,20 +41,12 @@ public class ATable {
   @Formula("(SELECT COUNT(*) FROM query_table_id q WHERE q.tables = table_id)")
   private int queryCount;
 
-  public ATable() {}
-
-  public ATable(Project project, ADataset dataset, String tableName, FetcherStructJob job) {
-    this.lastFetcherStructJob = job;
-    this.initialFetcherStructJob = job;
-    this.project = project;
-    this.dataset = dataset;
-    this.tableName = tableName;
-    setTableId();
+  public ATable() {
   }
 
-  public ATable(Project project, ADataset dataset, String tableName) {
-    this.project = project;
-    this.dataset = dataset;
+  public ATable(String projectId, String datasetName, String tableName) {
+    this.projectId = projectId;
+    this.datasetName = datasetName;
     this.tableName = tableName;
     setTableId();
   }
@@ -67,7 +54,7 @@ public class ATable {
   private void setTableId() {
     this.tableId =
         String.format(
-            "%s.%s.%s", this.project.getProjectId(), this.dataset.getDatasetName(), this.tableName);
+            "%s.%s.%s", this.getProjectId(), this.getDatasetName(), this.tableName);
   }
 
   @Override
@@ -90,10 +77,10 @@ public class ATable {
   }
 
   public String getDatasetName() {
-    return this.dataset.getDatasetName();
+    return this.datasetName;
   }
 
   public String getProjectId() {
-    return this.project.getProjectId();
+    return this.projectId;
   }
 }

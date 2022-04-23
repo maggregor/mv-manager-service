@@ -2,7 +2,6 @@ package com.achilio.mvm.service.controllers;
 
 import static com.achilio.mvm.service.UserContextHelper.getContextTeamName;
 
-import com.achilio.mvm.service.controllers.requests.FetcherStructJobRequest;
 import com.achilio.mvm.service.entities.FetcherStructJob;
 import com.achilio.mvm.service.entities.Job.JobStatus;
 import com.achilio.mvm.service.exceptions.FetcherJobNotFoundException;
@@ -18,8 +17,6 @@ import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -71,12 +68,4 @@ public class FetcherJobController {
     return optionalFetcherJob.get();
   }
 
-  @PostMapping(path = "/struct", produces = MediaType.APPLICATION_JSON_VALUE)
-  @ApiOperation("Create and start a new struct fetching job")
-  public FetcherStructJob createNewFetcherStructJob(@RequestBody FetcherStructJobRequest req) {
-    FetcherStructJob currentJob = fetcherJobService.createNewFetcherStructJob(req.getProjectId());
-    LOGGER.info("Starting FetcherStructJob {}", currentJob.getId());
-    fetcherJobService.syncAllStructsJob(currentJob, getContextTeamName());
-    return currentJob;
-  }
 }

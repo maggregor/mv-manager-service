@@ -3,15 +3,12 @@ package com.achilio.mvm.service.services;
 import com.achilio.mvm.service.controllers.requests.ACreateProjectRequest;
 import com.achilio.mvm.service.controllers.requests.UpdateProjectRequest;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
-import com.achilio.mvm.service.entities.AColumn;
 import com.achilio.mvm.service.entities.ADataset;
 import com.achilio.mvm.service.entities.ATable;
 import com.achilio.mvm.service.entities.Connection;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.exceptions.DatasetNotFoundException;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
-import com.achilio.mvm.service.exceptions.TableNotFoundException;
-import com.achilio.mvm.service.repositories.AColumnRepository;
 import com.achilio.mvm.service.repositories.ADatasetRepository;
 import com.achilio.mvm.service.repositories.ATableRepository;
 import com.achilio.mvm.service.repositories.ProjectRepository;
@@ -37,8 +34,6 @@ public class ProjectService {
   private ADatasetRepository datasetRepository;
   @Autowired
   private ATableRepository tableRepository;
-  @Autowired
-  private AColumnRepository columnRepository;
   @Autowired
   private FetcherService fetcherService;
   @Autowired
@@ -76,12 +71,6 @@ public class ProjectService {
     return projectRepository.findByProjectIdAndTeamName(projectId, teamName);
   }
 
-  // Old ProjectService
-
-  public List<Project> getAllActivatedProjects() {
-    return projectRepository.findAllByActivated(true);
-  }
-
   public Optional<Project> findProject(String projectId) {
     return projectRepository.findByProjectId(projectId);
   }
@@ -106,7 +95,7 @@ public class ProjectService {
   }
 
   public Optional<ADataset> findDataset(String projectId, String datasetName) {
-    return datasetRepository.findByProject_ProjectIdAndDatasetName(projectId, datasetName);
+    return datasetRepository.findByProjectIdAndDatasetName(projectId, datasetName);
   }
 
   public ADataset getDataset(String projectId, String datasetName) {
@@ -118,24 +107,6 @@ public class ProjectService {
     return datasetRepository
         .findByDatasetId(datasetName)
         .orElseThrow(() -> new DatasetNotFoundException(datasetName));
-  }
-
-  public ADataset getDatasetByProjectAndDatasetName(String projectId, String datasetName) {
-    return datasetRepository
-        .findByProject_ProjectIdAndDatasetName(projectId, datasetName)
-        .orElseThrow(() -> new DatasetNotFoundException(datasetName));
-  }
-
-  @Transactional
-  public ADataset updateDataset(String projectId, String datasetName, Boolean activated) {
-    ADataset dataset = getDatasetByProjectAndDatasetName(projectId, datasetName);
-    dataset.setActivated(activated);
-    datasetRepository.save(dataset);
-    return dataset;
-  }
-
-  public boolean isDatasetActivated(String projectId, String datasetName) {
-    return getDatasetByProjectAndDatasetName(projectId, datasetName).isActivated();
   }
 
   @Transactional
@@ -168,56 +139,12 @@ public class ProjectService {
     return projectRepository.save(project);
   }
 
-  public List<ADataset> getAllActivatedDatasets(String projectId) {
-    return datasetRepository.findAllByProject_ProjectIdAndActivated(projectId, true);
-  }
-
   public List<ADataset> getAllDatasets(String projectId) {
-    return datasetRepository.findAllByProject_ProjectId(projectId);
-  }
-
-  @Transactional
-  public void deleteDataset(ADataset d) {
-    datasetRepository.deleteByDatasetId(d.getDatasetId());
-  }
-
-  @Transactional
-  public void deleteTable(ATable toDeleteTable) {
-    tableRepository.deleteByTableId(toDeleteTable.getTableId());
+    return datasetRepository.findAllByProjectId(projectId);
   }
 
   public List<ATable> getAllTables(String projectId) {
-    return tableRepository.findAllByProject_ProjectId(projectId);
+    return tableRepository.findAllByProjectId(projectId);
   }
 
-  public Optional<ATable> findTable(ADataset dataset, String tableName) {
-    return tableRepository.findByProject_ProjectIdAndDataset_DatasetNameAndTableName(
-        dataset.getProject().getProjectId(), dataset.getDatasetName(), tableName);
-  }
-
-  public ATable getTable(ATable table) {
-    return tableRepository
-        .findByTableId(table.getTableId())
-        .orElseThrow(() -> new TableNotFoundException(table.getTableId()));
-  }
-
-  public ATable getTable(String tableId) {
-    return tableRepository
-        .findByTableId(tableId)
-        .orElseThrow(() -> new TableNotFoundException(tableId));
-  }
-
-  public List<AColumn> getAllColumns(String projectId) {
-    return columnRepository.findAllByTable_Project_ProjectId(projectId);
-  }
-
-  @Transactional
-  public void createColumns(List<AColumn> toCreateColumn) {
-    columnRepository.saveAll(toCreateColumn);
-  }
-
-  @Transactional
-  public void removeColumns(List<AColumn> allAColumns) {
-    columnRepository.deleteAll(allAColumns);
-  }
 }

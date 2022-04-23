@@ -1,15 +1,10 @@
 package com.achilio.mvm.service.databases.bigquery;
 
 import com.achilio.mvm.service.databases.DatabaseFetcher;
-import com.achilio.mvm.service.databases.entities.DefaultFetchedDataset;
 import com.achilio.mvm.service.databases.entities.DefaultFetchedProject;
-import com.achilio.mvm.service.databases.entities.DefaultFetchedTable;
-import com.achilio.mvm.service.databases.entities.FetchedDataset;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
-import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.entities.MaterializedView;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
-import com.achilio.mvm.service.visitors.ATableId;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.bigquery.BigQuery;
 import com.google.cloud.bigquery.BigQuery.TableField;
@@ -17,33 +12,23 @@ import com.google.cloud.bigquery.BigQuery.TableOption;
 import com.google.cloud.bigquery.BigQueryException;
 import com.google.cloud.bigquery.BigQueryOptions;
 import com.google.cloud.bigquery.Dataset;
-import com.google.cloud.bigquery.DatasetId;
-import com.google.cloud.bigquery.Field;
 import com.google.cloud.bigquery.Job;
 import com.google.cloud.bigquery.JobInfo;
-import com.google.cloud.bigquery.LegacySQLTypeName;
 import com.google.cloud.bigquery.MaterializedViewDefinition;
 import com.google.cloud.bigquery.QueryJobConfiguration;
-import com.google.cloud.bigquery.Schema;
-import com.google.cloud.bigquery.StandardTableDefinition;
 import com.google.cloud.bigquery.Table;
-import com.google.cloud.bigquery.TableDefinition;
 import com.google.cloud.bigquery.TableId;
 import com.google.cloud.bigquery.TableInfo;
 import com.google.cloud.resourcemanager.Project;
 import com.google.cloud.resourcemanager.ResourceManager;
 import com.google.cloud.resourcemanager.ResourceManagerOptions;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.zetasql.ZetaSQLType;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.Spliterator;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -99,38 +84,15 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
   }
 
   @Override
-  public List<FetchedDataset> fetchAllDatasets(String projectId) {
-    List<FetchedDataset> datasets = new ArrayList<>();
-    for (Dataset dataset : bigquery.listDatasets(projectId).iterateAll()) {
-      datasets.add(toFetchedDataset(dataset));
-    }
-    return datasets;
+  public Iterable<Dataset> fetchAllDatasets(String projectId) {
+    return bigquery.listDatasets(projectId).iterateAll();
   }
 
   @Override
-  public FetchedDataset fetchDataset(String datasetName) {
-    Dataset dataset = bigquery.getDataset(datasetName);
-    return toFetchedDataset(dataset);
-  }
-
-  @Override
-  public Set<FetchedTable> fetchAllTables() {
-    Spliterator<Dataset> spliterator = bigquery.listDatasets().getValues().spliterator();
-    return StreamSupport.stream(spliterator, true)
-        .map(dataset -> dataset.getDatasetId().getDataset())
-        .map(this::fetchTablesInDataset)
-        .flatMap(Set::stream)
-        .collect(Collectors.toSet());
-  }
-
-  @Override
-  public Set<FetchedTable> fetchTablesInDataset(String datasetName) {
+  public Stream<Table> fetchTablesInDataset(String datasetName) {
     Spliterator<Table> spliterator = bigquery.listTables(datasetName).getValues().spliterator();
     return StreamSupport.stream(spliterator, true)
-        .map(table -> bigquery.getTable(table.getTableId(), TableOption.fields(TableField.SCHEMA)))
-        .filter(this::isValidTable)
-        .map(this::toFetchedTable)
-        .collect(Collectors.toSet());
+        .map(table -> bigquery.getTable(table.getTableId(), TableOption.fields(TableField.SCHEMA)));
   }
 
   @Override
@@ -184,80 +146,7 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     return options;
   }
 
-  private FetchedTable toFetchedTable(Table table) {
-    StandardTableDefinition tableDefinition = table.getDefinition();
-    Map<String, String> tableColumns = mapColumnsOrEmptyIfSchemaIsNull(tableDefinition);
-    ATableId aTableId = ATableId.fromGoogleTableId(table.getTableId());
-    return new DefaultFetchedTable(aTableId, tableColumns);
-  }
-
-  /**
-   * Returns true if the table is eligible
-   *
-   * <p>- Don't have RECORD field type
-   */
-  private boolean isEligibleTableDefinition(StandardTableDefinition tableDefinition) {
-    return tableDefinition.getSchema() != null
-        && tableDefinition.getSchema().getFields().stream()
-            .noneMatch(f -> f.getType().equals(LegacySQLTypeName.RECORD));
-  }
-
-  /*
-   * Filter on:
-   * - should exists.
-   * - should be a StandardTableDefinition (and not a View or Materialized View).
-   */
-  public boolean isValidTable(Table table) {
-    return table != null
-        && table.exists()
-        && table.getDefinition() instanceof StandardTableDefinition
-        && isEligibleTableDefinition(table.getDefinition());
-  }
-
-  private Map<String, String> mapColumnsOrEmptyIfSchemaIsNull(TableDefinition definition) {
-    final Schema schema = definition.getSchema();
-    if (schema == null) {
-      LOGGER.warn("Can't retrieve columns: schema is null");
-      return new HashMap<>();
-    }
-    List<Field> fields = schema.getFields();
-    return fields.stream().collect(Collectors.toMap(Field::getName, this::toZetaSQLStringType));
-  }
-
-  private String toZetaSQLStringType(Field field) {
-    final String statusType = field.getType().toString();
-    switch (statusType) {
-      case "DOUBLE":
-      case "FLOAT":
-        return ZetaSQLType.TypeKind.TYPE_NUMERIC.name();
-      case "INTEGER":
-        return ZetaSQLType.TypeKind.TYPE_INT64.name();
-      case "BOOLEAN":
-        return ZetaSQLType.TypeKind.TYPE_BOOL.name();
-      default:
-        return "TYPE_" + statusType;
-    }
-  }
-
   public FetchedProject toFetchedProject(Project project) {
     return new DefaultFetchedProject(project.getProjectId(), project.getName());
-  }
-
-  public FetchedDataset toFetchedDataset(Dataset dataset) {
-    DatasetId datasetId = dataset.getDatasetId();
-    final String location = dataset.getLocation();
-    final String friendlyName = dataset.getFriendlyName();
-    final String description = dataset.getDescription();
-    final Long createdAt = dataset.getCreationTime();
-    final Long lastModified = dataset.getLastModified();
-    return new DefaultFetchedDataset(
-        datasetId.getProject(),
-        datasetId.getDataset(),
-        datasetId.toString(),
-        location,
-        friendlyName,
-        description,
-        createdAt,
-        lastModified);
   }
 }

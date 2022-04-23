@@ -1,29 +1,29 @@
 package com.achilio.mvm.service.databases;
 
-import com.achilio.mvm.service.databases.entities.FetchedDataset;
 import com.achilio.mvm.service.databases.entities.FetchedProject;
-import com.achilio.mvm.service.databases.entities.FetchedTable;
 import com.achilio.mvm.service.entities.MaterializedView;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
+import com.google.cloud.bigquery.Dataset;
 import com.google.cloud.bigquery.Job;
-import java.util.List;
-import java.util.Set;
+import com.google.cloud.bigquery.Table;
+import java.util.stream.Stream;
 
-/** Database fetcher interface */
+/**
+ * Database fetcher interface
+ */
 public interface DatabaseFetcher {
 
-  /** Returns all the information for a given project. */
+  /**
+   * Returns all the information for a given project.
+   */
   FetchedProject fetchProject(String projectId) throws ProjectNotFoundException;
 
-  /** Returns all dataset id in a given projectId. */
-  List<FetchedDataset> fetchAllDatasets(String projectId);
+  /**
+   * Returns all dataset id in a given projectId.
+   */
+  Iterable<Dataset> fetchAllDatasets(String projectId);
 
-  /** Returns the dataset metadata in a given projectId. */
-  FetchedDataset fetchDataset(String datasetName);
-
-  Set<FetchedTable> fetchAllTables();
-
-  Set<FetchedTable> fetchTablesInDataset(String datasetName);
+  Stream<Table> fetchTablesInDataset(String datasetName);
 
   /**
    * Create Materialized view on BigQuery If view with this name already exists in the dataset, do

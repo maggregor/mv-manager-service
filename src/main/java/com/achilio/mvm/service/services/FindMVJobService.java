@@ -100,7 +100,7 @@ public class FindMVJobService {
   public void startFindMVJob(FindMVJob job, Project project) {
     try {
       String projectId = job.getProjectId();
-      List<ADataset> datasets = projectService.getAllActivatedDatasets(projectId);
+      List<ADataset> datasets = projectService.getAllDatasets(projectId);
       LOGGER.info("Start FindMV Job on project {} with activated datasets {}", projectId, datasets);
       LOGGER.info("FindMV Job {} on last {} days", job.getId(), job.getTimeframe());
       // STEP 1 - Fetch all queries of targeted fetchedProject
