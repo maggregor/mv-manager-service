@@ -4,6 +4,6 @@ import com.achilio.mvm.service.events.Event;
 
 public interface PublisherService {
 
-  void publishEvent(Event event);
+  void handleEvent(Event event);
 
 }

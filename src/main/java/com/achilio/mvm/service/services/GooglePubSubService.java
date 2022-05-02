@@ -22,9 +22,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class GooglePubSubService implements PublisherService {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(GooglePubSubService.class);
+
   private static final String ATTRIBUTE_TEAM_NAME = "teamName";
   private static final String ATTRIBUTE_PROJECT_ID = "projectId";
-  private static final Logger LOGGER = LoggerFactory.getLogger(GooglePubSubService.class);
+  private static final String ATTRIBUTE_EVENT_TYPE = "eventType";
 
   private final ObjectMapper objectMapper = new ObjectMapper();
   private final boolean PUBLISHER_ENABLED;
@@ -32,8 +34,8 @@ public class GooglePubSubService implements PublisherService {
 
   @Autowired
   public GooglePubSubService(
+      @Value("${application.google-project-id}") String publisherProjectId,
       @Value("${publisher.enabled}") boolean publisherEnabled,
-      @Value("${publisher.google-project-id}") String publisherProjectId,
       @Value("${publisher.sse-topic-id}") String sseTopicId) {
     this.PUBLISHER_ENABLED = publisherEnabled;
     this.SSE_TOPIC_ID = TopicName.of(publisherProjectId, sseTopicId);
@@ -41,7 +43,7 @@ public class GooglePubSubService implements PublisherService {
   }
 
   @Override
-  public void publishEvent(Event event) {
+  public void handleEvent(Event event) {
     if (!PUBLISHER_ENABLED) {
       LOGGER.info("Event {} not published: publisher is disabled", event.getEventType());
       return;
@@ -53,6 +55,7 @@ public class GooglePubSubService implements PublisherService {
       PubsubMessage pubsubMessage = PubsubMessage.newBuilder()
           .putAttributes(ATTRIBUTE_TEAM_NAME, event.getTeamName())
           .putAttributes(ATTRIBUTE_PROJECT_ID, event.getProjectId())
+          .putAttributes(ATTRIBUTE_EVENT_TYPE, event.getEventType().name())
           .setData(data).build();
       publishMessage(pubsubMessage);
     } catch (JsonProcessingException e) {
