@@ -4,6 +4,7 @@ import com.achilio.mvm.service.entities.ADataset;
 import com.achilio.mvm.service.entities.AQuery;
 import com.achilio.mvm.service.repositories.ADatasetRepository;
 import com.achilio.mvm.service.services.FetcherService;
+import com.achilio.mvm.service.services.PublisherService;
 import com.google.cloud.bigquery.Dataset;
 import java.util.Collections;
 import java.util.logging.Logger;
@@ -67,7 +68,6 @@ public class BatchJobConfiguration extends DefaultBatchConfigurer {
   public IteratorItemReader<com.google.cloud.bigquery.Job> reader(
       @Value("#{jobParameters['projectId']}") String projectId,
       @Value("#{jobParameters['timeframe']}") int timeframe) {
-    LOGGER.info(projectId);
     if (projectId != null) {
       return new QueryFetcherJobReader(fetcherService.fetchJobIterable(projectId, timeframe));
     }
@@ -86,7 +86,6 @@ public class BatchJobConfiguration extends DefaultBatchConfigurer {
   @StepScope
   public IteratorItemReader<Dataset> datasetReader(
       @Value("#{jobParameters['projectId']}") String projectId) {
-    LOGGER.info(projectId);
     if (projectId != null) {
       return new IteratorItemReader<>(fetcherService.fetchAllDatasets(projectId));
     }
@@ -125,11 +124,11 @@ public class BatchJobConfiguration extends DefaultBatchConfigurer {
 
 
   @Bean("fetchQueryJob")
-  public Job fetchQueryJob(Step retrieveQueries) {
+  public Job fetchQueryJob(Step retrieveQueries, PublisherService service) {
     return this.jobBuilderFactory
         .get("fetchQueryJob")
         .incrementer(new RunIdIncrementer())
-        .start(retrieveQueries)
+        .start(retrieveQueries).listener(new QueryFetcherJobListener(service))
         .build();
   }
 

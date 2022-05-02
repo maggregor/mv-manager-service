@@ -44,31 +44,31 @@ public class BatchJobController {
   @SneakyThrows
   @PostMapping(path = "/query", produces = MediaType.APPLICATION_JSON_VALUE)
   @ApiOperation("Create and start a new query fetching job")
-  public String createNewFetcherQueryJob(@RequestBody FetcherQueryJobRequest payload) {
+  public void createNewFetcherQueryJob(@RequestBody FetcherQueryJobRequest payload) {
     String projectId = payload.getProjectId();
     projectService.getProject(projectId, getContextTeamName());
     JobParameters jobParameters =
         new JobParametersBuilder()
             .addLong("time", System.currentTimeMillis())
             .addString("projectId", projectId)
+            .addString("teamName", getContextTeamName())
             .addLong("timeframe", payload.getTimeframe().longValue())
             .toJobParameters();
     jobLauncher.run(fetcherQueryJob, jobParameters);
-    return "Oui oui c'est bon";
   }
 
   @SneakyThrows
   @PostMapping(path = "/struct", produces = MediaType.APPLICATION_JSON_VALUE)
   @ApiOperation("Create and start a new query fetching job")
-  public String fetchStruct(@RequestBody FetcherStructJobRequest payload) {
+  public void fetchStruct(@RequestBody FetcherStructJobRequest payload) {
     String projectId = payload.getProjectId();
     projectService.getProject(projectId, getContextTeamName());
     JobParameters jobParameters =
         new JobParametersBuilder()
             .addLong("time", System.currentTimeMillis())
             .addString("projectId", projectId)
+            .addString("teamName", getContextTeamName())
             .toJobParameters();
     jobLauncher.run(fetchDatasetsJob, jobParameters);
-    return "Ah bah là... c'est bon, je te jure !";
   }
 }
