@@ -26,7 +26,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 @Getter
 @Setter
 @Table(name = "tables")
-@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @NoArgsConstructor
 @EnableJpaAuditing
 @EntityListeners(AuditingEntityListener.class)
