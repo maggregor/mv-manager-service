@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 
 import com.achilio.mvm.service.entities.ADataset;
 import com.achilio.mvm.service.entities.ATable;
+import com.achilio.mvm.service.entities.BigQueryTable;
 import com.achilio.mvm.service.entities.Project;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,12 +22,21 @@ public class ATableTest {
 
   @Test
   public void simpleValidationConstructor() {
-    ATable table = new ATable(projectId, datasetName, tableName);
+    ATable table = new BigQueryTable(projectId, datasetName, tableName);
     assertEquals(tableId, table.getTableId());
     assertEquals(project.getProjectId(), table.getProjectId());
     assertEquals(dataset.getDatasetName(), table.getDatasetName());
     assertEquals(tableName, table.getTableName());
     assertEquals(projectId, table.getProjectId());
     assertEquals(datasetName, table.getDatasetName());
+  }
+
+  @Test
+  public void simplePricing() {
+    Long giga = 1024L * 1024L * 1024L;
+    BigQueryTable table = new BigQueryTable(projectId, datasetName, tableName);
+    table.setNumBytes(giga * 10L);
+    table.setNumLongTermBytes(giga * 100L);
+    assertEquals(new Double(1.2), table.getCost());
   }
 }

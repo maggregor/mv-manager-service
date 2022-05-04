@@ -3,6 +3,7 @@ package com.achilio.mvm.service.workflows;
 import com.achilio.mvm.service.entities.AColumn;
 import com.achilio.mvm.service.entities.ADataset;
 import com.achilio.mvm.service.entities.ATable;
+import com.achilio.mvm.service.entities.BigQueryTable;
 import com.achilio.mvm.service.services.FetcherService;
 import com.google.cloud.bigquery.Dataset;
 import com.google.cloud.bigquery.Field;
@@ -46,7 +47,9 @@ public class BigQueryDatasetProcessor implements ItemProcessor<Dataset, ADataset
 
   private ATable toATable(String projectId, String datasetName, Table table) {
     String tableName = table.getTableId().getTable();
-    ATable aTable = new ATable(projectId, datasetName, tableName);
+    BigQueryTable aTable = new BigQueryTable(projectId, datasetName, tableName);
+    aTable.setNumBytes(table.getNumBytes());
+    aTable.setNumLongTermBytes(table.getNumLongTermBytes());
     List<AColumn> columns = toAColumns(aTable, table);
     aTable.setColumns(columns);
     return aTable;

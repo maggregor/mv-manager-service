@@ -3,22 +3,35 @@ package com.achilio.mvm.service.entities;
 import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
+import javax.persistence.DiscriminatorColumn;
+import javax.persistence.DiscriminatorType;
 import javax.persistence.Entity;
+import javax.persistence.EntityListeners;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.Formula;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 @Entity
 @Getter
 @Setter
 @Table(name = "tables")
-public class ATable {
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
+@NoArgsConstructor
+@EnableJpaAuditing
+@EntityListeners(AuditingEntityListener.class)
+@DiscriminatorColumn(name = "source", discriminatorType = DiscriminatorType.STRING)
+public abstract class ATable {
 
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
@@ -40,9 +53,6 @@ public class ATable {
 
   @Formula("(SELECT COUNT(*) FROM query_table_id q WHERE q.tables = table_id)")
   private int queryCount;
-
-  public ATable() {
-  }
 
   public ATable(String projectId, String datasetName, String tableName) {
     this.projectId = projectId;
@@ -83,4 +93,6 @@ public class ATable {
   public String getProjectId() {
     return this.projectId;
   }
+
+  public abstract Double getCost();
 }
