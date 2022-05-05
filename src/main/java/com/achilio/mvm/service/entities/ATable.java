@@ -8,6 +8,8 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import lombok.Getter;
@@ -25,15 +27,16 @@ public class ATable {
   private Long id;
 
   @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+  @JoinTable(
+      name = "tables_columns",
+      joinColumns = @JoinColumn(name = "table_id"),
+      inverseJoinColumns = @JoinColumn(name = "columns_id"))
   private List<AColumn> columns;
 
-  @Column
-  private String projectId;
-  @Column
-  private String datasetName;
+  @Column private String projectId;
+  @Column private String datasetName;
 
-  @Column
-  private String tableName;
+  @Column private String tableName;
 
   @Column(unique = true)
   private String tableId;
@@ -41,8 +44,7 @@ public class ATable {
   @Formula("(SELECT COUNT(*) FROM query_table_id q WHERE q.tables = table_id)")
   private int queryCount;
 
-  public ATable() {
-  }
+  public ATable() {}
 
   public ATable(String projectId, String datasetName, String tableName) {
     this.projectId = projectId;
@@ -53,8 +55,7 @@ public class ATable {
 
   private void setTableId() {
     this.tableId =
-        String.format(
-            "%s.%s.%s", this.getProjectId(), this.getDatasetName(), this.tableName);
+        String.format("%s.%s.%s", this.getProjectId(), this.getDatasetName(), this.tableName);
   }
 
   @Override
