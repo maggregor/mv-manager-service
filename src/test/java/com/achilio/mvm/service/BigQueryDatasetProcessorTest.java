@@ -15,13 +15,10 @@ import com.google.cloud.bigquery.Dataset;
 import com.google.cloud.bigquery.DatasetId;
 import com.google.cloud.bigquery.Field;
 import com.google.cloud.bigquery.FieldList;
-import com.google.cloud.bigquery.LegacySQLTypeName;
 import com.google.cloud.bigquery.Schema;
 import com.google.cloud.bigquery.StandardSQLTypeName;
 import com.google.cloud.bigquery.StandardTableDefinition;
 import com.google.cloud.bigquery.Table;
-import com.google.cloud.bigquery.TableId;
-import com.google.cloud.bigquery.ViewDefinition;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
@@ -44,31 +41,17 @@ public class BigQueryDatasetProcessorTest {
   @Mock
   private FetcherService service;
 
-  private static Table simpleTableMock(String name) {
-    Table table = mock(Table.class);
-    when(table.exists()).thenReturn(true);
-    when(table.getTableId()).thenReturn(TableId.of(PROJECT_NAME, DATASET_NAME, name));
-    StandardTableDefinition tableDefinition = mock(StandardTableDefinition.class);
-    Schema schema = mock(Schema.class);
-    List<Field> fields = new ArrayList<>();
-    fields.add(Field.of("col1", LegacySQLTypeName.BOOLEAN));
-    fields.add(Field.of("col2", LegacySQLTypeName.FLOAT));
-    FieldList fieldList = FieldList.of(fields);
-    when(schema.getFields()).thenReturn(fieldList);
-    when(tableDefinition.getSchema()).thenReturn(schema);
-    when(table.getDefinition()).thenReturn(tableDefinition);
-    return table;
-  }
-
   @Before
   public void setup() {
-    Table table1 = simpleTableMock("myTable1");
-    Table table2 = simpleTableMock("myTable2");
-    Table table3 = simpleTableMock("myTable3");
-    Table table4 = simpleTableMock("myTable4");
+    Table table1 = BigQueryMockHelper.simpleTableMock("myTable1");
+    when(table1.exists()).thenReturn(true);
+    Table table2 = BigQueryMockHelper.simpleTableMock("myTable2");
+    when(table2.exists()).thenReturn(true);
+    Table table3 = BigQueryMockHelper.simpleTableMock("myTable3");
+    when(table3.exists()).thenReturn(true);
+    Table table4 = BigQueryMockHelper.simpleTableMock("myTable4");
     when(table4.exists()).thenReturn(false);
-    Table table5 = simpleTableMock("myTable5");
-    when(table5.getDefinition()).thenReturn(mock(ViewDefinition.class));
+    Table table5 = BigQueryMockHelper.simpleTableMock("myTable5");
     TABLES_MOCK.add(table1);
     TABLES_MOCK.add(table2);
     TABLES_MOCK.add(table3);
@@ -96,7 +79,8 @@ public class BigQueryDatasetProcessorTest {
     String datasetName = "myDatasetForColumnsTesting";
     Dataset dataset = simpleDatasetMock();
     when(dataset.getDatasetId()).thenReturn(DatasetId.of(projectId, datasetName));
-    Table table = simpleTableMock("myTestTable");
+    Table table = BigQueryMockHelper.simpleTableMock(projectId, datasetName, "myTable");
+    when(table.exists()).thenReturn(true);
     List<Field> fields = new ArrayList<>();
     fields.add(Field.of("col_1", StandardSQLTypeName.BOOL));
     fields.add(Field.of("col_2", StandardSQLTypeName.INT64));

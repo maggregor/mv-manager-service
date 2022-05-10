@@ -39,8 +39,25 @@ public class MockHelper {
     return mock;
   }
 
-  public static ATable tableMock(ATableId tableId) {
-    return tableMock(tableId, Collections.emptyList());
+  public static ATable myTableMock() {
+    return tableMock("myProject", "myDataset", "myTable");
+  }
+
+  public static ATableId tableIdMock(String project, String dataset, String table) {
+    ATableId aTableId = mock(ATableId.class);
+    when(aTableId.getProject()).thenReturn(project);
+    when(aTableId.getDataset()).thenReturn(dataset);
+    when(aTableId.getTableId()).thenReturn(table);
+    return aTableId;
+  }
+
+  public static ATable tableMock(ATableId aTableId) {
+    return tableMock(tableIdMock(aTableId.getProject(), aTableId.getDataset(), aTableId.getTable()),
+        Collections.emptyList());
+  }
+
+  public static ATable tableMock(String project, String dataset, String table) {
+    return tableMock(tableIdMock(project, dataset, table), Collections.emptyList());
   }
 
   public static ATable tableMock(ATableId tableId, List<AColumn> columns) {

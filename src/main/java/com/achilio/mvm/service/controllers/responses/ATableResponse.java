@@ -9,7 +9,7 @@ public class ATableResponse {
   private final String tableName;
   private final String projectId;
   private final String datasetName;
-  private final Double cost;
+  private final Float cost;
 
   public ATableResponse(ATable table) {
     this.tableName = table.getTableName();

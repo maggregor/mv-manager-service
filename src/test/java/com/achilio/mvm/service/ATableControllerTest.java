@@ -35,7 +35,7 @@ public class ATableControllerTest {
   public void setup() {
     setupMockedAuthenticationContext();
     ATable table = tableMock(ATableId.of(PROJECT_ID, DATASET_NAME, TABLE_NAME));
-    when(table.getCost()).thenReturn(100D);
+    when(table.getCost()).thenReturn(100F);
     when(projectService.getAllTables(PROJECT_ID)).thenReturn(Arrays.asList(table));
   }
 
@@ -43,6 +43,6 @@ public class ATableControllerTest {
   public void aTableResponse() {
     List<ATableResponse> actual = controller.getAllTables(PROJECT_ID);
     assertEquals(1, actual.size());
-    assertEquals(new Double(100), actual.get(0).getCost());
+    assertEquals(new Float(100), actual.get(0).getCost());
   }
 }

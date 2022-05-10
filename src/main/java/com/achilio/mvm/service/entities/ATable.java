@@ -61,10 +61,10 @@ public abstract class ATable {
     setTableId();
   }
 
-  private void setTableId() {
+  protected void setTableId() {
     this.tableId =
         String.format(
-            "%s.%s.%s", this.getProjectId(), this.getDatasetName(), this.tableName);
+            "%s.%s.%s", this.getProjectId(), this.getDatasetName(), this.getTableName());
   }
 
   @Override
@@ -94,5 +94,5 @@ public abstract class ATable {
     return this.projectId;
   }
 
-  public abstract Double getCost();
+  public abstract Float getCost();
 }
