@@ -26,7 +26,7 @@ public class ATableController {
   }
 
   @GetMapping(path = "/table", produces = APPLICATION_JSON_VALUE)
-  @ApiOperation("List all projects")
+  @ApiOperation("List all tables")
   public List<ATableResponse> getAllTables(@RequestParam String projectId) {
     projectService.getProject(projectId, getContextTeamName());
     return projectService.getAllTables(projectId).stream().map(ATableResponse::new).collect(
