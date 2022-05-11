@@ -8,14 +8,12 @@ import java.util.stream.Collectors;
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.jboss.logging.Logger;
 
 @Entity
 @Getter
-@AllArgsConstructor
 @NoArgsConstructor
 @DiscriminatorValue("bigquery")
 public class BigQueryTable extends ATable {
