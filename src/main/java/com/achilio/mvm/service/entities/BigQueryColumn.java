@@ -5,8 +5,10 @@ import com.google.cloud.bigquery.StandardSQLTypeName;
 import com.google.zetasql.ZetaSQLType.TypeKind;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
+import lombok.NoArgsConstructor;
 
 @Entity
+@NoArgsConstructor
 @DiscriminatorValue("bigquery")
 public class BigQueryColumn extends AColumn {
 
@@ -15,11 +17,6 @@ public class BigQueryColumn extends AColumn {
     super(projectId, tableId, field.getName());
     this.setType(toZetaSQLType(field).name());
   }
-
-  public BigQueryColumn() {
-
-  }
-
 
   /**
    * Columns type mapping. Between BigQuery enum TypeKind and ZetaSQL type.
@@ -44,14 +41,14 @@ public class BigQueryColumn extends AColumn {
         return TypeKind.TYPE_TIMESTAMP;
       case BYTES:
         return TypeKind.TYPE_BYTES;
-      case ARRAY:
-        return TypeKind.TYPE_ARRAY;
+      /*case ARRAY:
+        return TypeKind.TYPE_ARRAY;*/
       case INT64:
         return TypeKind.TYPE_UINT64;
       case DATETIME:
         return TypeKind.TYPE_DATETIME;
-      case STRUCT:
-        return TypeKind.TYPE_STRUCT;
+      /*case STRUCT:
+        return TypeKind.TYPE_STRUCT;*/
       case GEOGRAPHY:
         return TypeKind.TYPE_GEOGRAPHY;
       case BIGNUMERIC:
