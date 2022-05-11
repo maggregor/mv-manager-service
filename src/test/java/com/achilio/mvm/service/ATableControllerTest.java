@@ -3,6 +3,7 @@ package com.achilio.mvm.service;
 import static com.achilio.mvm.service.MockHelper.setupMockedAuthenticationContext;
 import static com.achilio.mvm.service.MockHelper.tableMock;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.when;
 
 import com.achilio.mvm.service.controllers.ATableController;
@@ -10,7 +11,7 @@ import com.achilio.mvm.service.controllers.responses.ATableResponse;
 import com.achilio.mvm.service.entities.ATable;
 import com.achilio.mvm.service.services.ProjectService;
 import com.achilio.mvm.service.visitors.ATableId;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
@@ -34,15 +35,19 @@ public class ATableControllerTest {
   @Before
   public void setup() {
     setupMockedAuthenticationContext();
-    ATable table = tableMock(ATableId.of(PROJECT_ID, DATASET_NAME, TABLE_NAME));
-    when(table.getCost()).thenReturn(100F);
-    when(projectService.getAllTables(PROJECT_ID)).thenReturn(Arrays.asList(table));
   }
 
   @Test
-  public void aTableResponse() {
+  public void tableResponse() {
+    ATable table = tableMock(ATableId.of(PROJECT_ID, DATASET_NAME, TABLE_NAME));
+    when(table.getCost()).thenReturn(100F);
+    when(projectService.getAllTables(PROJECT_ID)).thenReturn(Collections.singletonList(table));
     List<ATableResponse> actual = controller.getAllTables(PROJECT_ID);
-    assertEquals(1, actual.size());
-    assertEquals(new Float(100), actual.get(0).getCost());
+    assertFalse(actual.isEmpty());
+    ATableResponse first = actual.get(0);
+    assertEquals(new Float(100F), first.getCost());
+    assertEquals(PROJECT_ID, first.getProjectId());
+    assertEquals(DATASET_NAME, first.getDatasetName());
+    assertEquals(TABLE_NAME, first.getTableName());
   }
 }

@@ -20,7 +20,7 @@ import org.jboss.logging.Logger;
 @DiscriminatorValue("bigquery")
 public class BigQueryTable extends ATable {
 
-  private final Logger LOGGER = Logger.getLogger(BigQueryTable.class);
+  private static final Logger LOGGER = Logger.getLogger(BigQueryTable.class);
 
   @Column(name = "num_bytes")
   private Long numBytes = 0L;
@@ -50,13 +50,11 @@ public class BigQueryTable extends ATable {
   /**
    * https://cloud.google.com/bigquery/pricing#storage
    * <p>$0.02 * num bytes / (1024^3) + $0.02 * num long term bytes / (1024^3)</p>
-   *
-   * @return
    */
   @Override
   public Float getCost() {
-    return (float) ((numBytes - numLongTermBytes) / (1024 * 1024 * 1024) * 0.02
-        + numLongTermBytes / (1024 * 1024
-        * 1024) * 0.01);
+    final int gb = 1024 * 1024 * 1024;
+    return (float) ((numBytes - numLongTermBytes) / gb * 0.02
+        + numLongTermBytes / gb * 0.01);
   }
 }
