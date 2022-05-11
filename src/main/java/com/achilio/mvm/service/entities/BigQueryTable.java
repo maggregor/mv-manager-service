@@ -38,12 +38,11 @@ public class BigQueryTable extends ATable {
     TableDefinition definition = table.getDefinition();
     Schema schema = definition.getSchema();
     if (schema == null) {
-      LOGGER.warn("Can't retrieve columns: schema is null");
-    } else {
-      this.setColumns(schema.getFields().stream()
-          .map(f -> new BigQueryColumn(this.getProjectId(), this.getTableId(), f))
-          .collect(Collectors.toList()));
+      throw new IllegalArgumentException("Schema is null");
     }
+    this.setColumns(schema.getFields().stream()
+        .map(f -> new BigQueryColumn(this.getProjectId(), this.getTableId(), f))
+        .collect(Collectors.toList()));
     super.setTableId();
   }
 
@@ -58,7 +57,6 @@ public class BigQueryTable extends ATable {
   @Override
   public Float getCost() {
     final int gb = 1024 * 1024 * 1024;
-    return (float) ((numBytes - numLongTermBytes) / gb * 0.02
-        + numLongTermBytes / gb * 0.01);
+    return (float) ((numBytes - numLongTermBytes) / gb * 0.02 + numLongTermBytes / gb * 0.01);
   }
 }

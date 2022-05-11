@@ -2,6 +2,7 @@ package com.achilio.mvm.service;
 
 import static com.achilio.mvm.service.BigQueryMockHelper.simpleTableMock;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.Mockito.when;
 
 import com.achilio.mvm.service.entities.ATable;
@@ -22,6 +23,13 @@ public class BigQueryTableTest extends ATableTest {
   @Override
   protected ATable createTable(String projectId, String datasetName, String tableName) {
     return new BigQueryTable(simpleTableMock(projectId, datasetName, tableName));
+  }
+
+  @Test
+  public void when_SchemaIsNull_thenThrows() {
+    Table table = simpleTableMock("myTable");
+    when(table.getDefinition().getSchema()).thenReturn(null);
+    assertThrows(IllegalArgumentException.class, () -> new BigQueryTable(table));
   }
 
   @Test
