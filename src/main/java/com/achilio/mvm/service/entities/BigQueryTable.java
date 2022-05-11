@@ -49,7 +49,11 @@ public class BigQueryTable extends ATable {
 
   /**
    * https://cloud.google.com/bigquery/pricing#storage
-   * <p>$0.02 * num bytes / (1024^3) + $0.02 * num long term bytes / (1024^3)</p>
+   * <p> numBytes gives the total storage footprint</p>
+   * <p>LongTermBytes gives the number of bytes that have a cheaper pricing</p>
+   * <p>Standard storage pricing: $0.02 / Gb</p>
+   * <p>Long term storage pricing: $0.01 / Gb</p>
+   * <p>$0.02 * numBytes - numLongTermBytes / (1024^3) - $0.01 * numLongTermBytes / (1024^3)</p>
    */
   @Override
   public Float getCost() {
