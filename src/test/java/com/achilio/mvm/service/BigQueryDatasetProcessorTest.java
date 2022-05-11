@@ -36,10 +36,8 @@ public class BigQueryDatasetProcessorTest {
   private static final String DATASET_NAME = "myDataset";
   private final List<Table> TABLES_MOCK = new ArrayList<>();
 
-  @InjectMocks
-  private BigQueryDatasetProcessor processor;
-  @Mock
-  private FetcherService service;
+  @InjectMocks private BigQueryDatasetProcessor processor;
+  @Mock private FetcherService service;
 
   @Before
   public void setup() {
@@ -65,9 +63,9 @@ public class BigQueryDatasetProcessorTest {
     Dataset dataset = simpleDatasetMock();
     ADataset aDataset = processor.process(dataset);
     assertDatasetAsADataset(dataset, aDataset);
-    assertNotNull(aDataset.getATables());
-    assertEquals(3, aDataset.getATables().size());
-    List<ATable> aTables = aDataset.getATables();
+    assertNotNull(aDataset.getTables());
+    assertEquals(3, aDataset.getTables().size());
+    List<ATable> aTables = aDataset.getTables();
     assertTableAsATable(TABLES_MOCK.get(0), aTables.get(0));
     assertTableAsATable(TABLES_MOCK.get(1), aTables.get(1));
     assertTableAsATable(TABLES_MOCK.get(2), aTables.get(2));
@@ -106,9 +104,9 @@ public class BigQueryDatasetProcessorTest {
     when(service.fetchAllTables(projectId, datasetName)).thenReturn(Stream.of(table));
     ADataset aDataset = processor.process(dataset);
     assertDatasetAsADataset(dataset, aDataset);
-    assertNotNull(aDataset.getATables());
-    assertFalse(aDataset.getATables().isEmpty());
-    ATable aTable = aDataset.getATables().get(0);
+    assertNotNull(aDataset.getTables());
+    assertFalse(aDataset.getTables().isEmpty());
+    ATable aTable = aDataset.getTables().get(0);
     List<AColumn> columns = aTable.getColumns();
     assertEquals(fields.size(), columns.size());
     assertEquals(columns.get(0).getType(), "TYPE_BOOL");

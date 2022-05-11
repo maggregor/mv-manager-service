@@ -51,7 +51,7 @@ public class ADataset {
   private String datasetName;
 
   @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-  private List<ATable> aTables = new ArrayList<>();
+  private List<ATable> tables = new ArrayList<>();
 
   public ADataset(Project project, String datasetName) {
     this.project = project;
@@ -77,7 +77,7 @@ public class ADataset {
   }
 
   public void addATable(ATable table) {
-    this.aTables.add(table);
+    this.tables.add(table);
   }
 
   @Override

@@ -14,7 +14,6 @@ import com.achilio.mvm.service.entities.MaterializedView.MVStatus;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.models.UserProfile;
 import com.achilio.mvm.service.visitors.ATableId;
-import java.util.Collections;
 import java.util.List;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -52,8 +51,7 @@ public class MockHelper {
   }
 
   public static ATable tableMock(ATableId aTableId) {
-    return tableMock(aTableId,
-        Collections.emptyList());
+    return tableMock(aTableId, null);
   }
 
   public static ATable tableMock(String project, String dataset, String table) {
