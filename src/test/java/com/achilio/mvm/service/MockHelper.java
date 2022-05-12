@@ -14,7 +14,6 @@ import com.achilio.mvm.service.entities.MaterializedView.MVStatus;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.models.UserProfile;
 import com.achilio.mvm.service.visitors.ATableId;
-import java.util.Collections;
 import java.util.List;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -39,8 +38,24 @@ public class MockHelper {
     return mock;
   }
 
-  public static ATable tableMock(ATableId tableId) {
-    return tableMock(tableId, Collections.emptyList());
+  public static ATable myTableMock() {
+    return tableMock("myProject", "myDataset", "myTable");
+  }
+
+  public static ATableId tableIdMock(String project, String dataset, String table) {
+    ATableId aTableId = mock(ATableId.class);
+    when(aTableId.getProject()).thenReturn(project);
+    when(aTableId.getDataset()).thenReturn(dataset);
+    when(aTableId.getTableId()).thenReturn(table);
+    return aTableId;
+  }
+
+  public static ATable tableMock(ATableId aTableId) {
+    return tableMock(aTableId, null);
+  }
+
+  public static ATable tableMock(String project, String dataset, String table) {
+    return tableMock(tableIdMock(project, dataset, table), null);
   }
 
   public static ATable tableMock(ATableId tableId, List<AColumn> columns) {
@@ -48,7 +63,9 @@ public class MockHelper {
     when(mock.getProjectId()).thenReturn(tableId.getProject());
     when(mock.getDatasetName()).thenReturn(tableId.getDataset());
     when(mock.getTableName()).thenReturn(tableId.getTable());
-    when(mock.getColumns()).thenReturn(columns);
+    if (columns != null) {
+      when(mock.getColumns()).thenReturn(columns);
+    }
     return mock;
   }
 

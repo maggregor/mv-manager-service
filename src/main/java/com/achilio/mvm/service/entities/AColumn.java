@@ -3,10 +3,14 @@ package com.achilio.mvm.service.entities;
 import static java.lang.String.format;
 
 import javax.persistence.Column;
+import javax.persistence.DiscriminatorColumn;
+import javax.persistence.DiscriminatorType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
 import javax.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,7 +19,9 @@ import lombok.Setter;
 @Getter
 @Setter
 @Table(name = "columns")
-public class AColumn {
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "source", discriminatorType = DiscriminatorType.STRING)
+public abstract class AColumn {
 
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
@@ -36,10 +42,9 @@ public class AColumn {
   public AColumn() {
   }
 
-  public AColumn(String projectId, String tableId, String name, String type) {
+  public AColumn(String projectId, String tableId, String name) {
     this.projectId = projectId;
     this.name = name;
-    this.type = type;
     setColumnId(tableId, name);
   }
 
