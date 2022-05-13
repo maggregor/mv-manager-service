@@ -5,3 +5,4 @@ coverage:
     - "src/main/java/com/achilio/mvm/service/MVGeneratorApplication.java"
     - "src/main/java/com/achilio/mvm/service/ServletInitializer.java"
     - "src/main/java/com/achilio/mvm/service/exceptions/**/*"
+    - "src/main/java/com/achilio/mvm/service/GooglePubSubService.java"
