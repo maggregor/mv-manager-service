@@ -29,14 +29,14 @@ public class BatchJobController {
 
   private final Job fetcherQueryJob;
 
-  private final Job fetchDataModel;
+  private final Job fetcherDataModel;
 
   public BatchJobController(JobLauncher jobLauncher, ProjectService projectService,
       @Qualifier("fetchDataModelJob") Job fetchDataModel,
       @Qualifier("fetchQueryJob") Job fetcherQueryJob) {
     this.jobLauncher = jobLauncher;
     this.projectService = projectService;
-    this.fetchDataModel = fetchDataModel;
+    this.fetcherDataModel = fetchDataModel;
     this.fetcherQueryJob = fetcherQueryJob;
   }
 
@@ -68,6 +68,6 @@ public class BatchJobController {
             .addString("projectId", projectId)
             .addString("teamName", getContextTeamName())
             .toJobParameters();
-    jobLauncher.run(fetchDataModel, jobParameters);
+    jobLauncher.run(fetcherDataModel, jobParameters);
   }
 }
