@@ -12,7 +12,7 @@ public abstract class JobExecutionEvent extends Event {
     JobParameters params = jobExecution.getJobParameters();
     final String teamName = params.getString("teamName");
     final String projectId = params.getString("projectId");
-    this.addData(KEY_STATUS, jobExecution.getStatus().name());
+    this.addData(KEY_STATUS, jobExecution.getStatus().name().toLowerCase());
     this.setEventType(eventType);
     this.setTeamName(teamName);
     this.setProjectId(projectId);

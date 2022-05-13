@@ -1,10 +1,9 @@
-package com.achilio.mvm.service;
+package com.achilio.mvm.service.events;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
-import com.achilio.mvm.service.events.Event;
-import com.achilio.mvm.service.events.QueryFetcherJobStartedEvent;
+import com.achilio.mvm.service.MockHelper;
 import org.junit.Test;
 
 public class QueryFetcherJobStartedEventTest extends EventTest {

@@ -1,11 +1,10 @@
-package com.achilio.mvm.service;
+package com.achilio.mvm.service.events;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-import com.achilio.mvm.service.events.Event;
+import com.achilio.mvm.service.MockHelper;
 import com.achilio.mvm.service.events.Event.Type;
-import com.achilio.mvm.service.events.QueryFetcherJobFinishedEvent;
 import java.util.Map;
 import org.junit.Test;
 
