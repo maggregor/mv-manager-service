@@ -26,8 +26,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 @Transactional
 public class IntegrationRepositoriesTest {
 
-  private final String TEST_PROJECT_ID1 = "myProjectId";
-
   private final Connection connection1 = new ServiceAccountConnection("SA_JSON_CONTENT");
   private final Connection connection2 = new ServiceAccountConnection("SA_JSON_CONTENT");
 
