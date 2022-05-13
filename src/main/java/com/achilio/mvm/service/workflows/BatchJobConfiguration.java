@@ -132,10 +132,10 @@ public class BatchJobConfiguration extends DefaultBatchConfigurer {
         .build();
   }
 
-  @Bean("fetchDatasetsJob")
-  public Job fetchStruct(Step retrieveDatasets) {
+  @Bean("fetchDataModelJob")
+  public Job fetchDataModelJob(Step retrieveDatasets) {
     return this.jobBuilderFactory
-        .get("fetchDatasetsJob")
+        .get("fetchDataModelJob")
         .incrementer(new RunIdIncrementer())
         .start(retrieveDatasets)
         .build();
