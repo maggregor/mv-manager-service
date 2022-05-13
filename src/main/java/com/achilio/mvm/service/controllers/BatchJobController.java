@@ -32,8 +32,8 @@ public class BatchJobController {
   private final Job fetcherDataModel;
 
   public BatchJobController(JobLauncher jobLauncher, ProjectService projectService,
-      @Qualifier("fetchDataModelJob") Job fetchDataModel,
-      @Qualifier("fetchQueryJob") Job fetcherQueryJob) {
+      @Qualifier("fetcherDataModelJob") Job fetchDataModel,
+      @Qualifier("fetcherQueryJob") Job fetcherQueryJob) {
     this.jobLauncher = jobLauncher;
     this.projectService = projectService;
     this.fetcherDataModel = fetchDataModel;
