@@ -1,13 +1,10 @@
 package com.achilio.mvm.service.events;
 
-public class QueryFetcherJobStartedEvent extends Event {
+import org.springframework.batch.core.JobExecution;
 
-  public QueryFetcherJobStartedEvent(String teamName, String projectId) {
-    super(Type.QUERY_FETCHER_JOB_STARTED, teamName, projectId);
-  }
+public class QueryFetcherJobStartedEvent extends JobExecutionEvent {
 
-  @Override
-  public Object getData() {
-    return null;
+  public QueryFetcherJobStartedEvent(JobExecution jobExecution) {
+    super(Type.QUERY_FETCHER_JOB_STARTED, jobExecution);
   }
 }

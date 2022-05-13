@@ -123,19 +123,19 @@ public class BatchJobConfiguration extends DefaultBatchConfigurer {
   }
 
 
-  @Bean("fetchQueryJob")
-  public Job fetchQueryJob(Step retrieveQueries, PublisherService service) {
+  @Bean("fetcherQueryJob")
+  public Job fetcherQueryJob(Step retrieveQueries, PublisherService service) {
     return this.jobBuilderFactory
-        .get("fetchQueryJob")
+        .get("fetcherQueryJob")
         .incrementer(new RunIdIncrementer())
         .start(retrieveQueries).listener(new QueryFetcherJobListener(service))
         .build();
   }
 
-  @Bean("fetchDatasetsJob")
-  public Job fetchStruct(Step retrieveDatasets) {
+  @Bean("fetcherDataModelJob")
+  public Job fetcherDataModelJob(Step retrieveDatasets) {
     return this.jobBuilderFactory
-        .get("fetchDatasetsJob")
+        .get("fetcherDataModelJob")
         .incrementer(new RunIdIncrementer())
         .start(retrieveDatasets)
         .build();

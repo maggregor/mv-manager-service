@@ -1,8 +1,7 @@
-package com.achilio.mvm.service;
+package com.achilio.mvm.service.events;
 
 import static org.junit.Assert.assertEquals;
 
-import com.achilio.mvm.service.events.Event;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

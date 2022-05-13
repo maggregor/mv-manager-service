@@ -8,7 +8,8 @@ import lombok.NoArgsConstructor;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class FetcherStructJobRequest {
+public class FetcherDataModelJobRequest {
 
-  @JsonProperty private String projectId;
+  @JsonProperty
+  private String projectId;
 }

@@ -5,12 +5,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import com.achilio.mvm.service.entities.Connection;
-import com.achilio.mvm.service.entities.FetcherStructJob;
 import com.achilio.mvm.service.entities.ServiceAccountConnection;
 import com.achilio.mvm.service.repositories.ConnectionRepository;
-import com.achilio.mvm.service.repositories.FetcherJobRepository;
 import javax.transaction.Transactional;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,27 +26,16 @@ import org.springframework.test.context.junit4.SpringRunner;
 @Transactional
 public class IntegrationRepositoriesTest {
 
-  private final String TEST_PROJECT_ID1 = "myProjectId";
-
-  private final FetcherStructJob job5 = new FetcherStructJob(TEST_PROJECT_ID1);
   private final Connection connection1 = new ServiceAccountConnection("SA_JSON_CONTENT");
   private final Connection connection2 = new ServiceAccountConnection("SA_JSON_CONTENT");
 
-  @Autowired
-  private FetcherJobRepository fetcherJobRepository;
   @Autowired
   private ConnectionRepository connectionRepository;
 
   @Before
   public void setup() {
-    fetcherJobRepository.save(job5);
     connection1.setTeamName("myTeam");
     connection2.setTeamName("myTeam");
-  }
-
-  @After
-  public void cleanUp() {
-    fetcherJobRepository.deleteAll();
   }
 
   @BeforeEach
