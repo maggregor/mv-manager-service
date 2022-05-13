@@ -5,7 +5,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import com.achilio.mvm.service.entities.Connection;
-import com.achilio.mvm.service.entities.FetcherDataModelJob;
 import com.achilio.mvm.service.entities.ServiceAccountConnection;
 import com.achilio.mvm.service.repositories.ConnectionRepository;
 import javax.transaction.Transactional;
@@ -29,7 +28,6 @@ public class IntegrationRepositoriesTest {
 
   private final String TEST_PROJECT_ID1 = "myProjectId";
 
-  private final FetcherDataModelJob job5 = new FetcherDataModelJob(TEST_PROJECT_ID1);
   private final Connection connection1 = new ServiceAccountConnection("SA_JSON_CONTENT");
   private final Connection connection2 = new ServiceAccountConnection("SA_JSON_CONTENT");
 
