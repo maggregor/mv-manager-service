@@ -8,9 +8,7 @@ import com.achilio.mvm.service.entities.Connection;
 import com.achilio.mvm.service.entities.FetcherDataModelJob;
 import com.achilio.mvm.service.entities.ServiceAccountConnection;
 import com.achilio.mvm.service.repositories.ConnectionRepository;
-import com.achilio.mvm.service.repositories.FetcherJobRepository;
 import javax.transaction.Transactional;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,20 +34,12 @@ public class IntegrationRepositoriesTest {
   private final Connection connection2 = new ServiceAccountConnection("SA_JSON_CONTENT");
 
   @Autowired
-  private FetcherJobRepository fetcherJobRepository;
-  @Autowired
   private ConnectionRepository connectionRepository;
 
   @Before
   public void setup() {
-    fetcherJobRepository.save(job5);
     connection1.setTeamName("myTeam");
     connection2.setTeamName("myTeam");
-  }
-
-  @After
-  public void cleanUp() {
-    fetcherJobRepository.deleteAll();
   }
 
   @BeforeEach
