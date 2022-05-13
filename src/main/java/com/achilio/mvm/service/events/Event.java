@@ -1,21 +1,26 @@
 package com.achilio.mvm.service.events;
 
+import com.google.api.client.util.ArrayMap;
+import java.util.Map;
 import lombok.Getter;
+import lombok.Setter;
 
+@Setter
 @Getter
 public abstract class Event {
 
-  private final Type eventType;
-  private final String projectId;
-  private final String teamName;
+  private final Map<String, String> data = new ArrayMap<>();
+  private Type eventType;
+  private String projectId;
+  private String teamName;
 
-  public Event(Type eventType, String teamName, String projectId) {
+  public Event(Type eventType) {
     this.eventType = eventType;
-    this.teamName = teamName;
-    this.projectId = projectId;
   }
 
-  public abstract Object getData();
+  protected void addData(String key, String value) {
+    this.data.put(key, value);
+  }
 
   public enum Type {
     QUERY_FETCHER_JOB_STARTED,

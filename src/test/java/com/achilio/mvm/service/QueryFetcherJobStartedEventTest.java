@@ -11,7 +11,7 @@ public class QueryFetcherJobStartedEventTest extends EventTest {
 
   @Override
   protected Event createEvent(String teamName, String projectId) {
-    return new QueryFetcherJobStartedEvent(teamName, projectId);
+    return new QueryFetcherJobStartedEvent(MockHelper.jobExecutionMock(teamName, projectId));
   }
 
   @Override

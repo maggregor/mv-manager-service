@@ -16,6 +16,10 @@ import com.achilio.mvm.service.models.UserProfile;
 import com.achilio.mvm.service.visitors.ATableId;
 import java.util.Collections;
 import java.util.List;
+import org.springframework.batch.core.BatchStatus;
+import org.springframework.batch.core.JobExecution;
+import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -123,5 +127,17 @@ public class MockHelper {
     //    when(connection.getId()).thenReturn(1L);
     //    when(connection.getTeamName()).thenReturn("achilio.com");
     return connection;
+  }
+
+  public static JobExecution jobExecutionMock(String teamName, String projectId) {
+    JobExecution jobExecution = mock(JobExecution.class);
+    JobParameters jobParameters =
+        new JobParametersBuilder()
+            .addString("teamName", teamName)
+            .addString("projectId", projectId)
+            .toJobParameters();
+    when(jobExecution.getJobParameters()).thenReturn(jobParameters);
+    when(jobExecution.getStatus()).thenReturn(BatchStatus.COMPLETED);
+    return jobExecution;
   }
 }

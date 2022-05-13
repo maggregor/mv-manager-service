@@ -2,8 +2,8 @@ package com.achilio.mvm.service.controllers;
 
 import static com.achilio.mvm.service.UserContextHelper.getContextTeamName;
 
+import com.achilio.mvm.service.controllers.requests.FetcherDataModelJobRequest;
 import com.achilio.mvm.service.controllers.requests.FetcherQueryJobRequest;
-import com.achilio.mvm.service.controllers.requests.FetcherStructJobRequest;
 import com.achilio.mvm.service.services.ProjectService;
 import io.swagger.annotations.ApiOperation;
 import lombok.SneakyThrows;
@@ -11,7 +11,6 @@ import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.launch.JobLauncher;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
@@ -28,17 +27,17 @@ public class BatchJobController {
   private final JobLauncher jobLauncher;
   private final ProjectService projectService;
 
-  @Autowired
-  @Qualifier("fetchQueryJob")
-  private Job fetcherQueryJob;
+  private final Job fetcherQueryJob;
 
-  @Autowired
-  @Qualifier("fetchDatasetsJob")
-  private Job fetchDatasetsJob;
+  private final Job fetchDataModel;
 
-  public BatchJobController(JobLauncher jobLauncher, ProjectService projectService) {
+  public BatchJobController(JobLauncher jobLauncher, ProjectService projectService,
+      @Qualifier("fetchDataModelJob") Job fetchDataModel,
+      @Qualifier("fetchQueryJob") Job fetcherQueryJob) {
     this.jobLauncher = jobLauncher;
     this.projectService = projectService;
+    this.fetchDataModel = fetchDataModel;
+    this.fetcherQueryJob = fetcherQueryJob;
   }
 
   @SneakyThrows
@@ -58,9 +57,9 @@ public class BatchJobController {
   }
 
   @SneakyThrows
-  @PostMapping(path = "/struct", produces = MediaType.APPLICATION_JSON_VALUE)
-  @ApiOperation("Create and start a new query fetching job")
-  public void fetchStruct(@RequestBody FetcherStructJobRequest payload) {
+  @PostMapping(path = "/data-model", produces = MediaType.APPLICATION_JSON_VALUE)
+  @ApiOperation("Create and start a new data model fetching job")
+  public void fetchDataModel(@RequestBody FetcherDataModelJobRequest payload) {
     String projectId = payload.getProjectId();
     projectService.getProject(projectId, getContextTeamName());
     JobParameters jobParameters =
@@ -69,6 +68,6 @@ public class BatchJobController {
             .addString("projectId", projectId)
             .addString("teamName", getContextTeamName())
             .toJobParameters();
-    jobLauncher.run(fetchDatasetsJob, jobParameters);
+    jobLauncher.run(fetchDataModel, jobParameters);
   }
 }

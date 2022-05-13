@@ -1,6 +1,6 @@
 package com.achilio.mvm.service.services;
 
-import com.achilio.mvm.service.entities.FetcherStructJob;
+import com.achilio.mvm.service.entities.FetcherDataModelJob;
 import com.achilio.mvm.service.entities.Job.JobStatus;
 import com.achilio.mvm.service.repositories.ADatasetRepository;
 import com.achilio.mvm.service.repositories.ATableRepository;
@@ -29,7 +29,7 @@ public class FetcherJobService {
 
   // Struct
 
-  public Optional<FetcherStructJob> getLastFetcherStructJob(String projectId, JobStatus status) {
+  public Optional<FetcherDataModelJob> getLastFetcherStructJob(String projectId, JobStatus status) {
     if (status == null) {
       return fetcherJobRepository.findTopFetcherStructJobByProjectIdOrderByCreatedAtDesc(projectId);
     }
@@ -37,20 +37,21 @@ public class FetcherJobService {
         projectId, status);
   }
 
-  public List<FetcherStructJob> getAllStructJobs(String projectId, JobStatus status) {
+  public List<FetcherDataModelJob> getAllStructJobs(String projectId, JobStatus status) {
     if (status == null) {
       return fetcherJobRepository.findFetcherStructJobsByProjectId(projectId);
     }
     return fetcherJobRepository.findFetcherStructJobsByProjectIdAndStatus(projectId, status);
   }
 
-  public Optional<FetcherStructJob> getFetcherStructJob(Long fetcherQueryJobId, String projectId) {
+  public Optional<FetcherDataModelJob> getFetcherStructJob(Long fetcherQueryJobId,
+      String projectId) {
     return fetcherJobRepository.findFetcherStructJobByIdAndProjectId(fetcherQueryJobId, projectId);
   }
 
-  public FetcherStructJob createNewFetcherStructJob(String projectId) {
-    FetcherStructJob job;
-    job = new FetcherStructJob(projectId);
+  public FetcherDataModelJob createNewFetcherStructJob(String projectId) {
+    FetcherDataModelJob job;
+    job = new FetcherDataModelJob(projectId);
     return fetcherJobRepository.save(job);
   }
 

@@ -2,7 +2,7 @@ package com.achilio.mvm.service.controllers;
 
 import static com.achilio.mvm.service.UserContextHelper.getContextTeamName;
 
-import com.achilio.mvm.service.entities.FetcherStructJob;
+import com.achilio.mvm.service.entities.FetcherDataModelJob;
 import com.achilio.mvm.service.entities.Job.JobStatus;
 import com.achilio.mvm.service.exceptions.FetcherJobNotFoundException;
 import com.achilio.mvm.service.services.FetcherJobService;
@@ -38,17 +38,17 @@ public class FetcherJobController {
 
   // Fetcher for Structs
 
-  @GetMapping(path = "/struct", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(path = "/data-model", produces = MediaType.APPLICATION_JSON_VALUE)
   @ApiOperation(
       "List all fetcher query struct for a given projectId.\n"
           + "If last URL Param is passed and set to true, returns a singleton with the latest fetcher query struct")
-  public List<FetcherStructJob> getAllFetcherStructJobsByProjectId(
+  public List<FetcherDataModelJob> getAllFetcherStructJobsByProjectId(
       @RequestParam String projectId,
       @RequestParam(required = false) Boolean last,
       @RequestParam(required = false) JobStatus status) {
     projectService.getProject(projectId, getContextTeamName());
     if (Boolean.TRUE == last) {
-      Optional<FetcherStructJob> optionalFetcherJob;
+      Optional<FetcherDataModelJob> optionalFetcherJob;
       optionalFetcherJob = fetcherJobService.getLastFetcherStructJob(projectId, status);
       return optionalFetcherJob.map(Collections::singletonList).orElse(Collections.emptyList());
     }
@@ -57,10 +57,10 @@ public class FetcherJobController {
 
   @GetMapping(path = "/struct/{fetcherQueryJobId}", produces = MediaType.APPLICATION_JSON_VALUE)
   @ApiOperation("Get a fetcher query job for a given id.")
-  public FetcherStructJob getFetcherStructJob(
+  public FetcherDataModelJob getFetcherStructJob(
       @PathVariable Long fetcherQueryJobId, @RequestParam String projectId) {
     projectService.getProject(projectId, getContextTeamName());
-    Optional<FetcherStructJob> optionalFetcherJob =
+    Optional<FetcherDataModelJob> optionalFetcherJob =
         fetcherJobService.getFetcherStructJob(fetcherQueryJobId, projectId);
     if (!optionalFetcherJob.isPresent()) {
       throw new FetcherJobNotFoundException(fetcherQueryJobId.toString());
