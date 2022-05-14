@@ -133,11 +133,12 @@ public class BatchJobConfiguration extends DefaultBatchConfigurer {
   }
 
   @Bean("fetcherDataModelJob")
-  public Job fetcherDataModelJob(Step retrieveDatasets) {
+  public Job fetcherDataModelJob(Step retrieveDatasets, PublisherService service) {
     return this.jobBuilderFactory
         .get("fetcherDataModelJob")
         .incrementer(new RunIdIncrementer())
         .start(retrieveDatasets)
+        .listener(new DataModelFetcherJobListener(service))
         .build();
   }
 }
