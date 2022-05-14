@@ -109,19 +109,22 @@ public class GooglePubSubService implements PublisherService {
         }
 
         public void onFailure(Throwable t) {
+          t.printStackTrace();
           LOGGER.error("Fail on publisher {}", t.getMessage());
         }
       }, MoreExecutors.directExecutor());
     } catch (IOException e) {
       LOGGER.error("Error while publishing message: ", e);
     } finally {
-      if (channel != null) {
-        // In Emulator mode close the channel
-        channel.awaitTermination(1L, TimeUnit.MINUTES);
-      } else if (publisher != null) {
+      if (publisher != null) {
         // In standard mode close the publisher
         publisher.shutdown();
         publisher.awaitTermination(1L, TimeUnit.MINUTES);
+        if (channel != null) {
+          // In Emulator mode close the channel
+          channel.shutdown();
+          channel.awaitTermination(1L, TimeUnit.MINUTES);
+        }
       }
     }
   }
