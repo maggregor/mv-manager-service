@@ -72,14 +72,36 @@ public class GooglePubSubService implements PublisherService {
       publishMessage(pubsubMessage);
     } catch (JsonProcessingException e) {
       LOGGER.error("Error while serializing event {} data to json", event.getEventType());
+    } catch (InterruptedException e) {
+      LOGGER.error("Error while publishing message", e);
     }
   }
 
-  private void publishMessage(PubsubMessage pubsubMessage) {
+  /**
+   * Publish a PubsubMessage on the Google Pub/Sub
+   * <p>Supports Google Pub/Sub Emulator</p>
+   * To enable the communication with the Google Pub/Sub Emulator: PUBLISHER_EMULATOR_HOST must be
+   * defined
+   *
+   * @param pubsubMessage
+   * @throws InterruptedException
+   */
+  private void publishMessage(PubsubMessage pubsubMessage) throws InterruptedException {
     Publisher publisher = null;
+    ManagedChannel channel = null;
     try {
-      publisher = createPublisherInstance();
-
+      Publisher.Builder builder = Publisher.newBuilder(sseTopicId);
+      if (StringUtils.isNotEmpty(emulatorHost)) {
+        // Emulator is enabled
+        channel = ManagedChannelBuilder.forTarget(emulatorHost).usePlaintext()
+            .build();
+        TransportChannelProvider channelProvider =
+            FixedTransportChannelProvider.create(GrpcTransportChannel.create(channel));
+        CredentialsProvider credentialsProvider = NoCredentialsProvider.create();
+        builder.setCredentialsProvider(credentialsProvider);
+        builder.setChannelProvider(channelProvider);
+      }
+      publisher = builder.build();
       ApiFuture<String> messageIdFuture = publisher.publish(pubsubMessage);
       ApiFutures.addCallback(messageIdFuture, new ApiFutureCallback<String>() {
         public void onSuccess(String messageId) {
@@ -87,6 +109,7 @@ public class GooglePubSubService implements PublisherService {
         }
 
         public void onFailure(Throwable t) {
+          t.printStackTrace();
           LOGGER.error("Fail on publisher {}", t.getMessage());
         }
       }, MoreExecutors.directExecutor());
@@ -94,33 +117,17 @@ public class GooglePubSubService implements PublisherService {
       LOGGER.error("Error while publishing message: ", e);
     } finally {
       if (publisher != null) {
+        // In standard mode close the publisher
         publisher.shutdown();
-        try {
-          publisher.awaitTermination(1, TimeUnit.MINUTES);
-        } catch (InterruptedException ignored) {
+        publisher.awaitTermination(1L, TimeUnit.MINUTES);
+        if (channel != null) {
+          // In Emulator mode close the channel
+          channel.shutdown();
+          channel.awaitTermination(1L, TimeUnit.MINUTES);
         }
       }
     }
   }
 
-  /**
-   * Creates the dedicated publisher instance. Enable emulator if PUBLISHER_EMULATOR_HOST is not
-   * empty.
-   *
-   * @return
-   * @throws IOException
-   */
-  private Publisher createPublisherInstance() throws IOException {
-    Publisher.Builder builder = Publisher.newBuilder(sseTopicId);
-    if (StringUtils.isNotEmpty(emulatorHost)) {
-      ManagedChannel channel = ManagedChannelBuilder.forTarget(emulatorHost).usePlaintext().build();
-      TransportChannelProvider channelProvider =
-          FixedTransportChannelProvider.create(GrpcTransportChannel.create(channel));
-      CredentialsProvider credentialsProvider = NoCredentialsProvider.create();
-      builder.setCredentialsProvider(credentialsProvider);
-      builder.setChannelProvider(channelProvider);
-    }
-    return builder.build();
-  }
 
 }

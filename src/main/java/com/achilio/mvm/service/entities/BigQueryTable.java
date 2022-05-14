@@ -31,6 +31,7 @@ public class BigQueryTable extends ATable {
     this.setProjectId(tableId.getProject());
     this.setDatasetName(table.getTableId().getDataset());
     this.setTableName(table.getTableId().getTable());
+    super.setTableId();
     this.numBytes = table.getNumBytes();
     this.numLongTermBytes = table.getNumLongTermBytes();
     TableDefinition definition = table.getDefinition();
@@ -41,7 +42,6 @@ public class BigQueryTable extends ATable {
     this.setColumns(schema.getFields().stream()
         .map(f -> new BigQueryColumn(this.getProjectId(), this.getTableId(), f))
         .collect(Collectors.toList()));
-    super.setTableId();
   }
 
   /**

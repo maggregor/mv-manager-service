@@ -4,14 +4,10 @@ import static com.achilio.mvm.service.UserContextHelper.getContextTeamName;
 
 import com.achilio.mvm.service.controllers.requests.FetcherDataModelJobRequest;
 import com.achilio.mvm.service.controllers.requests.FetcherQueryJobRequest;
+import com.achilio.mvm.service.services.BatchJobService;
 import com.achilio.mvm.service.services.ProjectService;
 import io.swagger.annotations.ApiOperation;
 import lombok.SneakyThrows;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobParameters;
-import org.springframework.batch.core.JobParametersBuilder;
-import org.springframework.batch.core.launch.JobLauncher;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,50 +20,29 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 public class BatchJobController {
 
-  private final JobLauncher jobLauncher;
   private final ProjectService projectService;
+  private final BatchJobService service;
 
-  private final Job fetcherQueryJob;
-
-  private final Job fetcherDataModel;
-
-  public BatchJobController(JobLauncher jobLauncher, ProjectService projectService,
-      @Qualifier("fetcherDataModelJob") Job fetchDataModel,
-      @Qualifier("fetcherQueryJob") Job fetcherQueryJob) {
-    this.jobLauncher = jobLauncher;
+  public BatchJobController(BatchJobService service, ProjectService projectService) {
+    this.service = service;
     this.projectService = projectService;
-    this.fetcherDataModel = fetchDataModel;
-    this.fetcherQueryJob = fetcherQueryJob;
   }
 
   @SneakyThrows
   @PostMapping(path = "/query", produces = MediaType.APPLICATION_JSON_VALUE)
   @ApiOperation("Create and start a new query fetching job")
-  public void createNewFetcherQueryJob(@RequestBody FetcherQueryJobRequest payload) {
+  public void startNewFetcherQueryJob(@RequestBody FetcherQueryJobRequest payload) {
     String projectId = payload.getProjectId();
     projectService.getProject(projectId, getContextTeamName());
-    JobParameters jobParameters =
-        new JobParametersBuilder()
-            .addLong("time", System.currentTimeMillis())
-            .addString("projectId", projectId)
-            .addString("teamName", getContextTeamName())
-            .addLong("timeframe", payload.getTimeframe().longValue())
-            .toJobParameters();
-    jobLauncher.run(fetcherQueryJob, jobParameters);
+    service.runFetcherQueryJob(getContextTeamName(), projectId, payload.getTimeframe());
   }
 
   @SneakyThrows
   @PostMapping(path = "/data-model", produces = MediaType.APPLICATION_JSON_VALUE)
   @ApiOperation("Create and start a new data model fetching job")
-  public void fetchDataModel(@RequestBody FetcherDataModelJobRequest payload) {
+  public void startNewDataModelQueryJob(@RequestBody FetcherDataModelJobRequest payload) {
     String projectId = payload.getProjectId();
     projectService.getProject(projectId, getContextTeamName());
-    JobParameters jobParameters =
-        new JobParametersBuilder()
-            .addLong("time", System.currentTimeMillis())
-            .addString("projectId", projectId)
-            .addString("teamName", getContextTeamName())
-            .toJobParameters();
-    jobLauncher.run(fetcherDataModel, jobParameters);
+    service.runFetcherDataModelJob(getContextTeamName(), projectId);
   }
 }
