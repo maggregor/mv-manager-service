@@ -6,7 +6,6 @@ import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -26,7 +25,6 @@ public class BatchJobService {
     this.fetcherQueryJob = fetcherQueryJob;
   }
 
-  @Async("asyncExecutor")
   @SneakyThrows
   public void runFetcherQueryJob(String teamName, String projectId, long timeframe) {
     JobParameters jobParameters = baseParamsBuilder(teamName, projectId)
@@ -35,13 +33,11 @@ public class BatchJobService {
     jobLauncher.run(fetcherQueryJob, jobParameters);
   }
 
-  @Async("asyncExecutor")
   @SneakyThrows
   public void runFetcherDataModelJob(String teamName, String projectId) {
     jobLauncher.run(fetcherDataModelJob, baseParamsBuilder(teamName, projectId).toJobParameters());
   }
 
-  @Async("asyncExecutor")
   @SneakyThrows
   public void runFetcherExtractJob(String teamName, String projectId) {
     throw new IllegalArgumentException("Extract job is not yet supported");
