@@ -6,13 +6,8 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.achilio.mvm.service.controllers.requests.ACreateProjectRequest;
 import com.achilio.mvm.service.controllers.requests.UpdateProjectRequest;
-import com.achilio.mvm.service.controllers.responses.AggregatedStatisticsResponse;
-import com.achilio.mvm.service.controllers.responses.DatasetResponse;
 import com.achilio.mvm.service.controllers.responses.ProjectResponse;
-import com.achilio.mvm.service.controllers.responses.UpdateDatasetRequestResponse;
-import com.achilio.mvm.service.entities.ADataset;
 import com.achilio.mvm.service.entities.Project;
-import com.achilio.mvm.service.entities.statistics.GlobalQueryStatistics;
 import com.achilio.mvm.service.services.ProjectService;
 import com.achilio.mvm.service.services.StripeService;
 import io.swagger.annotations.ApiOperation;
@@ -25,7 +20,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -91,62 +85,8 @@ public class ProjectController {
     return toProjectResponse(updatedProject);
   }
 
-  @PutMapping(
-      path = "/project/{projectId}/dataset/{datasetName}",
-      produces = APPLICATION_JSON_VALUE)
-  @ApiOperation("Update metadata of a dataset")
-  public UpdateDatasetRequestResponse updateDataset(
-      @PathVariable final String projectId,
-      @PathVariable final String datasetName,
-      @RequestBody final UpdateDatasetRequestResponse payload) {
-    projectService.getProject(projectId, getContextTeamName());
-    return new UpdateDatasetRequestResponse(
-        projectService.updateDataset(projectId, datasetName, payload.isActivated()));
-  }
-
-  @GetMapping(path = "/project/{projectId}/dataset", produces = APPLICATION_JSON_VALUE)
-  @ApiOperation("Get all dataset for a given projectId")
-  public List<DatasetResponse> getAllDatasets(@PathVariable final String projectId) {
-    projectService.getProject(projectId, getContextTeamName());
-    return projectService.getAllDatasets(projectId).stream()
-        .map(this::toDatasetResponse)
-        .collect(Collectors.toList());
-  }
-
-  @GetMapping(
-      path = "/project/{projectId}/dataset/{datasetName}",
-      produces = APPLICATION_JSON_VALUE)
-  @ApiOperation("Get a single dataset for a given projectId")
-  public DatasetResponse getDataset(
-      @PathVariable final String projectId, @PathVariable final String datasetName) {
-    projectService.getProject(projectId, getContextTeamName());
-    ADataset dataset = projectService.getDataset(projectId, datasetName);
-    return toDatasetResponse(dataset);
-  }
-
-  @GetMapping(
-      path = "/project/{projectId}/queries/{days}/statistics/kpi",
-      produces = APPLICATION_JSON_VALUE)
-  @ApiOperation("Get statistics of queries grouped per days for charts")
-  public AggregatedStatisticsResponse getKPIStatistics(
-      @PathVariable final String projectId, @PathVariable final int days) throws Exception {
-    projectService.getProject(projectId, getContextTeamName());
-    GlobalQueryStatistics statistics = projectService.getStatistics(projectId, days);
-    return toAggregatedStatistics(statistics);
-  }
-
-  public AggregatedStatisticsResponse toAggregatedStatistics(GlobalQueryStatistics statistics) {
-    return new AggregatedStatisticsResponse(statistics);
-  }
-
   private ProjectResponse toProjectResponse(Project project) {
     return new ProjectResponse(project);
   }
 
-  private DatasetResponse toDatasetResponse(ADataset dataset) {
-    final String projectId = dataset.getProject().getProjectId();
-    final String datasetName = dataset.getDatasetName();
-    final boolean activated = projectService.isDatasetActivated(projectId, datasetName);
-    return new DatasetResponse(projectId, datasetName, null, null, null, null, null, activated);
-  }
 }

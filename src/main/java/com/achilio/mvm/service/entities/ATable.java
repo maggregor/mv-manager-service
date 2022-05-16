@@ -1,69 +1,75 @@
 package com.achilio.mvm.service.entities;
 
 import java.util.List;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
+import javax.persistence.DiscriminatorColumn;
+import javax.persistence.DiscriminatorType;
 import javax.persistence.Entity;
+import javax.persistence.EntityListeners;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
 import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
+import javax.persistence.JoinTable;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
+import org.hibernate.annotations.Formula;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 @Entity
 @Getter
 @Setter
 @Table(name = "tables")
-public class ATable {
-
-  @ManyToOne
-  @OnDelete(action = OnDeleteAction.CASCADE)
-  ADataset dataset;
-
-  @ManyToOne Project project;
-
-  @OneToMany(mappedBy = "table", fetch = FetchType.EAGER)
-  List<AColumn> columns;
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@NoArgsConstructor
+@EnableJpaAuditing
+@EntityListeners(AuditingEntityListener.class)
+@DiscriminatorColumn(name = "source", discriminatorType = DiscriminatorType.STRING)
+public abstract class ATable {
 
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Long id;
 
-  @Column private String tableName;
-  @ManyToOne private FetcherStructJob lastFetcherStructJob;
-  @ManyToOne @JoinColumn private FetcherStructJob initialFetcherStructJob;
+  @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+  @JoinTable(
+      name = "tables_columns",
+      joinColumns = @JoinColumn(name = "table_id"),
+      inverseJoinColumns = @JoinColumn(name = "columns_id"))
+  private List<AColumn> columns;
+
+  @Column
+  private String projectId;
+  @Column
+  private String datasetName;
+
+  @Column
+  private String tableName;
 
   @Column(unique = true)
   private String tableId;
 
-  public ATable() {}
+  @Formula("(SELECT COUNT(*) FROM query_table_id q WHERE q.tables = table_id)")
+  private int queryCount;
 
-  public ATable(Project project, ADataset dataset, String tableName, FetcherStructJob job) {
-    this.lastFetcherStructJob = job;
-    this.initialFetcherStructJob = job;
-    this.project = project;
-    this.dataset = dataset;
-    this.tableName = tableName;
-    setTableId();
-  }
+  @Enumerated(EnumType.STRING)
+  @Column(name = "type")
+  private TableType type;
 
-  public ATable(Project project, ADataset dataset, String tableName) {
-    this.project = project;
-    this.dataset = dataset;
-    this.tableName = tableName;
-    setTableId();
-  }
-
-  private void setTableId() {
+  protected void setTableId() {
     this.tableId =
         String.format(
-            "%s.%s.%s", this.project.getProjectId(), this.dataset.getDatasetName(), this.tableName);
+            "%s.%s.%s", this.getProjectId(), this.getDatasetName(), this.getTableName());
   }
 
   @Override
@@ -86,10 +92,20 @@ public class ATable {
   }
 
   public String getDatasetName() {
-    return this.dataset.getDatasetName();
+    return this.datasetName;
   }
 
   public String getProjectId() {
-    return this.project.getProjectId();
+    return this.projectId;
+  }
+
+  public abstract Float getCost();
+
+  public enum TableType {
+    TABLE,
+    EXTERNAL_TABLE,
+    VIEW,
+    MATERIALIZED_VIEW,
+    UNKNOWN,
   }
 }

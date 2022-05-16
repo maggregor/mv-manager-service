@@ -9,7 +9,7 @@ import com.achilio.mvm.service.entities.Job.JobStatus;
 import com.achilio.mvm.service.repositories.FindMVJobRepository;
 import java.util.List;
 import java.util.Optional;
-import org.junit.After;
+import javax.transaction.Transactional;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -19,6 +19,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
+@Transactional
 public class FindMVJobRepositoryTest {
 
   private static final String PROJECT1 = "myProjectId1";
@@ -40,11 +41,6 @@ public class FindMVJobRepositoryTest {
     mvJob1 = repository.save(job1);
     mvJob2 = repository.save(job2);
     mvJob3 = repository.save(job3);
-  }
-
-  @After
-  public void clean() {
-    repository.deleteAll();
   }
 
   @Test

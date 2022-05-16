@@ -45,7 +45,8 @@ public class ProjectServiceTest {
   private static final Long CONNECTION_ID = 1L;
   private static final String CONNECTION_CONTENT = "serviceAccountContent";
   private static final UserProfile USER_PROFILE_1 =
-      new UserProfile("moi", "moi@achilio.com", "foo", "bar", "myName", TEAM_NAME1);
+      new UserProfile(
+          "moi", "moi@achilio.com", "foo", "bar", "myName", TEAM_NAME1, "customer-id", null);
   private static final String TEST_PROJECT_ID1 = "achilio-dev";
   private static final String TEST_PROJECT_ID2 = "other-project";
   private static final String TEST_PROJECT_ID3 = "new-project";
@@ -70,13 +71,20 @@ public class ProjectServiceTest {
   private static final ADataset mockedDataset1 = mock(ADataset.class);
   private static final ADataset mockedDataset2 = mock(ADataset.class);
   private final ADataset realDataset = new ADataset(project1, TEST_DATASET_NAME3);
-  @InjectMocks private ProjectService service;
-  @Mock private ProjectRepository mockedProjectRepository;
-  @Mock private ADatasetRepository mockedADatasetRepository;
-  @Mock private FetcherService mockedFetcherService;
-  @Mock private Authentication mockedJWTAuth;
-  @Mock private SecurityContext mockedSecurityContext;
-  @Mock private ConnectionService mockedConnectionService;
+  @InjectMocks
+  private ProjectService service;
+  @Mock
+  private ProjectRepository mockedProjectRepository;
+  @Mock
+  private ADatasetRepository mockedADatasetRepository;
+  @Mock
+  private FetcherService mockedFetcherService;
+  @Mock
+  private Authentication mockedJWTAuth;
+  @Mock
+  private SecurityContext mockedSecurityContext;
+  @Mock
+  private ConnectionService mockedConnectionService;
 
   @Before
   public void setup() throws JsonProcessingException {
@@ -91,18 +99,6 @@ public class ProjectServiceTest {
         .thenReturn(activatedProjects);
     when(mockedProjectRepository.findByProjectIdAndTeamName(TEST_PROJECT_ID1, TEAM_NAME1))
         .thenReturn(Optional.of(project1));
-    when(mockedDataset1.isActivated()).thenReturn(true);
-    when(mockedDataset2.isActivated()).thenReturn(false);
-    when(mockedADatasetRepository.save(any(ADataset.class))).thenReturn(mockedDataset1);
-    when(mockedADatasetRepository.findByProject_ProjectIdAndDatasetName(
-            project1.getProjectId(), TEST_DATASET_NAME1))
-        .thenReturn(Optional.of(mockedDataset1));
-    when(mockedADatasetRepository.findByProject_ProjectIdAndDatasetName(
-            project1.getProjectId(), TEST_DATASET_NAME2))
-        .thenReturn(Optional.of(mockedDataset2));
-    when(mockedADatasetRepository.findByProject_ProjectIdAndDatasetName(
-            project1.getProjectId(), TEST_DATASET_NAME3))
-        .thenReturn(Optional.of(realDataset));
     when(mockedFetchedProject1.getProjectId()).thenReturn(TEST_PROJECT_ID1);
     when(mockedFetchedProject1.getName()).thenReturn(TEST_PROJECT_NAME1);
     when(mockedFetchedProject2.getProjectId()).thenReturn(TEST_PROJECT_ID2);
@@ -212,18 +208,14 @@ public class ProjectServiceTest {
   @Test
   public void updateProject() {
     Integer analysisTimeFrame = 14;
-    Integer mvMaxPerTable = 12;
     UpdateProjectRequest payload1 =
-        new UpdateProjectRequest(TEST_PROJECT_NAME1, false, analysisTimeFrame, mvMaxPerTable);
+        new UpdateProjectRequest(TEST_PROJECT_NAME1, false, analysisTimeFrame);
     Project project = service.updateProject(TEST_PROJECT_ID2, payload1);
     assertEquals(TEST_PROJECT_ID2, project.getProjectId());
     assertFalse(project.isAutomatic());
     assertEquals(14, project.getAnalysisTimeframe());
-    assertEquals(12, project.getMvMaxPerTable());
     analysisTimeFrame = null;
-    mvMaxPerTable = null;
-    UpdateProjectRequest payload2 =
-        new UpdateProjectRequest(null, true, analysisTimeFrame, mvMaxPerTable);
+    UpdateProjectRequest payload2 = new UpdateProjectRequest(null, true, analysisTimeFrame);
     project = service.updateProject(TEST_PROJECT_ID2, payload2);
     assertTrue(project.isAutomatic());
   }
@@ -237,21 +229,6 @@ public class ProjectServiceTest {
     assertTrue(project.isAutomatic());
     service.deactivateProject(project);
     assertFalse(project.isActivated());
-  }
-
-  @Test
-  public void updateDataset() {
-    ADataset dataset = service.updateDataset(TEST_PROJECT_ID1, TEST_DATASET_NAME3, true);
-    assertTrue(dataset.isActivated());
-    assertEquals(TEST_DATASET_NAME3, "other_dataset");
-    dataset = service.updateDataset(TEST_PROJECT_ID1, TEST_DATASET_NAME3, false);
-    assertFalse(dataset.isActivated());
-  }
-
-  @Test
-  public void isDatasetActivated() {
-    assertTrue(service.isDatasetActivated(TEST_PROJECT_ID1, TEST_DATASET_NAME1));
-    assertFalse(service.isDatasetActivated(TEST_PROJECT_ID1, TEST_DATASET_NAME2));
   }
 
   private void assertProjectListEquals(List<Project> expected, List<Project> actual) {

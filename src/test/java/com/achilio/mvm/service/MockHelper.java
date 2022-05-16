@@ -5,17 +5,20 @@ import static org.mockito.Mockito.when;
 
 import com.achilio.mvm.service.entities.AColumn;
 import com.achilio.mvm.service.entities.ADataset;
+import com.achilio.mvm.service.entities.AQuery;
 import com.achilio.mvm.service.entities.ATable;
 import com.achilio.mvm.service.entities.Connection;
 import com.achilio.mvm.service.entities.FindMVJob;
 import com.achilio.mvm.service.entities.MaterializedView;
 import com.achilio.mvm.service.entities.MaterializedView.MVStatus;
 import com.achilio.mvm.service.entities.Project;
-import com.achilio.mvm.service.entities.Query;
 import com.achilio.mvm.service.models.UserProfile;
 import com.achilio.mvm.service.visitors.ATableId;
-import java.util.Collections;
 import java.util.List;
+import org.springframework.batch.core.BatchStatus;
+import org.springframework.batch.core.JobExecution;
+import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -33,14 +36,30 @@ public class MockHelper {
 
   public static ADataset datasetMock(Project project, String datasetName) {
     ADataset mock = mock(ADataset.class);
-    when(mock.getProject()).thenReturn(project);
+    //    when(mock.getProject()).thenReturn(project);
     when(mock.getDatasetName()).thenReturn(datasetName).thenReturn(datasetName);
     when(mock.getDatasetId()).thenReturn(project.getProjectId() + "." + datasetName);
     return mock;
   }
 
-  public static ATable tableMock(ATableId tableId) {
-    return tableMock(tableId, Collections.emptyList());
+  public static ATable myTableMock() {
+    return tableMock("myProject", "myDataset", "myTable");
+  }
+
+  public static ATableId tableIdMock(String project, String dataset, String table) {
+    ATableId aTableId = mock(ATableId.class);
+    when(aTableId.getProject()).thenReturn(project);
+    when(aTableId.getDataset()).thenReturn(dataset);
+    when(aTableId.getTableId()).thenReturn(table);
+    return aTableId;
+  }
+
+  public static ATable tableMock(ATableId aTableId) {
+    return tableMock(aTableId, null);
+  }
+
+  public static ATable tableMock(String project, String dataset, String table) {
+    return tableMock(tableIdMock(project, dataset, table), null);
   }
 
   public static ATable tableMock(ATableId tableId, List<AColumn> columns) {
@@ -48,7 +67,9 @@ public class MockHelper {
     when(mock.getProjectId()).thenReturn(tableId.getProject());
     when(mock.getDatasetName()).thenReturn(tableId.getDataset());
     when(mock.getTableName()).thenReturn(tableId.getTable());
-    when(mock.getColumns()).thenReturn(columns);
+    if (columns != null) {
+      when(mock.getColumns()).thenReturn(columns);
+    }
     return mock;
   }
 
@@ -59,15 +80,15 @@ public class MockHelper {
     return column;
   }
 
-  public static Query queryMock(String statement) {
+  public static AQuery queryMock(String statement) {
     return queryMock(DEFAULT_PROJECT_ID, statement);
   }
 
-  public static Query queryMock(String projectId, String statement) {
-    Query mockedQuery = mock(Query.class);
-    when(mockedQuery.getProjectId()).thenReturn(projectId);
-    when(mockedQuery.getQuery()).thenReturn(statement);
-    return mockedQuery;
+  public static AQuery queryMock(String projectId, String statement) {
+    AQuery mockedAQuery = mock(AQuery.class);
+    when(mockedAQuery.getProjectId()).thenReturn(projectId);
+    when(mockedAQuery.getQuery()).thenReturn(statement);
+    return mockedAQuery;
   }
 
   public static FindMVJob findMVJobMock() {
@@ -112,7 +133,7 @@ public class MockHelper {
     SecurityContext mockedSecurityContext = mock(SecurityContext.class);
     UserProfile mockedUserProfile = mock(UserProfile.class);
     when(mockedUserProfile.getTeamName()).thenReturn(teamName);
-    when(mockedAuth.getDetails()).thenReturn(mockedUserProfile);
+    when(mockedAuth.getPrincipal()).thenReturn(mockedUserProfile);
     when(mockedSecurityContext.getAuthentication()).thenReturn(mockedAuth);
     SecurityContextHolder.setContext(mockedSecurityContext);
   }
@@ -123,5 +144,17 @@ public class MockHelper {
     //    when(connection.getId()).thenReturn(1L);
     //    when(connection.getTeamName()).thenReturn("achilio.com");
     return connection;
+  }
+
+  public static JobExecution jobExecutionMock(String teamName, String projectId) {
+    JobExecution jobExecution = mock(JobExecution.class);
+    JobParameters jobParameters =
+        new JobParametersBuilder()
+            .addString("teamName", teamName)
+            .addString("projectId", projectId)
+            .toJobParameters();
+    when(jobExecution.getJobParameters()).thenReturn(jobParameters);
+    when(jobExecution.getStatus()).thenReturn(BatchStatus.COMPLETED);
+    return jobExecution;
   }
 }

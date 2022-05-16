@@ -18,7 +18,7 @@ public class UserContextHelper {
       LOGGER.error("Authentication is security context is null");
       throw new IllegalArgumentException("Can't retrieve authentication");
     }
-    Object details = authentication.getDetails();
+    Object details = authentication.getPrincipal();
     if (details == null) {
       LOGGER.error("Auth details in the security context is null");
       throw new IllegalArgumentException("Can't retrieve user profile");

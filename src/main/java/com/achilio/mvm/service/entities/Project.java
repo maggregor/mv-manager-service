@@ -1,7 +1,10 @@
 package com.achilio.mvm.service.entities;
 
 import com.achilio.mvm.service.databases.entities.FetchedProject;
+import java.io.Serializable;
+import java.util.List;
 import javax.persistence.Column;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
 import javax.persistence.GeneratedValue;
@@ -9,17 +12,23 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.logging.log4j.util.Strings;
+import org.hibernate.annotations.Formula;
+import org.hibernate.annotations.NaturalId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 @Entity
+@Getter
+@Setter
 @Table(name = "projects")
 @EnableJpaAuditing
 @EntityListeners(AuditingEntityListener.class)
-public class Project {
+public class Project implements Serializable {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Project.class);
 
@@ -27,13 +36,14 @@ public class Project {
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Long id;
 
-  @Column(name = "project_id", nullable = false, unique = true)
+  @NaturalId
   private String projectId;
 
   @Column(name = "project_name")
   private String projectName;
 
-  @Column private String teamName;
+  @Column
+  private String teamName;
 
   @Column(name = "activated", nullable = false)
   private Boolean activated = true;
@@ -44,15 +54,18 @@ public class Project {
   @Column(name = "username", nullable = false, columnDefinition = "varchar(255) default ''")
   private String username = Strings.EMPTY;
 
-  @Column(name = "mv_max_per_table", nullable = false, columnDefinition = "numeric default 5")
-  private Integer mvMaxPerTable = 5;
-
   @Column(name = "analysis_timeframe", nullable = false, columnDefinition = "numeric default 30")
   private Integer analysisTimeframe = 30;
 
-  @ManyToOne private Connection connection;
+  @ManyToOne
+  private Connection connection;
 
-  public Project() {}
+  @Formula("(SELECT * FROM datasets d WHERE d.project_id = project_id)")
+  @ElementCollection(targetClass = ADataset.class)
+  private List<ADataset> datasets;
+
+  public Project() {
+  }
 
   public Project(String projectId) {
     this(projectId, null, null);
@@ -100,13 +113,11 @@ public class Project {
     return automatic;
   }
 
-  public Boolean setAutomatic(Boolean automatic) {
+  public void setAutomatic(Boolean automatic) {
     if (automatic != null) {
       this.automatic = automatic;
       LOGGER.info("ProjectId {}: Set automatic mode to {}", projectId, automatic);
-      return true;
     }
-    return false;
   }
 
   public void setActivated(Boolean activated) {
@@ -122,17 +133,6 @@ public class Project {
   public void setUsername(String username) {
     if (username != null) {
       this.username = username;
-    }
-  }
-
-  public Integer getMvMaxPerTable() {
-    return this.mvMaxPerTable;
-  }
-
-  public void setMvMaxPerTable(Integer mvMaxPerTable) {
-    if (mvMaxPerTable != null) {
-      this.mvMaxPerTable = mvMaxPerTable;
-      LOGGER.info("ProjectId {}: Set mvMaxPerTable to {}", projectId, mvMaxPerTable);
     }
   }
 

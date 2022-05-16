@@ -14,11 +14,6 @@ Run Postgres and Adminer
 docker-compose up db adminer
 ```
 
-# Tomcat
-
-Maven dependency must have the provided scope in order to run the service as a Spring standalone
-application (for development and debug) and let AppEngine provide his own servlet.
-
 # Run
 
 ```shell script
@@ -29,4 +24,13 @@ Run Postgres, Adminer, and the web app locally
 
 ```shell script
 docker-compose up
+```
+
+# Setup Google Pub/Sub Emulator
+Clone and install the python-pubsub client: https://github.com/googleapis/python-pubsub
+```
+cd samples/snippets
+$(gcloud beta emulators pubsub env-init)
+python subscriber.py achilio-dev create sseTopic
+python subscriber.py achilio-dev create-push sseTopic events http://localhost:8082/events
 ```

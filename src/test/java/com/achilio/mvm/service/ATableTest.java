@@ -10,7 +10,7 @@ import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
-public class ATableTest {
+public abstract class ATableTest {
 
   private final String tableName = "myTable";
   private final String projectId = "myProjectId";
@@ -19,14 +19,17 @@ public class ATableTest {
   private final Project project = new Project(projectId);
   private final ADataset dataset = new ADataset(project, datasetName);
 
+  protected abstract ATable createTable(String projectId, String datasetName, String tableName);
+
   @Test
   public void simpleValidationConstructor() {
-    ATable table = new ATable(project, dataset, tableName);
+    ATable table = createTable(projectId, datasetName, tableName);
     assertEquals(tableId, table.getTableId());
-    assertEquals(project.getProjectId(), table.getProject().getProjectId());
-    assertEquals(dataset.getDatasetName(), table.getDataset().getDatasetName());
+    assertEquals(project.getProjectId(), table.getProjectId());
+    assertEquals(dataset.getDatasetName(), table.getDatasetName());
     assertEquals(tableName, table.getTableName());
     assertEquals(projectId, table.getProjectId());
     assertEquals(datasetName, table.getDatasetName());
   }
+
 }

@@ -3,54 +3,53 @@ package com.achilio.mvm.service.entities;
 import static java.lang.String.format;
 
 import javax.persistence.Column;
+import javax.persistence.DiscriminatorColumn;
+import javax.persistence.DiscriminatorType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
 import javax.persistence.Table;
 import lombok.Getter;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
+import lombok.Setter;
 
 @Entity
 @Getter
+@Setter
 @Table(name = "columns")
-public class AColumn {
-
-  @ManyToOne
-  @OnDelete(action = OnDeleteAction.CASCADE)
-  ATable table;
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "source", discriminatorType = DiscriminatorType.STRING)
+public abstract class AColumn {
 
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Long id;
 
-  @ManyToOne private FetcherStructJob lastFetcherStructJob;
-
-  @ManyToOne @JoinColumn private FetcherStructJob initialFetcherStructJob;
-
   @Column(unique = true)
   private String columnId;
 
-  @Column private String name;
+  @Column
+  private String name;
 
-  @Column private String type;
+  @Column
+  private String type;
 
-  public AColumn() {}
+  @Column
+  private String projectId;
 
-  public AColumn(FetcherStructJob job, ATable table, String name, String type) {
-    this.table = table;
-    this.name = name;
-    this.type = type;
-    this.lastFetcherStructJob = job;
-    this.initialFetcherStructJob = job;
-    setColumnId(table, name);
+  public AColumn() {
   }
 
-  public void setColumnId(ATable table, String name) {
-    this.columnId = format("%s#%s", table.getTableId(), name);
+  public AColumn(String projectId, String tableId, String name) {
+    this.projectId = projectId;
+    this.name = name;
+    setColumnId(tableId, name);
+  }
+
+  public void setColumnId(String tableId, String name) {
+    this.columnId = format("%s#%s", tableId, name);
   }
 
   @Override
@@ -70,9 +69,5 @@ public class AColumn {
     AColumn aColumn = (AColumn) o;
 
     return columnId.equals(aColumn.columnId);
-  }
-
-  public boolean isDatasetActivated() {
-    return this.table.getDataset().isActivated();
   }
 }
