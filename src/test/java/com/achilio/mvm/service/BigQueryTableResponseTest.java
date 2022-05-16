@@ -6,6 +6,7 @@ import static org.mockito.Mockito.when;
 
 import com.achilio.mvm.service.controllers.responses.ATableResponse;
 import com.achilio.mvm.service.controllers.responses.BigQueryTableResponse;
+import com.achilio.mvm.service.entities.ATable.TableType;
 import com.achilio.mvm.service.entities.BigQueryTable;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,12 +25,14 @@ public class BigQueryTableResponseTest extends ATableResponseTest {
 
   @Override
   protected ATableResponse createTableResponse(String project, String dataset, String tableName,
-      float cost) {
+      float cost, int queryCount, TableType type) {
     BigQueryTable table = mock(BigQueryTable.class);
     when(table.getProjectId()).thenReturn(project);
     when(table.getDatasetName()).thenReturn(dataset);
     when(table.getTableName()).thenReturn(tableName);
     when(table.getCost()).thenReturn(cost);
+    when(table.getQueryCount()).thenReturn(queryCount);
+    when(table.getType()).thenReturn(type);
     return new BigQueryTableResponse(table);
   }
 }

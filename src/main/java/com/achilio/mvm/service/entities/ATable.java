@@ -7,6 +7,8 @@ import javax.persistence.DiscriminatorColumn;
 import javax.persistence.DiscriminatorType;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -60,6 +62,10 @@ public abstract class ATable {
   @Formula("(SELECT COUNT(*) FROM query_table_id q WHERE q.tables = table_id)")
   private int queryCount;
 
+  @Enumerated(EnumType.STRING)
+  @Column(name = "type")
+  private TableType type;
+
   protected void setTableId() {
     this.tableId =
         String.format(
@@ -94,4 +100,12 @@ public abstract class ATable {
   }
 
   public abstract Float getCost();
+
+  public enum TableType {
+    TABLE,
+    EXTERNAL_TABLE,
+    VIEW,
+    MATERIALIZED_VIEW,
+    UNKNOWN,
+  }
 }

@@ -1,5 +1,9 @@
 package com.achilio.mvm.service;
 
+import static com.achilio.mvm.service.BigQueryMockHelper.simpleBigQueryExternalMock;
+import static com.achilio.mvm.service.BigQueryMockHelper.simpleBigQueryMaterializedViewMock;
+import static com.achilio.mvm.service.BigQueryMockHelper.simpleBigQueryTableMock;
+import static com.achilio.mvm.service.BigQueryMockHelper.simpleBigQueryViewMock;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -36,25 +40,29 @@ public class BigQueryDatasetProcessorTest {
   private static final String DATASET_NAME = "myDataset";
   private final List<Table> TABLES_MOCK = new ArrayList<>();
 
-  @InjectMocks private BigQueryDatasetProcessor processor;
-  @Mock private FetcherService service;
+  @InjectMocks
+  private BigQueryDatasetProcessor processor;
+  @Mock
+  private FetcherService service;
 
   @Before
   public void setup() {
-    Table table1 = BigQueryMockHelper.simpleTableMock("myTable1");
+    Table table1 = simpleBigQueryTableMock(PROJECT_NAME, DATASET_NAME, "myTable1");
     when(table1.exists()).thenReturn(true);
-    Table table2 = BigQueryMockHelper.simpleTableMock("myTable2");
+    Table table2 = simpleBigQueryMaterializedViewMock(PROJECT_NAME, DATASET_NAME, "myTable2");
     when(table2.exists()).thenReturn(true);
-    Table table3 = BigQueryMockHelper.simpleTableMock("myTable3");
+    Table table3 = simpleBigQueryViewMock(PROJECT_NAME, DATASET_NAME, "myTable3");
     when(table3.exists()).thenReturn(true);
-    Table table4 = BigQueryMockHelper.simpleTableMock("myTable4");
-    when(table4.exists()).thenReturn(false);
-    Table table5 = BigQueryMockHelper.simpleTableMock("myTable5");
+    Table table4 = simpleBigQueryExternalMock(PROJECT_NAME, DATASET_NAME, "myTable4");
+    when(table4.exists()).thenReturn(true);
+    Table table5 = simpleBigQueryTableMock(PROJECT_NAME, DATASET_NAME, "myTable5");
+    when(table5.exists()).thenReturn(false);
     TABLES_MOCK.add(table1);
     TABLES_MOCK.add(table2);
     TABLES_MOCK.add(table3);
     TABLES_MOCK.add(table4);
     TABLES_MOCK.add(table5);
+    TABLES_MOCK.add(null);
     when(service.fetchAllTables(PROJECT_NAME, DATASET_NAME)).thenReturn(TABLES_MOCK.stream());
   }
 
@@ -64,11 +72,12 @@ public class BigQueryDatasetProcessorTest {
     ADataset aDataset = processor.process(dataset);
     assertDatasetAsADataset(dataset, aDataset);
     assertNotNull(aDataset.getTables());
-    assertEquals(3, aDataset.getTables().size());
+    assertEquals(4, aDataset.getTables().size());
     List<ATable> aTables = aDataset.getTables();
     assertTableAsATable(TABLES_MOCK.get(0), aTables.get(0));
     assertTableAsATable(TABLES_MOCK.get(1), aTables.get(1));
     assertTableAsATable(TABLES_MOCK.get(2), aTables.get(2));
+    assertTableAsATable(TABLES_MOCK.get(3), aTables.get(3));
   }
 
   @Test
@@ -77,7 +86,7 @@ public class BigQueryDatasetProcessorTest {
     String datasetName = "myDatasetForColumnsTesting";
     Dataset dataset = simpleDatasetMock();
     when(dataset.getDatasetId()).thenReturn(DatasetId.of(projectId, datasetName));
-    Table table = BigQueryMockHelper.simpleTableMock(projectId, datasetName, "myTable");
+    Table table = simpleBigQueryTableMock(PROJECT_NAME, DATASET_NAME, "myTable");
     when(table.exists()).thenReturn(true);
     List<Field> fields = new ArrayList<>();
     fields.add(Field.of("col_1", StandardSQLTypeName.BOOL));

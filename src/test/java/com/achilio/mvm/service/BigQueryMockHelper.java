@@ -3,32 +3,42 @@ package com.achilio.mvm.service;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.google.cloud.bigquery.Field;
+import com.google.cloud.bigquery.ExternalTableDefinition;
 import com.google.cloud.bigquery.FieldList;
-import com.google.cloud.bigquery.LegacySQLTypeName;
+import com.google.cloud.bigquery.MaterializedViewDefinition;
 import com.google.cloud.bigquery.Schema;
 import com.google.cloud.bigquery.StandardTableDefinition;
 import com.google.cloud.bigquery.Table;
+import com.google.cloud.bigquery.TableDefinition;
 import com.google.cloud.bigquery.TableId;
-import java.util.ArrayList;
-import java.util.List;
+import com.google.cloud.bigquery.ViewDefinition;
 
 public class BigQueryMockHelper {
 
-
-  public static Table simpleTableMock(String name) {
-    return simpleTableMock("myProject", "myDataset", name);
+  public static Table simpleBigQueryTableMock(String project, String dataset, String name) {
+    return tableMock(project, dataset, name, StandardTableDefinition.class);
   }
 
-  public static Table simpleTableMock(String project, String dataset, String name) {
+  public static Table simpleBigQueryViewMock(String project, String dataset, String name) {
+    return tableMock(project, dataset, name, ViewDefinition.class);
+  }
+
+  public static Table simpleBigQueryMaterializedViewMock(String project, String dataset,
+      String name) {
+    return tableMock(project, dataset, name, MaterializedViewDefinition.class);
+  }
+
+  public static Table simpleBigQueryExternalMock(String project, String dataset, String name) {
+    return tableMock(project, dataset, name, ExternalTableDefinition.class);
+  }
+
+  private static Table tableMock(String project, String dataset, String name,
+      Class<? extends TableDefinition> definitionClass) {
     Table table = mock(Table.class);
     when(table.getTableId()).thenReturn(TableId.of(project, dataset, name));
-    StandardTableDefinition tableDefinition = mock(StandardTableDefinition.class);
+    TableDefinition tableDefinition = mock(definitionClass);
     Schema schema = mock(Schema.class);
-    List<Field> fields = new ArrayList<>();
-    fields.add(Field.of("col1", LegacySQLTypeName.BOOLEAN));
-    fields.add(Field.of("col2", LegacySQLTypeName.FLOAT));
-    FieldList fieldList = FieldList.of(fields);
+    FieldList fieldList = FieldList.of();
     when(schema.getFields()).thenReturn(fieldList);
     when(tableDefinition.getSchema()).thenReturn(schema);
     when(table.getDefinition()).thenReturn(tableDefinition);

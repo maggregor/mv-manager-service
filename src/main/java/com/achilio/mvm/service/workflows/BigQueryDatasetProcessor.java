@@ -4,8 +4,6 @@ import com.achilio.mvm.service.entities.ADataset;
 import com.achilio.mvm.service.entities.BigQueryTable;
 import com.achilio.mvm.service.services.FetcherService;
 import com.google.cloud.bigquery.Dataset;
-import com.google.cloud.bigquery.LegacySQLTypeName;
-import com.google.cloud.bigquery.StandardTableDefinition;
 import com.google.cloud.bigquery.Table;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.lang.NonNull;
@@ -37,26 +35,10 @@ public class BigQueryDatasetProcessor implements ItemProcessor<Dataset, ADataset
   }
 
 
-  /*
-   * Filter on:
-   * - should exists.
-   * - should be a StandardTableDefinition (and not a View or Materialized View).
+  /**
+   * Exclude tables that don't exist
    */
   private boolean isValidTable(Table table) {
-    return table != null
-        && table.exists()
-        && table.getDefinition() instanceof StandardTableDefinition
-        && isEligibleTableDefinition(table.getDefinition());
-  }
-
-  /**
-   * Returns true if the table is eligible
-   *
-   * <p>- Don't have RECORD field type
-   */
-  private boolean isEligibleTableDefinition(StandardTableDefinition tableDefinition) {
-    return tableDefinition.getSchema() != null
-        && tableDefinition.getSchema().getFields().stream()
-        .noneMatch(f -> f.getType().equals(LegacySQLTypeName.RECORD));
+    return table != null && table.exists();
   }
 }
