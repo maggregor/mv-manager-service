@@ -3,6 +3,7 @@ package com.achilio.mvm.service;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.google.cloud.bigquery.FieldList;
 import com.google.cloud.bigquery.Schema;
 import com.google.cloud.bigquery.StandardTableDefinition;
 import com.google.cloud.bigquery.Table;
@@ -34,6 +35,8 @@ public class BigQueryMockHelper {
     when(table.getTableId()).thenReturn(TableId.of(project, dataset, name));
     TableDefinition tableDefinition = mock(definitionClass);
     Schema schema = mock(Schema.class);
+    FieldList fieldList = FieldList.of();
+    when(schema.getFields()).thenReturn(fieldList);
     when(tableDefinition.getSchema()).thenReturn(schema);
     when(table.getDefinition()).thenReturn(tableDefinition);
     return table;

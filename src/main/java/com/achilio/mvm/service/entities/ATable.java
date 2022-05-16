@@ -59,7 +59,7 @@ public abstract class ATable {
   @Column(unique = true)
   private String tableId;
 
-  @Formula("(SELECT COUNT(*) FROM query_table_id q WHERE q.tables = table_ids)")
+  @Formula("(SELECT COUNT(*) FROM query_table_id q WHERE q.tables = table_id)")
   private int queryCount;
 
   @Enumerated(EnumType.STRING)
