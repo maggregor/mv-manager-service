@@ -58,7 +58,7 @@ public class BigQueryTableTest extends ATableTest {
   }
 
   private void assertBigQueryTableCost(float expectedCost, long numBytes, long numBytesLongTerm) {
-    Table bqTable = simpleBigQueryExternalMock(PROJECT_ID, DATASET_NAME, TABLE_NAME);
+    Table bqTable = simpleBigQueryTableMock(PROJECT_ID, DATASET_NAME, TABLE_NAME);
     when(bqTable.getNumBytes()).thenReturn(numBytes);
     when(bqTable.getNumLongTermBytes()).thenReturn(numBytesLongTerm);
     ATable table = new BigQueryTable(bqTable);

@@ -3,12 +3,15 @@ package com.achilio.mvm.service;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.google.cloud.bigquery.ExternalTableDefinition;
 import com.google.cloud.bigquery.FieldList;
+import com.google.cloud.bigquery.MaterializedViewDefinition;
 import com.google.cloud.bigquery.Schema;
 import com.google.cloud.bigquery.StandardTableDefinition;
 import com.google.cloud.bigquery.Table;
 import com.google.cloud.bigquery.TableDefinition;
 import com.google.cloud.bigquery.TableId;
+import com.google.cloud.bigquery.ViewDefinition;
 
 public class BigQueryMockHelper {
 
@@ -17,16 +20,16 @@ public class BigQueryMockHelper {
   }
 
   public static Table simpleBigQueryViewMock(String project, String dataset, String name) {
-    return tableMock(project, dataset, name, StandardTableDefinition.class);
+    return tableMock(project, dataset, name, ViewDefinition.class);
   }
 
   public static Table simpleBigQueryMaterializedViewMock(String project, String dataset,
       String name) {
-    return tableMock(project, dataset, name, StandardTableDefinition.class);
+    return tableMock(project, dataset, name, MaterializedViewDefinition.class);
   }
 
   public static Table simpleBigQueryExternalMock(String project, String dataset, String name) {
-    return tableMock(project, dataset, name, StandardTableDefinition.class);
+    return tableMock(project, dataset, name, ExternalTableDefinition.class);
   }
 
   private static Table tableMock(String project, String dataset, String name,
