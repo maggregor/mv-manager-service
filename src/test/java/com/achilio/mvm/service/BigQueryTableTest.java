@@ -1,6 +1,7 @@
 package com.achilio.mvm.service;
 
-import static com.achilio.mvm.service.BigQueryMockHelper.simpleTableMock;
+import static com.achilio.mvm.service.BigQueryMockHelper.simpleBigQueryExternalMock;
+import static com.achilio.mvm.service.BigQueryMockHelper.simpleBigQueryTableMock;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.Mockito.when;
@@ -15,19 +16,19 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class BigQueryTableTest extends ATableTest {
 
-  private final String tableName = "myTable";
-  private final String projectId = "myProjectId";
-  private final String datasetName = "myDataset";
+  private static final String PROJECT_ID = "myProjectId";
+  private static final String DATASET_NAME = "myDataset";
+  private static final String TABLE_NAME = "myTable";
   private final long giga = 1024L * 1024L * 1024L;
 
   @Override
   protected ATable createTable(String projectId, String datasetName, String tableName) {
-    return new BigQueryTable(simpleTableMock(projectId, datasetName, tableName));
+    return new BigQueryTable(simpleBigQueryTableMock(PROJECT_ID, DATASET_NAME, TABLE_NAME));
   }
 
   @Test
   public void when_SchemaIsNull_thenThrows() {
-    Table table = simpleTableMock("myTable");
+    Table table = simpleBigQueryExternalMock(PROJECT_ID, DATASET_NAME, TABLE_NAME);
     when(table.getDefinition().getSchema()).thenReturn(null);
     assertThrows(IllegalArgumentException.class, () -> new BigQueryTable(table));
   }
@@ -57,7 +58,7 @@ public class BigQueryTableTest extends ATableTest {
   }
 
   private void assertBigQueryTableCost(float expectedCost, long numBytes, long numBytesLongTerm) {
-    Table bqTable = simpleTableMock(projectId, datasetName, tableName);
+    Table bqTable = simpleBigQueryExternalMock(PROJECT_ID, DATASET_NAME, TABLE_NAME);
     when(bqTable.getNumBytes()).thenReturn(numBytes);
     when(bqTable.getNumLongTermBytes()).thenReturn(numBytesLongTerm);
     ATable table = new BigQueryTable(bqTable);
