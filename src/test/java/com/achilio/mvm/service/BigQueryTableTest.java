@@ -3,7 +3,8 @@ package com.achilio.mvm.service;
 import static com.achilio.mvm.service.BigQueryMockHelper.simpleBigQueryExternalMock;
 import static com.achilio.mvm.service.BigQueryMockHelper.simpleBigQueryTableMock;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 import com.achilio.mvm.service.entities.ATable;
@@ -27,10 +28,11 @@ public class BigQueryTableTest extends ATableTest {
   }
 
   @Test
-  public void when_SchemaIsNull_thenThrows() {
+  public void when_SchemaIsNull_thenDontThrows() {
     Table table = simpleBigQueryExternalMock(PROJECT_ID, DATASET_NAME, TABLE_NAME);
     when(table.getDefinition().getSchema()).thenReturn(null);
-    assertThrows(IllegalArgumentException.class, () -> new BigQueryTable(table));
+    assertNotNull(new BigQueryTable(table).getColumns());
+    assertTrue(new BigQueryTable(table).getColumns().isEmpty());
   }
 
   @Test

@@ -1,5 +1,6 @@
 package com.achilio.mvm.service.entities;
 
+import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -46,7 +47,7 @@ public abstract class ATable {
       name = "tables_columns",
       joinColumns = @JoinColumn(name = "table_id"),
       inverseJoinColumns = @JoinColumn(name = "columns_id"))
-  private List<AColumn> columns;
+  private List<AColumn> columns = new ArrayList<>();
 
   @Column
   private String projectId;
