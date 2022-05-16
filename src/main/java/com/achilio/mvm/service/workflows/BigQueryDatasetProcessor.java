@@ -36,9 +36,7 @@ public class BigQueryDatasetProcessor implements ItemProcessor<Dataset, ADataset
 
 
   /**
-   * <p>
-   * - Exclude tables that not exists or that contain records: not yet supported.
-   * </p>
+   * Exclude tables that don't exist
    */
   private boolean isValidTable(Table table) {
     return table != null && table.exists();
