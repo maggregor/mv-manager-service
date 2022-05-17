@@ -78,14 +78,14 @@ public class AQuery {
   @CollectionTable(
       name = "query_table_id",
       joinColumns = @JoinColumn(name = "query_id", referencedColumnName = "id"))
-  private List<String> tableId = new ArrayList<>();
+  private List<String> queryTableId = new ArrayList<>();
 
   @Column(name = "tables_read")
   @ElementCollection
   @CollectionTable(
-      name = "query_table_id_read",
+      name = "job_table_id",
       joinColumns = @JoinColumn(name = "query_id", referencedColumnName = "id"))
-  private List<String> tableIdRead = new ArrayList<>();
+  private List<String> jobTableId = new ArrayList<>();
 
   public AQuery(String query, String projectId) {
     this.query = query;

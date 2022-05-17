@@ -26,7 +26,8 @@ public class BigQueryJobProcessor implements ItemProcessor<Job, AQuery> {
       BigQueryJob queryJob = new BigQueryJob(job);
       try {
         List<ATableId> aTableIds = extractor.extractATableIds(queryJob);
-        queryJob.setTableId(aTableIds.stream().map(ATableId::asPath).collect(Collectors.toList()));
+        queryJob.setQueryTableId(
+            aTableIds.stream().map(ATableId::asPath).collect(Collectors.toList()));
       } catch (Exception e) {
         LOGGER.debug("Cannot find ATableId for the statement {}", queryJob.getQuery());
       }

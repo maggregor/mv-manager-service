@@ -50,7 +50,7 @@ public class BigQueryJob extends AQuery {
     setError(error != null ? error.getMessage() : Strings.EMPTY);
     if (job.getStatistics() != null && job.getStatistics() instanceof QueryStatistics) {
       List<QueryStage> stages = ((QueryStatistics) job.getStatistics()).getQueryPlan();
-      setTableIdRead(findTableIdRead(stages));
+      setJobTableId(findTableIdRead(stages));
     }
   }
 

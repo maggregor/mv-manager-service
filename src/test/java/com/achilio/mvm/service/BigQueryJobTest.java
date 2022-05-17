@@ -133,13 +133,13 @@ public class BigQueryJobTest {
   @Test
   public void when_subStepDoesntContainsTable_thenTableReadIsEmpty() {
     Job job = simpleJobMock();
-    assertTrue(new BigQueryJob(job).getTableIdRead().isEmpty());
+    assertTrue(new BigQueryJob(job).getJobTableId().isEmpty());
     setQueryPlanSubSteps(job, "");
-    assertTrue(new BigQueryJob(job).getTableIdRead().isEmpty());
+    assertTrue(new BigQueryJob(job).getJobTableId().isEmpty());
     setQueryPlanSubSteps(job, "FOO", "BAR");
-    assertTrue(new BigQueryJob(job).getTableIdRead().isEmpty());
+    assertTrue(new BigQueryJob(job).getJobTableId().isEmpty());
     setQueryPlanSubSteps(job, "FOO bar", "BAR foo");
-    assertTrue(new BigQueryJob(job).getTableIdRead().isEmpty());
+    assertTrue(new BigQueryJob(job).getJobTableId().isEmpty());
   }
 
   @Test
@@ -149,16 +149,16 @@ public class BigQueryJobTest {
     setQueryPlanSubSteps(job, "FROM a.b.c");
     BigQueryJob actual;
     actual = new BigQueryJob(job);
-    assertFalse(actual.getTableIdRead().isEmpty());
-    assertEquals("a.b.c", actual.getTableIdRead().get(0));
+    assertFalse(actual.getJobTableId().isEmpty());
+    assertEquals("a.b.c", actual.getJobTableId().get(0));
     // Multiple sub step
     setQueryPlanSubSteps(job, "FROM a.b.c", "foo", "FROM d.e.f", "bar", "FROM g.h.i");
     actual = new BigQueryJob(job);
-    assertFalse(actual.getTableIdRead().isEmpty());
-    assertEquals(3, actual.getTableIdRead().size());
-    assertEquals("a.b.c", actual.getTableIdRead().get(0));
-    assertEquals("d.e.f", actual.getTableIdRead().get(1));
-    assertEquals("g.h.i", actual.getTableIdRead().get(2));
+    assertFalse(actual.getJobTableId().isEmpty());
+    assertEquals(3, actual.getJobTableId().size());
+    assertEquals("a.b.c", actual.getJobTableId().get(0));
+    assertEquals("d.e.f", actual.getJobTableId().get(1));
+    assertEquals("g.h.i", actual.getJobTableId().get(2));
   }
 
   @Test
@@ -166,7 +166,7 @@ public class BigQueryJobTest {
     Job job = simpleJobMock();
     when(job.getJobId()).thenReturn(JobId.of("currentProjectId", "foo"));
     setQueryPlanSubSteps(job, "FROM b.c");
-    assertEquals("currentProjectId.b.c", new BigQueryJob(job).getTableIdRead().get(0));
+    assertEquals("currentProjectId.b.c", new BigQueryJob(job).getJobTableId().get(0));
   }
 
   @Test
@@ -175,8 +175,8 @@ public class BigQueryJobTest {
     setQueryPlanSubSteps(job, "FROM a.b.c_mvdelta", "FROM a.b.mvdeltatable",
         "FROM b.c.blabla_mvdelta__4_");
     BigQueryJob actual = new BigQueryJob(job);
-    assertEquals(1, actual.getTableIdRead().size());
-    assertEquals("a.b.mvdeltatable", actual.getTableIdRead().get(0));
+    assertEquals(1, actual.getJobTableId().size());
+    assertEquals("a.b.mvdeltatable", actual.getJobTableId().get(0));
   }
 
   private void setQueryPlanSubSteps(Job job, String... subSteps) {
