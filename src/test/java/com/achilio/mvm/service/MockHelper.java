@@ -48,8 +48,8 @@ public class MockHelper {
 
   public static ATableId tableIdMock(String project, String dataset, String table) {
     ATableId aTableId = mock(ATableId.class);
-    when(aTableId.getProject()).thenReturn(project);
-    when(aTableId.getDataset()).thenReturn(dataset);
+    when(aTableId.getProjectId()).thenReturn(project);
+    when(aTableId.getDatasetName()).thenReturn(dataset);
     when(aTableId.getTableId()).thenReturn(table);
     return aTableId;
   }
@@ -64,9 +64,9 @@ public class MockHelper {
 
   public static ATable tableMock(ATableId tableId, List<AColumn> columns) {
     ATable mock = mock(ATable.class);
-    when(mock.getProjectId()).thenReturn(tableId.getProject());
-    when(mock.getDatasetName()).thenReturn(tableId.getDataset());
-    when(mock.getTableName()).thenReturn(tableId.getTable());
+    when(mock.getProjectId()).thenReturn(tableId.getProjectId());
+    when(mock.getDatasetName()).thenReturn(tableId.getDatasetName());
+    when(mock.getTableName()).thenReturn(tableId.getTableName());
     if (columns != null) {
       when(mock.getColumns()).thenReturn(columns);
     }

@@ -23,7 +23,9 @@ import org.codehaus.plexus.util.StringUtils;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
-/** Query is finalized fetched query, ready to be used by the Extractor */
+/**
+ * Query is finalized fetched query, ready to be used by the Extractor
+ */
 @Entity
 @Getter
 @Setter
@@ -76,8 +78,14 @@ public class AQuery {
   @CollectionTable(
       name = "query_table_id",
       joinColumns = @JoinColumn(name = "query_id", referencedColumnName = "id"))
-  // TODO an index ? -> Maybe: @CollectionTable(indexes = {@Index(columnList = "tables")})
   private List<String> tableId = new ArrayList<>();
+
+  @Column(name = "tables_read")
+  @ElementCollection
+  @CollectionTable(
+      name = "query_table_id_read",
+      joinColumns = @JoinColumn(name = "query_id", referencedColumnName = "id"))
+  private List<String> tableIdRead = new ArrayList<>();
 
   public AQuery(String query, String projectId) {
     this.query = query;
