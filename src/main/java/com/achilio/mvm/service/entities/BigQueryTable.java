@@ -46,7 +46,8 @@ public class BigQueryTable extends ATable {
     this.setType(getTableType(definition));
     Schema schema = definition.getSchema();
     if (schema == null) {
-      throw new IllegalArgumentException("Schema is null");
+      LOGGER.warn("Skipped columns on " + tableId + " because the schema is null.");
+      return;
     }
     this.setColumns(schema.getFields().stream()
         .map(f -> {
