@@ -39,8 +39,8 @@ public class ATableController {
   private ATableResponse toResponse(ATable aTable) {
     if (aTable instanceof BigQueryTable) {
       return new BigQueryTableResponse(aTable);
+    } else {
+      return new ATableResponse(aTable);
     }
-    throw new IllegalArgumentException(
-        "Unsupported response for this type of table " + aTable.getClass());
   }
 }

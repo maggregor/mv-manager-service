@@ -13,7 +13,7 @@ import lombok.Getter;
 @JsonSubTypes({
     @JsonSubTypes.Type(value = BigQueryTableResponse.class, name = "bigquery"),
 })
-public abstract class ATableResponse {
+public class ATableResponse {
 
   private final String tableName;
   private final String projectId;
