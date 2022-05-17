@@ -36,9 +36,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 @NoArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(
-    discriminatorType = DiscriminatorType.STRING,
-    columnDefinition = "varchar(31) default 'BigQueryJob'")
+@DiscriminatorColumn(name = "source", discriminatorType = DiscriminatorType.STRING)
 public class AQuery {
 
   @Column(name = "query_statement", columnDefinition = "text")
@@ -60,6 +58,9 @@ public class AQuery {
 
   @Column(name = "start_time")
   private Date startTime;
+
+  @Column(name = "end_time")
+  private Date endTime;
 
   @Column(name = "billed_bytes")
   private long billedBytes = 0;
@@ -86,6 +87,9 @@ public class AQuery {
       name = "job_table_id",
       joinColumns = @JoinColumn(name = "query_id", referencedColumnName = "id"))
   private List<String> jobTableId = new ArrayList<>();
+
+  @Column(name = "user_email")
+  private String user;
 
   public AQuery(String query, String projectId) {
     this.query = query;

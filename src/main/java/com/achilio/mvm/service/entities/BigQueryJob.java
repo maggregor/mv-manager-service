@@ -4,6 +4,7 @@ import com.achilio.mvm.service.visitors.ATableId;
 import com.google.cloud.bigquery.BigQueryError;
 import com.google.cloud.bigquery.DatasetId;
 import com.google.cloud.bigquery.Job;
+import com.google.cloud.bigquery.JobConfiguration;
 import com.google.cloud.bigquery.JobId;
 import com.google.cloud.bigquery.JobStatistics.QueryStatistics;
 import com.google.cloud.bigquery.QueryJobConfiguration;
@@ -15,7 +16,11 @@ import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import javax.persistence.Column;
+import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -29,11 +34,16 @@ import org.apache.logging.log4j.util.Strings;
 @Getter
 @Setter
 @NoArgsConstructor
+@DiscriminatorValue("bigquery")
 public class BigQueryJob extends AQuery {
 
   // Match "FROM x" and GROUP "x"
   private static Pattern QUERY_PLAN_TABLE_PATTERN = Pattern.compile(
       "(?ims)\\b(?:FROM)\\s+(\\w+(?:.\\w+)*)", Pattern.CASE_INSENSITIVE);
+
+  @Enumerated(EnumType.STRING)
+  @Column
+  private JobConfiguration.Type bigQueryJobType;
 
   public BigQueryJob(Job job) {
     this();
@@ -52,12 +62,15 @@ public class BigQueryJob extends AQuery {
       List<QueryStage> stages = ((QueryStatistics) job.getStatistics()).getQueryPlan();
       setJobTableId(findTableIdRead(stages));
     }
+    setUser(job.getUserEmail());
+    setBigQueryJobType(job.getConfiguration().getType());
   }
 
   private void setStatistics(Job job) {
     QueryStatistics stats = job.getStatistics();
     if (stats != null) {
       setStartTime(stats.getStartTime() == null ? null : new Date(stats.getStartTime()));
+      setEndTime(stats.getEndTime() == null ? null : new Date(stats.getEndTime()));
       setProcessedBytes(
           stats.getTotalBytesProcessed() == null ? 0L : stats.getTotalBytesProcessed());
       setBilledBytes(stats.getTotalBytesBilled() == null ? 0L : stats.getTotalBytesBilled());
