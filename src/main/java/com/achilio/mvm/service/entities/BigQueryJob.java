@@ -100,9 +100,9 @@ public class BigQueryJob extends AQuery {
   }
 
   /**
-   * Find table ids in string with the dedicated regex If a table id found doesn't have a project id
-   * but just dataset name and table name, this method add the project id of the current job to the
-   * table id.
+   * Find table ids in sub steps with the dedicated regex. If a table id found doesn't have a
+   * project id but just dataset name and table name this method add the project id of the current
+   * job to the table id.
    *
    * @param subStep
    * @return
