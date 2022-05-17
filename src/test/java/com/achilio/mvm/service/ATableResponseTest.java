@@ -31,7 +31,7 @@ public abstract class ATableResponseTest {
     assertEquals(DATASET_NAME, response.getDatasetName());
     assertEquals(TABLE_NAME, response.getTableName());
     assertEquals(new Float(1234), response.getCost());
-    assertEquals(123, response.getQueryCount());
+    assertEquals(123, response.getDirectUsageCount());
     assertEquals(TableType.TABLE, response.getType());
     assertEquals(createdAt, response.getCreatedAt());
     assertEquals(lastModifiedAt, response.getLastModifiedAt());

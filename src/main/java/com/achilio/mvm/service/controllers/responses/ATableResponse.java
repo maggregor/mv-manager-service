@@ -19,7 +19,8 @@ public class ATableResponse {
   private final String projectId;
   private final String datasetName;
   private final TableType type;
-  private final int queryCount;
+  private final int directUsageCount;
+  private final int totalUsageCount;
   private final Float cost;
   private final Long numRows;
   private final Date createdAt;
@@ -30,7 +31,8 @@ public class ATableResponse {
     this.projectId = table.getProjectId();
     this.datasetName = table.getDatasetName();
     this.type = table.getType();
-    this.queryCount = table.getQueryCount();
+    this.directUsageCount = table.getDirectQueryUsageCount();
+    this.totalUsageCount = table.getTotalUsageCount();
     this.cost = table.getCost();
     this.numRows = table.getNumRows();
     this.createdAt = table.getCreatedAt();

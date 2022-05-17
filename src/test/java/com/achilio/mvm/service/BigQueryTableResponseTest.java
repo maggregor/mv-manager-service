@@ -35,7 +35,7 @@ public class BigQueryTableResponseTest extends ATableResponseTest {
     when(table.getDatasetName()).thenReturn(dataset);
     when(table.getTableName()).thenReturn(tableName);
     when(table.getCost()).thenReturn(cost);
-    when(table.getQueryCount()).thenReturn(queryCount);
+    when(table.getDirectQueryUsageCount()).thenReturn(queryCount);
     when(table.getType()).thenReturn(type);
     when(table.getNumRows()).thenReturn(numRows);
     when(table.getCreatedAt()).thenReturn(createdAt);
