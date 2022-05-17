@@ -123,12 +123,6 @@ public class BigQueryJob extends AQuery {
     return null;
   }
 
-  /**
-   * Filter on some not-table-
-   *
-   * @param tableId
-   * @return
-   */
   private boolean isValidTableId(String tableId) {
     return !tableId.endsWith("_mvdelta") && !tableId.contains("_mvdelta__");
   }
