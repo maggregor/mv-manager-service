@@ -1,6 +1,7 @@
 package com.achilio.mvm.service.entities;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -66,6 +67,15 @@ public abstract class ATable {
   @Enumerated(EnumType.STRING)
   @Column(name = "type")
   private TableType type;
+
+  @Column
+  private Long numRows;
+
+  @Column
+  private Date createdAt;
+
+  @Column
+  private Date lastModifiedAt;
 
   protected void setTableId() {
     this.tableId =

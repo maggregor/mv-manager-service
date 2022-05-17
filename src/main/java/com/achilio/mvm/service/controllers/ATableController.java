@@ -4,6 +4,9 @@ import static com.achilio.mvm.service.UserContextHelper.getContextTeamName;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.achilio.mvm.service.controllers.responses.ATableResponse;
+import com.achilio.mvm.service.controllers.responses.BigQueryTableResponse;
+import com.achilio.mvm.service.entities.ATable;
+import com.achilio.mvm.service.entities.BigQueryTable;
 import com.achilio.mvm.service.services.ProjectService;
 import io.swagger.annotations.ApiOperation;
 import java.util.List;
@@ -29,7 +32,15 @@ public class ATableController {
   @ApiOperation("List all tables")
   public List<ATableResponse> getAllTables(@RequestParam String projectId) {
     projectService.getProject(projectId, getContextTeamName());
-    return projectService.getAllTables(projectId).stream().map(ATableResponse::new).collect(
-        Collectors.toList());
+    return projectService.getAllTables(projectId).stream().map(this::toResponse)
+        .collect(Collectors.toList());
+  }
+
+  private ATableResponse toResponse(ATable aTable) {
+    if (aTable instanceof BigQueryTable) {
+      return new BigQueryTableResponse(aTable);
+    }
+    throw new IllegalArgumentException(
+        "Unsupported response for this type of table " + aTable.getClass());
   }
 }

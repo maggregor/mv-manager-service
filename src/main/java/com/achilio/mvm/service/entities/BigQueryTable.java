@@ -9,6 +9,7 @@ import com.google.cloud.bigquery.Table;
 import com.google.cloud.bigquery.TableDefinition;
 import com.google.cloud.bigquery.TableId;
 import com.google.cloud.bigquery.ViewDefinition;
+import java.util.Date;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.persistence.Column;
@@ -44,9 +45,15 @@ public class BigQueryTable extends ATable {
     this.numLongTermBytes = table.getNumLongTermBytes();
     TableDefinition definition = table.getDefinition();
     this.setType(getTableType(definition));
-    Schema schema = definition.getSchema();
+    this.setCreatedAt(new Date(table.getCreationTime()));
+    this.setLastModifiedAt(new Date(table.getLastModifiedTime()));
+    mapColumns(table);
+  }
+
+  private void mapColumns(Table table) {
+    Schema schema = table.getDefinition().getSchema();
     if (schema == null) {
-      LOGGER.warn("Skipped columns on " + tableId + " because the schema is null.");
+      LOGGER.warn("Skipped columns on " + table.getTableId() + " because the schema is null.");
       return;
     }
     this.setColumns(schema.getFields().stream()
