@@ -27,4 +27,29 @@ public class FindMVJob extends Job {
     super(projectId);
     this.timeframe = timeframe;
   }
+
+  public enum EventStatus {
+    // Retrieve queries from history
+    FETCHING_QUERIES,
+    // Retrieve tables
+    FETCHING_TABLES,
+    // Keep the eligible queries
+    FILTER_ELIGIBLE_QUERIES,
+    // Keep queries from dataset
+    FILTER_QUERIES_FROM_DATASET,
+    // Extract columns, functions and expression from queries
+    EXTRACTING_FIELD_SETS,
+    // Merging field sets statistics
+    MERGING_FIELD_SETS,
+    // Optimizing
+    GENERATING_MVs,
+    // Materialized view statements building
+    BUILD_MATERIALIZED_VIEWS_STATEMENT,
+    // Publishing on pub/sub system
+    PUBLISHING,
+    // Publishing done
+    PUBLISHED,
+    // Not published
+    NOT_PUBLISHED,
+  }
 }

@@ -9,9 +9,9 @@ import com.achilio.mvm.service.entities.ADataset;
 import com.achilio.mvm.service.entities.AQuery;
 import com.achilio.mvm.service.entities.ATable;
 import com.achilio.mvm.service.entities.FindMVJob;
+import com.achilio.mvm.service.entities.FindMVJob.EventStatus;
 import com.achilio.mvm.service.entities.Job.JobStatus;
 import com.achilio.mvm.service.entities.MaterializedView;
-import com.achilio.mvm.service.entities.OptimizationEvent.StatusType;
 import com.achilio.mvm.service.entities.Project;
 import com.achilio.mvm.service.exceptions.FindMVJobNotFoundException;
 import com.achilio.mvm.service.repositories.FindMVJobRepository;
@@ -104,25 +104,26 @@ public class FindMVJobService {
       LOGGER.info("Start FindMV Job on project {} with activated datasets {}", projectId, datasets);
       LOGGER.info("FindMV Job {} on last {} days", job.getId(), job.getTimeframe());
       // STEP 1 - Fetch all queries of targeted fetchedProject
-      LOGGER.info("Find MV Job {}: {}", job.getId(), StatusType.FETCHING_QUERIES);
+      LOGGER.info("Find MV Job {}: {}", job.getId(), EventStatus.FETCHING_QUERIES);
       List<AQuery> allQueries = queryService.getAllQueriesSince(projectId, job.getTimeframe());
       // STEP 2 - Fetch all tables
-      LOGGER.info("Find MV Job {}: {}", job.getId(), StatusType.FETCHING_TABLES);
+      LOGGER.info("Find MV Job {}: {}", job.getId(), EventStatus.FETCHING_TABLES);
       Set<ATable> tables = new HashSet<>(projectService.getAllTables(projectId));
       // STEP 3 - Extract field from queries
-      LOGGER.info("Find MV Job {}: {}", job.getId(), StatusType.EXTRACTING_FIELD_SETS);
+      LOGGER.info("Find MV Job {}: {}", job.getId(), EventStatus.EXTRACTING_FIELD_SETS);
       List<FieldSet> allFieldSets = extractFields(tables, allQueries);
       // STEP 4 - Filter eligible fieldSets
       List<FieldSet> fieldSets =
           allFieldSets.stream().filter(FieldSet::isEligible).collect(toList());
       // STEP 5 - Merging same field sets
-      LOGGER.info("Find MV Job {}: {}", job.getId(), StatusType.MERGING_FIELD_SETS);
+      LOGGER.info("Find MV Job {}: {}", job.getId(), EventStatus.MERGING_FIELD_SETS);
       List<FieldSet> distinctFieldSets = FieldSetMerger.mergeSame(fieldSets);
       // STEP 6 - Optimize field sets
-      LOGGER.info("Find MV Job {}: {}", job.getId(), StatusType.GENERATING_MVs);
+      LOGGER.info("Find MV Job {}: {}", job.getId(), EventStatus.GENERATING_MVs);
       List<FieldSet> generatedMVs = generateMVs(distinctFieldSets);
       // STEP 7 - Build materialized views statements
-      LOGGER.info("Find MV Job {}: {}", job.getId(), StatusType.BUILD_MATERIALIZED_VIEWS_STATEMENT);
+      LOGGER.info(
+          "Find MV Job {}: {}", job.getId(), EventStatus.BUILD_MATERIALIZED_VIEWS_STATEMENT);
       List<MaterializedView> results = buildAllMaterializedViews(job, generatedMVs);
       // STEP 8 - Remove invalid Materialized Views
       results = removeInvalidMaterializedViews(results, project);
