@@ -87,8 +87,7 @@ public class ZetaSQLFieldSetExtractStatementVisitor extends ZetaSQLFieldSetExtra
     JoinType type = JoinType.valueOf(node.getJoinType().name());
     Optional<ATableId> tableIdRight = findTableInResolvedScan(node.getRightScan());
     tableIdRight.ifPresent(t -> addTableJoin(t, type));
-    if (
-      /*!type.equals(JoinType.INNER)*/ true) {
+    if (/*!type.equals(JoinType.INNER)*/ true) {
       // INNER JOINS are no longer supported until the fix on old school inner join syntax.
       this.getFieldSet().addIneligibilityReason(CONTAINS_UNSUPPORTED_JOIN);
     }
