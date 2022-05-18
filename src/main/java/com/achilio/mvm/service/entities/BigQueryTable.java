@@ -47,6 +47,7 @@ public class BigQueryTable extends ATable {
     this.setType(getTableType(definition));
     this.setCreatedAt(new Date(table.getCreationTime()));
     this.setLastModifiedAt(new Date(table.getLastModifiedTime()));
+    this.setNumRows(table.getNumRows().longValue());
     mapColumns(table);
   }
 
