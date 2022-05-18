@@ -11,12 +11,10 @@ import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 @Entity
 @Getter
-@NoArgsConstructor
 @EnableJpaAuditing
 @Table(name = "field")
 public class Field {
@@ -29,8 +27,7 @@ public class Field {
   @Enumerated(EnumType.STRING)
   private FieldType fieldType;
 
-  @Column
-  private String projectId;
+  @Column private String projectId;
 
   @Column private String colName;
 
@@ -48,7 +45,9 @@ public class Field {
     this.setId();
   }
 
-  public void setId() {
+  protected Field() {}
+
+  private void setId() {
     this.id = String.format("%s#%s:%s", this.tableRefId, this.fieldType, this.colName);
   }
 
