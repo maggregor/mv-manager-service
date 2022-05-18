@@ -18,7 +18,8 @@ public abstract class ATableResponseTest {
   private static final String TABLE_NAME = "theBestTableName";
 
   protected abstract ATableResponse createTableResponse(String project, String dataset,
-      String table, float cost, int queryCount, ATable.TableType type, Date createdAt,
+      String table, float cost, int directQueryCount, int totalUsageCount, ATable.TableType type,
+      Date createdAt,
       Date lastModifiedAt, Long numRows);
 
   @Test
@@ -26,12 +27,14 @@ public abstract class ATableResponseTest {
     final Date createdAt = new Date(1652786773714L);
     final Date lastModifiedAt = new Date(1652786786505L);
     ATableResponse response = createTableResponse(PROJECT_ID, DATASET_NAME, TABLE_NAME, 1234F, 123,
+        10000,
         TableType.TABLE, createdAt, lastModifiedAt, 1000L);
     assertEquals(PROJECT_ID, response.getProjectId());
     assertEquals(DATASET_NAME, response.getDatasetName());
     assertEquals(TABLE_NAME, response.getTableName());
     assertEquals(new Float(1234), response.getCost());
     assertEquals(123, response.getDirectUsageCount());
+    assertEquals(10000, response.getTotalUsageCount());
     assertEquals(TableType.TABLE, response.getType());
     assertEquals(createdAt, response.getCreatedAt());
     assertEquals(lastModifiedAt, response.getLastModifiedAt());
