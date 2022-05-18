@@ -18,18 +18,18 @@ public class ATableIdTest {
   public void datasetTable() {
     ATableId tableId = ATableId.of("superDataset", "niceTable");
     assertNotNull(tableId);
-    assertNull(tableId.getProject());
-    assertEquals("superDataset", tableId.getDataset());
-    assertEquals("niceTable", tableId.getTable());
+    assertNull(tableId.getProjectId());
+    assertEquals("superDataset", tableId.getDatasetName());
+    assertEquals("niceTable", tableId.getTableName());
   }
 
   @Test
   public void projectDatasetTable() {
     ATableId tableId = ATableId.of("goodProject", "superDataset", "niceTable");
     assertNotNull(tableId);
-    assertEquals("goodProject", tableId.getProject());
-    assertEquals("superDataset", tableId.getDataset());
-    assertEquals("niceTable", tableId.getTable());
+    assertEquals("goodProject", tableId.getProjectId());
+    assertEquals("superDataset", tableId.getDatasetName());
+    assertEquals("niceTable", tableId.getTableName());
     assertEquals("goodProject.superDataset.niceTable", tableId.getTableId());
   }
 
@@ -37,18 +37,18 @@ public class ATableIdTest {
   public void parseDatasetTable() {
     ATableId tableId = ATableId.parse("superDataset.niceTable");
     assertNotNull(tableId);
-    assertNull(tableId.getProject());
-    assertEquals("superDataset", tableId.getDataset());
-    assertEquals("niceTable", tableId.getTable());
+    assertNull(tableId.getProjectId());
+    assertEquals("superDataset", tableId.getDatasetName());
+    assertEquals("niceTable", tableId.getTableName());
   }
 
   @Test
   public void parseProjectDatasetTable() {
     ATableId tableId = ATableId.parse("goodProject.superDataset.niceTable");
     assertNotNull(tableId);
-    assertEquals("goodProject", tableId.getProject());
-    assertEquals("superDataset", tableId.getDataset());
-    assertEquals("niceTable", tableId.getTable());
+    assertEquals("goodProject", tableId.getProjectId());
+    assertEquals("superDataset", tableId.getDatasetName());
+    assertEquals("niceTable", tableId.getTableName());
   }
 
   @Test

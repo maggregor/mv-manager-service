@@ -24,6 +24,7 @@ import com.google.cloud.bigquery.QueryStage;
 import com.google.cloud.bigquery.QueryStage.QueryStep;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import org.codehaus.plexus.util.StringUtils;
 import org.junit.Test;
@@ -129,13 +130,71 @@ public class BigQueryJobTest {
     assertEquals(0L, query.getBilledBytes());
   }
 
+  @Test
+  public void when_subStepDoesntContainsTable_thenTableReadIsEmpty() {
+    Job job = simpleJobMock();
+    assertTrue(new BigQueryJob(job).getJobTableId().isEmpty());
+    setQueryPlanSubSteps(job, "");
+    assertTrue(new BigQueryJob(job).getJobTableId().isEmpty());
+    setQueryPlanSubSteps(job, "FOO", "BAR");
+    assertTrue(new BigQueryJob(job).getJobTableId().isEmpty());
+    setQueryPlanSubSteps(job, "FOO bar", "BAR foo");
+    assertTrue(new BigQueryJob(job).getJobTableId().isEmpty());
+  }
+
+  @Test
+  public void when_subStepContainsTable_thenExtractTableRead() {
+    Job job = simpleJobMock();
+    // One sub step
+    setQueryPlanSubSteps(job, "FROM a.b.c");
+    BigQueryJob actual;
+    actual = new BigQueryJob(job);
+    assertFalse(actual.getJobTableId().isEmpty());
+    assertEquals("a.b.c", actual.getJobTableId().get(0));
+    // Multiple sub step
+    setQueryPlanSubSteps(job, "FROM a.b.c", "foo", "FROM d.e.f", "bar", "FROM g.h.i");
+    actual = new BigQueryJob(job);
+    assertFalse(actual.getJobTableId().isEmpty());
+    assertEquals(3, actual.getJobTableId().size());
+    assertEquals("a.b.c", actual.getJobTableId().get(0));
+    assertEquals("d.e.f", actual.getJobTableId().get(1));
+    assertEquals("g.h.i", actual.getJobTableId().get(2));
+  }
+
+  @Test
+  public void when_subStepContainsTableWithoutProject_thenExtractTableReadWithJobProjectId() {
+    Job job = simpleJobMock();
+    when(job.getJobId()).thenReturn(JobId.of("currentProjectId", "foo"));
+    setQueryPlanSubSteps(job, "FROM b.c");
+    assertEquals("currentProjectId.b.c", new BigQueryJob(job).getJobTableId().get(0));
+  }
+
+  @Test
+  public void when_subStepContainsInvalidTable_thenDontExtractTableRead() {
+    Job job = simpleJobMock();
+    setQueryPlanSubSteps(job, "FROM a.b.c_mvdelta", "FROM a.b.mvdeltatable",
+        "FROM b.c.blabla_mvdelta__4_");
+    BigQueryJob actual = new BigQueryJob(job);
+    assertEquals(1, actual.getJobTableId().size());
+    assertEquals("a.b.mvdeltatable", actual.getJobTableId().get(0));
+  }
+
+  private void setQueryPlanSubSteps(Job job, String... subSteps) {
+    QueryStage stage = mock(QueryStage.class);
+    QueryStep step = mock(QueryStep.class);
+    when(stage.getSteps()).thenReturn(Arrays.asList(step));
+    when(step.getSubsteps()).thenReturn(Arrays.asList(subSteps));
+    setQueryStatisticsWithQueryPlanOnlyMock(job, Collections.singletonList(stage));
+  }
+
   private void setStatisticsWithNullFields(Job job) {
     setQueryStatisticsMock(job, null, null, null, null);
   }
 
   private void setQueryStatisticsMock(Job job, Long totalBytesBilled, Long totalBytesProcessed,
       Boolean cacheHit, Long startTime) {
-    setQueryStatisticsMock(job, totalBytesBilled, totalBytesProcessed, cacheHit, startTime, null);
+    setQueryStatisticsMock(job, totalBytesBilled, totalBytesProcessed, cacheHit, startTime,
+        Collections.emptyList());
   }
 
   private void setQueryStatisticsWithQueryPlanOnlyMock(Job job, List<QueryStage> queryPlan) {
@@ -165,6 +224,5 @@ public class BigQueryJobTest {
     setQueryStatisticsMock(job, 50000L, 10000L, false, 1650394735L);
     return job;
   }
-
 
 }

@@ -471,7 +471,7 @@ public abstract class FieldSetExtractTest {
   public void defaultDataset() {
     final FieldSet EXPECTED_1 = fieldSetBuilder(MAIN_TABLE_ID).addRef("col1").build();
     String query = "SELECT col1 FROM mytable GROUP BY col1";
-    assertExpectedFieldSet(query, MAIN_TABLE_ID.getDataset(), EXPECTED_1);
+    assertExpectedFieldSet(query, MAIN_TABLE_ID.getDatasetName(), EXPECTED_1);
   }
 
   @Test
@@ -481,16 +481,16 @@ public abstract class FieldSetExtractTest {
     final FieldSet EXPECTED_2 = fieldSetBuilder(SECONDARY_TABLE_ID).addRef("col2").build();
     final FieldSet EXPECTED_3 = fieldSetBuilder(THIRD_TABLE_ID).addAgg("SUM(col3)").build();
     query = "SELECT col1 FROM mytable GROUP BY col1";
-    assertExpectedFieldSet(query, MAIN_TABLE_ID.getDataset(), EXPECTED_1);
+    assertExpectedFieldSet(query, MAIN_TABLE_ID.getDatasetName(), EXPECTED_1);
     query = "SELECT col1 FROM mytable GROUP BY col1";
-    assertExpectedFieldSet(query, MAIN_TABLE_ID.getDataset(), EXPECTED_1);
+    assertExpectedFieldSet(query, MAIN_TABLE_ID.getDatasetName(), EXPECTED_1);
     query = "SELECT col2 FROM myothertable GROUP BY col2";
-    assertExpectedFieldSet(query, SECONDARY_TABLE_ID.getDataset(), EXPECTED_2);
+    assertExpectedFieldSet(query, SECONDARY_TABLE_ID.getDatasetName(), EXPECTED_2);
     query = "SELECT col2, (SELECT SUM(col3) FROM mythirdtable) FROM myothertable GROUP BY 1";
-    assertExpectedFieldSet(query, MAIN_TABLE_ID.getDataset(), EXPECTED_2, EXPECTED_3);
+    assertExpectedFieldSet(query, MAIN_TABLE_ID.getDatasetName(), EXPECTED_2, EXPECTED_3);
     query =
         "SELECT col2, (SELECT SUM(col3) FROM mydataset.mythirdtable) FROM myothertable GROUP BY 1";
-    assertExpectedFieldSet(query, MAIN_TABLE_ID.getDataset(), EXPECTED_2, EXPECTED_3);
+    assertExpectedFieldSet(query, MAIN_TABLE_ID.getDatasetName(), EXPECTED_2, EXPECTED_3);
   }
 
   @Test
@@ -500,7 +500,7 @@ public abstract class FieldSetExtractTest {
     final FieldSet EXPECTED_2 = fieldSetBuilder(FOURTH_TABLE_ID).addAgg("SUM(col3)").build();
     query =
         "SELECT col1, (SELECT SUM(col3) FROM myotherdataset.myfourthtable) as b FROM mytable GROUP BY col1";
-    assertExpectedFieldSet(query, MAIN_TABLE_ID.getDataset(), EXPECTED_1, EXPECTED_2);
+    assertExpectedFieldSet(query, MAIN_TABLE_ID.getDatasetName(), EXPECTED_1, EXPECTED_2);
   }
 
   private FieldSetBuilder fieldSetBuilder(ATableId tableId) {

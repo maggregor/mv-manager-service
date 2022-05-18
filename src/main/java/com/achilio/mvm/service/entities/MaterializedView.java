@@ -112,9 +112,9 @@ public class MaterializedView {
       final Integer hits) {
     this.initialJob = job;
     this.lastJob = job;
-    this.projectId = referenceTable.getProject();
-    this.datasetName = referenceTable.getDataset();
-    this.tableName = referenceTable.getTable();
+    this.projectId = referenceTable.getProjectId();
+    this.datasetName = referenceTable.getDatasetName();
+    this.tableName = referenceTable.getTableName();
     this.status = MVStatus.NOT_APPLIED;
     this.statusReason = MVStatusReason.WAITING_APPROVAL;
     this.statement = statement;
