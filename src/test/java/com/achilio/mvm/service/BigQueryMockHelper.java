@@ -12,6 +12,7 @@ import com.google.cloud.bigquery.Table;
 import com.google.cloud.bigquery.TableDefinition;
 import com.google.cloud.bigquery.TableId;
 import com.google.cloud.bigquery.ViewDefinition;
+import java.math.BigInteger;
 
 public class BigQueryMockHelper {
 
@@ -42,6 +43,7 @@ public class BigQueryMockHelper {
     when(schema.getFields()).thenReturn(fieldList);
     when(tableDefinition.getSchema()).thenReturn(schema);
     when(table.getDefinition()).thenReturn(tableDefinition);
+    when(table.getNumRows()).thenReturn(BigInteger.valueOf(0));
     return table;
   }
 
