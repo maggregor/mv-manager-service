@@ -36,8 +36,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 @NoArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = "source",
-    discriminatorType = DiscriminatorType.STRING)
+@DiscriminatorColumn(name = "source", discriminatorType = DiscriminatorType.STRING)
 public class AQuery {
 
   @Column(name = "query_statement", columnDefinition = "text")

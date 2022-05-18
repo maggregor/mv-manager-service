@@ -66,7 +66,7 @@ public abstract class ATable {
 
   @Formula("(SELECT COUNT(*) FROM job_table_id q WHERE q.table_id = table_id)")
   private int totalUsageCount;
-
+  
   @Enumerated(EnumType.STRING)
   @Column(name = "type")
   private TableType type;
