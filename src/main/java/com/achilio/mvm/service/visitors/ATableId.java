@@ -21,21 +21,22 @@ public class ATableId {
   private String datasetName;
   private String tableName;
 
-  private ATableId(String project, String dataset, String table) {
+  private ATableId(String projectId, String datasetName, String tableName) {
     Preconditions.checkArgument(
-        !Strings.isNullOrEmpty(dataset), "Provided dataset is null or empty");
-    Preconditions.checkArgument(!Strings.isNullOrEmpty(table), "Provided table is null or empty");
-    this.projectId = project;
-    this.datasetName = dataset;
-    this.tableName = table;
+        !Strings.isNullOrEmpty(datasetName), "Provided dataset is null or empty");
+    Preconditions.checkArgument(!Strings.isNullOrEmpty(tableName),
+        "Provided table is null or empty");
+    this.projectId = projectId;
+    this.datasetName = datasetName;
+    this.tableName = tableName;
   }
 
-  public static ATableId of(String project, String dataset, String table) {
-    return new ATableId(project, dataset, table);
+  public static ATableId of(String projectId, String datasetName, String tableName) {
+    return new ATableId(projectId, datasetName, tableName);
   }
 
-  public static ATableId of(String dataset, String table) {
-    return new ATableId(null, dataset, table);
+  public static ATableId of(String datasetName, String tableName) {
+    return new ATableId(null, datasetName, tableName);
   }
 
   public static ATableId parse(String token) {

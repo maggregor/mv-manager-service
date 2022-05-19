@@ -93,8 +93,14 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     Spliterator<Table> spliterator = bigquery.listTables(datasetName).getValues().spliterator();
     return StreamSupport.stream(spliterator, true)
         .map(table -> bigquery.getTable(table.getTableId(),
-            TableOption.fields(TableField.SCHEMA, TableField.NUM_BYTES,
-                TableField.NUM_LONG_TERM_BYTES)));
+            TableOption.fields(
+                TableField.CREATION_TIME,
+                TableField.LAST_MODIFIED_TIME,
+                TableField.NUM_BYTES,
+                TableField.NUM_LONG_TERM_BYTES,
+                TableField.NUM_ROWS,
+                TableField.SCHEMA
+            )));
   }
 
   @Override

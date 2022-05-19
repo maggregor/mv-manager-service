@@ -10,6 +10,8 @@ import static org.mockito.Mockito.when;
 import com.achilio.mvm.service.entities.ATable;
 import com.achilio.mvm.service.entities.BigQueryTable;
 import com.google.cloud.bigquery.Table;
+import java.math.BigInteger;
+import java.util.Date;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -23,8 +25,13 @@ public class BigQueryTableTest extends ATableTest {
   private final long giga = 1024L * 1024L * 1024L;
 
   @Override
-  protected ATable createTable(String projectId, String datasetName, String tableName) {
-    return new BigQueryTable(simpleBigQueryTableMock(PROJECT_ID, DATASET_NAME, TABLE_NAME));
+  protected ATable createTable(String projectId, String datasetName, String tableName,
+      Long numRows, Date createdAt, Date lastModifiedAt) {
+    Table table = simpleBigQueryTableMock(projectId, datasetName, tableName);
+    when(table.getNumRows()).thenReturn(BigInteger.valueOf(numRows));
+    when(table.getCreationTime()).thenReturn(createdAt.getTime());
+    when(table.getLastModifiedTime()).thenReturn(lastModifiedAt.getTime());
+    return new BigQueryTable(table);
   }
 
   @Test
