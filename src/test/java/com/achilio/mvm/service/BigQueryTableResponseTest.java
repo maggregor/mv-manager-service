@@ -28,7 +28,7 @@ public class BigQueryTableResponseTest extends ATableResponseTest {
 
   @Override
   protected ATableResponse createTableResponse(String project, String dataset, String tableName,
-      float cost, int directQueryCount, int totalUsageCount, TableType type, Date createdAt,
+      float cost, int totalRead, int totalWrite, TableType type, Date createdAt,
       Date lastModifiedAt,
       Long numRows) {
     BigQueryTable table = mock(BigQueryTable.class);
@@ -36,8 +36,8 @@ public class BigQueryTableResponseTest extends ATableResponseTest {
     when(table.getDatasetName()).thenReturn(dataset);
     when(table.getTableName()).thenReturn(tableName);
     when(table.getCost()).thenReturn(cost);
-    when(table.getDirectQueryUsageCount()).thenReturn(directQueryCount);
-    when(table.getTotalUsageCount()).thenReturn(totalUsageCount);
+    when(table.getTotalRead()).thenReturn(totalRead);
+    when(table.getTotalWrite()).thenReturn(totalWrite);
     when(table.getType()).thenReturn(type);
     when(table.getNumRows()).thenReturn(numRows);
     when(table.getCreatedAt()).thenReturn(createdAt);

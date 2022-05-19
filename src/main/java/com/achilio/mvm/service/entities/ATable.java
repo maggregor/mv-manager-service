@@ -61,12 +61,12 @@ public abstract class ATable {
   @Column(unique = true)
   private String tableId;
 
-  @Formula("(SELECT COUNT(*) FROM query_table_id q WHERE q.table_id = table_id)")
-  private int directQueryUsageCount;
+  @Formula("(SELECT COUNT(*) FROM job_table_id q WHERE q.table_id = table_id)")
+  private int totalRead;
 
   @Formula("(SELECT COUNT(*) FROM job_table_id q WHERE q.table_id = table_id)")
-  private int totalUsageCount;
-  
+  private int totalWrite;
+
   @Enumerated(EnumType.STRING)
   @Column(name = "type")
   private TableType type;
