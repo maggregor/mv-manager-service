@@ -74,18 +74,18 @@ public class AQuery {
   @Column(name = "error", columnDefinition = "text")
   private String error = null;
 
-  @Column(name = "tables")
   @ElementCollection
   @CollectionTable(
       name = "query_table_id",
       joinColumns = @JoinColumn(name = "query_id", referencedColumnName = "id"))
+  @Column(name = "table_id")
   private List<String> queryTableId = new ArrayList<>();
 
-  @Column(name = "tables_read")
   @ElementCollection
   @CollectionTable(
       name = "job_table_id",
       joinColumns = @JoinColumn(name = "query_id", referencedColumnName = "id"))
+  @Column(name = "table_id")
   private List<String> jobTableId = new ArrayList<>();
 
   @Column(name = "user_email")
