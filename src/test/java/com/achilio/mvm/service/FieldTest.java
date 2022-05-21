@@ -14,12 +14,11 @@ public class FieldTest {
 
   @Test
   public void simpleValidation() {
-    Field field1 = new Field(FieldType.AGGREGATE, "col1", "project.dataset.table1", "project");
-    Field field2 = new Field(FieldType.AGGREGATE, "col2", "project.dataset.table1", "project");
-    Field field3 = new Field(FieldType.AGGREGATE, "col1", "project.dataset.table1", "project");
+    Field field1 = new Field(FieldType.AGGREGATE, "col1");
+    Field field2 = new Field(FieldType.AGGREGATE, "col2");
+    Field field3 = new Field(FieldType.AGGREGATE, "col1");
     assertEquals(FieldType.AGGREGATE, field1.getFieldType());
-    assertEquals("col1", field1.getColName());
-    assertEquals("project.dataset.table1", field1.getTableRefId());
+    assertEquals("col1", field1.getExpression());
     assertEquals(field1.hashCode(), field3.hashCode());
     assertEquals(field1, field3);
     assertNotEquals(field1.hashCode(), field2.hashCode());

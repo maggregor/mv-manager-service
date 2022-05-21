@@ -14,16 +14,15 @@ public class QueryPatternTest {
 
   @Test
   public void simpleValidation() {
-    QueryPattern queryPattern = new QueryPattern("project", "dataset", "project.dataset.table1");
+    QueryPattern queryPattern = new QueryPattern();
+    queryPattern.setProjectId("project");
     assertEquals("project", queryPattern.getProjectId());
-    assertEquals("dataset", queryPattern.getDatasetName());
-    assertEquals("project.dataset.table1", queryPattern.getTableRefId());
-    Field field1 = new Field(FieldType.AGGREGATE, "col1", "project.dataset.table1", "project");
-    Field field2 = new Field(FieldType.AGGREGATE, "col2", "project.dataset.table1", "project");
-    Field field3 = new Field(FieldType.AGGREGATE, "col2", "project.dataset.table2", "project");
-    queryPattern.addField(field1);
-    queryPattern.addField(field2);
-    queryPattern.addField(field3);
+    Field field1 = new Field(FieldType.AGGREGATE, "col1");
+    Field field2 = new Field(FieldType.AGGREGATE, "col2");
+    Field field3 = new Field(FieldType.AGGREGATE, "col2");
+    queryPattern.add(field1);
+    queryPattern.add(field2);
+    queryPattern.add(field3);
     assertEquals(2, queryPattern.getFields().size());
   }
 }

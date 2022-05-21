@@ -121,6 +121,9 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
   }
 
   public void dryRunQuery(String query) {
+    if (true) {
+      return;
+    }
     try {
       QueryJobConfiguration queryConfig =
           QueryJobConfiguration.newBuilder(query).setDryRun(true).setUseQueryCache(false).build();

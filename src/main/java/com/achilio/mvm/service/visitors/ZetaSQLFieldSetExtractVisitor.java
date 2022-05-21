@@ -1,6 +1,6 @@
 package com.achilio.mvm.service.visitors;
 
-import com.achilio.mvm.service.visitors.fields.Field;
+import com.achilio.mvm.service.entities.Field;
 import com.google.zetasql.SimpleCatalog;
 
 public abstract class ZetaSQLFieldSetExtractVisitor extends FieldSetExtractVisitor {
@@ -14,7 +14,7 @@ public abstract class ZetaSQLFieldSetExtractVisitor extends FieldSetExtractVisit
 
   @Override
   public boolean filterAllowAddField(Field field) {
-    return !field.name().startsWith(NOT_REGULAR_COLUMN_PREFIX_TO_SKIP);
+    return !field.getExpression().startsWith(NOT_REGULAR_COLUMN_PREFIX_TO_SKIP);
   }
 
   protected SimpleCatalog getCatalog() {

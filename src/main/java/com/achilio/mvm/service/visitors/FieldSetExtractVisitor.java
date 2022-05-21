@@ -1,16 +1,17 @@
 package com.achilio.mvm.service.visitors;
 
-import com.achilio.mvm.service.visitors.fields.Field;
-import com.achilio.mvm.service.visitors.fields.FieldSet;
-import com.achilio.mvm.service.visitors.fields.FieldSetFactory;
+import com.achilio.mvm.service.entities.Field;
+import com.achilio.mvm.service.entities.QueryPattern;
+import com.achilio.mvm.service.entities.TableRef;
+import com.achilio.mvm.service.entities.TableRef.TableRefType;
 import com.google.zetasql.resolvedast.ResolvedNodes;
 
 public abstract class FieldSetExtractVisitor extends ResolvedNodes.Visitor {
 
-  private final FieldSet fieldSet;
+  private final QueryPattern queryPattern;
 
   public FieldSetExtractVisitor() {
-    this.fieldSet = FieldSetFactory.createFieldSet();
+    this.queryPattern = new QueryPattern();
   }
 
   /**
@@ -22,19 +23,19 @@ public abstract class FieldSetExtractVisitor extends ResolvedNodes.Visitor {
 
   public void addField(Field field) {
     if (filterAllowAddField(field)) {
-      this.fieldSet.add(field);
+      this.queryPattern.add(field);
     }
   }
 
   public void setTableReference(ATableId tableId) {
-    this.fieldSet.setReferenceTable(tableId);
+    this.queryPattern.addTableRef(new TableRef(tableId, TableRefType.MAIN));
   }
 
-  public void addTableJoin(ATableId tableId, JoinType type) {
-    this.fieldSet.addJoinTable(tableId, type);
+  public void addTableJoin(ATableId tableId, TableRefType type) {
+    this.queryPattern.addTableRef(new TableRef(tableId, type));
   }
 
-  public FieldSet getFieldSet() {
-    return fieldSet;
+  public QueryPattern getQueryPattern() {
+    return queryPattern;
   }
 }

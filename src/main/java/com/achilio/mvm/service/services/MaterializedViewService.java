@@ -118,6 +118,7 @@ public class MaterializedViewService {
     return findMaterializedViewByUniqueName(m.getMvUniqueName()).isPresent();
   }
 
+  @Transactional
   public void saveAllMaterializedViews(List<MaterializedView> toCreateMaterializedViews) {
     repository.saveAll(toCreateMaterializedViews);
   }

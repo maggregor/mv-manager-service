@@ -13,13 +13,13 @@ import com.achilio.mvm.service.entities.FindMVJob.EventStatus;
 import com.achilio.mvm.service.entities.Job.JobStatus;
 import com.achilio.mvm.service.entities.MaterializedView;
 import com.achilio.mvm.service.entities.Project;
+import com.achilio.mvm.service.entities.QueryPattern;
+import com.achilio.mvm.service.entities.TableRef;
 import com.achilio.mvm.service.exceptions.FindMVJobNotFoundException;
 import com.achilio.mvm.service.repositories.FindMVJobRepository;
-import com.achilio.mvm.service.visitors.ATableId;
-import com.achilio.mvm.service.visitors.FieldSetExtract;
-import com.achilio.mvm.service.visitors.FieldSetExtractFactory;
-import com.achilio.mvm.service.visitors.FieldSetMerger;
-import com.achilio.mvm.service.visitors.fields.FieldSet;
+import com.achilio.mvm.service.visitors.NewZetaSQLExtract;
+import com.achilio.mvm.service.visitors.QueryPatternExtract;
+import com.achilio.mvm.service.visitors.QueryPatternMerger;
 import com.google.cloud.bigquery.BigQueryException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -111,16 +111,16 @@ public class FindMVJobService {
       Set<ATable> tables = new HashSet<>(projectService.getAllTables(projectId));
       // STEP 3 - Extract field from queries
       LOGGER.info("Find MV Job {}: {}", job.getId(), EventStatus.EXTRACTING_FIELD_SETS);
-      List<FieldSet> allFieldSets = extractFields(tables, allQueries);
+      List<QueryPattern> allQueryPatterns = extractFields(tables, allQueries);
       // STEP 4 - Filter eligible fieldSets
-      List<FieldSet> fieldSets =
-          allFieldSets.stream().filter(FieldSet::isEligible).collect(toList());
+      List<QueryPattern> queryPatterns =
+          allQueryPatterns.stream().filter(QueryPattern::isEligible).collect(toList());
       // STEP 5 - Merging same field sets
       LOGGER.info("Find MV Job {}: {}", job.getId(), EventStatus.MERGING_FIELD_SETS);
-      List<FieldSet> distinctFieldSets = FieldSetMerger.mergeSame(fieldSets);
+      List<QueryPattern> distinctFieldSets = QueryPatternMerger.mergeSame(queryPatterns);
       // STEP 6 - Optimize field sets
       LOGGER.info("Find MV Job {}: {}", job.getId(), EventStatus.GENERATING_MVs);
-      List<FieldSet> generatedMVs = generateMVs(distinctFieldSets);
+      List<QueryPattern> generatedMVs = generateMVs(distinctFieldSets);
       // STEP 7 - Build materialized views statements
       LOGGER.info(
           "Find MV Job {}: {}", job.getId(), EventStatus.BUILD_MATERIALIZED_VIEWS_STATEMENT);
@@ -155,7 +155,8 @@ public class FindMVJobService {
     return true;
   }
 
-  private void mergeAndSaveAllMaterializedViews(String projectId, List<MaterializedView> results) {
+  @Transactional
+  void mergeAndSaveAllMaterializedViews(String projectId, List<MaterializedView> results) {
     // STEP 1: Find existingMaterializedViews in results
     List<MaterializedView> existingMaterializedViews =
         materializedViewService.getAllMaterializedViews(projectId, null, null, null);
@@ -171,7 +172,7 @@ public class FindMVJobService {
     flagOutdatedMaterializedViews(oldMaterializedViews);
 
     // STEP 5: Out of the oldMaterializedViews, find and delete the NOT_APPLIED
-    deleteOldMaterializedViews(oldMaterializedViews);
+    //deleteOldMaterializedViews(oldMaterializedViews);
   }
 
   private void deleteOldMaterializedViews(List<MaterializedView> oldMaterializedViews) {
@@ -200,24 +201,25 @@ public class FindMVJobService {
     return repository.save(job);
   }
 
-  private List<MaterializedView> buildAllMaterializedViews(FindMVJob job, List<FieldSet> fields) {
-    return fields.stream().map(f -> buildMaterializedView(job, f)).collect(toList());
+  private List<MaterializedView> buildAllMaterializedViews(FindMVJob job,
+      List<QueryPattern> queryPatterns) {
+    return queryPatterns.stream().map(q -> buildMaterializedView(job, q)).collect(toList());
   }
 
-  private MaterializedView buildMaterializedView(FindMVJob job, FieldSet fieldSet) {
-    String statement = statementBuilder.build(fieldSet);
+  private MaterializedView buildMaterializedView(FindMVJob job, QueryPattern queryPattern) {
+    String statement = statementBuilder.build(queryPattern);
     // To date, get first Table in the set iterator.
-    ATableId tableId = fieldSet.getReferenceTable();
-    return new MaterializedView(job, tableId, statement, fieldSet.getHits());
+    TableRef tableRef = queryPattern.getMainTable();
+    return new MaterializedView(job, tableRef.getTable(), statement, queryPattern.getHitCount());
   }
 
-  private List<FieldSet> generateMVs(List<FieldSet> fieldSets) {
+  private List<QueryPattern> generateMVs(List<QueryPattern> fieldSets) {
     MVGenerator generator = MVFactory.createMVsWithDefaultStrategy();
     return generator.generate(fieldSets);
   }
 
-  private List<FieldSet> extractFields(Set<ATable> tables, List<AQuery> queries) {
-    FieldSetExtract extractor = FieldSetExtractFactory.createFieldSetExtract(tables);
+  private List<QueryPattern> extractFields(Set<ATable> tables, List<AQuery> queries) {
+    QueryPatternExtract extractor = new NewZetaSQLExtract(tables);
     return extractor.extractAll(queries);
   }
 }

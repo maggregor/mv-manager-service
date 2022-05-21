@@ -3,10 +3,11 @@ package com.achilio.mvm.service.visitors;
 import static com.achilio.mvm.service.visitors.FieldSetIneligibilityReason.CONTAINS_UNSUPPORTED_JOIN;
 import static com.achilio.mvm.service.visitors.FieldSetIneligibilityReason.DOES_NOT_CONTAIN_A_GROUP_BY;
 
-import com.achilio.mvm.service.visitors.fields.AggregateField;
-import com.achilio.mvm.service.visitors.fields.FieldSet;
-import com.achilio.mvm.service.visitors.fields.FunctionField;
-import com.achilio.mvm.service.visitors.fields.ReferenceField;
+import com.achilio.mvm.service.entities.Field;
+import com.achilio.mvm.service.entities.Field.FieldType;
+import com.achilio.mvm.service.entities.QueryPattern;
+import com.achilio.mvm.service.entities.TableRef;
+import com.achilio.mvm.service.entities.TableRef.TableRefType;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.zetasql.Analyzer;
@@ -38,10 +39,11 @@ public class ZetaSQLFieldSetExtractStatementVisitor extends ZetaSQLFieldSetExtra
   private static final String NOT_REGULAR_TABLE_PREFIX = "$";
 
   // Useful to build SQL expression from ResolvedNode.
-  private final List<FieldSet> subFieldSets = new ArrayList<>();
+  private final List<QueryPattern> subQueryPatterns = new ArrayList<>();
   private final String defaultProjectId;
 
-  public ZetaSQLFieldSetExtractStatementVisitor(String defaultProjectId, SimpleCatalog catalog) {
+  public ZetaSQLFieldSetExtractStatementVisitor(String defaultProjectId,
+      SimpleCatalog catalog) {
     super(catalog);
     this.defaultProjectId = defaultProjectId;
   }
@@ -59,14 +61,14 @@ public class ZetaSQLFieldSetExtractStatementVisitor extends ZetaSQLFieldSetExtra
   @Override
   public void visit(ResolvedOutputColumn node) {
     if (isColumnFromRegularTable(node.getColumn())) {
-      this.getFieldSet().addIneligibilityReason(DOES_NOT_CONTAIN_A_GROUP_BY);
+      this.getQueryPattern().addIneligibilityReason(DOES_NOT_CONTAIN_A_GROUP_BY);
     }
     addReference(node.getColumn());
   }
 
   @Override
   public void visit(ResolvedTableScan node) {
-    ATableId referenceTableId = this.getFieldSet().getReferenceTable();
+    TableRef referenceTableId = this.getQueryPattern().getMainTable();
     if (referenceTableId == null) {
       String currentTableName = node.getTable().getName();
       ATableId currentTableId = getTable(node);
@@ -74,22 +76,22 @@ public class ZetaSQLFieldSetExtractStatementVisitor extends ZetaSQLFieldSetExtra
         throw new IllegalArgumentException(
             "Can't find TableId on ResolvedTableScan: " + currentTableName);
       }
-      this.getFieldSet().setReferenceTable(currentTableId);
+      this.getQueryPattern().addTableRef(new TableRef(currentTableId, TableRefType.MAIN));
     }
   }
 
   @Override
   public void visit(ResolvedJoinScan node) {
     Optional<ATableId> tableIdLeft = findTableInResolvedScan(node.getLeftScan());
-    if (tableIdLeft.isPresent() && this.getFieldSet().getReferenceTable() == null) {
+    if (tableIdLeft.isPresent() && this.getQueryPattern().getMainTable() == null) {
       this.setTableReference(tableIdLeft.get());
     }
-    JoinType type = JoinType.valueOf(node.getJoinType().name());
+    TableRefType type = TableRefType.valueOf(node.getJoinType().name());
     Optional<ATableId> tableIdRight = findTableInResolvedScan(node.getRightScan());
     tableIdRight.ifPresent(t -> addTableJoin(t, type));
     if (/*!type.equals(JoinType.INNER)*/ true) {
       // INNER JOINS are no longer supported until the fix on old school inner join syntax.
-      this.getFieldSet().addIneligibilityReason(CONTAINS_UNSUPPORTED_JOIN);
+      this.getQueryPattern().addIneligibilityReason(CONTAINS_UNSUPPORTED_JOIN);
     }
     super.defaultVisit(node);
   }
@@ -119,9 +121,10 @@ public class ZetaSQLFieldSetExtractStatementVisitor extends ZetaSQLFieldSetExtra
    */
   @Override
   public void visit(ResolvedFilterScan node) {
-    FieldSetExtractVisitor visitor = new ZetaSQLFieldSetExtractFilterExprVisitor(getCatalog());
+    FieldSetExtractVisitor visitor = new ZetaSQLFieldSetExtractFilterExprVisitor(
+        getCatalog());
     node.getFilterExpr().accept(visitor);
-    this.getFieldSet().merge(visitor.getFieldSet());
+    this.getQueryPattern().merge(visitor.getQueryPattern());
     super.visit(node);
   }
 
@@ -131,7 +134,7 @@ public class ZetaSQLFieldSetExtractStatementVisitor extends ZetaSQLFieldSetExtra
   @Override
   public void visit(ResolvedComputedColumn node) {
     if (node.getColumn().getTableName().startsWith("$groupby")) {
-      this.getFieldSet().removeIneligibilityReason(DOES_NOT_CONTAIN_A_GROUP_BY);
+      this.getQueryPattern().removeIneligibilityReason(DOES_NOT_CONTAIN_A_GROUP_BY);
     }
     final ResolvedExpr expr = node.getExpr();
     if (expr instanceof ResolvedColumnRef) {
@@ -145,24 +148,24 @@ public class ZetaSQLFieldSetExtractStatementVisitor extends ZetaSQLFieldSetExtra
   }
 
   /**
-   * SubQuery in expression (NOT in FROM): creates a new fieldset SELECT a as (SELECT sum() FROM
+   * SubQuery in expression (NOT in FROM): creates a new QueryPattern SELECT a as (SELECT sum() FROM
    * mytable) FROM mytable
    *
    * @param node
    */
   @Override
   public void visit(ResolvedNodes.ResolvedSubqueryExpr node) {
-    this.extractNewFieldSet(node.getSubquery());
+    this.extractNewQueryPattern(node.getSubquery());
   }
 
   /**
-   * WITH subQuery: creates a new fieldset
+   * WITH subQuery: creates a new QueryPattern
    *
    * @param node
    */
   @Override
   public void visit(ResolvedNodes.ResolvedWithEntry node) {
-    this.extractNewFieldSet(node.getWithSubquery());
+    this.extractNewQueryPattern(node.getWithSubquery());
   }
 
   /** - ResolvedWithEntry */
@@ -172,12 +175,12 @@ public class ZetaSQLFieldSetExtractStatementVisitor extends ZetaSQLFieldSetExtra
    *
    * @param node
    */
-  private void extractNewFieldSet(ResolvedNodes.ResolvedScan node) {
+  private void extractNewQueryPattern(ResolvedNodes.ResolvedScan node) {
     //
     ZetaSQLFieldSetExtractStatementVisitor visitor =
         new ZetaSQLFieldSetExtractStatementVisitor(defaultProjectId, getCatalog());
     node.accept(visitor);
-    subFieldSets.addAll(visitor.getAllFieldSets());
+    subQueryPatterns.addAll(visitor.getAllQueryPatterns());
   }
 
   /**
@@ -187,7 +190,7 @@ public class ZetaSQLFieldSetExtractStatementVisitor extends ZetaSQLFieldSetExtra
     Preconditions.checkNotNull(column, "Reference is null.");
     if (isColumnFromRegularTable(column)) {
       // It's reference to a table of the catalog.
-      addField(new ReferenceField(column.getName()));
+      addField(new Field(FieldType.REFERENCE, column.getName()));
     }
   }
 
@@ -202,27 +205,27 @@ public class ZetaSQLFieldSetExtractStatementVisitor extends ZetaSQLFieldSetExtra
 
   private void addAggregate(ResolvedExpr expr) {
     String sql = buildSQLFunction((ResolvedAggregateFunctionCall) expr);
-    this.addField(new AggregateField(sql));
+    addField(new Field(FieldType.AGGREGATE, sql));
   }
 
   private void addFunction(ResolvedExpr expr) {
     String sql = buildSQLFunction((ResolvedFunctionCallBase) expr);
-    this.addField(new FunctionField(sql));
+    addField(new Field(FieldType.FUNCTION, sql));
   }
 
   /**
-   * Returns all fieldset discovered in the statement - Remove empty fieldset - Remove fieldset
-   * without reference table
+   * Returns all QueryPattern discovered in the statement - Remove empty QueryPattern - Remove
+   * QueryPattern without reference table
    *
    * @return
    */
-  public List<FieldSet> getAllFieldSets() {
-    List<FieldSet> fieldSets = new ArrayList<>();
+  public List<QueryPattern> getAllQueryPatterns() {
+    List<QueryPattern> QueryPatterns = new ArrayList<>();
     // Not empty field set
-    fieldSets.add(super.getFieldSet());
-    fieldSets.addAll(this.subFieldSets);
-    return fieldSets.stream()
-        .filter(f -> !f.isEmpty() && f.getReferenceTable() != null)
+    QueryPatterns.add(super.getQueryPattern());
+    QueryPatterns.addAll(this.subQueryPatterns);
+    return QueryPatterns.stream()
+        .filter(f -> !f.isEmpty() && f.getMainTable() != null)
         .collect(Collectors.toList());
   }
 

@@ -1,14 +1,13 @@
 package com.achilio.mvm.service.entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import java.util.Set;
-import javax.persistence.CascadeType;
+import java.util.Objects;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 import lombok.Getter;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
@@ -19,42 +18,36 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 @Table(name = "field")
 public class Field {
 
+  private static final String ALIAS_PREFIX = "a_";
+
   @Id
-  @Column(name = "id", nullable = false)
-  private String id;
+  @GeneratedValue(strategy = GenerationType.AUTO)
+  private Long id;
 
   @Column
   @Enumerated(EnumType.STRING)
   private FieldType fieldType;
 
-  @Column private String projectId;
+  @Column
+  private String expression;
 
-  @Column private String colName;
+  @Column
+  private String projectId;
 
-  @Column private String tableRefId;
-
-  @ManyToMany(mappedBy = "fields", cascade = CascadeType.ALL)
-  @JsonIgnore // Ignore queryPatterns to avoid infinite recursion in responses
-  private Set<QueryPattern> queryPatterns;
-
-  public Field(FieldType fieldType, String colName, String tableRefId, String projectId) {
+  public Field(FieldType fieldType, String expression) {
     this.fieldType = fieldType;
-    this.colName = colName;
-    this.tableRefId = tableRefId;
+    this.expression = expression;
+  }
+
+  protected Field() {
+  }
+
+  public String getAlias() {
+    return ALIAS_PREFIX + Math.abs(expression.hashCode());
+  }
+
+  public void setProjectId(String projectId) {
     this.projectId = projectId;
-    this.setId();
-  }
-
-  protected Field() {}
-
-  private void setId() {
-    this.id = String.format("%s#%s:%s", this.tableRefId, this.fieldType, this.colName);
-  }
-
-  public enum FieldType {
-    REFERENCE,
-    AGGREGATE,
-    FUNCTION
   }
 
   @Override
@@ -62,30 +55,28 @@ public class Field {
     if (this == o) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (!(o instanceof Field)) {
       return false;
     }
 
     Field field = (Field) o;
 
-    if (!id.equals(field.id)) {
-      return false;
-    }
     if (fieldType != field.fieldType) {
       return false;
     }
-    if (!colName.equals(field.colName)) {
-      return false;
-    }
-    return tableRefId.equals(field.tableRefId);
+    return Objects.equals(expression, field.expression);
   }
 
   @Override
   public int hashCode() {
-    int result = id.hashCode();
-    result = 31 * result + fieldType.hashCode();
-    result = 31 * result + colName.hashCode();
-    result = 31 * result + tableRefId.hashCode();
+    int result = fieldType != null ? fieldType.hashCode() : 0;
+    result = 31 * result + (expression != null ? expression.hashCode() : 0);
     return result;
+  }
+
+  public enum FieldType {
+    REFERENCE,
+    AGGREGATE,
+    FUNCTION
   }
 }

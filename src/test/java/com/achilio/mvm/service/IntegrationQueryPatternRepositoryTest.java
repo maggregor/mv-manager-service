@@ -30,21 +30,25 @@ public class IntegrationQueryPatternRepositoryTest {
   private static final String COL_NAME2 = "col2";
   private static final FieldType FIELD_TYPE1 = FieldType.AGGREGATE;
 
-  @Autowired private FieldRepository fieldRepository;
-  @Autowired private QueryPatternRepository queryPatternRepository;
+  @Autowired
+  private FieldRepository fieldRepository;
+  @Autowired
+  private QueryPatternRepository queryPatternRepository;
 
   @Before
   public void setup() {
-    Field field1 = new Field(FIELD_TYPE1, COL_NAME1, TABLE_REF1, PROJECT_ID);
-    Field field2 = new Field(FIELD_TYPE1, COL_NAME2, TABLE_REF1, PROJECT_ID);
-    Field field3 = new Field(FIELD_TYPE1, COL_NAME2, TABLE_REF1, PROJECT_ID);
+    Field field1 = new Field(FIELD_TYPE1, COL_NAME1);
+    Field field2 = new Field(FIELD_TYPE1, COL_NAME2);
+    Field field3 = new Field(FIELD_TYPE1, COL_NAME2);
 
-    QueryPattern queryPattern1 = new QueryPattern(PROJECT_ID, DATASET_NAME, TABLE_REF1);
-    QueryPattern queryPattern2 = new QueryPattern(PROJECT_ID, DATASET_NAME, TABLE_REF1);
-    queryPattern1.addField(field1);
-    queryPattern1.addField(field2);
-    queryPattern1.addField(field3);
-    queryPattern2.addField(field1);
+    QueryPattern queryPattern1 = new QueryPattern();
+    QueryPattern queryPattern2 = new QueryPattern();
+    queryPattern1.setProjectId(PROJECT_ID);
+    queryPattern2.setProjectId(PROJECT_ID);
+    queryPattern1.add(field1);
+    queryPattern1.add(field2);
+    queryPattern1.add(field3);
+    queryPattern2.add(field1);
     queryPatternRepository.save(queryPattern1);
     queryPatternRepository.save(queryPattern2);
   }

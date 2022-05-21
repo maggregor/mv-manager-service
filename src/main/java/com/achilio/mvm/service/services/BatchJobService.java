@@ -15,14 +15,16 @@ public class BatchJobService {
 
   private final Job fetcherQueryJob;
   private final Job fetcherDataModelJob;
-  //private final Job fetcherExtractJob
+  private final Job extractQueryPatternJob;
 
   public BatchJobService(JobLauncher jobLauncher,
-      @Qualifier("fetcherDataModelJob") Job fetcherDataModel,
-      @Qualifier("fetcherQueryJob") Job fetcherQueryJob) {
+      @Qualifier("fetcherQueryJob") Job fetcherQueryJob,
+      @Qualifier("fetcherDataModelJob") Job fetcherDataModelJob,
+      @Qualifier("extractQueryPatternJob") Job extractQueryPatternJob) {
     this.jobLauncher = jobLauncher;
-    this.fetcherDataModelJob = fetcherDataModel;
     this.fetcherQueryJob = fetcherQueryJob;
+    this.fetcherDataModelJob = fetcherDataModelJob;
+    this.extractQueryPatternJob = extractQueryPatternJob;
   }
 
   @SneakyThrows
@@ -40,7 +42,8 @@ public class BatchJobService {
 
   @SneakyThrows
   public void runFetcherExtractJob(String teamName, String projectId) {
-    throw new IllegalArgumentException("Extract job is not yet supported");
+    jobLauncher.run(extractQueryPatternJob,
+        baseParamsBuilder(teamName, projectId).toJobParameters());
   }
 
   private JobParametersBuilder baseParamsBuilder(String teamName, String projectId) {

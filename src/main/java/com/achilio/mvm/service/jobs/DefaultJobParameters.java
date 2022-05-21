@@ -1,4 +1,4 @@
-package com.achilio.mvm.service.workflows;
+package com.achilio.mvm.service.jobs;
 
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;

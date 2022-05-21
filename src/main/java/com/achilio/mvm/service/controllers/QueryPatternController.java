@@ -21,11 +21,12 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 public class QueryPatternController {
 
-  @Autowired QueryPatternRepository queryPatternRepository;
-  @Autowired FieldRepository fieldRepository;
-
   private static final String MOCK_PROJECT_ID = "mockProject";
   private final QueryPatternService service;
+  @Autowired
+  QueryPatternRepository queryPatternRepository;
+  @Autowired
+  FieldRepository fieldRepository;
 
   public QueryPatternController(QueryPatternService service) {
     this.service = service;
@@ -38,24 +39,24 @@ public class QueryPatternController {
 
   @GetMapping(path = "/mock/field", produces = APPLICATION_JSON_VALUE)
   public List<Field> mockGetAllFields() {
-    return service.getAllFields(MOCK_PROJECT_ID);
+    return null;//service.getAllFields(MOCK_PROJECT_ID);
   }
 
   @PostMapping(path = "/mock/query-pattern", produces = APPLICATION_JSON_VALUE)
   public void mockCreateAllTestPatterns() {
     service.deleteAllQueryPatterns(MOCK_PROJECT_ID);
-    service.deleteAllFields(MOCK_PROJECT_ID);
+    //service.deleteAllFields(MOCK_PROJECT_ID);
     Field field1 =
         new Field(
-            FieldType.AGGREGATE, "col1", "mockProject.mockDataset.mockTable", MOCK_PROJECT_ID);
+            FieldType.AGGREGATE, "col1");
     Field field2 =
         new Field(
-            FieldType.AGGREGATE, "col2", "mockProject.mockDataset.mockTable", MOCK_PROJECT_ID);
-    QueryPattern queryPattern1 = new QueryPattern(MOCK_PROJECT_ID, "mockDataset", "mockTable");
-    QueryPattern queryPattern2 = new QueryPattern(MOCK_PROJECT_ID, "mockDataset", "mockTable");
-    queryPattern1.addField(field1);
-    queryPattern1.addField(field2);
-    queryPattern2.addField(field1);
+            FieldType.AGGREGATE, "col2");
+    QueryPattern queryPattern1 = new QueryPattern();
+    QueryPattern queryPattern2 = new QueryPattern();
+    queryPattern1.add(field1);
+    queryPattern1.add(field2);
+    queryPattern2.add(field1);
     queryPatternRepository.save(queryPattern1);
     queryPatternRepository.save(queryPattern2);
   }

@@ -1,12 +1,17 @@
-package com.achilio.mvm.service.workflows;
+package com.achilio.mvm.service.jobs;
 
 import com.achilio.mvm.service.entities.ADataset;
 import com.achilio.mvm.service.entities.AQuery;
+import com.achilio.mvm.service.entities.QueryPattern;
 import com.achilio.mvm.service.repositories.ADatasetRepository;
+import com.achilio.mvm.service.repositories.QueryPatternRepository;
 import com.achilio.mvm.service.services.FetcherService;
+import com.achilio.mvm.service.services.ProjectService;
 import com.achilio.mvm.service.services.PublisherService;
+import com.achilio.mvm.service.services.QueryService;
 import com.google.cloud.bigquery.Dataset;
 import java.util.Collections;
+import java.util.List;
 import java.util.logging.Logger;
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
@@ -40,6 +45,7 @@ public class BatchJobConfiguration extends DefaultBatchConfigurer {
 
   private final EntityManagerFactory emf;
   private final FetcherService fetcherService;
+  private final QueryService queryService;
   private final DataSource dataSource;
 
   public BatchJobConfiguration(
@@ -47,11 +53,13 @@ public class BatchJobConfiguration extends DefaultBatchConfigurer {
       StepBuilderFactory stepBuilderFactory,
       EntityManagerFactory emf,
       FetcherService fetcherService,
+      QueryService queryService,
       DataSource dataSource) {
     this.jobBuilderFactory = jobBuilderFactory;
     this.stepBuilderFactory = stepBuilderFactory;
     this.emf = emf;
     this.fetcherService = fetcherService;
+    this.queryService = queryService;
     this.dataSource = dataSource;
   }
 
@@ -93,6 +101,16 @@ public class BatchJobConfiguration extends DefaultBatchConfigurer {
   }
 
   @Bean
+  @StepScope
+  public IteratorItemReader<AQuery> queryReader(
+      @Value("#{jobParameters['projectId']}") String projectId) {
+    if (projectId != null) {
+      return new IteratorItemReader<>(queryService.getAllQueries(projectId));
+    }
+    return new IteratorItemReader<>(Collections.singletonList(null));
+  }
+
+  @Bean
   public JobParameters defaultJobParameters() {
     return new JobParametersBuilder().toJobParameters();
   }
@@ -122,6 +140,19 @@ public class BatchJobConfiguration extends DefaultBatchConfigurer {
         .build();
   }
 
+  @Bean
+  public Step extractQueryPattern(ProjectService projectService,
+      QueryPatternRepository queryPatternRepository) {
+    return stepBuilderFactory
+        .get("extractQueryPattern")
+        .transactionManager(jpaTransactionManager())
+        .<AQuery, List<QueryPattern>>chunk(10)
+        .reader(queryReader(null))
+        .processor(new QueryExtractProcessor(projectService))
+        .writer(new QueryPatternItemWriter(queryPatternRepository))
+        .build();
+  }
+
 
   @Bean("fetcherQueryJob")
   public Job fetcherQueryJob(Step retrieveQueries, PublisherService service) {
@@ -139,6 +170,15 @@ public class BatchJobConfiguration extends DefaultBatchConfigurer {
         .incrementer(new RunIdIncrementer())
         .start(retrieveDatasets)
         .listener(new DataModelFetcherJobListener(service))
+        .build();
+  }
+
+  @Bean("extractQueryPatternJob")
+  public Job extractQueryPatternJob(Step extractQueryPattern) {
+    return this.jobBuilderFactory
+        .get("extractQueryPatternJob")
+        .incrementer(new RunIdIncrementer())
+        .start(extractQueryPattern)
         .build();
   }
 }

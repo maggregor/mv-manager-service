@@ -1,6 +1,5 @@
 package com.achilio.mvm.service.services;
 
-import com.achilio.mvm.service.entities.Field;
 import com.achilio.mvm.service.entities.QueryPattern;
 import com.achilio.mvm.service.repositories.FieldRepository;
 import com.achilio.mvm.service.repositories.QueryPatternRepository;
@@ -24,6 +23,7 @@ public class QueryPatternService {
     return queryPatternRepository.findAllByProjectId(projectId);
   }
 
+  /*
   public List<Field> getAllFields(String projectId) {
     return fieldRepository.findAllByProjectId(projectId);
   }
@@ -31,7 +31,7 @@ public class QueryPatternService {
   @Transactional
   public void deleteAllFields(String projectId) {
     fieldRepository.deleteAllByProjectId(projectId);
-  }
+  }*/
 
   @Transactional
   public void deleteAllQueryPatterns(String projectId) {

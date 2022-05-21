@@ -1,4 +1,4 @@
-package com.achilio.mvm.service.workflows;
+package com.achilio.mvm.service.jobs;
 
 import com.google.cloud.bigquery.Job;
 import org.springframework.batch.item.support.IteratorItemReader;
