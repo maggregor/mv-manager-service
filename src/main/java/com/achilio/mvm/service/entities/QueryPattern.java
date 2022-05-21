@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -28,13 +29,20 @@ public class QueryPattern {
   @Column(name = "id", nullable = false)
   private Long id;
 
-  @Column private String projectId;
+  @Column
+  private String projectId;
 
-  @Column private String datasetName;
+  @Column
+  private String datasetName;
 
-  @Column private String tableRefId;
+  @Column
+  private String tableRefId;
 
-  @Column private Long hitCount;
+  @Column
+  private Long hitCount;
+
+  @ElementCollection
+  private Set<TableRef> tables;
 
   @ManyToMany(cascade = CascadeType.ALL)
   @JoinTable(
