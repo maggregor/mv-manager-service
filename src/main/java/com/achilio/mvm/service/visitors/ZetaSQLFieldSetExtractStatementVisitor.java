@@ -87,8 +87,7 @@ public class ZetaSQLFieldSetExtractStatementVisitor extends ZetaSQLFieldSetExtra
     JoinType type = JoinType.valueOf(node.getJoinType().name());
     Optional<ATableId> tableIdRight = findTableInResolvedScan(node.getRightScan());
     tableIdRight.ifPresent(t -> addTableJoin(t, type));
-    if (
-    /*!type.equals(JoinType.INNER)*/ true) {
+    if (/*!type.equals(JoinType.INNER)*/ true) {
       // INNER JOINS are no longer supported until the fix on old school inner join syntax.
       this.getFieldSet().addIneligibilityReason(CONTAINS_UNSUPPORTED_JOIN);
     }
@@ -107,8 +106,8 @@ public class ZetaSQLFieldSetExtractStatementVisitor extends ZetaSQLFieldSetExtra
     ATableId tableId = ATableId.parse(scan.getTable().getName());
     if (tableId == null) {
       return null;
-    } else if (tableId.getProject() == null) {
-      tableId = ATableId.of(defaultProjectId, tableId.getDataset(), tableId.getTable());
+    } else if (tableId.getProjectId() == null) {
+      tableId = ATableId.of(defaultProjectId, tableId.getDatasetName(), tableId.getTableName());
     }
     return tableId;
   }
@@ -181,7 +180,9 @@ public class ZetaSQLFieldSetExtractStatementVisitor extends ZetaSQLFieldSetExtra
     subFieldSets.addAll(visitor.getAllFieldSets());
   }
 
-  /** Add a ResolvedColumn as ReferenceField. Checks if the ResolvedColumn isn't an alias. */
+  /**
+   * Add a ResolvedColumn as ReferenceField. Checks if the ResolvedColumn isn't an alias.
+   */
   private void addReference(ResolvedColumn column) {
     Preconditions.checkNotNull(column, "Reference is null.");
     if (isColumnFromRegularTable(column)) {
@@ -190,7 +191,9 @@ public class ZetaSQLFieldSetExtractStatementVisitor extends ZetaSQLFieldSetExtra
     }
   }
 
-  /** Add ResolvedExpr as reference Simple cast method. */
+  /**
+   * Add ResolvedExpr as reference Simple cast method.
+   */
   private void addReference(ResolvedExpr expr) {
     final ResolvedColumnRef ref = (ResolvedColumnRef) expr;
     final ResolvedColumn column = ref.getColumn();

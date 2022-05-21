@@ -23,7 +23,9 @@ import org.codehaus.plexus.util.StringUtils;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
-/** Query is finalized fetched query, ready to be used by the Extractor */
+/**
+ * Query is finalized fetched query, ready to be used by the Extractor
+ */
 @Entity
 @Getter
 @Setter
@@ -34,9 +36,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 @NoArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(
-    discriminatorType = DiscriminatorType.STRING,
-    columnDefinition = "varchar(31) default 'BigQueryJob'")
+@DiscriminatorColumn(name = "source", discriminatorType = DiscriminatorType.STRING)
 public class AQuery {
 
   @Column(name = "query_statement", columnDefinition = "text")
@@ -71,13 +71,19 @@ public class AQuery {
   @Column(name = "error", columnDefinition = "text")
   private String error = null;
 
-  @Column(name = "tables")
   @ElementCollection
   @CollectionTable(
       name = "query_table_id",
       joinColumns = @JoinColumn(name = "query_id", referencedColumnName = "id"))
-  // TODO an index ? -> Maybe: @CollectionTable(indexes = {@Index(columnList = "tables")})
-  private List<String> tableId = new ArrayList<>();
+  @Column(name = "table_id")
+  private List<String> queryTableId = new ArrayList<>();
+
+  @ElementCollection
+  @CollectionTable(
+      name = "job_table_id",
+      joinColumns = @JoinColumn(name = "query_id", referencedColumnName = "id"))
+  @Column(name = "table_id")
+  private List<String> jobTableId = new ArrayList<>();
 
   public AQuery(String query, String projectId) {
     this.query = query;

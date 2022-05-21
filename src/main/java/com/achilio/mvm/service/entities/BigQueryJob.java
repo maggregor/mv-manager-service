@@ -1,5 +1,6 @@
 package com.achilio.mvm.service.entities;
 
+import com.achilio.mvm.service.visitors.ATableId;
 import com.google.cloud.bigquery.BigQueryError;
 import com.google.cloud.bigquery.DatasetId;
 import com.google.cloud.bigquery.Job;
@@ -10,6 +11,11 @@ import com.google.cloud.bigquery.QueryStage;
 import com.google.cloud.bigquery.QueryStage.QueryStep;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,7 +30,12 @@ import org.apache.logging.log4j.util.Strings;
 @Getter
 @Setter
 @NoArgsConstructor
+@DiscriminatorValue("bigquery")
 public class BigQueryJob extends AQuery {
+
+  // Match "FROM x" and GROUP "x"
+  private static Pattern QUERY_PLAN_TABLE_PATTERN = Pattern.compile(
+      "(?ims)\\b(?:FROM)\\s+(\\w+(?:.\\w+)*)", Pattern.CASE_INSENSITIVE);
 
   public BigQueryJob(Job job) {
     this();
@@ -39,6 +50,10 @@ public class BigQueryJob extends AQuery {
     setId(jobId.getJob());
     setDefaultDataset(datasetId == null ? null : datasetId.getDataset());
     setError(error != null ? error.getMessage() : Strings.EMPTY);
+    if (job.getStatistics() != null && job.getStatistics() instanceof QueryStatistics) {
+      List<QueryStage> stages = ((QueryStatistics) job.getStatistics()).getQueryPlan();
+      setJobTableId(findTableIdRead(stages));
+    }
   }
 
   private void setStatistics(Job job) {
@@ -70,5 +85,47 @@ public class BigQueryJob extends AQuery {
     if (!(job.getConfiguration() instanceof QueryJobConfiguration)) {
       throw new IllegalArgumentException("BigQueryJob must be a QueryJob");
     }
+  }
+
+  /**
+   * Go through the tree of QueryStage -> QueryStep -> SubSteps and extract all the tables found
+   *
+   * @param queryPlan
+   * @return
+   */
+  private List<String> findTableIdRead(List<QueryStage> queryPlan) {
+    return queryPlan.stream()
+        .flatMap(q -> q.getSteps().stream().flatMap(
+            step -> step.getSubsteps().stream().map(this::extractTableIdFromQuerySubStepRegex)))
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
+  }
+
+  /**
+   * Find table ids in sub steps with the dedicated regex. If a table id found doesn't have a
+   * project id but just dataset name and table name this method add the project id of the current
+   * job to the table id.
+   *
+   * @param subStep
+   * @return
+   */
+  private String extractTableIdFromQuerySubStepRegex(String subStep) {
+    Matcher matcher = QUERY_PLAN_TABLE_PATTERN.matcher(subStep);
+    if (matcher.find()) {
+      final String stringTableId = matcher.group(1);
+      ATableId tableId = ATableId.parse(stringTableId);
+      if (tableId != null && isValidTableId(stringTableId)) {
+        if (tableId.getProjectId() == null) {
+          // Add project id if not found in the query plan
+          tableId.setProjectId(getProjectId());
+        }
+        return tableId.getTableId();
+      }
+    }
+    return null;
+  }
+
+  private boolean isValidTableId(String tableId) {
+    return !tableId.endsWith("_mvdelta") && !tableId.contains("_mvdelta__");
   }
 }
