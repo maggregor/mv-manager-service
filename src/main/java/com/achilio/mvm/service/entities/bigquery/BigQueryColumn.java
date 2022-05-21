@@ -1,5 +1,6 @@
-package com.achilio.mvm.service.entities;
+package com.achilio.mvm.service.entities.bigquery;
 
+import com.achilio.mvm.service.entities.AColumn;
 import com.google.cloud.bigquery.Field;
 import com.google.cloud.bigquery.StandardSQLTypeName;
 import com.google.zetasql.ZetaSQLType.TypeKind;

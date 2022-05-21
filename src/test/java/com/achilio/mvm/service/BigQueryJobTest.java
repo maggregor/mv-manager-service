@@ -11,7 +11,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.achilio.mvm.service.entities.AQuery;
-import com.achilio.mvm.service.entities.BigQueryJob;
+import com.achilio.mvm.service.entities.bigquery.BigQueryJob;
+import com.achilio.mvm.service.entities.bigquery.BigQueryQueryStatistics;
 import com.google.cloud.bigquery.BigQueryError;
 import com.google.cloud.bigquery.DatasetId;
 import com.google.cloud.bigquery.Job;
@@ -57,14 +58,15 @@ public class BigQueryJobTest {
   public void bigQueryJobToQuery() {
     Job job = simpleJobMock();
     AQuery query = new BigQueryJob(job);
+    BigQueryQueryStatistics stats = (BigQueryQueryStatistics) query.getQueryStatistics();
     assertEquals("SELECT 1", query.getQuery());
     assertNull(query.getDefaultDataset());
     assertFalse(query.hasDefaultDataset());
     assertTrue(StringUtils.isEmpty(query.getError()));
     assertEquals("job-id", query.getId());
     assertEquals(1650394735L, query.getStartTime().toInstant().toEpochMilli());
-    assertEquals(10000L, query.getProcessedBytes());
-    assertEquals(50000L, query.getBilledBytes());
+    assertEquals(10000L, stats.get());
+    assertEquals(50000L, stats.getBilledBytes());
   }
 
   @Test
@@ -91,11 +93,12 @@ public class BigQueryJobTest {
     // No sub step contain the achilio_mv token
     when(step_1_1.getSubsteps()).thenReturn(Arrays.asList("st_1", "FROM"));
     when(step_1_2.getSubsteps()).thenReturn(Arrays.asList("st_1", "st_2 "));
-    assertFalse(new BigQueryJob(job).isUseMaterializedView());
+    assertFalse(new BigQueryJob(job).getQueryStatistics().isCached());
     // A sub step contain the achilio_mv token
     when(step_1_1.getSubsteps()).thenReturn(Arrays.asList("st_1", "st_2"));
     when(step_1_2.getSubsteps()).thenReturn(Arrays.asList("st_1", "FROM " + MV_NAME_PREFIX));
-    assertTrue(new BigQueryJob(job).isUseMaterializedView());
+    BigQueryQueryStatistics s = (BigQueryQueryStatistics) new BigQueryJob(job).getQueryStatistics();
+    assertTrue(s.isUseMaterializedView());
 
   }
 

@@ -1,5 +1,7 @@
-package com.achilio.mvm.service.entities;
+package com.achilio.mvm.service.entities.bigquery;
 
+import com.achilio.mvm.service.entities.AColumn;
+import com.achilio.mvm.service.entities.ATable;
 import com.google.api.client.util.Preconditions;
 import com.google.cloud.bigquery.ExternalTableDefinition;
 import com.google.cloud.bigquery.MaterializedViewDefinition;

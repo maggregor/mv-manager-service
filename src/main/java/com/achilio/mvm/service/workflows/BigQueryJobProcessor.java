@@ -1,7 +1,7 @@
 package com.achilio.mvm.service.workflows;
 
 import com.achilio.mvm.service.entities.AQuery;
-import com.achilio.mvm.service.entities.BigQueryJob;
+import com.achilio.mvm.service.entities.bigquery.BigQueryJob;
 import com.achilio.mvm.service.visitors.ATableId;
 import com.achilio.mvm.service.visitors.ZetaSQLExtract;
 import com.google.cloud.bigquery.Job;

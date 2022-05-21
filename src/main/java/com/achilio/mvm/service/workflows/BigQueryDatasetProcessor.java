@@ -1,7 +1,7 @@
 package com.achilio.mvm.service.workflows;
 
 import com.achilio.mvm.service.entities.ADataset;
-import com.achilio.mvm.service.entities.BigQueryTable;
+import com.achilio.mvm.service.entities.bigquery.BigQueryTable;
 import com.achilio.mvm.service.services.FetcherService;
 import com.google.cloud.bigquery.Dataset;
 import com.google.cloud.bigquery.Table;
