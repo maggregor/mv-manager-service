@@ -4,7 +4,7 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import com.achilio.mvm.service.entities.AColumn;
-import com.achilio.mvm.service.entities.BigQueryColumn;
+import com.achilio.mvm.service.entities.bigquery.BigQueryColumn;
 import com.google.cloud.bigquery.Field;
 import com.google.cloud.bigquery.LegacySQLTypeName;
 import com.google.cloud.bigquery.StandardSQLTypeName;

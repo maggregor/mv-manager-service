@@ -7,6 +7,7 @@ import com.achilio.mvm.service.entities.MaterializedView;
 import com.achilio.mvm.service.exceptions.ProjectNotFoundException;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.bigquery.BigQuery;
+import com.google.cloud.bigquery.BigQuery.JobField;
 import com.google.cloud.bigquery.BigQuery.TableField;
 import com.google.cloud.bigquery.BigQuery.TableOption;
 import com.google.cloud.bigquery.BigQueryException;
@@ -144,6 +145,7 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
     List<BigQuery.JobListOption> options = new ArrayList<>();
     options.add(BigQuery.JobListOption.pageSize(LIST_JOB_PAGE_SIZE));
     options.add(BigQuery.JobListOption.allUsers());
+    options.add(BigQuery.JobListOption.fields(JobField.CONFIGURATION));
     options.add(BigQuery.JobListOption.minCreationTime(fromCreationTime));
     return options;
   }

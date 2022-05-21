@@ -8,7 +8,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 import com.achilio.mvm.service.entities.ATable;
-import com.achilio.mvm.service.entities.BigQueryTable;
+import com.achilio.mvm.service.entities.bigquery.BigQueryTable;
 import com.google.cloud.bigquery.Table;
 import org.junit.Test;
 import org.junit.runner.RunWith;

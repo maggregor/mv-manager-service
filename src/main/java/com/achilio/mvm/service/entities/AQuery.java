@@ -8,6 +8,7 @@ import javax.persistence.Column;
 import javax.persistence.DiscriminatorColumn;
 import javax.persistence.DiscriminatorType;
 import javax.persistence.ElementCollection;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
 import javax.persistence.Id;
@@ -20,6 +21,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.codehaus.plexus.util.StringUtils;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
@@ -37,7 +40,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 @EntityListeners(AuditingEntityListener.class)
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "source", discriminatorType = DiscriminatorType.STRING)
-public class AQuery {
+public abstract class AQuery {
 
   @Column(name = "query_statement", columnDefinition = "text")
   private String query;
@@ -50,9 +53,6 @@ public class AQuery {
   @Column(name = "project_id")
   private String projectId;
 
-  @Column(name = "use_materialized_view")
-  private boolean useMaterializedView = false;
-
   @Column(name = "use_cache")
   private boolean useCache = false;
 
@@ -62,31 +62,23 @@ public class AQuery {
   @Column(name = "end_time")
   private Date endTime;
 
-  @Column(name = "billed_bytes")
-  private long billedBytes = 0;
-
-  @Column(name = "processed_bytes")
-  private long processedBytes = 0;
-
   @Column(name = "default_dataset")
   private String defaultDataset = null;
 
   @Column(name = "error", columnDefinition = "text")
   private String error = null;
 
+  @Embedded
+  private AQueryStatistics queryStatistics;
+
   @ElementCollection
   @CollectionTable(
       name = "query_table_id",
       joinColumns = @JoinColumn(name = "query_id", referencedColumnName = "id"))
   @Column(name = "table_id")
+  @JoinColumn(name = "query_id")
+  @OnDelete(action = OnDeleteAction.CASCADE)
   private List<String> queryTableId = new ArrayList<>();
-
-  @ElementCollection
-  @CollectionTable(
-      name = "job_table_id",
-      joinColumns = @JoinColumn(name = "query_id", referencedColumnName = "id"))
-  @Column(name = "table_id")
-  private List<String> jobTableId = new ArrayList<>();
 
   @Column(name = "user_email")
   private String user;
@@ -108,7 +100,6 @@ public class AQuery {
     this.id = id;
     this.projectId = projectId;
     this.defaultDataset = defaultDataset;
-    this.useMaterializedView = useMaterializedView;
     this.useCache = useCache;
     this.startTime = startTime;
   }
