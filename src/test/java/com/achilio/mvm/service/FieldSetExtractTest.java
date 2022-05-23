@@ -4,8 +4,8 @@ import static com.achilio.mvm.service.FieldSetHelper.createFieldSet;
 import static com.achilio.mvm.service.MockHelper.columnMock;
 import static com.achilio.mvm.service.MockHelper.queryMock;
 import static com.achilio.mvm.service.MockHelper.tableMock;
-import static com.achilio.mvm.service.visitors.FieldSetIneligibilityReason.CONTAINS_UNSUPPORTED_JOIN;
-import static com.achilio.mvm.service.visitors.FieldSetIneligibilityReason.DOES_NOT_CONTAIN_A_GROUP_BY;
+import static com.achilio.mvm.service.visitors.fieldsets.FieldSetIneligibilityReason.CONTAINS_UNSUPPORTED_JOIN;
+import static com.achilio.mvm.service.visitors.fieldsets.FieldSetIneligibilityReason.DOES_NOT_CONTAIN_A_GROUP_BY;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
@@ -14,11 +14,11 @@ import com.achilio.mvm.service.entities.AColumn;
 import com.achilio.mvm.service.entities.AQuery;
 import com.achilio.mvm.service.entities.ATable;
 import com.achilio.mvm.service.visitors.ATableId;
-import com.achilio.mvm.service.visitors.FieldSetExtract;
 import com.achilio.mvm.service.visitors.JoinType;
 import com.achilio.mvm.service.visitors.fields.AggregateField;
 import com.achilio.mvm.service.visitors.fields.FieldSet;
 import com.achilio.mvm.service.visitors.fields.ReferenceField;
+import com.achilio.mvm.service.visitors.fieldsets.FieldSetExtract;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -358,9 +358,7 @@ public abstract class FieldSetExtractTest {
     assertExpectedFieldSet(s, EXPECTED);
   }
 
-  /**
-   * UNKNOWN REASON: ZetaSQL returns INNER join type on a CROSS JOIN clause
-   */
+  /** UNKNOWN REASON: ZetaSQL returns INNER join type on a CROSS JOIN clause */
   @Test
   @Ignore
   public void crossJoin() {

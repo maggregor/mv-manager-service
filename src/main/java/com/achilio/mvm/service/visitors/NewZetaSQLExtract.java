@@ -2,9 +2,9 @@ package com.achilio.mvm.service.visitors;
 
 import com.achilio.mvm.service.entities.AQuery;
 import com.achilio.mvm.service.entities.ATable;
-import com.achilio.mvm.service.visitors.fields.FieldSet;
-import com.achilio.mvm.service.visitors.fieldsets.FieldSetExtract;
-import com.achilio.mvm.service.visitors.fieldsets.ZetaSQLFieldSetExtractEntryPointVisitor;
+import com.achilio.mvm.service.entities.QueryPattern;
+import com.achilio.mvm.service.visitors.querypattern.QueryPatternExtract;
+import com.achilio.mvm.service.visitors.querypattern.ZetaSQLQueryPatternExtractEntryPointVisitor;
 import com.google.zetasql.Analyzer;
 import com.google.zetasql.AnalyzerOptions;
 import com.google.zetasql.LanguageOptions;
@@ -20,19 +20,16 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
-@Deprecated
-public class ZetaSQLExtract extends ZetaSQLModelBuilder implements FieldSetExtract {
+@Service
+public class NewZetaSQLExtract extends ZetaSQLModelBuilder implements QueryPatternExtract {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(ZetaSQLExtract.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(NewZetaSQLExtract.class);
   private static final String BACKTICK = "`";
   private static final AnalyzerOptions options = defaultAnalyzerOptions();
 
-  public ZetaSQLExtract() {
-    super();
-  }
-
-  public ZetaSQLExtract(Set<ATable> tables) {
+  public NewZetaSQLExtract(Set<ATable> tables) {
     super(tables);
   }
 
@@ -72,14 +69,14 @@ public class ZetaSQLExtract extends ZetaSQLModelBuilder implements FieldSetExtra
   }
 
   @Override
-  public List<FieldSet> extractAll(AQuery query) {
+  public List<QueryPattern> extractAll(AQuery query) {
     if (query.hasDefaultDataset()) {
       setDefaultDataset(query.getDefaultDataset());
     }
-    ZetaSQLFieldSetExtractEntryPointVisitor v =
-        new ZetaSQLFieldSetExtractEntryPointVisitor(query.getProjectId(), getRootCatalog());
+    ZetaSQLQueryPatternExtractEntryPointVisitor v =
+        new ZetaSQLQueryPatternExtractEntryPointVisitor(query.getProjectId(), getRootCatalog());
     resolveStatementAndVisit(query.getQuery(), v);
-    return v.getAllFieldSets();
+    return v.getAllQueryPatterns();
   }
 
   private void resolveStatementAndVisit(String statement, Visitor visitor) {

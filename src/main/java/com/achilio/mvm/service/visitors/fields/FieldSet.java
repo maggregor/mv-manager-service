@@ -1,8 +1,8 @@
 package com.achilio.mvm.service.visitors.fields;
 
 import com.achilio.mvm.service.visitors.ATableId;
-import com.achilio.mvm.service.visitors.FieldSetIneligibilityReason;
 import com.achilio.mvm.service.visitors.JoinType;
+import com.achilio.mvm.service.visitors.fieldsets.FieldSetIneligibilityReason;
 import java.util.Map;
 import java.util.Set;
 

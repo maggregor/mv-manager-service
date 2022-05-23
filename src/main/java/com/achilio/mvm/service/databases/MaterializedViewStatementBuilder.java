@@ -4,5 +4,5 @@ import com.achilio.mvm.service.visitors.fields.FieldSet;
 
 public interface MaterializedViewStatementBuilder {
 
-  String build(FieldSet fieldSet);
+  String build(FieldSet queryPattern);
 }

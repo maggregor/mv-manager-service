@@ -10,6 +10,7 @@ import javax.persistence.EntityListeners;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
@@ -51,6 +52,10 @@ public class ADataset {
   private String datasetName;
 
   @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+  @JoinTable(
+      name = "datasets_tables",
+      joinColumns = @JoinColumn(name = "dataset_id"),
+      inverseJoinColumns = @JoinColumn(name = "tables_id"))
   private List<ATable> tables = new ArrayList<>();
 
   public ADataset(Project project, String datasetName) {

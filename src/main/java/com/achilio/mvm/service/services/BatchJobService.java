@@ -15,21 +15,23 @@ public class BatchJobService {
 
   private final Job fetcherQueryJob;
   private final Job fetcherDataModelJob;
-  //private final Job fetcherExtractJob
+  private final Job extractQueryPatternJob;
 
-  public BatchJobService(JobLauncher jobLauncher,
-      @Qualifier("fetcherDataModelJob") Job fetcherDataModel,
-      @Qualifier("fetcherQueryJob") Job fetcherQueryJob) {
+  public BatchJobService(
+      JobLauncher jobLauncher,
+      @Qualifier("fetcherQueryJob") Job fetcherQueryJob,
+      @Qualifier("fetcherDataModelJob") Job fetcherDataModelJob,
+      @Qualifier("extractQueryPatternJob") Job extractQueryPatternJob) {
     this.jobLauncher = jobLauncher;
-    this.fetcherDataModelJob = fetcherDataModel;
     this.fetcherQueryJob = fetcherQueryJob;
+    this.fetcherDataModelJob = fetcherDataModelJob;
+    this.extractQueryPatternJob = extractQueryPatternJob;
   }
 
   @SneakyThrows
   public void runFetcherQueryJob(String teamName, String projectId, long timeframe) {
-    JobParameters jobParameters = baseParamsBuilder(teamName, projectId)
-        .addLong("timeframe", timeframe)
-        .toJobParameters();
+    JobParameters jobParameters =
+        baseParamsBuilder(teamName, projectId).addLong("timeframe", timeframe).toJobParameters();
     jobLauncher.run(fetcherQueryJob, jobParameters);
   }
 
@@ -39,8 +41,9 @@ public class BatchJobService {
   }
 
   @SneakyThrows
-  public void runFetcherExtractJob(String teamName, String projectId) {
-    throw new IllegalArgumentException("Extract job is not yet supported");
+  public void runQueryExtractJob(String teamName, String projectId) {
+    jobLauncher.run(
+        extractQueryPatternJob, baseParamsBuilder(teamName, projectId).toJobParameters());
   }
 
   private JobParametersBuilder baseParamsBuilder(String teamName, String projectId) {
@@ -49,5 +52,4 @@ public class BatchJobService {
         .addString("projectId", projectId)
         .addString("teamName", teamName);
   }
-
 }
