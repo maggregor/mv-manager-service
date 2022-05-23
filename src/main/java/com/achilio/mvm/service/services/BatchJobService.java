@@ -41,7 +41,7 @@ public class BatchJobService {
   }
 
   @SneakyThrows
-  public void runFetcherExtractJob(String teamName, String projectId) {
+  public void runQueryExtractJob(String teamName, String projectId) {
     jobLauncher.run(
         extractQueryPatternJob, baseParamsBuilder(teamName, projectId).toJobParameters());
   }

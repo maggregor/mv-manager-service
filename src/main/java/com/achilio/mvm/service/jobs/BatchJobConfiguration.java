@@ -37,8 +37,7 @@ import org.springframework.orm.jpa.JpaTransactionManager;
 @EnableBatchProcessing
 public class BatchJobConfiguration extends DefaultBatchConfigurer {
 
-  private static final Logger LOGGER =
-      Logger.getLogger(BatchJobConfiguration.class.getName());
+  private static final Logger LOGGER = Logger.getLogger(BatchJobConfiguration.class.getName());
 
   private final JobBuilderFactory jobBuilderFactory;
   private final StepBuilderFactory stepBuilderFactory;
@@ -128,8 +127,8 @@ public class BatchJobConfiguration extends DefaultBatchConfigurer {
   }
 
   @Bean
-  public Step retrieveDatasets(FetcherService fetcherService,
-      ADatasetRepository datasetRepository) {
+  public Step retrieveDatasets(
+      FetcherService fetcherService, ADatasetRepository datasetRepository) {
     return stepBuilderFactory
         .get("retrieveDatasets")
         .transactionManager(jpaTransactionManager())
@@ -141,8 +140,8 @@ public class BatchJobConfiguration extends DefaultBatchConfigurer {
   }
 
   @Bean
-  public Step extractQueryPattern(ProjectService projectService,
-      QueryPatternRepository queryPatternRepository) {
+  public Step extractQueryPattern(
+      ProjectService projectService, QueryPatternRepository queryPatternRepository) {
     return stepBuilderFactory
         .get("extractQueryPattern")
         .transactionManager(jpaTransactionManager())
@@ -153,13 +152,13 @@ public class BatchJobConfiguration extends DefaultBatchConfigurer {
         .build();
   }
 
-
   @Bean("fetcherQueryJob")
   public Job fetcherQueryJob(Step retrieveQueries, PublisherService service) {
     return this.jobBuilderFactory
         .get("fetcherQueryJob")
         .incrementer(new RunIdIncrementer())
-        .start(retrieveQueries).listener(new QueryFetcherJobListener(service))
+        .start(retrieveQueries)
+        .listener(new QueryFetcherJobListener(service))
         .build();
   }
 

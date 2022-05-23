@@ -54,6 +54,6 @@ public class BatchJobController {
   public void startNewQueryPatternExtract(@RequestBody ExtractQueryPatternJobRequest payload) {
     String projectId = payload.getProjectId();
     projectService.getProject(projectId, getContextTeamName());
-    service.runFetcherExtractJob(getContextTeamName(), projectId);
+    service.runQueryExtractJob(getContextTeamName(), projectId);
   }
 }
