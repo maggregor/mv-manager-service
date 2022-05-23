@@ -1,6 +1,8 @@
-package com.achilio.mvm.service.visitors;
+package com.achilio.mvm.service.visitors.querypattern;
 
 import com.achilio.mvm.service.entities.AQuery;
+import com.achilio.mvm.service.entities.QueryPattern;
+import com.achilio.mvm.service.visitors.ATableId;
 import com.achilio.mvm.service.visitors.fields.FieldSet;
 import java.util.Collection;
 import java.util.List;
@@ -11,13 +13,13 @@ import java.util.stream.Collectors;
  *
  * @see FieldSet
  */
-public interface FieldSetExtract {
+public interface QueryPatternExtract {
 
   List<ATableId> extractATableIds(AQuery query);
 
-  List<FieldSet> extractAll(AQuery query);
+  List<QueryPattern> extractAll(AQuery query);
 
-  default List<FieldSet> extractAll(List<AQuery> queries) {
+  default List<QueryPattern> extractAll(List<AQuery> queries) {
     return queries.stream()
         .map(this::extractAll)
         .flatMap(Collection::stream)

@@ -23,9 +23,7 @@ import org.codehaus.plexus.util.StringUtils;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
-/**
- * Query is finalized fetched query, ready to be used by the Extractor
- */
+/** Query is finalized fetched query, ready to be used by the Extractor */
 @Entity
 @Getter
 @Setter
@@ -36,7 +34,10 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 @NoArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = "source", discriminatorType = DiscriminatorType.STRING)
+@DiscriminatorColumn(
+    name = "source",
+    discriminatorType = DiscriminatorType.STRING,
+    columnDefinition = "varchar(31) default 'BIGQUERY'")
 public class AQuery {
 
   @Column(name = "query_statement", columnDefinition = "text")

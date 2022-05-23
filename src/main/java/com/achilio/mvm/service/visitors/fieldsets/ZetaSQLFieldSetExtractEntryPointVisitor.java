@@ -1,6 +1,6 @@
-package com.achilio.mvm.service.visitors;
+package com.achilio.mvm.service.visitors.fieldsets;
 
-import com.achilio.mvm.service.entities.QueryPattern;
+import com.achilio.mvm.service.visitors.fields.FieldSet;
 import com.google.zetasql.SimpleCatalog;
 import com.google.zetasql.resolvedast.ResolvedNode;
 import com.google.zetasql.resolvedast.ResolvedNodes;
@@ -11,7 +11,7 @@ import java.util.List;
 public class ZetaSQLFieldSetExtractEntryPointVisitor extends Visitor {
 
   private final SimpleCatalog catalog;
-  private final List<QueryPattern> allQueryPatterns = new ArrayList<>();
+  private final List<FieldSet> allFieldSets = new ArrayList<>();
   private final String defaultProjectId;
 
   public ZetaSQLFieldSetExtractEntryPointVisitor(String defaultProjectId, SimpleCatalog catalog) {
@@ -29,10 +29,10 @@ public class ZetaSQLFieldSetExtractEntryPointVisitor extends Visitor {
     ZetaSQLFieldSetExtractStatementVisitor queryVisitor =
         new ZetaSQLFieldSetExtractStatementVisitor(defaultProjectId, catalog);
     node.accept(queryVisitor);
-    this.allQueryPatterns.addAll(queryVisitor.getAllQueryPatterns());
+    this.allFieldSets.addAll(queryVisitor.getAllFieldSets());
   }
 
-  public List<QueryPattern> getAllQueryPatterns() {
-    return this.allQueryPatterns;
+  public List<FieldSet> getAllFieldSets() {
+    return this.allFieldSets;
   }
 }

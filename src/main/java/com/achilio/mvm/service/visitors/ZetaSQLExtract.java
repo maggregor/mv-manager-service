@@ -3,6 +3,8 @@ package com.achilio.mvm.service.visitors;
 import com.achilio.mvm.service.entities.AQuery;
 import com.achilio.mvm.service.entities.ATable;
 import com.achilio.mvm.service.visitors.fields.FieldSet;
+import com.achilio.mvm.service.visitors.fieldsets.FieldSetExtract;
+import com.achilio.mvm.service.visitors.fieldsets.ZetaSQLFieldSetExtractEntryPointVisitor;
 import com.google.zetasql.Analyzer;
 import com.google.zetasql.AnalyzerOptions;
 import com.google.zetasql.LanguageOptions;
@@ -77,7 +79,7 @@ public class ZetaSQLExtract extends ZetaSQLModelBuilder implements FieldSetExtra
     ZetaSQLFieldSetExtractEntryPointVisitor v =
         new ZetaSQLFieldSetExtractEntryPointVisitor(query.getProjectId(), getRootCatalog());
     resolveStatementAndVisit(query.getQuery(), v);
-    return null;
+    return v.getAllFieldSets();
   }
 
   private void resolveStatementAndVisit(String statement, Visitor visitor) {

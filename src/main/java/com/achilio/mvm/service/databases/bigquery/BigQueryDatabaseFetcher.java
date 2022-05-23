@@ -92,9 +92,12 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
   public Stream<Table> fetchTablesInDataset(String datasetName) {
     Spliterator<Table> spliterator = bigquery.listTables(datasetName).getValues().spliterator();
     return StreamSupport.stream(spliterator, true)
-        .map(table -> bigquery.getTable(table.getTableId(),
-            TableOption.fields(TableField.SCHEMA, TableField.NUM_BYTES,
-                TableField.NUM_LONG_TERM_BYTES)));
+        .map(
+            table ->
+                bigquery.getTable(
+                    table.getTableId(),
+                    TableOption.fields(
+                        TableField.SCHEMA, TableField.NUM_BYTES, TableField.NUM_LONG_TERM_BYTES)));
   }
 
   @Override
@@ -121,9 +124,6 @@ public class BigQueryDatabaseFetcher implements DatabaseFetcher {
   }
 
   public void dryRunQuery(String query) {
-    if (true) {
-      return;
-    }
     try {
       QueryJobConfiguration queryConfig =
           QueryJobConfiguration.newBuilder(query).setDryRun(true).setUseQueryCache(false).build();

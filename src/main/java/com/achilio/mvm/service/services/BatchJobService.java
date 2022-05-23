@@ -17,7 +17,8 @@ public class BatchJobService {
   private final Job fetcherDataModelJob;
   private final Job extractQueryPatternJob;
 
-  public BatchJobService(JobLauncher jobLauncher,
+  public BatchJobService(
+      JobLauncher jobLauncher,
       @Qualifier("fetcherQueryJob") Job fetcherQueryJob,
       @Qualifier("fetcherDataModelJob") Job fetcherDataModelJob,
       @Qualifier("extractQueryPatternJob") Job extractQueryPatternJob) {
@@ -29,9 +30,8 @@ public class BatchJobService {
 
   @SneakyThrows
   public void runFetcherQueryJob(String teamName, String projectId, long timeframe) {
-    JobParameters jobParameters = baseParamsBuilder(teamName, projectId)
-        .addLong("timeframe", timeframe)
-        .toJobParameters();
+    JobParameters jobParameters =
+        baseParamsBuilder(teamName, projectId).addLong("timeframe", timeframe).toJobParameters();
     jobLauncher.run(fetcherQueryJob, jobParameters);
   }
 
@@ -42,8 +42,8 @@ public class BatchJobService {
 
   @SneakyThrows
   public void runFetcherExtractJob(String teamName, String projectId) {
-    jobLauncher.run(extractQueryPatternJob,
-        baseParamsBuilder(teamName, projectId).toJobParameters());
+    jobLauncher.run(
+        extractQueryPatternJob, baseParamsBuilder(teamName, projectId).toJobParameters());
   }
 
   private JobParametersBuilder baseParamsBuilder(String teamName, String projectId) {
@@ -52,5 +52,4 @@ public class BatchJobService {
         .addString("projectId", projectId)
         .addString("teamName", teamName);
   }
-
 }

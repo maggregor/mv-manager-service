@@ -1,13 +1,9 @@
-package com.achilio.mvm.service.visitors;
+package com.achilio.mvm.service.visitors.fieldsets;
 
-import com.achilio.mvm.service.entities.Field;
-import com.achilio.mvm.service.entities.Field.FieldType;
+import com.achilio.mvm.service.visitors.fields.ReferenceField;
 import com.google.zetasql.SimpleCatalog;
 import com.google.zetasql.resolvedast.ResolvedNodes;
 
-/**
- * Where clause
- */
 public class ZetaSQLFieldSetExtractFilterExprVisitor extends ZetaSQLFieldSetExtractVisitor {
 
   public ZetaSQLFieldSetExtractFilterExprVisitor(SimpleCatalog catalog) {
@@ -17,7 +13,7 @@ public class ZetaSQLFieldSetExtractFilterExprVisitor extends ZetaSQLFieldSetExtr
   @Override
   public void visit(ResolvedNodes.ResolvedColumnRef node) {
     final String referenceName = node.getColumn().getName();
-    this.addField(new Field(FieldType.REFERENCE, referenceName));
+    this.addField(new ReferenceField(referenceName));
     super.visit(node);
   }
 }

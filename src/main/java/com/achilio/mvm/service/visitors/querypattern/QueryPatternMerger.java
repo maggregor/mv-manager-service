@@ -1,4 +1,4 @@
-package com.achilio.mvm.service.visitors;
+package com.achilio.mvm.service.visitors.querypattern;
 
 import com.achilio.mvm.service.entities.QueryPattern;
 import java.util.ArrayList;
@@ -6,9 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Merge FieldSet statistics.
- */
+/** Merge FieldSet statistics. */
 public enum QueryPatternMerger {
   ;
 

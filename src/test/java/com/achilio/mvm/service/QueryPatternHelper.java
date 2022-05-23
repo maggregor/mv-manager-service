@@ -6,7 +6,7 @@ import com.achilio.mvm.service.entities.QueryPattern;
 import com.achilio.mvm.service.entities.TableRef;
 import com.achilio.mvm.service.entities.TableRef.TableRefType;
 import com.achilio.mvm.service.visitors.ATableId;
-import com.achilio.mvm.service.visitors.QueryPatternExtract;
+import com.achilio.mvm.service.visitors.querypattern.QueryPatternExtract;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;

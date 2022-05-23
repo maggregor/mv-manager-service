@@ -1,4 +1,4 @@
-package com.achilio.mvm.service.visitors;
+package com.achilio.mvm.service.visitors.fieldsets;
 
 import com.achilio.mvm.service.visitors.fields.FieldSet;
 import java.util.ArrayList;

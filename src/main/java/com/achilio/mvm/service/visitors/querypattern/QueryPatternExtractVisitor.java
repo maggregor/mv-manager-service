@@ -1,16 +1,17 @@
-package com.achilio.mvm.service.visitors;
+package com.achilio.mvm.service.visitors.querypattern;
 
 import com.achilio.mvm.service.entities.Field;
 import com.achilio.mvm.service.entities.QueryPattern;
 import com.achilio.mvm.service.entities.TableRef;
 import com.achilio.mvm.service.entities.TableRef.TableRefType;
+import com.achilio.mvm.service.visitors.ATableId;
 import com.google.zetasql.resolvedast.ResolvedNodes;
 
-public abstract class FieldSetExtractVisitor extends ResolvedNodes.Visitor {
+public abstract class QueryPatternExtractVisitor extends ResolvedNodes.Visitor {
 
   private final QueryPattern queryPattern;
 
-  public FieldSetExtractVisitor() {
+  public QueryPatternExtractVisitor() {
     this.queryPattern = new QueryPattern();
   }
 

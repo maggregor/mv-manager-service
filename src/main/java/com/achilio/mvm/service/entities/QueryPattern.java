@@ -2,7 +2,7 @@ package com.achilio.mvm.service.entities;
 
 import com.achilio.mvm.service.entities.Field.FieldType;
 import com.achilio.mvm.service.entities.TableRef.TableRefType;
-import com.achilio.mvm.service.visitors.FieldSetIneligibilityReason;
+import com.achilio.mvm.service.visitors.fieldsets.FieldSetIneligibilityReason;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
@@ -32,8 +32,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 @Table(name = "query_pattern")
 public class QueryPattern {
 
-  @ElementCollection
-  private final Set<TableRef> tables = new HashSet<>();
+  @ElementCollection private final Set<TableRef> tables = new HashSet<>();
 
   @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
   @JoinTable(
@@ -44,17 +43,18 @@ public class QueryPattern {
 
   @ElementCollection
   @CollectionTable(
-      name = "query_pattern_ineligibility", joinColumns = @JoinColumn(name = "query_pattern_id"))
+      name = "query_pattern_ineligibility",
+      joinColumns = @JoinColumn(name = "query_pattern_id"))
   @Column
   private final Set<FieldSetIneligibilityReason> ineligibilityReasons = new HashSet<>();
+
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   @Column(name = "id", nullable = false)
   private Long id;
-  @Column
-  private String projectId;
-  @Column
-  private Integer hitCount = 0;
+
+  @Column private String projectId;
+  @Column private Integer hitCount = 0;
 
   public void setProjectId(String projectId) {
     this.projectId = projectId;
@@ -114,7 +114,8 @@ public class QueryPattern {
   }
 
   public TableRef getMainTable() {
-    return this.tables.stream().filter(t -> t.getOrigin().equals(TableRefType.MAIN))
+    return this.tables.stream()
+        .filter(t -> t.getOrigin().equals(TableRefType.MAIN))
         .findFirst()
         .orElse(null);
   }

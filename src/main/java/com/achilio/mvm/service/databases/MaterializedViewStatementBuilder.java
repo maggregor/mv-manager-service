@@ -1,8 +1,8 @@
 package com.achilio.mvm.service.databases;
 
-import com.achilio.mvm.service.entities.QueryPattern;
+import com.achilio.mvm.service.visitors.fields.FieldSet;
 
 public interface MaterializedViewStatementBuilder {
 
-  String build(QueryPattern queryPattern);
+  String build(FieldSet queryPattern);
 }

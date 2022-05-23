@@ -2,10 +2,7 @@ package com.achilio.mvm.service.visitors.fields;
 
 import java.util.Objects;
 
-/**
- * Represents a field in sql query. Can be a function, an aggregate or reference to a column.
- */
-@Deprecated
+/** Represents a field in sql query. Can be a function, an aggregate or reference to a column. */
 public abstract class Field {
 
   private static final String ALIAS_PREFIX = "a_";

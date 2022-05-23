@@ -1,9 +1,9 @@
 package com.achilio.mvm.service.databases.bigquery;
 
 import com.achilio.mvm.service.databases.MaterializedViewStatementBuilder;
-import com.achilio.mvm.service.entities.Field;
-import com.achilio.mvm.service.entities.QueryPattern;
 import com.achilio.mvm.service.visitors.ATableId;
+import com.achilio.mvm.service.visitors.fields.Field;
+import com.achilio.mvm.service.visitors.fields.FieldSet;
 import com.google.common.base.Preconditions;
 import java.util.StringJoiner;
 
@@ -17,7 +17,7 @@ public class BigQueryMaterializedViewStatementBuilder implements MaterializedVie
   private static final String SQL_VERB_GROUP_BY = "GROUP BY";
 
   @Override
-  public String build(QueryPattern fieldSet) {
+  public String build(FieldSet fieldSet) {
     final StringJoiner joiner = new StringJoiner(SEP_SQL_VERBS);
     joiner.add(buildSelect(fieldSet));
     joiner.add(buildFrom(fieldSet));
@@ -29,17 +29,17 @@ public class BigQueryMaterializedViewStatementBuilder implements MaterializedVie
 
   private String serializeFieldWithAlias(Field field) {
     StringJoiner aliasJoiner = new StringJoiner(SEP_SQL_VERBS);
-    aliasJoiner.add(field.getExpression());
+    aliasJoiner.add(field.name());
     aliasJoiner.add(SQL_VERB_AS);
-    aliasJoiner.add(field.getAlias());
+    aliasJoiner.add(field.alias());
     return aliasJoiner.toString();
   }
 
   private String serializeAlias(Field field) {
-    return field.getAlias();
+    return field.alias();
   }
 
-  private String buildSelect(QueryPattern fieldSet) {
+  private String buildSelect(FieldSet fieldSet) {
     StringBuilder builder = new StringBuilder();
     builder.append(SQL_VERB_SELECT);
     builder.append(SEP_SQL_VERBS);
@@ -54,14 +54,14 @@ public class BigQueryMaterializedViewStatementBuilder implements MaterializedVie
     return builder.toString();
   }
 
-  private String buildFrom(QueryPattern fieldSet) {
+  private String buildFrom(FieldSet fieldSet) {
     StringJoiner joiner = new StringJoiner(SEP_SQL_VERBS);
     joiner.add(SQL_VERB_FROM);
     joiner.add(buildTableReference(fieldSet));
     return joiner.toString();
   }
 
-  private String buildGroupBy(QueryPattern fieldSet) {
+  private String buildGroupBy(FieldSet fieldSet) {
     StringBuilder builder = new StringBuilder();
     builder.append(SQL_VERB_GROUP_BY);
     builder.append(SEP_SQL_VERBS);
@@ -72,8 +72,8 @@ public class BigQueryMaterializedViewStatementBuilder implements MaterializedVie
     return builder.toString();
   }
 
-  private String buildTableReference(QueryPattern fieldSet) {
-    final ATableId table = fieldSet.getMainTable().getTable();
+  private String buildTableReference(FieldSet fieldSet) {
+    final ATableId table = fieldSet.getReferenceTable();
     final String projectId = table.getProjectId();
     final String datasetName = table.getDatasetName();
     final String tableName = table.getTableName();

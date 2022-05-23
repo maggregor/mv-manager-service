@@ -1,4 +1,4 @@
-package com.achilio.mvm.service.visitors;
+package com.achilio.mvm.service.visitors.fieldsets;
 
 public enum FieldSetIneligibilityReason {
   DOES_NOT_CONTAIN_A_GROUP_BY("This query require a GROUP BY"),

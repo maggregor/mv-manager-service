@@ -1,13 +1,14 @@
-package com.achilio.mvm.service.visitors;
+package com.achilio.mvm.service.visitors.querypattern;
 
-import static com.achilio.mvm.service.visitors.FieldSetIneligibilityReason.CONTAINS_UNSUPPORTED_JOIN;
-import static com.achilio.mvm.service.visitors.FieldSetIneligibilityReason.DOES_NOT_CONTAIN_A_GROUP_BY;
+import static com.achilio.mvm.service.visitors.fieldsets.FieldSetIneligibilityReason.CONTAINS_UNSUPPORTED_JOIN;
+import static com.achilio.mvm.service.visitors.fieldsets.FieldSetIneligibilityReason.DOES_NOT_CONTAIN_A_GROUP_BY;
 
 import com.achilio.mvm.service.entities.Field;
 import com.achilio.mvm.service.entities.Field.FieldType;
 import com.achilio.mvm.service.entities.QueryPattern;
 import com.achilio.mvm.service.entities.TableRef;
 import com.achilio.mvm.service.entities.TableRef.TableRefType;
+import com.achilio.mvm.service.visitors.ATableId;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.zetasql.Analyzer;
@@ -32,18 +33,18 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ZetaSQLFieldSetExtractStatementVisitor extends ZetaSQLFieldSetExtractVisitor {
+public class ZetaSQLQueryPatternExtractStatementVisitor extends ZetaSQLQueryPatternExtractVisitor {
 
   private static final Logger LOGGER =
-      LoggerFactory.getLogger(ZetaSQLFieldSetExtractStatementVisitor.class);
+      LoggerFactory.getLogger(ZetaSQLQueryPatternExtractStatementVisitor.class);
   private static final String NOT_REGULAR_TABLE_PREFIX = "$";
 
   // Useful to build SQL expression from ResolvedNode.
   private final List<QueryPattern> subQueryPatterns = new ArrayList<>();
   private final String defaultProjectId;
 
-  public ZetaSQLFieldSetExtractStatementVisitor(String defaultProjectId,
-      SimpleCatalog catalog) {
+  public ZetaSQLQueryPatternExtractStatementVisitor(
+      String defaultProjectId, SimpleCatalog catalog) {
     super(catalog);
     this.defaultProjectId = defaultProjectId;
   }
@@ -89,7 +90,8 @@ public class ZetaSQLFieldSetExtractStatementVisitor extends ZetaSQLFieldSetExtra
     TableRefType type = TableRefType.valueOf(node.getJoinType().name());
     Optional<ATableId> tableIdRight = findTableInResolvedScan(node.getRightScan());
     tableIdRight.ifPresent(t -> addTableJoin(t, type));
-    if (/*!type.equals(JoinType.INNER)*/ true) {
+    if (
+    /*!type.equals(JoinType.INNER)*/ true) {
       // INNER JOINS are no longer supported until the fix on old school inner join syntax.
       this.getQueryPattern().addIneligibilityReason(CONTAINS_UNSUPPORTED_JOIN);
     }
@@ -121,8 +123,8 @@ public class ZetaSQLFieldSetExtractStatementVisitor extends ZetaSQLFieldSetExtra
    */
   @Override
   public void visit(ResolvedFilterScan node) {
-    FieldSetExtractVisitor visitor = new ZetaSQLFieldSetExtractFilterExprVisitor(
-        getCatalog());
+    QueryPatternExtractVisitor visitor =
+        new ZetaSQLQueryPatternExtractFilterExprVisitor(getCatalog());
     node.getFilterExpr().accept(visitor);
     this.getQueryPattern().merge(visitor.getQueryPattern());
     super.visit(node);
@@ -175,17 +177,15 @@ public class ZetaSQLFieldSetExtractStatementVisitor extends ZetaSQLFieldSetExtra
    *
    * @param node
    */
-  private void extractNewQueryPattern(ResolvedNodes.ResolvedScan node) {
+  private void extractNewQueryPattern(ResolvedScan node) {
     //
-    ZetaSQLFieldSetExtractStatementVisitor visitor =
-        new ZetaSQLFieldSetExtractStatementVisitor(defaultProjectId, getCatalog());
+    ZetaSQLQueryPatternExtractStatementVisitor visitor =
+        new ZetaSQLQueryPatternExtractStatementVisitor(defaultProjectId, getCatalog());
     node.accept(visitor);
     subQueryPatterns.addAll(visitor.getAllQueryPatterns());
   }
 
-  /**
-   * Add a ResolvedColumn as ReferenceField. Checks if the ResolvedColumn isn't an alias.
-   */
+  /** Add a ResolvedColumn as ReferenceField. Checks if the ResolvedColumn isn't an alias. */
   private void addReference(ResolvedColumn column) {
     Preconditions.checkNotNull(column, "Reference is null.");
     if (isColumnFromRegularTable(column)) {
@@ -194,9 +194,7 @@ public class ZetaSQLFieldSetExtractStatementVisitor extends ZetaSQLFieldSetExtra
     }
   }
 
-  /**
-   * Add ResolvedExpr as reference Simple cast method.
-   */
+  /** Add ResolvedExpr as reference Simple cast method. */
   private void addReference(ResolvedExpr expr) {
     final ResolvedColumnRef ref = (ResolvedColumnRef) expr;
     final ResolvedColumn column = ref.getColumn();

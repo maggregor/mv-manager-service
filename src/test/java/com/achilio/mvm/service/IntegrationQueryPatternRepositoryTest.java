@@ -24,22 +24,19 @@ public class IntegrationQueryPatternRepositoryTest {
 
   private static final String PROJECT_ID = "project";
 
-  private static final String DATASET_NAME = "dataset";
-  private static final String TABLE_REF1 = "project.dataset.table1";
-  private static final String COL_NAME1 = "col1";
-  private static final String COL_NAME2 = "col2";
+  private static final String EXPRESSION1 = "SUM(col1)";
+  private static final String EXPRESSION2 = "SUM(col2)";
   private static final FieldType FIELD_TYPE1 = FieldType.AGGREGATE;
 
-  @Autowired
-  private FieldRepository fieldRepository;
-  @Autowired
-  private QueryPatternRepository queryPatternRepository;
+  @Autowired private FieldRepository fieldRepository;
+  @Autowired private QueryPatternRepository queryPatternRepository;
 
   @Before
   public void setup() {
-    Field field1 = new Field(FIELD_TYPE1, COL_NAME1);
-    Field field2 = new Field(FIELD_TYPE1, COL_NAME2);
-    Field field3 = new Field(FIELD_TYPE1, COL_NAME2);
+    Field field1 = new Field(FIELD_TYPE1, EXPRESSION1);
+    Field field2 = new Field(FIELD_TYPE1, EXPRESSION2);
+    Field field3 = new Field(FIELD_TYPE1, EXPRESSION2);
+    Field field11 = new Field(FIELD_TYPE1, EXPRESSION1);
 
     QueryPattern queryPattern1 = new QueryPattern();
     QueryPattern queryPattern2 = new QueryPattern();
@@ -48,7 +45,7 @@ public class IntegrationQueryPatternRepositoryTest {
     queryPattern1.add(field1);
     queryPattern1.add(field2);
     queryPattern1.add(field3);
-    queryPattern2.add(field1);
+    queryPattern2.add(field11);
     queryPatternRepository.save(queryPattern1);
     queryPatternRepository.save(queryPattern2);
   }

@@ -1,6 +1,5 @@
 package com.achilio.mvm.service;
 
-import com.achilio.mvm.service.entities.QueryPattern;
 import com.achilio.mvm.service.visitors.fields.FieldSet;
 import java.util.List;
 
@@ -19,5 +18,5 @@ public interface MVGenerator {
    * @param fieldSet - Row field set
    * @return -
    */
-  List<QueryPattern> generate(List<QueryPattern> fieldSet);
+  List<FieldSet> generate(List<FieldSet> fieldSet);
 }

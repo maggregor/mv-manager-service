@@ -3,6 +3,8 @@ package com.achilio.mvm.service.visitors;
 import com.achilio.mvm.service.entities.AQuery;
 import com.achilio.mvm.service.entities.ATable;
 import com.achilio.mvm.service.entities.QueryPattern;
+import com.achilio.mvm.service.visitors.querypattern.QueryPatternExtract;
+import com.achilio.mvm.service.visitors.querypattern.ZetaSQLQueryPatternExtractEntryPointVisitor;
 import com.google.zetasql.Analyzer;
 import com.google.zetasql.AnalyzerOptions;
 import com.google.zetasql.LanguageOptions;
@@ -71,8 +73,8 @@ public class NewZetaSQLExtract extends ZetaSQLModelBuilder implements QueryPatte
     if (query.hasDefaultDataset()) {
       setDefaultDataset(query.getDefaultDataset());
     }
-    ZetaSQLFieldSetExtractEntryPointVisitor v =
-        new ZetaSQLFieldSetExtractEntryPointVisitor(query.getProjectId(), getRootCatalog());
+    ZetaSQLQueryPatternExtractEntryPointVisitor v =
+        new ZetaSQLQueryPatternExtractEntryPointVisitor(query.getProjectId(), getRootCatalog());
     resolveStatementAndVisit(query.getQuery(), v);
     return v.getAllQueryPatterns();
   }

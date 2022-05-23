@@ -2,10 +2,10 @@ package com.achilio.mvm.service;
 
 import com.achilio.mvm.service.entities.AQuery;
 import com.achilio.mvm.service.visitors.ATableId;
-import com.achilio.mvm.service.visitors.FieldSetExtract;
 import com.achilio.mvm.service.visitors.fields.DefaultFieldSet;
 import com.achilio.mvm.service.visitors.fields.Field;
 import com.achilio.mvm.service.visitors.fields.FieldSet;
+import com.achilio.mvm.service.visitors.fieldsets.FieldSetExtract;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
